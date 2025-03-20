@@ -39,6 +39,12 @@ object AppModule {
         install(Logging) {
             level = LogLevel.INFO
         }
+        // header for identifikasjon
+        defaultRequest {
+            headers {
+                append("RocketApplication/1.0 https://github.uio.no/IN2000-V25/team-21 (torbjeh@uio.no.com)")
+            }
+        }
     }
 
     // ✅ GRIB Client (binary or isobaric data)
