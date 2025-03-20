@@ -50,7 +50,8 @@ data class TimeSeries(
 
 @Serializable
 data class Data(
-    val instant: Instant
+    val instant: Instant,
+    @SerialName("next_1_hours")             val next1Hours: NextHours
 )
 
 @Serializable
@@ -65,10 +66,19 @@ data class Details(
     @SerialName("wind_speed")               val windSpeed: Double,
     @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double,
     @SerialName("wind_from_direction")      val windFromDirection: Double,
-    @SerialName("precipitation_amount")     val precipitationAmount: Double,
     @SerialName("fog_area_fraction")        val fogAreaFraction: Double,
     @SerialName("dew_point_temperature")    val dewPointTemperature: Double,
-    @SerialName("cloud_area_fraction")      val cloudAreaFraction: Double,
+    @SerialName("cloud_area_fraction")      val cloudAreaFraction: Double
+)
+
+@Serializable
+data class NextHours(
+    val details: NextHoursDetails
+)
+
+@Serializable
+data class NextHoursDetails(
+    @SerialName("precipitation_amount")     val precipitationAmount: Double,
     @SerialName("probability_of_thunder")   val probabilityOfThunder: Double
 )
 
