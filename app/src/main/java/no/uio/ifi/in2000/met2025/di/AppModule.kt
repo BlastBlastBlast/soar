@@ -7,13 +7,10 @@ import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import no.uio.ifi.in2000.data.grib.GribDataSource
-import no.uio.ifi.in2000.data.grib.GribRepository
-import no.uio.ifi.in2000.data.weather.WeatherDataSource
-import no.uio.ifi.in2000.data.weather.WeatherRepository
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -40,11 +37,11 @@ object AppModule {
             level = LogLevel.INFO
         }
         // header for identifikasjon
-        defaultRequest {
-            headers {
-                append("RocketApplication/1.0 https://github.uio.no/IN2000-V25/team-21 (torbjeh@uio.no.com)")
-            }
-        }
+//        defaultRequest {
+//            headers {
+//                append("RocketApplication/1.0 https://github.uio.no/IN2000-V25/team-21 (torbjeh@uio.no.com)")
+//            }
+//        }
     }
 
     // ✅ GRIB Client (binary or isobaric data)

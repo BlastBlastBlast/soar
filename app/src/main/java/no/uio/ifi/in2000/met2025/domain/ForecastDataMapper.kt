@@ -9,7 +9,6 @@ import javax.inject.Inject
 class ForecastDataMapper @Inject constructor() {
     fun mapForecastDataToDisplayData(forecastData: ForecastData): WeatherCardViewmodel.ForecastDisplayData {
 
-
         val temperatures = forecastData.timeSeries.associate { it.time to it.values.airTemperature }
         val humidities = forecastData.timeSeries.associate { it.time to it.values.relativeHumidity }
         val windSpeeds = forecastData.timeSeries.associate { it.time to it.values.windSpeed }
