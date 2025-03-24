@@ -17,11 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 
 @Composable
 fun HourlyExpandableCard(
-    displayData: WeatherCardViewmodel.ForecastDisplayData,
-    hour: String,
+    forecastItem: ForecastDataItem,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -34,50 +34,51 @@ fun HourlyExpandableCard(
         Column(modifier = Modifier.padding(16.dp)) {
             // Summary section for the hour
             Text(
-                text = "Time: $hour",
+                text = "Time: ${forecastItem.time}",
                 style = MaterialTheme.typography.headlineSmall
             )
             Text(
-                text = "Temperature: ${displayData.temperatures[hour]}°C",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Humidity: ${displayData.humidities[hour]}%",
+                text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium
             )
             // Extra details shown when card is tapped
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     Text(
-                        text = "Wind Speed: ${displayData.windSpeeds[hour]} m/s",
+                        text = "Humidity: ${forecastItem.values.relativeHumidity}%",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Wind Gust: ${displayData.windGusts[hour]} m/s",
+                        text = "Wind Speed: ${forecastItem.values.windSpeed} m/s",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Wind Direction: ${displayData.windDirections[hour]}°",
+                        text = "Wind Gust: ${forecastItem.values.windSpeedOfGust} m/s",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Precipitation: ${displayData.precipitations[hour]} mm",
+                        text = "Wind Direction: ${forecastItem.values.windFromDirection}°",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Visibility: ${displayData.visibilities[hour]}%",
+                        text = "Precipitation: ${forecastItem.values.precipitationAmount} mm",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    // Here, we're reusing fogAreaFraction as a stand-in for "visibility"
+                    Text(
+                        text = "Visibility: ${forecastItem.values.fogAreaFraction}%",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Dew Point: ${displayData.dewPoints[hour]}°C",
+                        text = "Dew Point: ${forecastItem.values.dewPointTemperature}°C",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Cloud Cover: ${displayData.cloudCovers[hour]}%",
+                        text = "Cloud Cover: ${forecastItem.values.cloudAreaFraction}%",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Thunder Prob: ${displayData.thunderProbabilities[hour]}%",
+                        text = "Thunder Prob: ${forecastItem.values.probabilityOfThunder}%",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
