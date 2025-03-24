@@ -22,6 +22,7 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
         _coordinates.value = Pair(lat, lon)
     }
 
+    // TODO: geocoding -> fetch coordinates from address
     // Dummy geocoding function. Replace with a real geocoding service if needed.
     fun geocodeAddress(address: String): Pair<Double, Double>? {
         return if (address.contains("NYC", ignoreCase = true)) {
