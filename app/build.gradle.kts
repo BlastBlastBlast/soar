@@ -10,7 +10,7 @@ if (secretsPropertiesFile.exists()) {
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlin.android") version "2.1.20"
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
@@ -71,11 +71,10 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.appcompat)
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     //ksp
-    implementation("com.google.dagger:hilt-compiler:2.51.1")
-    ksp("com.google.dagger:hilt-compiler:2.51.1")
+    ksp("com.google.dagger:hilt-compiler:2.55")
     // Ktor
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)

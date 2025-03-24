@@ -1,7 +1,7 @@
 package no.uio.ifi.in2000.met2025.domain
 
 import no.uio.ifi.in2000.met2025.data.models.ForecastData
-import no.uio.ifi.in2000.met2025.ui.home.WeatherCardViewmodel
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import javax.inject.Inject
 
 // TODO: Put this business logic in Repo

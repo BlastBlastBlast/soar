@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.home
+package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
