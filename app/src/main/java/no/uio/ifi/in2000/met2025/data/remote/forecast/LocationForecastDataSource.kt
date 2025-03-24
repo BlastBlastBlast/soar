@@ -1,12 +1,26 @@
 package no.uio.ifi.in2000.met2025.data.remote.forecast
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.url
+import javax.inject.Inject
+import javax.inject.Named
+import no.uio.ifi.in2000.met2025.data.models.ForecastDataResponse
+import java.math.RoundingMode
 
-class Locationforecast @Inject constructor(
-    val httpClient: HttpClient //TODO: Spesifiser Json client
+class LocationForecastDataSource @Inject constructor(
+    private val httpClient: HttpClient //TODO: Spesifiser Json client
 ) {
-    fun getLocationforecast() {
-        // This is a dummy function
+    suspend fun getForecastDataResponse(lat: Double, lon: Double): Result<ForecastDataResponse> {
+        return try {
+            Result.success(httpClient.get {
+                url("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat.toBigDecimal().setScale(2, RoundingMode.HALF_UP).toDouble()}&lon=${lon.toBigDecimal().setScale(2, RoundingMode.HALF_UP).toDouble()}")
+            }.body())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
     }
 }
 
