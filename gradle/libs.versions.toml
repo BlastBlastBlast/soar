@@ -1,5 +1,6 @@
 [versions]
 agp = "8.9.0"
+android = "11.10.3"
 hiltAndroid = "2.55"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
@@ -18,8 +19,10 @@ activityCompose = "1.10.1"
 composeBom = "2025.03.00"
 logbackClassic = "1.5.17"
 kotlinxSerializationJson = "1.8.0"
+appcompat = "1.7.0"
 
 [libraries]
+android = { module = "com.mapbox.maps:android", version.ref = "android" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 ch-logback-classic = { module = "ch.qos.logback:logback-classic" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
@@ -46,6 +49,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktorClientSerialization" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

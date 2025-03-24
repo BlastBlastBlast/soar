@@ -7,10 +7,12 @@ import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
+import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -18,14 +20,14 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // Shared JSON config
+    // Shared JSON configuration
     private val jsonConfig = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
         isLenient = true
     }
 
-    // ✅ JSON Client (Locationforecast)
+    // Provide a JSON client for fetching location forecast data.
     @Provides
     @Singleton
     @Named("jsonClient")
@@ -36,15 +38,9 @@ object AppModule {
         install(Logging) {
             level = LogLevel.INFO
         }
-        // header for identifikasjon
-//        defaultRequest {
-//            headers {
-//                append("RocketApplication/1.0 https://github.uio.no/IN2000-V25/team-21 (torbjeh@uio.no.com)")
-//            }
-//        }
     }
 
-    // ✅ GRIB Client (binary or isobaric data)
+    // Optionally, provide a GRIB client if you need it for binary or isobaric data.
     @Provides
     @Singleton
     @Named("gribClient")
@@ -55,16 +51,19 @@ object AppModule {
         expectSuccess = false
     }
 
-    // ✅ Weather Repository
-    // TODO
+    // Provide the LocationForecastDataSource using the JSON client.
+    @Provides
+    @Singleton
+    fun provideLocationForecastDataSource(@Named("jsonClient") client: HttpClient): LocationForecastDataSource {
+        return LocationForecastDataSource(client)
+    }
 
-    // ✅ Grib Repository
-    // TODO
-
-    // ✅ Weather Data Source
-    // TODO
-
-    // ✅ Grib Data Source
-    // TODO
-
+    // Provide the LocationForecastRepository which depends on the data source.
+    @Provides
+    @Singleton
+    fun provideLocationForecastRepository(
+        dataSource: LocationForecastDataSource
+    ): LocationForecastRepository {
+        return LocationForecastRepository(dataSource)
+    }
 }
