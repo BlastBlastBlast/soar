@@ -1,5 +1,5 @@
 // Kotlin
-package no.uio.ifi.in2000.met2025.ui.home
+package no.uio.ifi.in2000.met2025.ui.screens.home
 
 import android.Manifest
 import android.widget.Toast
