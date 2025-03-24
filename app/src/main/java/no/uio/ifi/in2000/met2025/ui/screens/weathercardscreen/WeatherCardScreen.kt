@@ -10,10 +10,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.components.HourlyExpandableCard
 
 @Composable
-fun WeatherCardScreen(viewModel: WeatherCardViewmodel) {
+fun WeatherCardScreen(viewModel: WeatherCardViewmodel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     ScreenContent(uiState = uiState, onLoadForecast = { lat, lon ->
         viewModel.loadForecast(lat, lon)

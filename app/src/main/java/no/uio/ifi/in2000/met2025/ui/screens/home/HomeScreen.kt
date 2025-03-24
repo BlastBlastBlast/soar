@@ -39,7 +39,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
             MapboxMap(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.7f),
+                    .weight(0.6f),
                 mapViewportState = rememberMapViewportState {
                     setCameraOptions {
                         center(Point.fromLngLat(coordinates.second, coordinates.first))
@@ -53,23 +53,27 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.3f)
+                    .weight(0.4f)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(text = "Coordinates: Lat = ${coordinates.first}, Lon = ${coordinates.second}")
-                OutlinedTextField(
-                    value = latInput,
-                    onValueChange = { latInput = it },
-                    label = { Text("Latitude") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = lonInput,
-                    onValueChange = { lonInput = it },
-                    label = { Text("Longitude") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = latInput,
+                        onValueChange = { latInput = it },
+                        label = { Text("Latitude") },
+                        modifier = Modifier.fillMaxWidth().weight(0.5f)
+                    )
+                    OutlinedTextField(
+                        value = lonInput,
+                        onValueChange = { lonInput = it },
+                        label = { Text("Longitude") },
+                        modifier = Modifier.fillMaxWidth().weight(0.5f)
+                    )
+                }
+
                 OutlinedTextField(
                     value = addressInput,
                     onValueChange = { addressInput = it },
