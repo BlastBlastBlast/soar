@@ -1,5 +1,7 @@
 [versions]
 agp = "8.9.0"
+cdmCore = "5.7.0"
+gradle = "7.0.4"
 hiltAndroid = "2.55"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
@@ -14,12 +16,15 @@ ktorClientSerialization = "3.1.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
 composeBom = "2025.03.00"
-logbackClassic = "1.5.17"
 kotlinxSerializationJson = "1.8.0"
+logbackClassic = "1.5.17"
+netcdfAll = "5.5.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-ch-logback-classic = { module = "ch.qos.logback:logback-classic" }
+cdm-core = { module = "edu.ucar:cdm-core", version.ref = "cdmCore" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
+grib = { module = "edu.ucar:grib", version.ref = "cdmCore" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -42,6 +47,7 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorCli
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorClientLogging" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktorClientSerialization" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }
+netcdf-all = { module = "edu.ucar:netcdfAll", version.ref = "netcdfAll" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

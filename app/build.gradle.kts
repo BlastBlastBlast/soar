@@ -72,6 +72,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(kotlin("stdlib"))
+
+    // Core netCDF-Java library
+    implementation(libs.cdm.core)
+    implementation(libs.grib)
+    implementation(libs.netcdf.all)
 }
 
 // Allow references to generated code

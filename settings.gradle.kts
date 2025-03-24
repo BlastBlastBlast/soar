@@ -9,13 +9,20 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            url = uri("https://artifacts.unidata.ucar.edu/repository/unidata-all/")
+        }
     }
 }
+
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)  // This will prevent repositories in build.gradle
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://artifacts.unidata.ucar.edu/repository/unidata-all/")
+        }
     }
 }
 
