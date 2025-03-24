@@ -7,6 +7,7 @@ if (secretsPropertiesFile.exists()) {
     secretsProperties.load(FileInputStream(secretsPropertiesFile))
 }
 
+val ktor_version: String by project
 
 plugins {
     alias(libs.plugins.android.application)
@@ -75,13 +76,20 @@ dependencies {
 
     //ksp
     ksp("com.google.dagger:hilt-compiler:2.55")
-    // Ktor
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.serialization)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.kotlinx.json)
+
+    //Ktor
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-serialization:$ktor_version")
+    implementation("io.ktor:ktor-client-logging:$ktor_version")
+    implementation("io.ktor:ktor-client-json:$ktor_version")
+    implementation("io.ktor:ktor-client-logging-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-serialization-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+
+    //implementation("io.ktor:ktor-client-serialization-native:$ktor_version")
+
     implementation(libs.kotlinx.serialization.json.v132)
 
     // Permissions

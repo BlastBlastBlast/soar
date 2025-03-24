@@ -7,8 +7,10 @@ import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
@@ -27,7 +29,7 @@ object AppModule {
         isLenient = true
     }
 
-    // Provide a JSON client for fetching location forecast data.
+    // Provide a JSON client for fetching location forecast data over HTTPS.
     @Provides
     @Singleton
     @Named("jsonClient")
@@ -38,17 +40,10 @@ object AppModule {
         install(Logging) {
             level = LogLevel.INFO
         }
-    }
-
-    // Optionally, provide a GRIB client if you need it for binary or isobaric data.
-    @Provides
-    @Singleton
-    @Named("gribClient")
-    fun provideGribClient(): HttpClient = HttpClient(CIO) {
-        install(Logging) {
-            level = LogLevel.HEADERS // Only headers for binary files
+        // Set a default User-Agent header as required by the MET API.
+        defaultRequest {
+            header("TEAM21", "RakettOppskyting larswt@uio.no")
         }
-        expectSuccess = false
     }
 
     // Provide the LocationForecastDataSource using the JSON client.

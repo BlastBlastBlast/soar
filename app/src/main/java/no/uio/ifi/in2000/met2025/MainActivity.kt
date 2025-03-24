@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -13,7 +14,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-                   HomeScreen()
+                   WeatherCardScreen()
                 }
         }
 }
