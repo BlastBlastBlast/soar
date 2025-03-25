@@ -15,15 +15,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.mapbox.geojson.Point
-import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import no.uio.ifi.in2000.met2025.ui.maps.MapView
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
-    onNavigateToWeather: (Double, Double) -> Unit  // New callback parameter.
+    onNavigateToWeather: (Double, Double) -> Unit  // Callback to navigate to Weather screen.
 ) {
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val context = LocalContext.current
@@ -36,17 +34,18 @@ fun HomeScreen(
 
         Column(modifier = Modifier.fillMaxSize()) {
             // Map occupies 70% of the screen.
-            MapboxMap(
+            MapView(
+                latitude = coordinates.first,
+                longitude = coordinates.second,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.65f),
-                mapViewportState = rememberMapViewportState {
-                    setCameraOptions {
-                        center(Point.fromLngLat(coordinates.second, coordinates.first))
-                        zoom(12.0)
-                        pitch(0.0)
-                        bearing(0.0)
-                    }
+                onMarkerPlaced = { lat, lon ->
+                    // When the marker is placed, update the input fields.
+                    latInput = lat.toString()
+                    lonInput = lon.toString()
+                    // Optionally, update the ViewModel.
+                    viewModel.updateCoordinates(lat, lon)
                 }
             )
             // Input area occupies 30% of the screen.
@@ -106,12 +105,16 @@ fun HomeScreen(
                                 onNavigateToWeather(coords.first, coords.second)
                             } else {
                                 Toast.makeText(
-                                    context, "Unable to convert address to coordinates", Toast.LENGTH_SHORT
+                                    context,
+                                    "Unable to convert address to coordinates",
+                                    Toast.LENGTH_SHORT
                                 ).show()
                             }
                         } else {
                             Toast.makeText(
-                                context, "Please enter coordinates or an address", Toast.LENGTH_SHORT
+                                context,
+                                "Please enter coordinates or an address",
+                                Toast.LENGTH_SHORT
                             ).show()
                         }
                     },

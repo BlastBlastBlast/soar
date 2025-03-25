@@ -1,11 +1,4 @@
-import java.util.Properties
-import java.io.FileInputStream
 
-val secretsPropertiesFile = rootProject.file("secrets.properties")
-val secretsProperties = Properties()
-if (secretsPropertiesFile.exists()) {
-    secretsProperties.load(FileInputStream(secretsPropertiesFile))
-}
 
 val ktor_version: String by project
 
@@ -28,16 +21,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        // Expose the Mapbox token as a BuildConfig field.
-        buildConfigField(
-            "String",
-            "MAPBOX_ACCESS_TOKEN",
-            "\"${secretsProperties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""}\""
-        )
-
-        // Also, generate a string resource for Mapbox.
-        resValue("string", "mapbox_access_token", "\"${secretsProperties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""}\"")
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     packaging {
