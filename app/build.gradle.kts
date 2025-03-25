@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "no.uio.ifi.in2000.met2025"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -41,9 +41,18 @@ android {
 
     packaging {
         resources {
-            excludes += setOf("META-INF/INDEX.LIST")
+            excludes += setOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/third-party-licenses/erddap/COHORT_LICENSE",
+                "META-INF/third-party-licenses/edal/LICENSE",
+                "META-INF/DEPENDENCIES",
+                "META-INF/third-party-licenses/junit/LICENSE",
+                "META-INF/third-party-licenses/gretty/LICENSE",
+                "META-INF/third-party-licenses/NOAA_LICENSE"
+            )
         }
     }
+
 
     buildTypes {
         release {
@@ -116,8 +125,9 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
-    // Core netCDF-Java library
-    implementation(libs.cdm.core)
-    implementation(libs.grib)
-    implementation(libs.netcdf.all)
+    //netcdf and dependencies
+    implementation(libs.cdm.core)  // Core library
+    implementation(libs.grib)  // GRIB1 & GRIB2 support
+    implementation(libs.guava) //Needed for immutablelist
+
 }

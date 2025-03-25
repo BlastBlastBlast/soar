@@ -5,6 +5,8 @@ import androidx.annotation.RequiresApi
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.url
+import java.math.RoundingMode
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Named
@@ -16,13 +18,16 @@ class IsobaricDataSource @Inject constructor(
     // - Hente "available data" som viser hvilke tidsrom det er data ute for
     // - Formulere
 
-    private val url = "https://api.met.no/weatherapi/isobaricgrib/1.0/grib2?area=southern_norway"
+    private val dsUrl = "https://api.met.no/weatherapi/isobaricgrib/1.0/grib2?area=southern_norway"
 
-    suspend fun fetchCurrentIsobaricgribData() : ByteArray{
-        try {
-            return httpClient.get(url).body<ByteArray>()
+    suspend fun fetchCurrentIsobaricgribData() : Result<ByteArray>{
+        return try {
+            Result.success(httpClient.get {
+                url(dsUrl)
+            }.body())
         } catch (e: Exception) {
-            throw e
+            val errorMessage = "Error fetching grib data: ${e.message}"
+            Result.failure(Exception(errorMessage))
         }
     }
 
