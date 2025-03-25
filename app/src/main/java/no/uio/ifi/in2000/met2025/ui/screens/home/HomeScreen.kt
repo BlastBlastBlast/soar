@@ -1,4 +1,3 @@
-// Kotlin
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
 import android.Manifest
@@ -22,24 +21,25 @@ import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportS
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
-    // Use the new API: check status.isGranted instead of hasPermission.
+fun HomeScreen(
+    viewModel: HomeScreenViewModel = hiltViewModel(),
+    onNavigateToWeather: (Double, Double) -> Unit  // New callback parameter.
+) {
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val context = LocalContext.current
 
     if (locationPermissionState.status.isGranted) {
-        // Permission granted; show the main UI.
         val coordinates by viewModel.coordinates.collectAsState()
         var latInput by remember { mutableStateOf("") }
         var lonInput by remember { mutableStateOf("") }
         var addressInput by remember { mutableStateOf("") }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Map takes 70% of the screen.
+            // Map occupies 70% of the screen.
             MapboxMap(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.6f),
+                    .weight(0.65f),
                 mapViewportState = rememberMapViewportState {
                     setCameraOptions {
                         center(Point.fromLngLat(coordinates.second, coordinates.first))
@@ -49,11 +49,11 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
                     }
                 }
             )
-            // Input area takes 30% of the screen.
+            // Input area occupies 30% of the screen.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.4f)
+                    .weight(0.35f)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -64,13 +64,17 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
                         value = latInput,
                         onValueChange = { latInput = it },
                         label = { Text("Latitude") },
-                        modifier = Modifier.fillMaxWidth().weight(0.5f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.5f)
                     )
                     OutlinedTextField(
                         value = lonInput,
                         onValueChange = { lonInput = it },
                         label = { Text("Longitude") },
-                        modifier = Modifier.fillMaxWidth().weight(0.5f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.5f)
                     )
                 }
 
@@ -87,19 +91,28 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
                             val lon = lonInput.toDoubleOrNull()
                             if (lat != null && lon != null) {
                                 viewModel.updateCoordinates(lat, lon)
+                                // Navigate to the Weather screen.
+                                onNavigateToWeather(lat, lon)
                             } else {
                                 Toast.makeText(
-                                    context, "Invalid latitude or longitude", Toast.LENGTH_SHORT).show()
+                                    context, "Invalid latitude or longitude", Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else if (addressInput.isNotBlank()) {
                             val coords = viewModel.geocodeAddress(addressInput)
                             if (coords != null) {
                                 viewModel.updateCoordinates(coords.first, coords.second)
+                                // Navigate to the Weather screen using geocoded coordinates.
+                                onNavigateToWeather(coords.first, coords.second)
                             } else {
-                                Toast.makeText(context, "Unable to convert address to coordinates", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context, "Unable to convert address to coordinates", Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else {
-                            Toast.makeText(context, "Please enter coordinates or an address", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context, "Please enter coordinates or an address", Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -109,7 +122,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
             }
         }
     } else {
-        // If permission is not granted, show a message and button to request it.
+        // Request permission if not granted.
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

@@ -89,7 +89,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
 
     //implementation("io.ktor:ktor-client-serialization-native:$ktor_version")
-
     implementation(libs.kotlinx.serialization.json.v132)
 
     // Permissions
@@ -122,3 +121,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+
+//TEST LINE

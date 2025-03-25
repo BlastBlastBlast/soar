@@ -5,8 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
+import no.uio.ifi.in2000.met2025.ui.navigation.AppNavLauncher
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -14,7 +13,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-                   WeatherCardScreen()
-                }
+            // Launch the navigation graph.
+            AppNavLauncher()
         }
+    }
 }
