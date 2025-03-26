@@ -3,17 +3,115 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.remote.Isobaric.IsobaricDataSource
+import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
-import ucar.nc2.grib.grib2.Grib2DataReader
-import ucar.nc2.grib.grib2.Grib2Record
+import ucar.nc2.Variable
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 import javax.inject.Inject
 
 
 class IsobaricgribRepository @Inject constructor(
     private val isobaricDataSource: IsobaricDataSource
 ) {
+
+    suspend fun getCurrentIsobaricgribData() {
+        try {
+            val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricgribData()
+            val byteArray = isobaricData.fold(
+                onSuccess = { byteArray ->
+                    byteArray
+                },
+                onFailure = { exception ->
+                    println("Failed to fetch the data: ${exception.message}")
+                    ByteArray(0)
+                }
+            )
+
+            val tempFile = withContext(Dispatchers.IO) {
+                File.createTempFile("isobaric", ".grib2")
+            }.apply {
+                writeBytes(byteArray)
+            }
+
+            // Open the file as a NetcdfFile
+            NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
+                // List available variables
+                val variableNames = netcdfFile.variables.map { it.fullName }
+                println("Available Variables: $variableNames")
+
+                // Example: Accessing data from a specific variable (replace with your desired variable)
+                val targetVariableName = "var_0_2_100_L103" // Replace with a real variable name from your file
+                val targetVariable: Variable? = netcdfFile.findVariable(targetVariableName)
+                if (targetVariable != null) {
+                    val data = targetVariable.read() // Read the data
+                    when (data) {
+                        is ArrayFloat.D4 -> {
+                            val floatData = data as ArrayFloat.D4
+                            println("Data is of type ArrayFloat.D4, example of access : ${floatData.get(0, 0, 0, 0)}")
+                        }
+
+                        // Add more cases for other Array types if needed
+                        is ucar.ma2.ArrayDouble.D4 -> {
+                            val doubleData = data as ucar.ma2.ArrayDouble.D4
+                            println("Data is of type ArrayDouble.D4, example of access : ${doubleData.get(0, 0, 0, 0)}")
+                        }
+                        is ucar.ma2.ArrayInt.D4 -> {
+                            val intData = data as ucar.ma2.ArrayInt.D4
+                            println("Data is of type ArrayInt.D4, example of access : ${intData.get(0, 0, 0, 0)}")
+                        }
+                        //you can add more cases for other data types here
+                        else -> {
+                            println("Unsupported data type: ${data::class.java.name}")
+                            println("Please add a new case in the when condition to support this data type.")
+                        }
+                    }
+                } else {
+                    println("Variable '$targetVariableName' not found.")
+                }
+            }
+            //delete the tempfile
+            tempFile.delete()
+        } catch (e: Exception) {
+            println("Error processing grib file: ${e.message}")
+        }
+    }
+}
+
+/*
+class Grib2Factory {
+
+    companion object {
+        /**
+         * Reads all GRIB2 records from the given byte array.
+         */
+        fun readAllGrib2Records(byteArray: ByteArray): List<Grib2Record> {
+            val records = mutableListOf<Grib2Record>()
+            val inputStream: InputStream = ByteArrayInputStream(byteArray)
+
+            try {
+                // Using Grib2RecordReader to read records
+                val reader = Grib2RecordReader(inputStream)
+
+                // Read each record in the GRIB2 data
+                var record: Grib2Record? = reader.readRecord()
+                while (record != null) {
+                    records.add(record)
+                    record = reader.readRecord()  // Continue reading next record
+                }
+
+                reader.close()  // Close reader when done
+            } catch (e: Exception) {
+                println("Error reading GRIB2 records: ${e.message}")
+            }
+
+            return records
+        }
+    }
+}
+
+
 
     suspend fun getCurrentIsobaricgribData() {
 
@@ -76,34 +174,4 @@ class IsobaricgribRepository @Inject constructor(
 
     }
 }
-
-class Grib2Factory {
-
-    companion object {
-        /**
-         * Reads all GRIB2 records from the given byte array.
-         */
-        fun readAllGrib2Records(byteArray: ByteArray): List<Grib2Record> {
-            val records = mutableListOf<Grib2Record>()
-            val inputStream: InputStream = ByteArrayInputStream(byteArray)
-
-            try {
-                // Using Grib2RecordReader to read records
-                val reader = Grib2RecordReader(inputStream)
-
-                // Read each record in the GRIB2 data
-                var record: Grib2Record? = reader.readRecord()
-                while (record != null) {
-                    records.add(record)
-                    record = reader.readRecord()  // Continue reading next record
-                }
-
-                reader.close()  // Close reader when done
-            } catch (e: Exception) {
-                println("Error reading GRIB2 records: ${e.message}")
-            }
-
-            return records
-        }
-    }
-}
+*/
