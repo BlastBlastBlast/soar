@@ -33,14 +33,15 @@ data class Units(
     @SerialName("air_temperature")          val airTemperature: String,
     @SerialName("relative_humidity")        val relativeHumidity: String,
     @SerialName("wind_speed")               val windSpeed: String,
-    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: String,
+    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: String = "not_included",
     @SerialName("wind_from_direction")      val windFromDirection: String,
     @SerialName("precipitation_amount")     val precipitationAmount: String,
-    @SerialName("fog_area_fraction")        val fogAreaFraction: String,
-    @SerialName("dew_point_temperature")    val dewPointTemperature: String,
+    @SerialName("fog_area_fraction")        val fogAreaFraction: String = "not_included",
+    @SerialName("dew_point_temperature")    val dewPointTemperature: String = "not_included",
     @SerialName("cloud_area_fraction")      val cloudAreaFraction: String,
-    @SerialName("probability_of_thunder")   val probabilityOfThunder: String
+    @SerialName("probability_of_thunder")   val probabilityOfThunder: String = "not_included"
 )
+
 
 @Serializable
 data class TimeSeries(
@@ -51,7 +52,7 @@ data class TimeSeries(
 @Serializable
 data class Data(
     val instant: Instant,
-    @SerialName("next_1_hours")             val next1Hours: NextHours
+    @SerialName("next_1_hours")             val next1Hours: NextHours? = null
 )
 
 @Serializable
@@ -64,10 +65,10 @@ data class Details(
     @SerialName("air_temperature")          val airTemperature: Double,
     @SerialName("relative_humidity")        val relativeHumidity: Double,
     @SerialName("wind_speed")               val windSpeed: Double,
-    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double,
+    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double = 0.0,
     @SerialName("wind_from_direction")      val windFromDirection: Double,
-    @SerialName("fog_area_fraction")        val fogAreaFraction: Double,
-    @SerialName("dew_point_temperature")    val dewPointTemperature: Double,
+    @SerialName("fog_area_fraction")        val fogAreaFraction: Double = 0.0,
+    @SerialName("dew_point_temperature")    val dewPointTemperature: Double = 0.0,
     @SerialName("cloud_area_fraction")      val cloudAreaFraction: Double
 )
 

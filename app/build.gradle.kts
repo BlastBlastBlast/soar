@@ -1,12 +1,6 @@
-import java.util.Properties
-import java.io.FileInputStream
 
-val secretsPropertiesFile = rootProject.file("secrets.properties")
-val secretsProperties = Properties()
-if (secretsPropertiesFile.exists()) {
-    secretsProperties.load(FileInputStream(secretsPropertiesFile))
-}
 
+val ktor_version: String by project
 
 plugins {
     alias(libs.plugins.android.application)
@@ -27,16 +21,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        // Expose the Mapbox token as a BuildConfig field.
-        buildConfigField(
-            "String",
-            "MAPBOX_ACCESS_TOKEN",
-            "\"${secretsProperties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""}\""
-        )
-
-        // Also, generate a string resource for Mapbox.
-        resValue("string", "mapbox_access_token", "\"${secretsProperties.getProperty("MAPBOX_ACCESS_TOKEN") ?: ""}\"")
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     packaging {
@@ -84,13 +68,19 @@ dependencies {
 
     //ksp
     ksp("com.google.dagger:hilt-compiler:2.55")
-    // Ktor
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.serialization)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.kotlinx.json)
+
+    //Ktor
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-serialization:$ktor_version")
+    implementation("io.ktor:ktor-client-logging:$ktor_version")
+    implementation("io.ktor:ktor-client-json:$ktor_version")
+    implementation("io.ktor:ktor-client-logging-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-serialization-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+
+    //implementation("io.ktor:ktor-client-serialization-native:$ktor_version")
     implementation(libs.kotlinx.serialization.json.v132)
 
     // Permissions
@@ -131,3 +121,5 @@ dependencies {
     implementation(libs.guava) //Needed for immutablelist
 
 }
+
+//TEST LINE

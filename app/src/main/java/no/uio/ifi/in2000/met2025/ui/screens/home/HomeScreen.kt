@@ -1,4 +1,3 @@
-// Kotlin
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
 import android.Manifest
@@ -16,60 +15,68 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.mapbox.geojson.Point
-import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import no.uio.ifi.in2000.met2025.ui.maps.MapView
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
-    // Use the new API: check status.isGranted instead of hasPermission.
+fun HomeScreen(
+    viewModel: HomeScreenViewModel = hiltViewModel(),
+    onNavigateToWeather: (Double, Double) -> Unit  // Callback to navigate to Weather screen.
+) {
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val context = LocalContext.current
 
     if (locationPermissionState.status.isGranted) {
-        // Permission granted; show the main UI.
         val coordinates by viewModel.coordinates.collectAsState()
         var latInput by remember { mutableStateOf("") }
         var lonInput by remember { mutableStateOf("") }
         var addressInput by remember { mutableStateOf("") }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Map takes 70% of the screen.
-            MapboxMap(
+            // Map occupies 70% of the screen.
+            MapView(
+                latitude = coordinates.first,
+                longitude = coordinates.second,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.7f),
-                mapViewportState = rememberMapViewportState {
-                    setCameraOptions {
-                        center(Point.fromLngLat(coordinates.second, coordinates.first))
-                        zoom(12.0)
-                        pitch(0.0)
-                        bearing(0.0)
-                    }
+                    .weight(0.65f),
+                onMarkerPlaced = { lat, lon ->
+                    // When the marker is placed, update the input fields.
+                    latInput = lat.toString()
+                    lonInput = lon.toString()
+                    // Optionally, update the ViewModel.
+                    viewModel.updateCoordinates(lat, lon)
                 }
             )
-            // Input area takes 30% of the screen.
+            // Input area occupies 30% of the screen.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.3f)
+                    .weight(0.35f)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(text = "Coordinates: Lat = ${coordinates.first}, Lon = ${coordinates.second}")
-                OutlinedTextField(
-                    value = latInput,
-                    onValueChange = { latInput = it },
-                    label = { Text("Latitude") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = lonInput,
-                    onValueChange = { lonInput = it },
-                    label = { Text("Longitude") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = latInput,
+                        onValueChange = { latInput = it },
+                        label = { Text("Latitude") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.5f)
+                    )
+                    OutlinedTextField(
+                        value = lonInput,
+                        onValueChange = { lonInput = it },
+                        label = { Text("Longitude") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.5f)
+                    )
+                }
+
                 OutlinedTextField(
                     value = addressInput,
                     onValueChange = { addressInput = it },
@@ -83,19 +90,32 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
                             val lon = lonInput.toDoubleOrNull()
                             if (lat != null && lon != null) {
                                 viewModel.updateCoordinates(lat, lon)
+                                // Navigate to the Weather screen.
+                                onNavigateToWeather(lat, lon)
                             } else {
                                 Toast.makeText(
-                                    context, "Invalid latitude or longitude", Toast.LENGTH_SHORT).show()
+                                    context, "Invalid latitude or longitude", Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else if (addressInput.isNotBlank()) {
                             val coords = viewModel.geocodeAddress(addressInput)
                             if (coords != null) {
                                 viewModel.updateCoordinates(coords.first, coords.second)
+                                // Navigate to the Weather screen using geocoded coordinates.
+                                onNavigateToWeather(coords.first, coords.second)
                             } else {
-                                Toast.makeText(context, "Unable to convert address to coordinates", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Unable to convert address to coordinates",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         } else {
-                            Toast.makeText(context, "Please enter coordinates or an address", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Please enter coordinates or an address",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -105,7 +125,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
             }
         }
     } else {
-        // If permission is not granted, show a message and button to request it.
+        // Request permission if not granted.
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
