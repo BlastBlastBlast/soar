@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.components.HourlyExpandableCard
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun WeatherCardScreen(viewModel: WeatherCardViewmodel = hiltViewModel()) {
@@ -35,7 +37,12 @@ fun ScreenContent(
     var latInput by remember { mutableStateOf("59.942") }
     var lonInput by remember { mutableStateOf("10.726") }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier.padding(16.dp)
+        .verticalScroll(scrollState)
+    ) {
         when (uiState) {
             is WeatherCardViewmodel.WeatherCardUiState.Idle -> {
                 Text(
