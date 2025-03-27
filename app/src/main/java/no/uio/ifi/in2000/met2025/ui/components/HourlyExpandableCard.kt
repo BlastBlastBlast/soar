@@ -91,26 +91,3 @@ fun HourlyExpandableCard(
         }
     }
 }
-
-
-@Preview
-@Composable
-fun HourlyExpandableCardPreview() {
-    HourlyExpandableCard(
-        forecastItem = ForecastDataItem(
-            time = "08:00",
-            values = ForecastDataValues(
-                airTemperature = 10.0,
-                relativeHumidity = 80.0,
-                windSpeed = 3.0,
-                windSpeedOfGust = 5.0,
-                windFromDirection = 180.0,
-                fogAreaFraction = 100.0, // used as visibility
-                dewPointTemperature = 5.0,
-                cloudAreaFraction = 20.0,
-                precipitationAmount = 0.0,
-                probabilityOfThunder = 0.0
-            )
-        )
-    )
-}

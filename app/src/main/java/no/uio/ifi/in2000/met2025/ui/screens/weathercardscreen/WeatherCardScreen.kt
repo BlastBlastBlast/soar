@@ -18,76 +18,43 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.components.HourlyExpandableCard
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.LaunchedEffect
+import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 
 @Composable
-fun WeatherCardScreen(viewModel: WeatherCardViewmodel = hiltViewModel()) {
+fun WeatherCardScreen(
+    viewModel: WeatherCardViewmodel = hiltViewModel(),
+    locationViewModel: LocationViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsState()
-    // Pass the lambda to load forecast using the entered coordinates
-    ScreenContent(uiState = uiState, onLoadForecast = { lat, lon ->
-        viewModel.loadForecast(lat, lon)
-    })
+    val coordinates by locationViewModel.coordinates.collectAsState()
+
+    LaunchedEffect(coordinates) {
+        viewModel.loadForecast(coordinates.first, coordinates.second)
+    }
+
+    ScreenContent(uiState = uiState)
 }
 
 @Composable
 fun ScreenContent(
-    uiState: WeatherCardViewmodel.WeatherCardUiState,
-    onLoadForecast: (Double, Double) -> Unit = { _, _ -> }
+    uiState: WeatherCardViewmodel.WeatherCardUiState
 ) {
-    // Pre-fill with coordinates for Ole Johan Dahl's hus
-    var latInput by remember { mutableStateOf("59.942") }
-    var lonInput by remember { mutableStateOf("10.726") }
-
     val scrollState = rememberScrollState()
 
     Column(
-        modifier = Modifier.padding(16.dp)
-        .verticalScroll(scrollState)
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
         when (uiState) {
-            is WeatherCardViewmodel.WeatherCardUiState.Idle -> {
-                Text(
-                    text = "Enter coordinates for forecast:",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                OutlinedTextField(
-                    value = latInput,
-                    onValueChange = { latInput = it },
-                    label = { Text("Latitude") },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                OutlinedTextField(
-                    value = lonInput,
-                    onValueChange = { lonInput = it },
-                    label = { Text("Longitude") },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                Button(
-                    onClick = {
-                        val lat = latInput.toDoubleOrNull()
-                        val lon = lonInput.toDoubleOrNull()
-                        if (lat != null && lon != null) {
-                            onLoadForecast(lat, lon)
-                        }
-                    },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text(text = "Load Forecast")
-                }
-            }
             is WeatherCardViewmodel.WeatherCardUiState.Loading -> {
-                Text(
-                    text = "Loading...",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Text("Loading...", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Error -> {
-                Text(
-                    text = "Error: ${uiState.message}",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                Text("Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Success -> {
-                // Here we iterate through the list of ForecastDataItem directly
                 uiState.forecastItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
@@ -95,6 +62,7 @@ fun ScreenContent(
                     )
                 }
             }
+            else -> Unit
         }
     }
 }
