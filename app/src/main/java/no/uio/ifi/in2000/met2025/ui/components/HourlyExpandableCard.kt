@@ -1,9 +1,10 @@
 package no.uio.ifi.in2000.met2025.ui.components
 
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
@@ -16,8 +17,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIcon
+import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIndicator
+import no.uio.ifi.in2000.met2025.data.models.evaluateParameterConditions
+// Kotlin
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+
+fun formatZuluTimeToLocal(zuluTime: String): String {
+    // Parse the ISO date‑time string (Zulu/UTC format)
+    val zonedDateTime = ZonedDateTime.parse(zuluTime)
+    // Convert the time to the system default timezone (or specify ZoneId.of("Europe/Oslo"))
+    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
+    // Format as 24‑h time
+    return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+}
 
 @Composable
 fun HourlyExpandableCard(
@@ -32,57 +51,66 @@ fun HourlyExpandableCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Summary section for the hour
-            Text(
-                text = "Time: ${forecastItem.time}",
-                style = MaterialTheme.typography.headlineSmall
-            )
+            // Header: show time and overall launch status icon
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Time: ${formatZuluTimeToLocal(forecastItem.time)}",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                LaunchStatusIndicator(forecast = forecastItem)
+            }
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium
             )
-            // Extra details shown when card is tapped
+            // Expanded details: show detailed per-parameter evaluation
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    Text(
-                        text = "Humidity: ${forecastItem.values.relativeHumidity}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Wind Speed: ${forecastItem.values.windSpeed} m/s",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Wind Gust: ${forecastItem.values.windSpeedOfGust} m/s",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Wind Direction: ${forecastItem.values.windFromDirection}°",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Precipitation: ${forecastItem.values.precipitationAmount} mm",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    // Here, we're reusing fogAreaFraction as a stand-in for "visibility"
-                    Text(
-                        text = "Visibility: ${forecastItem.values.fogAreaFraction}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Dew Point: ${forecastItem.values.dewPointTemperature}°C",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Cloud Cover: ${forecastItem.values.cloudAreaFraction}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Thunder Prob: ${forecastItem.values.probabilityOfThunder}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    // Get individual evaluations
+                    val evaluations = evaluateParameterConditions(forecastItem)
+                    evaluations.forEach { eval ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${eval.label}: ${eval.value}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            LaunchStatusIcon(status = eval.status)
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+
+@Preview
+@Composable
+fun HourlyExpandableCardPreview() {
+    HourlyExpandableCard(
+        forecastItem = ForecastDataItem(
+            time = "08:00",
+            values = ForecastDataValues(
+                airTemperature = 10.0,
+                relativeHumidity = 80.0,
+                windSpeed = 3.0,
+                windSpeedOfGust = 5.0,
+                windFromDirection = 180.0,
+                fogAreaFraction = 100.0, // used as visibility
+                dewPointTemperature = 5.0,
+                cloudAreaFraction = 20.0,
+                precipitationAmount = 0.0,
+                probabilityOfThunder = 0.0
+            )
+        )
+    )
 }
