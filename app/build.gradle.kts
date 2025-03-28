@@ -1,5 +1,3 @@
-
-
 val ktor_version: String by project
 
 plugins {
@@ -17,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "no.uio.ifi.in2000.met2025"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -25,9 +23,18 @@ android {
 
     packaging {
         resources {
-            excludes += setOf("META-INF/INDEX.LIST")
+            excludes += setOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/third-party-licenses/erddap/COHORT_LICENSE",
+                "META-INF/third-party-licenses/edal/LICENSE",
+                "META-INF/DEPENDENCIES",
+                "META-INF/third-party-licenses/junit/LICENSE",
+                "META-INF/third-party-licenses/gretty/LICENSE",
+                "META-INF/third-party-licenses/NOAA_LICENSE"
+            )
         }
     }
+
 
     buildTypes {
         release {
@@ -103,6 +110,14 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(kotlin("stdlib"))
+
+    //netcdf and dependencies
+    implementation(libs.cdm.core)// Core library
+    implementation(libs.grib) // GRIB1 & GRIB2 support
+    implementation(libs.guava.v3100android)
+    implementation(libs.listenablefuture)
 }
 
 //TEST LINE

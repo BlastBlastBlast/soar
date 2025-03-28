@@ -15,6 +15,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
+import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -46,11 +47,32 @@ object AppModule {
         }
     }
 
+    @Provides
+    @Singleton
+    @Named("gribClient")
+    fun provideGribClient(): HttpClient = HttpClient(CIO) {
+        install(ContentNegotiation) {
+        }
+        install(Logging) {
+            level = LogLevel.INFO
+        }
+    }
+
     // Provide the LocationForecastDataSource using the JSON client.
     @Provides
     @Singleton
     fun provideLocationForecastDataSource(@Named("jsonClient") client: HttpClient): LocationForecastDataSource {
         return LocationForecastDataSource(client)
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object AppModule {
+        @Provides
+        @Singleton
+        fun provideLocationViewModel(): LocationViewModel = LocationViewModel()
+
+        // (Existing module definitions remain unchanged)
     }
 
     // Provide the LocationForecastRepository which depends on the data source.
