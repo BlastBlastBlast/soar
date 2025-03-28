@@ -9,11 +9,8 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import androidx.lifecycle.lifecycleScope
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.logging.*
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricgribRepository
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -24,7 +21,7 @@ class MainActivity : ComponentActivity() {
             expectSuccess = false
         }
     val isoDS = IsobaricDataSource(client)
-    val isoRep = IsobaricgribRepository(isoDS)
+    val isoRep = IsobaricRepository(isoDS)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
         // Run fetchCurrentIsobaricgribData inside a coroutine
         lifecycleScope.launch {
-            val test = isoRep.getCurrentIsobaricgribData()
+            val test = isoRep.getCurrentIsobaricGribData()
             println("Data: \n$test")  // Print or use the fetched data
         }
     }

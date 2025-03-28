@@ -7,12 +7,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
-import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricgribRepository
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class AtmosphericWindViewModel @Inject constructor(
-    private val isobaricRepository: IsobaricgribRepository
+    private val isobaricRepository: IsobaricRepository
 ) : ViewModel() {
 
     sealed class AtmosphericWindUiState {

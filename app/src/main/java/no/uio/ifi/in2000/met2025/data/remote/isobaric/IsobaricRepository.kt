@@ -8,13 +8,13 @@ import ucar.nc2.Variable
 import java.io.File
 import javax.inject.Inject
 
-class IsobaricGribRepository @Inject constructor(
+class IsobaricRepository @Inject constructor(
     private val isobaricDataSource: IsobaricDataSource
 ) {
 
-    suspend fun getCurrentIsobaricgribData() {
+    suspend fun getCurrentIsobaricGribData() {
         try {
-            val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricgribData()
+            val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricGribData()
             val byteArray = isobaricData.fold(
                 onSuccess = { byteArray ->
                     byteArray
