@@ -1,25 +1,19 @@
 package no.uio.ifi.in2000.met2025
 
-import IsobaricgribRepository
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import dagger.Provides
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
-import no.uio.ifi.in2000.met2025.data.remote.Isobaric.IsobaricDataSource
-import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
-import javax.inject.Named
-import javax.inject.Singleton
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.logging.*
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricgribRepository
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

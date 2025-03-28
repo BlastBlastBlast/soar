@@ -1,5 +1,3 @@
-
-
 val ktor_version: String by project
 
 plugins {
@@ -116,10 +114,10 @@ dependencies {
     implementation(kotlin("stdlib"))
 
     //netcdf and dependencies
-    implementation(libs.cdm.core)  // Core library
-    implementation(libs.grib)  // GRIB1 & GRIB2 support
-    implementation(libs.guava) //Needed for immutablelist
-
+    implementation(libs.cdm.core)// Core library
+    implementation(libs.grib) // GRIB1 & GRIB2 support
+    implementation(libs.guava.v3100android)
+    implementation(libs.listenablefuture)
 }
 
 //TEST LINE

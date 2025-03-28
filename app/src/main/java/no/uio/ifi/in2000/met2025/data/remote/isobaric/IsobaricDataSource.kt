@@ -1,13 +1,9 @@
-package no.uio.ifi.in2000.met2025.data.remote.Isobaric
+package no.uio.ifi.in2000.met2025.data.remote.isobaric
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.url
-import java.math.RoundingMode
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Named
 

@@ -2,7 +2,7 @@
 agp = "8.9.0"
 cdmCore = "5.7.0"
 gradle = "7.0.4"
-guava = "33.0.0-jre"
+guavaVersion = "31.1-android"
 hiltAndroid = "2.55"
 kotlin = "2.1.0"
 coreKtx = "1.15.0"
@@ -21,13 +21,14 @@ activityCompose = "1.10.1"
 composeBom = "2025.03.00"
 kotlinxSerializationJson = "1.8.0"
 appcompat = "1.7.0"
+listenablefuture = "31.1-android"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 cdm-core = { module = "edu.ucar:cdm-core", version.ref = "cdmCore" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 grib = { module = "edu.ucar:grib", version.ref = "cdmCore" }
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
+guava-v3100android = { module = "com.google.guava:guava", version.ref = "guavaVersion" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -51,6 +52,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktorClientSerialization" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+listenablefuture = { module = "com.google.guava:listenablefuture", version.ref = "listenablefuture" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

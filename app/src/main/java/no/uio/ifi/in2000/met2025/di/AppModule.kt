@@ -46,6 +46,17 @@ object AppModule {
         }
     }
 
+    @Provides
+    @Singleton
+    @Named("gribClient")
+    fun provideGribClient(): HttpClient = HttpClient(CIO) {
+        install(ContentNegotiation) {
+        }
+        install(Logging) {
+            level = LogLevel.INFO
+        }
+    }
+
     // Provide the LocationForecastDataSource using the JSON client.
     @Provides
     @Singleton

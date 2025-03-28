@@ -1,13 +1,60 @@
-package no.uio.ifi.in2000.met2025.data.remote.Isobaric
+package no.uio.ifi.in2000.met2025.data.remote.isobaric
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import ucar.ma2.ArrayFloat
+import ucar.nc2.NetcdfFiles
+import ucar.nc2.Variable
+import java.io.File
+import javax.inject.Inject
+
+class IsobaricGribRepository @Inject constructor(
+    private val isobaricDataSource: IsobaricDataSource
+) {
+
+    suspend fun getCurrentIsobaricgribData() {
+        try {
+            val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricgribData()
+            val byteArray = isobaricData.fold(
+                onSuccess = { byteArray ->
+                    byteArray
+                },
+                onFailure = { exception ->
+                    println("Failed to fetch the data: ${exception.message}")
+                    ByteArray(0)
+                }
+            )
+
+            val tempFile = withContext(Dispatchers.IO) {
+                File.createTempFile("isobaric", ".grib2")
+            }.apply {
+                writeBytes(byteArray)
+            }
+
+            // Open the file as a NetcdfFile
+            NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
+                // List available variables
+                val variableNames = netcdfFile.variables.map { it.fullName }
+                println("Available Variables: $variableNames")
+
+                // Example: Accessing data from a specific variable (replace with your desired variable)
+                val targetVariableName = "var_0_2_100_L103" // Replace with a real variable name from your file
+                val targetVariable: Variable? = netcdfFile.findVariable(targetVariableName)
+                if (targetVariable != null) {
+                    val data = targetVariable.read() // Read the data, it will be an object of type Array
+
+                    // Check the data type and handle it appropriately
+                    when (data) {
+                        is ArrayFloat.D4 -> {
+                            println("Data is of type ArrayFloat.D4, example of access : ${data.get(0, 0, 0, 0)}")
+                        }
 
                         // Add more cases for other Array types if needed
                         is ucar.ma2.ArrayDouble.D4 -> {
-                            val doubleData = data as ucar.ma2.ArrayDouble.D4
-                            println("Data is of type ArrayDouble.D4, example of access : ${doubleData.get(0, 0, 0, 0)}")
+                            println("Data is of type ArrayDouble.D4, example of access : ${data.get(0, 0, 0, 0)}")
                         }
                         is ucar.ma2.ArrayInt.D4 -> {
-                            val intData = data as ucar.ma2.ArrayInt.D4
-                            println("Data is of type ArrayInt.D4, example of access : ${intData.get(0, 0, 0, 0)}")
+                            println("Data is of type ArrayInt.D4, example of access : ${data.get(0, 0, 0, 0)}")
                         }
                         //you can add more cases for other data types here
                         else -> {
