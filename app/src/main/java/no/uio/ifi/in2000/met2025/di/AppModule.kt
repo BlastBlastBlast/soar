@@ -15,6 +15,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import javax.inject.Named
 import javax.inject.Singleton
@@ -82,5 +84,19 @@ object AppModule {
         dataSource: LocationForecastDataSource
     ): LocationForecastRepository {
         return LocationForecastRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIsobaricDataSource(@Named("gribClient") client: HttpClient): IsobaricDataSource {
+        return IsobaricDataSource(client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIsobaricRepository(
+        dataSource: IsobaricDataSource
+    ): IsobaricRepository {
+        return IsobaricRepository(dataSource)
     }
 }
