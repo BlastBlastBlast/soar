@@ -85,22 +85,11 @@ fun DrawScope.drawCross() {
     val xPos = center.x + cartesianComponent
     val yPos = center.y + cartesianComponent
 
-    val start1 = Offset(
-        x = xNeg,
-        y = yNeg
-    )
-    val end1 = Offset(
-        x = xPos,
-        y = yPos
-    )
-    val start2 = Offset(
-        x = xPos,
-        y = yNeg
-    )
-    val end2 = Offset(
-        x = xNeg,
-        y = yPos
-    )
+    val start1 = Offset(xNeg, yNeg)
+    val end1 = Offset(xPos, yPos)
+    val start2 = Offset(xPos, yNeg)
+    val end2 = Offset(xNeg, yPos)
+
     drawLine(
         color = Color.DarkGray,
         start = start1,
