@@ -9,12 +9,23 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            url = uri("https://artifacts.unidata.ucar.edu/repository/unidata-all/")
+        }
     }
 }
+
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        //Netcdf Maven repository
+        maven{
+            url = uri("https://artifacts.unidata.ucar.edu/repository/unidata-all/")
+        }
+
+        // Mapbox Maven repository
         maven {
             url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
         }

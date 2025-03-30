@@ -1,5 +1,3 @@
-
-
 val ktor_version: String by project
 
 plugins {

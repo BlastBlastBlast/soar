@@ -1,7 +1,5 @@
 package no.uio.ifi.in2000.met2025.di
 
-import no.uio.ifi.in2000.met2025.data.remote.Isobaric.IsobaricDataSource
-import no.uio.ifi.in2000.met2025.data.remote.Isobaric.IsobaricgribRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +15,9 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -48,6 +49,17 @@ object AppModule {
         }
     }
 
+    @Provides
+    @Singleton
+    @Named("gribClient")
+    fun provideGribClient(): HttpClient = HttpClient(CIO) {
+        install(ContentNegotiation) {
+        }
+        install(Logging) {
+            level = LogLevel.INFO
+        }
+    }
+
     // Provide the LocationForecastDataSource using the JSON client.
     @Provides
     @Singleton
@@ -66,15 +78,15 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideIsobaricDataSource(): IsobaricDataSource {
-        return IsobaricDataSource()
+    fun provideIsobaricDataSource(@Named("gribClient") client: HttpClient): IsobaricDataSource {
+        return IsobaricDataSource(client)
     }
 
     @Provides
     @Singleton
-    fun provideIsobaricgribRepository(
+    fun provideIsobaricRepository(
         dataSource: IsobaricDataSource
-    ): IsobaricgribRepository {
-        return IsobaricgribRepository(dataSource)
+    ): IsobaricRepository {
+        return IsobaricRepository(dataSource)
     }
 }
