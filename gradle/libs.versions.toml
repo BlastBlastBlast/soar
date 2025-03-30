@@ -23,9 +23,11 @@ logbackClassic = "1.5.17"
 kotlinxSerializationJson = "1.8.0"
 appcompat = "1.7.0"
 listenablefuture = "31.1-android"
+materialIconsExtended = "1.7.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 cdm-core = { module = "edu.ucar:cdm-core", version.ref = "cdmCore" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 grib = { module = "edu.ucar:grib", version.ref = "cdmCore" }
