@@ -1,9 +1,12 @@
 package no.uio.ifi.in2000.met2025.data.models
 
 data class IsobaricData(
-    val updatedAt: String,
-    val timeSeries: List<IsobaricDataItem>
+    val temperature: Float,
+    val uComponentWind: Float,
+    val vComponentWind: Float
 )
+
+typealias GribDataMap = Map<Pair<Float, Float>, Map<Float, IsobaricData>>
 
 data class IsobaricDataItem(
     val time: String,
@@ -15,3 +18,12 @@ data class IsobaricDataValues(
     val windSpeed: Double,
     val windFromDirection: Double
 )
+/*
+data class IsobaricData(
+    val updatedAt: String,
+    val timeSeries: List<IsobaricDataItem>
+)
+
+
+
+ */
