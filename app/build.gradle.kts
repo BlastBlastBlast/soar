@@ -23,9 +23,18 @@ android {
 
     packaging {
         resources {
-            excludes += setOf("META-INF/INDEX.LIST")
+            excludes += setOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/third-party-licenses/erddap/COHORT_LICENSE",
+                "META-INF/third-party-licenses/edal/LICENSE",
+                "META-INF/DEPENDENCIES",
+                "META-INF/third-party-licenses/junit/LICENSE",
+                "META-INF/third-party-licenses/gretty/LICENSE",
+                "META-INF/third-party-licenses/NOAA_LICENSE"
+            )
         }
     }
+
 
     buildTypes {
         release {
@@ -49,8 +58,6 @@ android {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    //Icons
-    implementation(libs.androidx.material.icons.extended)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -103,6 +110,14 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(kotlin("stdlib"))
+
+    //netcdf and dependencies
+    implementation(libs.cdm.core)// Core library
+    implementation(libs.grib) // GRIB1 & GRIB2 support
+    implementation(libs.guava.v3100android)
+    implementation(libs.listenablefuture)
 }
 
 //TEST LINE
