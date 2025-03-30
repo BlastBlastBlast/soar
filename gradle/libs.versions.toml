@@ -20,10 +20,12 @@ composeBom = "2025.03.00"
 logbackClassic = "1.5.17"
 kotlinxSerializationJson = "1.8.0"
 appcompat = "1.7.0"
+materialIconsExtended = "<version>"
 
 [libraries]
 android = { module = "com.mapbox.maps:android", version.ref = "android" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 ch-logback-classic = { module = "ch.qos.logback:logback-classic" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }

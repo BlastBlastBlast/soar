@@ -1,19 +1,17 @@
 package no.uio.ifi.in2000.met2025.ui.screens.amtosphericwind
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -30,15 +28,36 @@ import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import no.uio.ifi.in2000.met2025.data.models.Constants
-import java.text.SimpleDateFormat
+import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
+import java.math.RoundingMode
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 //TODO: hook up screen to navigation graph
 
-//TODO: make preview with mock data
+//TODO: move this function to another file, it is also defined and used in HourlyExpandableCard
+fun formatZuluTimeToLocal(zuluTime: String): String {
+    // Parse the ISO date‑time string (Zulu/UTC format)
+    val zonedDateTime = ZonedDateTime.parse(zuluTime)
+    // Convert the time to the system default timezone (or specify ZoneId.of("Europe/Oslo"))
+    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
+    // Format as 24‑h time
+    return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+}
+
+fun windShear(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
+    val s1 = v1.windSpeed
+    val s2 = v2.windSpeed
+    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos(v2.windFromDirection - v1.windFromDirection))
+}
+
+//TODO: move function to another file, it could also be used in LocationForecastDataSource
+fun Double.roundToDecimals(n: Int) : Double {
+    return this.toBigDecimal().setScale(n, RoundingMode.HALF_UP).toDouble()
+}
 
 @Composable
 fun AtmosphericWindScreen(viewModel: AtmosphericWindViewModel = hiltViewModel()) {
@@ -105,79 +124,12 @@ fun ScreenContent(
     }
 }
 
-//@Composable
-//fun IsobaricDataItemCard(
-//    item: IsobaricDataItem
-//) {
-//    val cardBackgroundColor = Color(0xFFE3F2FD)
-//
-//    val formattedTime = try {
-//        val inputDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-//        val outputTimeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-//        val date = inputDateFormat.parse(item.time)
-//        outputTimeFormat.format(date ?: Date())
-//    } catch (e: Exception) {
-//        "--:--"
-//    }
-//
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(vertical = 8.dp),
-//        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-//        shape = RoundedCornerShape(corner = CornerSize(8.dp))
-//    ) {
-//        Column(modifier = Modifier.padding(16.dp)) {
-//            Text(
-//                text = "Time: $formattedTime",
-//                style = MaterialTheme.typography.headlineSmall,
-//                modifier = Modifier.padding(bottom = 8.dp)
-//            )
-//            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-//
-//            Constants.layerPressureValues.forEach { layer ->
-//                val altitude = item.valuesAtLayer[layer]?.altitude ?: "--"
-//                val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
-//                val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
-//
-//                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-//                    Text(
-//                        text = "$altitude m",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.weight(1f)
-//                    )
-//                    Text(
-//                        text = "WS: $windSpeed m/s",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.weight(1f)
-//                    )
-//                    Text(
-//                        text = "WD: $windDirection°",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.weight(1f)
-//                    )
-//                    // Optionally, add icons here to represent data visually
-//                }
-//                HorizontalDivider(thickness = 0.5.dp, color = Color.Gray)
-//            }
-//        }
-//    }
-//}
-
 @Composable
 fun IsobaricDataItemCard(
     item: IsobaricDataItem
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
-
-    val formattedTime = try {
-        val inputDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        val outputTimeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val date = inputDateFormat.parse(item.time)
-        outputTimeFormat.format(date ?: Date())
-    } catch (e: Exception) {
-        "--:--"
-    }
+    val windshearColor = Color(0xFFd7ebfa)
 
     Card(
         modifier = Modifier
@@ -188,7 +140,7 @@ fun IsobaricDataItemCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Time: $formattedTime",
+                text = formatZuluTimeToLocal(item.time),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -212,10 +164,42 @@ fun IsobaricDataItemCard(
                     modifier = Modifier.weight(1f)
                 )
             }
+
+            // Static header row to label columns
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+//                    .border(
+//                        BorderStroke(1.dp, Color.LightGray),
+//                        RoundedCornerShape(4.dp)
+//                    )
+                    .background(
+                        color = windshearColor,
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                    .padding(4.dp) // Add border and padding for visual offset
+            ) {
+                Text(
+                    text = "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "Wind Shear",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+            }
             HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-            // Data rows: dynamic content for each pressure layer
-            Constants.layerPressureValues.forEach { layer ->
+            // Iterate through layer pressure values and display data
+            Constants.layerPressureValues.forEachIndexed { index, layer ->
                 val altitude = item.valuesAtLayer[layer]?.altitude ?: "--"
                 val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
                 val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
@@ -237,9 +221,121 @@ fun IsobaricDataItemCard(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                HorizontalDivider(thickness = 0.5.dp, color = Color.Gray)
+
+                // Calculate wind shear if not the last item in list and both layers exist
+                if (index < Constants.layerPressureValues.size - 1) {
+                    val nextLayer = Constants.layerPressureValues[index + 1]
+
+                    if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
+                        val windShearValue = windShear(
+                            item.valuesAtLayer[layer]!!,
+                            item.valuesAtLayer[nextLayer]!!
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+//                                .border(
+//                                    BorderStroke(1.dp, Color.LightGray),
+//                                    RoundedCornerShape(4.dp)
+//                                )
+                                .background(
+                                    color = windshearColor,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(4.dp) // Add border and padding for visual offset
+                        ) {
+                            Text(
+                                text = "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "${windShearValue.roundToDecimals(1)} m/s",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
+
+//@Composable
+//fun IsobaricDataItemCard(
+//    item: IsobaricDataItem
+//) {
+//    val cardBackgroundColor = Color(0xFFE3F2FD)
+//
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(vertical = 8.dp),
+//        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+//        shape = RoundedCornerShape(corner = CornerSize(8.dp))
+//    ) {
+//        Column(modifier = Modifier.padding(16.dp)) {
+//            Text(
+//                text = formatZuluTimeToLocal(item.time),
+//                style = MaterialTheme.typography.headlineSmall,
+//                modifier = Modifier.padding(bottom = 8.dp)
+//            )
+//            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+//
+//            // Static header row to label columns
+//            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+//                Text(
+//                    text = "Altitude",
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    modifier = Modifier.weight(1f)
+//                )
+//                Text(
+//                    text = "Wind Speed",
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    modifier = Modifier.weight(1f)
+//                )
+//                Text(
+//                    text = "Wind Direction",
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    modifier = Modifier.weight(1f)
+//                )
+//            }
+//            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+//
+//            // Data rows: dynamic content for each pressure layer
+//            Constants.layerPressureValues.forEach { layer ->
+//                val altitude = item.valuesAtLayer[layer]?.altitude ?: "--"
+//                val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
+//                val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
+//
+//                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+//                    Text(
+//                        text = "$altitude m",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        modifier = Modifier.weight(1f)
+//                    )
+//                    Text(
+//                        text = "$windSpeed m/s",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        modifier = Modifier.weight(1f)
+//                    )
+//                    Text(
+//                        text = "$windDirection°",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        modifier = Modifier.weight(1f)
+//                    )
+//                }
+//                HorizontalDivider(thickness = 0.5.dp, color = Color.Gray)
+//            }
+//        }
+//    }
+//}
 

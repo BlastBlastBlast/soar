@@ -51,6 +51,8 @@ android {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    //Icons
+    implementation(libs.androidx.material.icons.extended)
 
     // Hilt
     implementation(libs.hilt.android)
