@@ -19,26 +19,24 @@ class IsobaricRepository @Inject constructor(
             val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricGribData()
             val byteArray = isobaricData.getOrNull() ?: return emptyMap()
 
-            // Create temporary file on the IO dispatcher
             val tempFile = withContext(Dispatchers.IO) {
                 File.createTempFile("isobaric", ".grib2")
             }.apply {
                 writeBytes(byteArray)
             }
 
-            // Open the GRIB file
             NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
-                // Read latitude variable (assumed 1D)
+                // Read latitude variable
                 val latitudes = (netcdfFile.findVariable("lat")?.read() as? ArrayFloat.D1)
                     ?.let { array ->
                         (0 until array.size).map { idx -> array.get(idx.toInt()) }
                     }
-                // Read longitude variable (assumed 1D)
+                // Read longitude variable
                 val longitudes = (netcdfFile.findVariable("lon")?.read() as? ArrayFloat.D1)
                     ?.let { array ->
                         (0 until array.size).map { idx -> array.get(idx.toInt()) }
                     }
-                // Read isobaric levels variable (assumed 1D)
+                // Read isobaric levels variable
                 val isobaricLevels = (netcdfFile.findVariable("isobaric")?.read() as? ArrayFloat.D1)
                     ?.let { array ->
                         (0 until array.size).map { idx -> array.get(idx.toInt()) }
@@ -60,8 +58,9 @@ class IsobaricRepository @Inject constructor(
                 }
 
                 // Extract the timestamp from the first available entry
+                //TODO: FIX THIS SHIT
                 val firstTempValue = arrayOf("025-03-31T09:00:00Z")
-                val firstTimeIndex = 0  // Assuming all entries use the same timestamp
+                val firstTimeIndex = 0
 
                 println("Temperature shape: ${temperatureVar.shape.contentToString()}")
                 println("uWind shape: ${uWindVar.shape.contentToString()}")
