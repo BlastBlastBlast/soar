@@ -35,17 +35,22 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem): LaunchStatus {
         caution = true
     }
 
-    // Shear wind: requires a comparison between layers.
-    // If available, you’d compute the difference of wind vectors between two layers.
-    // For now, if you have a computed value (say, forecast.values.shearWind), you can do:
-    // val shearWindThreshold = 24.5
-    // if (forecast.values.shearWind > shearWindThreshold * 1.1) { ... } etc.
-
-    // Cloud cover: We want less than or equal to 15% (for high/medium altitude)
+    // Cloud cover (overall)
     val cloudCoverThreshold = 15.0
     if (forecast.values.cloudAreaFraction > cloudCoverThreshold * 1.1) {
         return LaunchStatus.UNSAFE
     } else if (forecast.values.cloudAreaFraction > cloudCoverThreshold * 0.9) {
+        caution = true
+    }
+
+    // Cloud cover (sub-levels)
+    if (forecast.values.cloudAreaFractionHigh > cloudCoverThreshold * 1.1 ||
+        forecast.values.cloudAreaFractionLow > cloudCoverThreshold * 1.1 ||
+        forecast.values.cloudAreaFractionMedium > cloudCoverThreshold * 1.1) {
+        return LaunchStatus.UNSAFE
+    } else if (forecast.values.cloudAreaFractionHigh > cloudCoverThreshold * 0.9 ||
+        forecast.values.cloudAreaFractionLow > cloudCoverThreshold * 0.9 ||
+        forecast.values.cloudAreaFractionMedium > cloudCoverThreshold * 0.9) {
         caution = true
     }
 
@@ -85,7 +90,6 @@ data class ParameterEvaluation(
     val status: LaunchStatus
 )
 
-// Evaluate each parameter individually.
 fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvaluation> {
     val evaluations = mutableListOf<ParameterEvaluation>()
 
@@ -101,29 +105,49 @@ fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvalu
     val airWindStatus = evaluateValue(airWindValue, airWindThreshold)
     evaluations.add(ParameterEvaluation("Air Wind", "$airWindValue m/s", airWindStatus))
 
-    // Cloud Cover: should be <= 15%
+    // **Wind Direction:** simply show the value (and icon in the UI)
+    val windDirectionValue = forecast.values.windFromDirection
+    evaluations.add(ParameterEvaluation("Wind Direction", "$windDirectionValue°", LaunchStatus.SAFE))
+
+    // Existing evaluations (cloud cover, fog, precipitation, humidity, dew point, etc.)
+    // Cloud Cover: overall
     val cloudCoverThreshold = 15.0
     val cloudCoverValue = forecast.values.cloudAreaFraction
     val cloudCoverStatus = evaluateValue(cloudCoverValue, cloudCoverThreshold)
     evaluations.add(ParameterEvaluation("Cloud Cover", "$cloudCoverValue%", cloudCoverStatus))
 
-    // Fog: must be exactly 0%
+    // Cloud Cover High
+    val cloudCoverHighValue = forecast.values.cloudAreaFractionHigh
+    val cloudCoverHighStatus = evaluateValue(cloudCoverHighValue, cloudCoverThreshold)
+    evaluations.add(ParameterEvaluation("Cloud Cover High", "$cloudCoverHighValue%", cloudCoverHighStatus))
+
+    // Cloud Cover Low
+    val cloudCoverLowValue = forecast.values.cloudAreaFractionLow
+    val cloudCoverLowStatus = evaluateValue(cloudCoverLowValue, cloudCoverThreshold)
+    evaluations.add(ParameterEvaluation("Cloud Cover Low", "$cloudCoverLowValue%", cloudCoverLowStatus))
+
+    // Cloud Cover Medium
+    val cloudCoverMediumValue = forecast.values.cloudAreaFractionMedium
+    val cloudCoverMediumStatus = evaluateValue(cloudCoverMediumValue, cloudCoverThreshold)
+    evaluations.add(ParameterEvaluation("Cloud Cover Medium", "$cloudCoverMediumValue%", cloudCoverMediumStatus))
+
+    // Fog
     val fogValue = forecast.values.fogAreaFraction
     val fogStatus = if (fogValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
     evaluations.add(ParameterEvaluation("Fog", "$fogValue%", fogStatus))
 
-    // Precipitation: must be 0 mm
+    // Precipitation
     val precipitationValue = forecast.values.precipitationAmount
     val precipitationStatus = if (precipitationValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
     evaluations.add(ParameterEvaluation("Precipitation", "$precipitationValue mm", precipitationStatus))
 
-    // Humidity: target is 75% or lower
+    // Humidity
     val humidityThreshold = 75.0
     val humidityValue = forecast.values.relativeHumidity
     val humidityStatus = evaluateValue(humidityValue, humidityThreshold)
     evaluations.add(ParameterEvaluation("Humidity", "$humidityValue%", humidityStatus))
 
-    // Dew Point: maximum allowed is 15°C
+    // Dew Point
     val dewPointThreshold = 15.0
     val dewPointValue = forecast.values.dewPointTemperature
     val dewPointStatus = evaluateValue(dewPointValue, dewPointThreshold)
@@ -131,6 +155,8 @@ fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvalu
 
     return evaluations
 }
+
+
 
 // Helper function for numeric parameters with a buffer of ±10%.
 fun evaluateValue(value: Double, threshold: Double): LaunchStatus {
