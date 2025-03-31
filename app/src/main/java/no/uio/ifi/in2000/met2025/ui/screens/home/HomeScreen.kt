@@ -15,25 +15,26 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.maps.MapView
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
-    onNavigateToWeather: (Double, Double) -> Unit  // Callback to navigate to Weather screen.
+    locationViewModel: LocationViewModel = hiltViewModel(),  // Inject here
+    onNavigateToWeather: (Double, Double) -> Unit
 ) {
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val context = LocalContext.current
+    val coordinates by locationViewModel.coordinates.collectAsState()
 
     if (locationPermissionState.status.isGranted) {
-        val coordinates by viewModel.coordinates.collectAsState()
-        var latInput by remember { mutableStateOf("") }
-        var lonInput by remember { mutableStateOf("") }
+        var latInput by remember { mutableStateOf(coordinates.first.toString()) }
+        var lonInput by remember { mutableStateOf(coordinates.second.toString()) }
         var addressInput by remember { mutableStateOf("") }
 
         Column(modifier = Modifier.fillMaxSize()) {
-            // Map occupies 70% of the screen.
             MapView(
                 latitude = coordinates.first,
                 longitude = coordinates.second,
@@ -41,14 +42,11 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .weight(0.65f),
                 onMarkerPlaced = { lat, lon ->
-                    // When the marker is placed, update the input fields.
                     latInput = lat.toString()
                     lonInput = lon.toString()
-                    // Optionally, update the ViewModel.
-                    viewModel.updateCoordinates(lat, lon)
+                    locationViewModel.updateCoordinates(lat, lon)  // Update centralized ViewModel
                 }
             )
-            // Input area occupies 30% of the screen.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,37 +83,21 @@ fun HomeScreen(
                 )
                 Button(
                     onClick = {
-                        if (latInput.isNotBlank() && lonInput.isNotBlank()) {
-                            val lat = latInput.toDoubleOrNull()
-                            val lon = lonInput.toDoubleOrNull()
-                            if (lat != null && lon != null) {
-                                viewModel.updateCoordinates(lat, lon)
-                                // Navigate to the Weather screen.
-                                onNavigateToWeather(lat, lon)
-                            } else {
-                                Toast.makeText(
-                                    context, "Invalid latitude or longitude", Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                        val lat = latInput.toDoubleOrNull()
+                        val lon = lonInput.toDoubleOrNull()
+                        if (lat != null && lon != null) {
+                            locationViewModel.updateCoordinates(lat, lon)
+                            onNavigateToWeather(lat, lon)
                         } else if (addressInput.isNotBlank()) {
                             val coords = viewModel.geocodeAddress(addressInput)
                             if (coords != null) {
-                                viewModel.updateCoordinates(coords.first, coords.second)
-                                // Navigate to the Weather screen using geocoded coordinates.
+                                locationViewModel.updateCoordinates(coords.first, coords.second)
                                 onNavigateToWeather(coords.first, coords.second)
                             } else {
-                                Toast.makeText(
-                                    context,
-                                    "Unable to convert address to coordinates",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(context, "Unable to geocode address", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(
-                                context,
-                                "Please enter coordinates or an address",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(context, "Please enter coordinates or an address", Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
