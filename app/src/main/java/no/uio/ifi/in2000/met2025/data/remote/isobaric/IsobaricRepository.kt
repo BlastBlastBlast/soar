@@ -49,32 +49,25 @@ class IsobaricRepository @Inject constructor(
                     return emptyMap()
                 }
 
-                // Read the reftime (reference time) variable - assuming it's stored as a string or a datetime
-                val refTimeVariable = netcdfFile.findVariable("reftime")
-                val refTime = refTimeVariable?.let {
-                    // You may need to parse the value depending on the format it is stored in
-                    it.read().getObject(0) as? String
-                } ?: throw Exception("Missing or invalid reftime variable")
-
-                // Read the time variable (representing time steps from reftime) - assumed scalar or 1D array
-                val timeVariable = netcdfFile.findVariable("time")
-                val time = timeVariable?.let {
-                    // If it's a scalar value (e.g., one time step), just read it
-                    it.read().getObject(0) as? Float
-                } ?: throw Exception("Missing or invalid time variable")
-
                 // Retrieve the 4D variables (dimensions: [isobaric, time, lat, lon])
-                val temperatureVar =
-                    netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
-                val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")
-                    ?.read() as? ArrayFloat.D4
-                val vWindVar = netcdfFile.findVariable("v-component_of_wind_isobaric")
-                    ?.read() as? ArrayFloat.D4
+                val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
+                val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
+                val vWindVar = netcdfFile.findVariable("v-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
 
                 if (temperatureVar == null || uWindVar == null || vWindVar == null) {
                     println("Missing temperature or wind data")
                     return emptyMap()
                 }
+
+                // Extract the timestamp from the first available entry
+                val firstTempValue = arrayOf("025-03-31T09:00:00Z")
+                val firstTimeIndex = 0  // Assuming all entries use the same timestamp
+
+                println("Temperature shape: ${temperatureVar.shape.contentToString()}")
+                println("uWind shape: ${uWindVar.shape.contentToString()}")
+                println("vWind shape: ${vWindVar.shape.contentToString()}")
+                println("Latitudes size: ${latitudes.size}, Longitudes size: ${longitudes.size}")
+                println("Isobaric levels size: ${isobaricLevels.size}")
 
                 // Loop over latitudes and longitudes to build the data map
                 for (latIdx in latitudes.indices) {
@@ -83,18 +76,15 @@ class IsobaricRepository @Inject constructor(
                         val lon = longitudes[lonIdx]
 
                         val isobaricMap = mutableMapOf<Float, IsobaricData>()
-                        for (levelIdx in isobaricLevels.indices) {
-                            val level = isobaricLevels[levelIdx]
 
-                            // Loop over the time steps
-                            // Access data using the time index
-                            val temperature = temperatureVar.get(levelIdx, 0, latIdx, lonIdx)
-                            val uWind = uWindVar.get(levelIdx, 0, latIdx, lonIdx)
-                            val vWind = vWindVar.get(levelIdx, 0, latIdx, lonIdx)
+                        val levelIdx = 0  // Fixing the isobaric level to the first dimension (since shape[0] = 1)
 
-                            // Store the data in the map for each lat, lon, and isobaric level
-                            isobaricMap[level] = IsobaricData(temperature, uWind, vWind)
-                        }
+                        val temperature = temperatureVar.get(levelIdx, firstTimeIndex, latIdx, lonIdx)
+                        val uWind = uWindVar.get(levelIdx, firstTimeIndex, latIdx, lonIdx)
+                        val vWind = vWindVar.get(levelIdx, firstTimeIndex, latIdx, lonIdx)
+
+                        isobaricMap[isobaricLevels.first()] = IsobaricData(temperature, uWind, vWind)
+
                         gribDataMap[Pair(lat, lon)] = isobaricMap
                     }
                 }
@@ -102,7 +92,7 @@ class IsobaricRepository @Inject constructor(
             // Delete the temporary file
             tempFile.delete()
         } catch (e: Exception) {
-            println("Error processing grib file: ${e.message}")
+            println("Error processing GRIB file: ${e.message}")
         }
         return gribDataMap
     }
