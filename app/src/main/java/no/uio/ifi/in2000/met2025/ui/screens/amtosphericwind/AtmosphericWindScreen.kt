@@ -38,6 +38,8 @@ import kotlin.math.sqrt
 
 //TODO: hook up screen to navigation graph
 
+//TODO: make card scrollable and expandable, showing data closer to ground first
+
 //TODO: move this function to another file, it is also defined and used in HourlyExpandableCard
 fun formatZuluTimeToLocal(zuluTime: String): String {
     // Parse the ISO date‑time string (Zulu/UTC format)
@@ -199,7 +201,8 @@ fun IsobaricDataItemCard(
             HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
             // Iterate through layer pressure values and display data
-            Constants.layerPressureValues.forEachIndexed { index, layer ->
+            val pressureValues = item.valuesAtLayer.keys.sorted()
+            pressureValues.forEachIndexed { index, layer ->
                 val altitude = item.valuesAtLayer[layer]?.altitude ?: "--"
                 val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
                 val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
@@ -223,8 +226,8 @@ fun IsobaricDataItemCard(
                 }
 
                 // Calculate wind shear if not the last item in list and both layers exist
-                if (index < Constants.layerPressureValues.size - 1) {
-                    val nextLayer = Constants.layerPressureValues[index + 1]
+                if (index < pressureValues.size - 1) {
+                    val nextLayer = pressureValues[index + 1]
 
                     if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
                         val windShearValue = windShear(

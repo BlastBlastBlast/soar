@@ -30,6 +30,7 @@ data class Meta(
 
 @Serializable
 data class Units(
+    @SerialName("air_pressure_at_sea_level")val airPressureAtSeaLevel: String,
     @SerialName("air_temperature")          val airTemperature: String,
     @SerialName("relative_humidity")        val relativeHumidity: String,
     @SerialName("wind_speed")               val windSpeed: String,
@@ -62,10 +63,11 @@ data class Instant(
 
 @Serializable
 data class Details(
+    @SerialName("air_pressure_at_sea_level")val airPressureAtSeaLevel: Double,
     @SerialName("air_temperature")          val airTemperature: Double,
     @SerialName("relative_humidity")        val relativeHumidity: Double,
     @SerialName("wind_speed")               val windSpeed: Double,
-    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double = 0.0,
+    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double = 0.0, // should probably not be 0.0 when not included, rather null
     @SerialName("wind_from_direction")      val windFromDirection: Double,
     @SerialName("fog_area_fraction")        val fogAreaFraction: Double = 0.0,
     @SerialName("dew_point_temperature")    val dewPointTemperature: Double = 0.0,

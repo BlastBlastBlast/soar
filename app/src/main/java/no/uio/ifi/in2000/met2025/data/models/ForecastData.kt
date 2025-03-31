@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 
 data class ForecastData(
     val updatedAt: String,
+    val altitude: Double,
     val timeSeries: List<ForecastDataItem>
 )
 
@@ -13,6 +14,7 @@ data class ForecastDataItem(
 )
 
 data class ForecastDataValues(
+    val airPressureAtSeaLevel: Double,
     val airTemperature: Double,
     val relativeHumidity: Double,
     val windSpeed: Double,

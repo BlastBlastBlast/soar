@@ -18,10 +18,12 @@ class LocationForecastRepository @Inject constructor(
                 return Result.success(
                     ForecastData(
                         updatedAt = response.properties.meta.updatedAt,
+                        altitude = response.geometry.coordinates[2],
                         timeSeries = response.properties.timeSeries.take(timeSpanInHours).map {
                             ForecastDataItem(
                                 time = it.time,
                                 values = ForecastDataValues(
+                                    airPressureAtSeaLevel = it.data.instant.details.airPressureAtSeaLevel,
                                     airTemperature = it.data.instant.details.airTemperature,
                                     relativeHumidity = it.data.instant.details.relativeHumidity,
                                     windSpeed = it.data.instant.details.windSpeed,
@@ -31,7 +33,7 @@ class LocationForecastRepository @Inject constructor(
                                     dewPointTemperature = it.data.instant.details.dewPointTemperature,
                                     cloudAreaFraction = it.data.instant.details.cloudAreaFraction,
                                     precipitationAmount = if (it.data.next1Hours == null) 0.0 else
-                                        it.data.next1Hours.details.precipitationAmount,
+                                        it.data.next1Hours.details.precipitationAmount, // should probably not be 0.0 if null
                                     probabilityOfThunder = if (it.data.next1Hours == null) 0.0 else
                                         it.data.next1Hours.details.probabilityOfThunder
                                 )
