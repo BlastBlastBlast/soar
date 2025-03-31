@@ -16,7 +16,7 @@ class IsobaricDataSource @Inject constructor(
 
     private val dsUrl = "https://api.met.no/weatherapi/isobaricgrib/1.0/grib2?area=southern_norway"
 
-    suspend fun fetchCurrentIsobaricGribData() : Result<ByteArray>{
+    suspend fun fetchCurrentIsobaricGribData(): Result<ByteArray> {
         return try {
             Result.success(httpClient.get {
                 url(dsUrl)

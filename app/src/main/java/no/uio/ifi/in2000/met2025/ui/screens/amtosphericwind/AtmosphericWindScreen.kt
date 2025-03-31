@@ -79,9 +79,9 @@ fun ScreenContent(
                 Text(text = "Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                uiState.isobaricData.timeSeries.forEach { item ->
-                    IsobaricDataItemCard(item = item)
-                }
+                //uiState.isobaricData.timeSeries.forEach { item ->
+                //    IsobaricDataItemCard(item = item)
+                //}
             }
         }
     }
