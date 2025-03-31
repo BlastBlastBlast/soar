@@ -51,9 +51,12 @@ fun AppNavLauncher() {
         Screen.Home.route -> "Home"
         else -> if (currentBackStackEntry?.destination?.route?.startsWith("weather") == true) "Weather" else "Unknown"
     }
+    // Disable gestures on Home so the drawer is only opened by tapping the logo.
+    val gesturesEnabled = currentScreenTitle != "Home"
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = gesturesEnabled,  // <-- Disable swipe gesture on Home
         drawerContent = {
             ModalDrawerSheet {
                 NavigationDrawerItem(
