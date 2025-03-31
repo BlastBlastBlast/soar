@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 
@@ -36,6 +37,7 @@ sealed class Screen(val route: String) {
     object Weather : Screen("weather?lat={lat}&lon={lon}") {
         fun createRoute(lat: Double, lon: Double) = "weather?lat=$lat&lon=$lon"
     }
+    object LaunchSite : Screen("launchsite")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +51,7 @@ fun AppNavLauncher() {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentScreenTitle = when (currentBackStackEntry?.destination?.route) {
         Screen.Home.route -> "Home"
+        Screen.LaunchSite.route -> "Launch Sites"
         else -> if (currentBackStackEntry?.destination?.route?.startsWith("weather") == true) "Weather" else "Unknown"
     }
     // Disable gestures on Home so the drawer is only opened by tapping the logo.
@@ -56,7 +59,7 @@ fun AppNavLauncher() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = gesturesEnabled,  // <-- Disable swipe gesture on Home
+        gesturesEnabled = gesturesEnabled,
         drawerContent = {
             ModalDrawerSheet {
                 NavigationDrawerItem(
@@ -76,6 +79,18 @@ fun AppNavLauncher() {
                     selected = currentScreenTitle == "Weather",
                     onClick = {
                         navController.navigate(Screen.Weather.createRoute(0.0, 0.0)) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                        scope.launch { drawerState.close() }
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
+                    label = { Text("Launch Sites") },
+                    selected = currentScreenTitle == "Launch Sites",
+                    onClick = {
+                        navController.navigate(Screen.LaunchSite.route) {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }
@@ -149,6 +164,11 @@ fun AppNavLauncher() {
                         weatherViewModel.loadForecast(lat, lon)
                     }
                     WeatherCardScreen(viewModel = weatherViewModel)
+                }
+                // New launch site route entry
+                composable(Screen.LaunchSite.route) {
+                    // hiltViewModel() will automatically provide your LaunchSiteViewModel
+                    LaunchSiteScreen()
                 }
             }
         }
