@@ -81,11 +81,11 @@ fun ScreenContent(
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
                 //uiState.isobaricData.timeSeries.forEach { item ->
                 //    IsobaricDataItemCard(item = item)
-                }
+                //}
             }
         }
     }
-//}
+}
 
 @Composable
 fun IsobaricDataItemCard(
