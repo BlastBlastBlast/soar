@@ -77,13 +77,19 @@ class IsobaricRepository @Inject constructor(
 
                         val isobaricMap = mutableMapOf<Float, IsobaricData>()
 
-                        val levelIdx = 0  // Fixing the isobaric level to the first dimension (since shape[0] = 1)
+                        for (levelIdx in isobaricLevels.indices) {  // Loop through all isobaric levels
+                            val level = isobaricLevels[levelIdx]  // Get the pressure level
 
-                        val temperature = temperatureVar.get(levelIdx, firstTimeIndex, latIdx, lonIdx)
-                        val uWind = uWindVar.get(levelIdx, firstTimeIndex, latIdx, lonIdx)
-                        val vWind = vWindVar.get(levelIdx, firstTimeIndex, latIdx, lonIdx)
+                            try {
+                                val temperature = temperatureVar.get(firstTimeIndex, levelIdx, latIdx, lonIdx)
+                                val uWind = uWindVar.get(firstTimeIndex, levelIdx, latIdx, lonIdx)
+                                val vWind = vWindVar.get(firstTimeIndex, levelIdx, latIdx, lonIdx)
 
-                        isobaricMap[isobaricLevels.first()] = IsobaricData(temperature, uWind, vWind)
+                                isobaricMap[level] = IsobaricData(temperature, uWind, vWind)
+                            } catch (e: IndexOutOfBoundsException) {
+                                println("Index error: levelIdx=$levelIdx, latIdx=$latIdx, lonIdx=$lonIdx")
+                            }
+                        }
 
                         gribDataMap[Pair(lat, lon)] = isobaricMap
                     }
