@@ -105,6 +105,11 @@ fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvalu
     val airWindStatus = evaluateValue(airWindValue, airWindThreshold)
     evaluations.add(ParameterEvaluation("Air Wind", "$airWindValue m/s", airWindStatus))
 
+    // **Wind Direction:** simply show the value (and icon in the UI)
+    val windDirectionValue = forecast.values.windFromDirection
+    evaluations.add(ParameterEvaluation("Wind Direction", "$windDirectionValue°", LaunchStatus.SAFE))
+
+    // Existing evaluations (cloud cover, fog, precipitation, humidity, dew point, etc.)
     // Cloud Cover: overall
     val cloudCoverThreshold = 15.0
     val cloudCoverValue = forecast.values.cloudAreaFraction
@@ -126,23 +131,23 @@ fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvalu
     val cloudCoverMediumStatus = evaluateValue(cloudCoverMediumValue, cloudCoverThreshold)
     evaluations.add(ParameterEvaluation("Cloud Cover Medium", "$cloudCoverMediumValue%", cloudCoverMediumStatus))
 
-    // Fog: must be exactly 0%
+    // Fog
     val fogValue = forecast.values.fogAreaFraction
     val fogStatus = if (fogValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
     evaluations.add(ParameterEvaluation("Fog", "$fogValue%", fogStatus))
 
-    // Precipitation: must be 0 mm
+    // Precipitation
     val precipitationValue = forecast.values.precipitationAmount
     val precipitationStatus = if (precipitationValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
     evaluations.add(ParameterEvaluation("Precipitation", "$precipitationValue mm", precipitationStatus))
 
-    // Humidity: target is 75% or lower
+    // Humidity
     val humidityThreshold = 75.0
     val humidityValue = forecast.values.relativeHumidity
     val humidityStatus = evaluateValue(humidityValue, humidityThreshold)
     evaluations.add(ParameterEvaluation("Humidity", "$humidityValue%", humidityStatus))
 
-    // Dew Point: maximum allowed is 15°C
+    // Dew Point
     val dewPointThreshold = 15.0
     val dewPointValue = forecast.values.dewPointTemperature
     val dewPointStatus = evaluateValue(dewPointValue, dewPointThreshold)
@@ -150,6 +155,7 @@ fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvalu
 
     return evaluations
 }
+
 
 
 // Helper function for numeric parameters with a buffer of ±10%.
