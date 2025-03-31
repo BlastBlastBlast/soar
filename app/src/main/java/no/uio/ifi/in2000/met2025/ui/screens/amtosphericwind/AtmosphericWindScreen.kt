@@ -1,14 +1,21 @@
 package no.uio.ifi.in2000.met2025.ui.screens.amtosphericwind
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,7 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import no.uio.ifi.in2000.met2025.data.models.Constants
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
 import java.math.RoundingMode
 import java.time.ZoneId
@@ -35,10 +41,18 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.pow
 import kotlin.math.sqrt
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.geometry.Size
 
 //TODO: hook up screen to navigation graph
-
-//TODO: make card scrollable and expandable, showing data closer to ground first
 
 //TODO: move this function to another file, it is also defined and used in HourlyExpandableCard
 fun formatZuluTimeToLocal(zuluTime: String): String {
@@ -53,7 +67,7 @@ fun formatZuluTimeToLocal(zuluTime: String): String {
 fun windShear(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
     val s1 = v1.windSpeed
     val s2 = v2.windSpeed
-    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos(v2.windFromDirection - v1.windFromDirection))
+    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((v2.windFromDirection - v1.windFromDirection) * Math.PI / 180))
 }
 
 //TODO: move function to another file, it could also be used in LocationForecastDataSource
@@ -79,7 +93,13 @@ fun ScreenContent(
     var latInput by remember { mutableStateOf("59.942") }
     var lonInput by remember { mutableStateOf("10.726") }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(scrollState)
+    ) {
         when (uiState) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
                 Text(
@@ -131,12 +151,14 @@ fun IsobaricDataItemCard(
     item: IsobaricDataItem
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
-    val windshearColor = Color(0xFFd7ebfa)
+    val windshearColor = Color(0xFFe2e0ff)
+    val expanded = remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .clickable { expanded.value = !expanded.value },
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
@@ -149,120 +171,63 @@ fun IsobaricDataItemCard(
             HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
             // Static header row to label columns
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                Text(
-                    text = "Altitude",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "Wind Speed",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "Wind Direction",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            AtmosphericLayerRow(
+                altitudeText = "Altitude",
+                windSpeedText = "Wind Speed",
+                windDirectionText = "Wind Direction",
+                style = MaterialTheme.typography.titleSmall
+            )
 
             // Static header row to label columns
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-//                    .border(
-//                        BorderStroke(1.dp, Color.LightGray),
-//                        RoundedCornerShape(4.dp)
-//                    )
-                    .background(
-                        color = windshearColor,
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .padding(4.dp) // Add border and padding for visual offset
-            ) {
-                Text(
-                    text = "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
+            WindShearRow(
+                backgroundColor = windshearColor,
+                text = "Wind Shear",
+                style = MaterialTheme.typography.titleSmall
+            )
+
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            CornerBorderColumn {
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = "Expand",
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        //.padding(8.dp)
+                        .graphicsLayer(rotationZ = if (expanded.value) 0f else 180f)
                 )
-                Text(
-                    text = "Wind Shear",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-            // Iterate through layer pressure values and display data
-            val pressureValues = item.valuesAtLayer.keys.sorted()
-            pressureValues.forEachIndexed { index, layer ->
-                val altitude = item.valuesAtLayer[layer]?.altitude ?: "--"
-                val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
-                val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
+                // Iterate through layer pressure values and display data
+                val pressureValues = item.valuesAtLayer.keys.sorted()
+                val displayedValues = if (expanded.value) pressureValues else pressureValues.takeLast(6)
+                displayedValues.forEachIndexed { index, layer ->
+                    val altitude = item.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
+                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
+                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
 
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Text(
-                        text = "$altitude m",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
+                    AtmosphericLayerRow(
+                        altitudeText = "$altitude m",
+                        windSpeedText = "$windSpeed m/s",
+                        windDirectionText = "$windDirection°",
+                        style = MaterialTheme.typography.bodyMedium
                     )
-                    Text(
-                        text = "$windSpeed m/s",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = "$windDirection°",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
 
-                // Calculate wind shear if not the last item in list and both layers exist
-                if (index < pressureValues.size - 1) {
-                    val nextLayer = pressureValues[index + 1]
+                    // Calculate wind shear if not the last item in list and both layers exist
+                    if (index < displayedValues.size - 1) {
+                        val nextLayer = displayedValues[index + 1]
 
-                    if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
-                        val windShearValue = windShear(
-                            item.valuesAtLayer[layer]!!,
-                            item.valuesAtLayer[nextLayer]!!
-                        )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-//                                .border(
-//                                    BorderStroke(1.dp, Color.LightGray),
-//                                    RoundedCornerShape(4.dp)
-//                                )
-                                .background(
-                                    color = windshearColor,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                                .padding(4.dp) // Add border and padding for visual offset
-                        ) {
-                            Text(
-                                text = "",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
+                        if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
+                            val windShearValue = windShear(
+                                item.valuesAtLayer[layer]!!,
+                                item.valuesAtLayer[nextLayer]!!
                             )
-                            Text(
+
+                            WindShearRow(
+                                backgroundColor = windshearColor,
                                 text = "${windShearValue.roundToDecimals(1)} m/s",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = "",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -272,73 +237,117 @@ fun IsobaricDataItemCard(
     }
 }
 
-//@Composable
-//fun IsobaricDataItemCard(
-//    item: IsobaricDataItem
-//) {
-//    val cardBackgroundColor = Color(0xFFE3F2FD)
-//
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(vertical = 8.dp),
-//        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-//        shape = RoundedCornerShape(corner = CornerSize(8.dp))
-//    ) {
-//        Column(modifier = Modifier.padding(16.dp)) {
-//            Text(
-//                text = formatZuluTimeToLocal(item.time),
-//                style = MaterialTheme.typography.headlineSmall,
-//                modifier = Modifier.padding(bottom = 8.dp)
+@Composable
+fun AtmosphericLayerRow(
+    altitudeText: String,
+    windSpeedText: String,
+    windDirectionText: String,
+    style: androidx.compose.ui.text.TextStyle
+) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text(
+            text = altitudeText,
+            style = style,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = windSpeedText,
+            style = style,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = windDirectionText,
+            style = style,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun WindShearRow(
+    backgroundColor: Color,
+    text: String,
+    style: androidx.compose.ui.text.TextStyle
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .background(
+                color = backgroundColor,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(4.dp) // Add border and padding for visual offset
+    ) {
+        Box(modifier = Modifier.weight(1f))
+
+        Text(
+            text = text,
+            style = style,
+            modifier = Modifier.weight(1f)
+        )
+
+        Box(modifier = Modifier.weight(1f))
+    }
+}
+
+class CustomRoundedCornerShape(private val cornerSize: Dp) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val cornerRadius = with(density) { cornerSize.toPx() }
+        return Outline.Generic(Path().apply {
+            // Top-left corner
+            moveTo(0f, cornerRadius)
+            arcTo(
+                rect = androidx.compose.ui.geometry.Rect(0f, 0f, cornerRadius * 2, cornerRadius * 2),
+                startAngleDegrees = 180f,
+                sweepAngleDegrees = 90f,
+                forceMoveTo = false
+            )
+            // Top horizontal line
+            lineTo(size.width - cornerRadius, 0f)
+            // Top-right corner
+            arcTo(
+                rect = androidx.compose.ui.geometry.Rect(size.width - cornerRadius * 2, 0f, size.width, cornerRadius * 2),
+                startAngleDegrees = 270f,
+                sweepAngleDegrees = 90f,
+                forceMoveTo = false
+            )
+//            // Bottom-right corner
+//            moveTo(size.width, size.height - cornerRadius)
+//            arcTo(
+//                rect = androidx.compose.ui.geometry.Rect(size.width - cornerRadius * 2, size.height - cornerRadius * 2, size.width, size.height),
+//                startAngleDegrees = 0f,
+//                sweepAngleDegrees = 90f,
+//                forceMoveTo = false
 //            )
-//            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-//
-//            // Static header row to label columns
-//            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-//                Text(
-//                    text = "Altitude",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.weight(1f)
-//                )
-//                Text(
-//                    text = "Wind Speed",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.weight(1f)
-//                )
-//                Text(
-//                    text = "Wind Direction",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.weight(1f)
-//                )
-//            }
-//            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-//
-//            // Data rows: dynamic content for each pressure layer
-//            Constants.layerPressureValues.forEach { layer ->
-//                val altitude = item.valuesAtLayer[layer]?.altitude ?: "--"
-//                val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
-//                val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
-//
-//                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-//                    Text(
-//                        text = "$altitude m",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.weight(1f)
-//                    )
-//                    Text(
-//                        text = "$windSpeed m/s",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.weight(1f)
-//                    )
-//                    Text(
-//                        text = "$windDirection°",
-//                        style = MaterialTheme.typography.bodyMedium,
-//                        modifier = Modifier.weight(1f)
-//                    )
-//                }
-//                HorizontalDivider(thickness = 0.5.dp, color = Color.Gray)
-//            }
-//        }
-//    }
-//}
+//            // Bottom horizontal line
+//            lineTo(cornerRadius, size.height)
+//            // Bottom-left corner
+//            arcTo(
+//                rect = androidx.compose.ui.geometry.Rect(0f, size.height - cornerRadius * 2, cornerRadius * 2, size.height),
+//                startAngleDegrees = 90f,
+//                sweepAngleDegrees = 90f,
+//                forceMoveTo = false
+//            )
+        })
+    }
+}
+
+@Composable
+fun CornerBorderColumn(content: @Composable() (ColumnScope.() -> Unit)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, Color.Gray, shape = CustomRoundedCornerShape(8.dp))
+            .padding(top = 8.dp/*, bottom = 8.dp*/)
+    ) {
+        Column {
+            content()
+        }
+    }
+}
 
