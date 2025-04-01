@@ -25,7 +25,7 @@ class WeatherCardViewmodel @Inject constructor(
     private val _uiState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
     val uiState: StateFlow<WeatherCardUiState> = _uiState
 
-    fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) {
+    fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 10) { //shows 10 weather cards
         viewModelScope.launch {
             _uiState.value = WeatherCardUiState.Loading
             val result = locationForecastRepository.getForecastData(lat, lon, timeSpanInHours)
