@@ -15,10 +15,8 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
-import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2
-import kotlin.math.round
 import kotlin.math.sqrt
 
 class WeatherModel @Inject constructor(
@@ -33,13 +31,17 @@ class WeatherModel @Inject constructor(
         println("Coordinate is within bounds")
 
             return try {
-                val updatedLat = RoundDoubleToXDecimals(lat, 2)
-                val updatedLon = RoundDoubleToXDecimals(lon, 2)
+                val updatedLat = lat.roundToPointXFive()
+                val updatedLon = lon.roundToPointXFive()
+                println("updated lat $updatedLat, updated lon $updatedLon")
+                val update2Lat = RoundDoubleToXDecimals(updatedLat, 2)
+                val update2Lon = RoundDoubleToXDecimals(updatedLon, 2)
+                println("updated lat $update2Lat, updated lon $update2Lon")
                 val gribResult: GribDataMap = isobaricRepository.getCurrentIsobaricGribData()
                 val dataMap: Map<Int, GribVectors>? = gribResult[
                     Pair(
-                        updatedLat.roundToPointXFive(),
-                        updatedLon
+                        update2Lat,
+                        update2Lon
                     )
                 ]
                 if (dataMap != null) {

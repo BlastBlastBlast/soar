@@ -1,9 +1,8 @@
 package no.uio.ifi.in2000.met2025.domain.helpers
 
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 fun Double.roundToPointXFive(): Double {
-    return (Math.round(this * 20) / 20.0).let {
-        if (it % 0.10 == 0.0) it + 0.05 else it
-    }
+    return ((this * 10).toInt() / 10) +0.05
 }
