@@ -32,16 +32,17 @@ class LocationForecastRepository @Inject constructor(
                                     fogAreaFraction = it.data.instant.details.fogAreaFraction,
                                     dewPointTemperature = it.data.instant.details.dewPointTemperature,
                                     cloudAreaFraction = it.data.instant.details.cloudAreaFraction,
-                                    precipitationAmount = if (it.data.next1Hours == null) 0.0 else
-                                        it.data.next1Hours.details.precipitationAmount, // should probably not be 0.0 if null
-                                    probabilityOfThunder = if (it.data.next1Hours == null) 0.0 else
-                                        it.data.next1Hours.details.probabilityOfThunder
+                                    cloudAreaFractionHigh = it.data.instant.details.cloudAreaFractionHigh,
+                                    cloudAreaFractionLow = it.data.instant.details.cloudAreaFractionLow,
+                                    cloudAreaFractionMedium = it.data.instant.details.cloudAreaFractionMedium,
+                                    precipitationAmount = it.data.next1Hours?.details?.precipitationAmount ?: 0.0,
+                                    probabilityOfThunder = it.data.next1Hours?.details?.probabilityOfThunder ?: 0.0
                                 )
                             )
                         }
                     )
                 )
             }
-        return Result.failure(Exception("Ukjent feil i henting av værdata"))
+        return Result.failure(Exception("Unknown error fetching forecast data"))
     }
 }

@@ -7,7 +7,7 @@ data class IsobaricData(
 
 data class IsobaricDataItem(
     val time: String = "",
-    val valuesAtLayer: Map<Double, IsobaricDataValues> // key is pressure in hPa
+    val valuesAtLayer: Map<Int, IsobaricDataValues> // key is pressure in hPa
 )
 
 data class IsobaricDataValues(

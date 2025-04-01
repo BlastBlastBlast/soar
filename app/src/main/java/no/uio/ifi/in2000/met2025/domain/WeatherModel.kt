@@ -5,6 +5,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.models.Constants
 import no.uio.ifi.in2000.met2025.data.models.ForecastData
+import no.uio.ifi.in2000.met2025.data.models.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.GribVectors
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
@@ -12,7 +14,9 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import java.time.Instant
 import javax.inject.Inject
+import kotlin.math.atan2
 import kotlin.math.round
+import kotlin.math.sqrt
 
 class WeatherModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
@@ -25,24 +29,25 @@ class WeatherModel @Inject constructor(
 
     private suspend fun convertGribData(lat: Double, lon: Double): Result<IsobaricData> {
         return try {
-            val gribResult: GribDataMap = getCurrentIsobaricData()
-            val dataMap: Map<Float, GribVectors> = isobaricResult[Pair(lat.roundToPointXFive(), lon.roundToPointXFive())]
+            val gribResult: GribDataMap = isobaricRepository.getCurrentIsobaricGribData()
+            val dataMap: Map<Int, GribVectors>? = gribResult[Pair(lat.roundToPointXFive(), lon.roundToPointXFive())]
             val pressureValues = Constants.layerPressureValues
             val isobaricData = IsobaricData(
-                timeSeries = [
+                timeSeries = listOf(
                     IsobaricDataItem(
-                        valuesAtLayer = pressureValues.associate { pressure ->
-                            val gribVectors = dataMap[pressure]
-                            val uComponentWind = gribVectors?.uComponentWind ?: 0.0
-                            val vComponentWind = gribVectors?.vComponentWind ?: 0.0
+                        valuesAtLayer = pressureValues.associateWith { pressure ->
+                            val gribVectors = dataMap?.get(pressure)
+                            val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
+                            val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
                             IsobaricDataValues(
-                                altitude = pressure,
-                                windSpeed = Math.sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
-                                windFromDirection = Math.toDegrees(Math.atan2(uComponentWind, vComponentWind)).roundToPointXFive()
+                                altitude = pressure.toDouble(),
+                                windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
+                                windFromDirection = Math.toDegrees(atan2(uComponentWind, vComponentWind))
                             )
                         }
                     )
-                ]
+                )
+
             )
             Result.success(isobaricData)
         } catch (exception: Exception) {
@@ -65,7 +70,7 @@ class WeatherModel @Inject constructor(
     private fun combinedDataResult(isobaricData: IsobaricData, lat: Double, lon: Double): Result<IsobaricData> {
         val forecastResult = runBlocking {
             withContext(Dispatchers.IO) {
-                locationForecastRepository.getForecastData(lat, lon, isobaricData.timeSeries.size * 3)
+                locationForecastRepository.getForecastData(lat, lon, isobaricData.timeSeries.size/* * 3*/)
             }
         }
         return forecastResult.fold(
@@ -75,11 +80,9 @@ class WeatherModel @Inject constructor(
             onSuccess = { forecastData: ForecastData ->
                 Result.success(
                     IsobaricData(
-                        updatedAt = if (Instant.parse(isobaricData.updatedAt)
-                                .isBefore(Instant.parse(forecastData.updatedAt))
-                        )
+                        updatedAt = /*if (Instant.parse(isobaricData.updatedAt).isBefore(Instant.parse(forecastData.updatedAt)))
                             isobaricData.updatedAt
-                        else
+                        else*/
                             forecastData.updatedAt,
                         timeSeries = isobaricData.timeSeries.map { isobaricItem ->
 //                            val forecastItem = forecastData.timeSeries.firstOrNull {
@@ -88,12 +91,11 @@ class WeatherModel @Inject constructor(
                             val forecastItem = forecastData.timeSeries.first()
                             IsobaricDataItem(
                                 time = forecastItem.time,
-//                                time = isobaricItem.time,
                                 valuesAtLayer = if (forecastItem == null) {
                                     isobaricItem.valuesAtLayer
                                 } else {
                                     isobaricItem.valuesAtLayer.plus(
-                                        forecastItem.values.airPressureAtSeaLevel to
+                                        forecastItem.values.airPressureAtSeaLevel.toInt() to
                                                 IsobaricDataValues(
                                                     altitude = forecastData.altitude,
                                                     windSpeed = forecastItem.values.windSpeed,

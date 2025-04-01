@@ -26,6 +26,9 @@ fun WeatherCardPreview() {
                 fogAreaFraction = 100.0, // used as visibility
                 dewPointTemperature = 5.0,
                 cloudAreaFraction = 20.0,
+                cloudAreaFractionHigh = 25.0,
+                cloudAreaFractionLow = 15.0,
+                cloudAreaFractionMedium = 10.0,
                 precipitationAmount = 0.0,
                 probabilityOfThunder = 0.0
             )
@@ -42,6 +45,9 @@ fun WeatherCardPreview() {
                 fogAreaFraction = 98.0,
                 dewPointTemperature = 6.0,
                 cloudAreaFraction = 30.0,
+                cloudAreaFractionHigh = 35.0,
+                cloudAreaFractionLow = 25.0,
+                cloudAreaFractionMedium = 20.0,
                 precipitationAmount = 0.1,
                 probabilityOfThunder = 10.0
             )
@@ -58,6 +64,9 @@ fun WeatherCardPreview() {
                 fogAreaFraction = 95.0,
                 dewPointTemperature = 7.0,
                 cloudAreaFraction = 50.0,
+                cloudAreaFractionHigh = 55.0,
+                cloudAreaFractionLow = 45.0,
+                cloudAreaFractionMedium = 35.0,
                 precipitationAmount = 0.0,
                 probabilityOfThunder = 20.0
             )
@@ -74,6 +83,9 @@ fun WeatherCardPreview() {
                 fogAreaFraction = 92.0,
                 dewPointTemperature = 8.0,
                 cloudAreaFraction = 60.0,
+                cloudAreaFractionHigh = 65.0,
+                cloudAreaFractionLow = 55.0,
+                cloudAreaFractionMedium = 50.0,
                 precipitationAmount = 0.2,
                 probabilityOfThunder = 30.0
             )
