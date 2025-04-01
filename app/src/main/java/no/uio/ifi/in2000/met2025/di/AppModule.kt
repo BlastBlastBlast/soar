@@ -23,6 +23,7 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
+import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -92,6 +93,15 @@ object AppModule {
         dataSource: IsobaricDataSource
     ): IsobaricRepository {
         return IsobaricRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWeatherModel(
+        locationForecastRepository: LocationForecastRepository,
+        isobaricRepository: IsobaricRepository
+    ): WeatherModel {
+        return WeatherModel(locationForecastRepository, isobaricRepository)
     }
 }
 

@@ -3,17 +3,20 @@ package no.uio.ifi.in2000.met2025.data.remote.isobaric
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.GribVectors
+import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
+import java.math.BigDecimal
+import java.math.RoundingMode
 import javax.inject.Inject
 
 class IsobaricRepository @Inject constructor(
     private val isobaricDataSource: IsobaricDataSource
 ) {
     suspend fun getCurrentIsobaricGribData(): GribDataMap {
-        val gribDataMap = mutableMapOf<Pair<Float, Float>, MutableMap<Float, IsobaricData>>()
+        val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
 
         try {
             val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricGribData()
@@ -26,17 +29,18 @@ class IsobaricRepository @Inject constructor(
             }
 
             NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
-                // Read latitude variable
+                //Henter ut variablene som ligger i vanlige arrayer.
+                //Disse trengs for å hente ut data fra 4d arrayene
                 val latitudes = (netcdfFile.findVariable("lat")?.read() as? ArrayFloat.D1)
                     ?.let { array ->
                         (0 until array.size).map { idx -> array.get(idx.toInt()) }
                     }
-                // Read longitude variable
+
                 val longitudes = (netcdfFile.findVariable("lon")?.read() as? ArrayFloat.D1)
                     ?.let { array ->
                         (0 until array.size).map { idx -> array.get(idx.toInt()) }
                     }
-                // Read isobaric levels variable
+
                 val isobaricLevels = (netcdfFile.findVariable("isobaric")?.read() as? ArrayFloat.D1)
                     ?.let { array ->
                         (0 until array.size).map { idx -> array.get(idx.toInt()) }
@@ -47,54 +51,54 @@ class IsobaricRepository @Inject constructor(
                     return emptyMap()
                 }
 
-                // Retrieve the 4D variables (dimensions: [isobaric, time, lat, lon])
-                val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
+                // Henter ut 4d arrayene for variablene på gitte punkter.
+                //val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
                 val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
                 val vWindVar = netcdfFile.findVariable("v-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
 
-                if (temperatureVar == null || uWindVar == null || vWindVar == null) {
+                if (uWindVar == null || vWindVar == null) { //temperatureVar == null
                     println("Missing temperature or wind data")
                     return emptyMap()
                 }
 
-                // Extract the timestamp from the first available entry
-                //TODO: FIX THIS SHIT
-                val firstTempValue = arrayOf("025-03-31T09:00:00Z")
-                val firstTimeIndex = 0
-
-                println("Temperature shape: ${temperatureVar.shape.contentToString()}")
+                //test prints for å forstå datasettet
+                //println("Temperature shape: ${temperatureVar.shape.contentToString()}")
                 println("uWind shape: ${uWindVar.shape.contentToString()}")
                 println("vWind shape: ${vWindVar.shape.contentToString()}")
                 println("Latitudes size: ${latitudes.size}, Longitudes size: ${longitudes.size}")
                 println("Isobaric levels size: ${isobaricLevels.size}")
+                println("Isobaric levels from NetCDF: ${isobaricLevels.joinToString()}")
 
-                // Loop over latitudes and longitudes to build the data map
+                // Nøsted løkke over kombinasjonen latitude, longitude og isobaric level
                 for (latIdx in latitudes.indices) {
                     for (lonIdx in longitudes.indices) {
                         val lat = latitudes[latIdx]
                         val lon = longitudes[lonIdx]
 
-                        val isobaricMap = mutableMapOf<Float, IsobaricData>()
+                        val isobaricMap = mutableMapOf<Int, GribVectors>()
 
-                        for (levelIdx in isobaricLevels.indices) {  // Loop through all isobaric levels
-                            val level = isobaricLevels[levelIdx]  // Get the pressure level
+                        for (levelIdx in isobaricLevels.indices) {
+                            val level = isobaricLevels[levelIdx] / 100  //Convert from Pa to hPa
 
                             try {
-                                val temperature = temperatureVar.get(firstTimeIndex, levelIdx, latIdx, lonIdx)
-                                val uWind = uWindVar.get(firstTimeIndex, levelIdx, latIdx, lonIdx)
-                                val vWind = vWindVar.get(firstTimeIndex, levelIdx, latIdx, lonIdx)
+                                //val temperature = temperatureVar.get(0, levelIdx, latIdx, lonIdx)
+                                val uWind = uWindVar.get(0, levelIdx, latIdx, lonIdx)
+                                val vWind = vWindVar.get(0, levelIdx, latIdx, lonIdx)
 
-                                isobaricMap[level] = IsobaricData(temperature, uWind, vWind)
+                                isobaricMap[level.toInt()] = GribVectors(uWind, vWind)
                             } catch (e: IndexOutOfBoundsException) {
                                 println("Index error: levelIdx=$levelIdx, latIdx=$latIdx, lonIdx=$lonIdx")
                             }
                         }
 
-                        gribDataMap[Pair(lat, lon)] = isobaricMap
+                        gribDataMap[Pair(
+                            RoundFloatToXDecimalsDouble(lat, 2),
+                            RoundFloatToXDecimalsDouble(lon - 360, 2)
+                        )] = isobaricMap
                     }
                 }
             }
-            // Delete the temporary file
+            // Sletter tempFilen siden dataen er lagt i map
             tempFile.delete()
         } catch (e: Exception) {
             println("Error processing GRIB file: ${e.message}")
