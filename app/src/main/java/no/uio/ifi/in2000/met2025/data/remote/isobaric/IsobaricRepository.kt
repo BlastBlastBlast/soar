@@ -47,6 +47,19 @@ class IsobaricRepository @Inject constructor(
                     return emptyMap()
                 }
 
+                val reftime = netcdfFile.findVariable("reftime")?.read()
+                val reftimeValues = (reftime as? ArrayFloat.D1)?.let { array ->
+                    (0 until array.size).map { idx -> array.get(idx.toInt()) }
+                }
+
+                val time = netcdfFile.findVariable("time")?.read()
+                val timeValues = (time as? ArrayFloat.D1)?.let { array ->
+                    (0 until array.size).map { idx -> array.get(idx.toInt()) }
+                }
+
+                println("Reference time values: $reftimeValues")
+                println("Time values: $timeValues")
+
                 // Retrieve the 4D variables (dimensions: [isobaric, time, lat, lon])
                 val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
                 val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
