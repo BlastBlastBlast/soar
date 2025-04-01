@@ -32,7 +32,7 @@ val mockIsobaricDataItems = listOf(
     IsobaricDataItem(
         time = "2025-03-15T20:00:00Z",
         valuesAtLayer = mapOf(
-            100 to IsobaricDataValues(altitude = 16000.0, windSpeed = 14.0, windFromDirection = 260.0),
+            100 to IsobaricDataValues(altitude = 16000.0,  windSpeed = 14.0, windFromDirection = 260.0),
             150 to IsobaricDataValues(altitude = 14000.0, windSpeed = 13.0, windFromDirection = 270.0),
             200 to IsobaricDataValues(altitude = 12000.0, windSpeed = 12.0, windFromDirection = 280.0),
             225 to IsobaricDataValues(altitude = 11500.0, windSpeed = 11.0, windFromDirection = 290.0),

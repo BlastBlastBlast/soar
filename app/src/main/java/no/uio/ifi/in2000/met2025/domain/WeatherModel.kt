@@ -58,7 +58,7 @@ class WeatherModel @Inject constructor(
                                 val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
                                 val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
                                 IsobaricDataValues(
-                                    altitude = pressure.toDouble(),
+                                    altitude = pressure.toDouble(), //TODO: calculate and assign altitude value here
                                     windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
                                     windFromDirection = Math.toDegrees(
                                         atan2(

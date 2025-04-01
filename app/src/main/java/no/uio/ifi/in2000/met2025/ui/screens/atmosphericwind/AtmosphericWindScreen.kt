@@ -49,13 +49,25 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Size
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
+import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 //TODO: hook up screen to navigation graph
 
-fun windShearSpeed(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
-    val s1 = v1.windSpeed
-    val s2 = v2.windSpeed
-    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((v2.windFromDirection - v1.windFromDirection) * Math.PI / 180))
+fun windShearSpeed(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
+    val s1 = d1.windSpeed
+    val s2 = d2.windSpeed
+    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((d2.windFromDirection - d1.windFromDirection) * Math.PI / 180))
+}
+
+fun windShearDirection(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
+    val x1 = d1.windSpeed * cos(d1.windFromDirection)
+    val y1 = d1.windSpeed * sin(d1.windFromDirection)
+    val x2 = d2.windSpeed * cos(d2.windFromDirection)
+    val y2 = d2.windSpeed * sin(d2.windFromDirection)
+    return (atan2(y2 - y1, x2 - x1) * 180 / Math.PI).floorModDouble(360)
 }
 
 @Composable
@@ -164,7 +176,8 @@ fun IsobaricDataItemCard(
             // Static header row to label columns
             WindShearRow(
                 backgroundColor = windshearColor,
-                text = "Wind Shear",
+                speedText = "Wind Shear Speed",
+                directionText = "Wind Shear Direction",
                 style = MaterialTheme.typography.titleSmall
             )
 
@@ -206,10 +219,18 @@ fun IsobaricDataItemCard(
                                 item.valuesAtLayer[layer]!!,
                                 item.valuesAtLayer[nextLayer]!!
                             )
+                                .roundToDecimals(1)
+
+                            val windShearDirection = windShearDirection(
+                                item.valuesAtLayer[layer]!!,
+                                item.valuesAtLayer[nextLayer]!!
+                            )
+                                .roundToDecimals(1)
 
                             WindShearRow(
                                 backgroundColor = windshearColor,
-                                text = "${windShearValue.roundToDecimals(1)} m/s",
+                                speedText = "$windShearValue m/s",
+                                directionText = "$windShearDirection°",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -238,7 +259,7 @@ fun AtmosphericLayerRow(
             style = style,
             modifier = Modifier.weight(1f)
         )
-        Text(
+        Text( //TODO: Add wind direction icon. Pointing downwards at 0° rotating clockwise
             text = windDirectionText,
             style = style,
             modifier = Modifier.weight(1f)
@@ -249,7 +270,8 @@ fun AtmosphericLayerRow(
 @Composable
 fun WindShearRow(
     backgroundColor: Color,
-    text: String,
+    speedText: String,
+    directionText: String,
     style: androidx.compose.ui.text.TextStyle
 ) {
     Row(
@@ -265,12 +287,16 @@ fun WindShearRow(
         Box(modifier = Modifier.weight(1f))
 
         Text(
-            text = text,
+            text = speedText,
             style = style,
             modifier = Modifier.weight(1f)
         )
 
-        Box(modifier = Modifier.weight(1f))
+        Text(
+            text = directionText,
+            style = style,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
