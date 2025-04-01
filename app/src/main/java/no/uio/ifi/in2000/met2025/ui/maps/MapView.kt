@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.met2025.ui.maps
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -34,9 +35,10 @@ import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import no.uio.ifi.in2000.met2025.R
 
 @Composable
-fun MarkerLabel(coordinate: Point) {
+fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
     Box(
         modifier = Modifier
+            .clickable { onClick() }
             .background(Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp)),
@@ -44,11 +46,11 @@ fun MarkerLabel(coordinate: Point) {
     ) {
         Text(
             text = "Lat: ${"%.4f".format(coordinate.latitude())}\nLon: ${"%.4f".format(coordinate.longitude())}",
-            color = Color.White,
-            fontSize = androidx.compose.ui.unit.TextUnit.Unspecified
+            color = Color.White
         )
     }
 }
+
 
 
 @Composable
@@ -56,9 +58,9 @@ fun MapView(
     latitude: Double,
     longitude: Double,
     modifier: Modifier = Modifier,
-    onMarkerPlaced: (Double, Double) -> Unit
+    onMarkerPlaced: (Double, Double) -> Unit,
+    onMarkerAnnotationClick: (Double, Double) -> Unit  // New callback
 ) {
-    // Create viewport and map states.
     val mapViewportState = rememberMapViewportState()
     val mapState = rememberMapState {
         cameraOptions {
@@ -68,9 +70,7 @@ fun MapView(
             bearing(0.0)
         }
     }
-    // Hold the marker coordinate.
     var markerCoordinate by remember { mutableStateOf<Point?>(null) }
-    // Flag to run the initial camera update only once.
     var initialTransitionDone by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
@@ -86,7 +86,6 @@ fun MapView(
             }
         ) {
             MapEffect(markerCoordinate) { mapView ->
-                // Configure the location component.
                 mapView.location.updateSettings {
                     locationPuck = createDefault2DPuck(withBearing = true)
                     enabled = true
@@ -105,7 +104,7 @@ fun MapView(
                     initialTransitionDone = true
                 }
             }
-            // Add the red marker.
+            // Draw the red marker using PointAnnotation.
             markerCoordinate?.let { coordinate ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
@@ -120,20 +119,19 @@ fun MapView(
                 ViewAnnotation(
                     options = viewAnnotationOptions {
                         geometry(coordinate)
-                        // Anchor the annotation so that its bottom is attached to the coordinate.
                         annotationAnchor {
                             anchor(ViewAnnotationAnchor.BOTTOM)
-                            // Raise it further above the marker (adjust offsetY as needed).
                             offsetY(60.0)
                         }
-                        // Allow overlapping so it isn't hidden by other map UI (like the position puck).
                         allowOverlap(true)
                     }
                 ) {
-                    MarkerLabel(coordinate = coordinate)
+                    MarkerLabel(coordinate = coordinate) {
+                        // When tapped, call the callback with marker coordinates.
+                        onMarkerAnnotationClick(coordinate.latitude(), coordinate.longitude())
+                    }
                 }
             }
-
         }
     }
 }
