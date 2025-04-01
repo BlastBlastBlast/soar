@@ -9,27 +9,32 @@ import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
 import javax.inject.Inject
 
-
-//TODO: implementere UI-states
 @HiltViewModel
 class LaunchSiteViewModel @Inject constructor(
     private val launchSiteDAO: LaunchSiteDAO
 ) : ViewModel() {
 
-    // Henter alle lagrede koordinater
+    // Observe all saved launch sites.
     val launchSites: Flow<List<LaunchSite>> = launchSiteDAO.getAll()
 
-    // Legg til et nytt oppskytningspunkt
+    // Add a new launch site.
     fun addLaunchSite(latitude: Double, longitude: Double, name: String) {
         viewModelScope.launch {
             launchSiteDAO.insertAll(LaunchSite(latitude = latitude, longitude = longitude, name = name))
         }
     }
 
-    // Slett et oppskytningspunkt
+    // Delete a launch site.
     fun deleteLaunchSite(site: LaunchSite) {
         viewModelScope.launch {
             launchSiteDAO.delete(site)
+        }
+    }
+
+    // Update an existing launch site.
+    fun updateLaunchSite(site: LaunchSite) {
+        viewModelScope.launch {
+            launchSiteDAO.updateSites(site)
         }
     }
 }
