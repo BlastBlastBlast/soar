@@ -40,14 +40,22 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.ZoneId
 
-fun formatZuluTimeToLocal(zuluTime: String): String {
-    // Parse the ISO date‑time string (Zulu/UTC format)
+fun formatZuluTimeToLocalDate(zuluTime: String): String {
     val zonedDateTime = ZonedDateTime.parse(zuluTime)
-    // Convert the time to the system default timezone (or specify ZoneId.of("Europe/Oslo"))
-    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
-    // Format as 24‑h time
+    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
+    return localTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+}
+
+
+fun formatZuluTimeToLocalTime(zuluTime: String): String {
+    val zonedDateTime = ZonedDateTime.parse(zuluTime)
+    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
     return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
 }
+
+
+
+
 
 @Composable
 fun WindDirectionIcon(windDirection: Double) {
@@ -84,8 +92,12 @@ fun HourlyExpandableCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Time: ${formatZuluTimeToLocal(forecastItem.time)}",
+                    text = "Time: ${formatZuluTimeToLocalTime(forecastItem.time)}",
                     style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "Date: ${formatZuluTimeToLocalDate(forecastItem.time)}",
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 LaunchStatusIndicator(forecast = forecastItem)
             }
