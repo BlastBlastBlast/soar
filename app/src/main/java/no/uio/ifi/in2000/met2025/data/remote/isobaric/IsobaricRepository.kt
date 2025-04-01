@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.GribVectors
+import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
@@ -91,8 +92,8 @@ class IsobaricRepository @Inject constructor(
                         }
 
                         gribDataMap[Pair(
-                            BigDecimal(lat.toDouble()).setScale(2, RoundingMode.HALF_UP).toDouble(),
-                            (BigDecimal((lon -360).toDouble()).setScale(2, RoundingMode.HALF_UP).toDouble())
+                            RoundFloatToXDecimalsDouble(lat, 2),
+                            RoundFloatToXDecimalsDouble(lon - 360, 2)
                         )] = isobaricMap
                     }
                 }

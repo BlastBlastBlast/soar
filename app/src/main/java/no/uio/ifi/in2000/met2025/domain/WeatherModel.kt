@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.models.Constants
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries
 import no.uio.ifi.in2000.met2025.data.models.ForecastData
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.GribVectors
@@ -12,6 +13,8 @@ import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
+import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2
@@ -23,35 +26,56 @@ class WeatherModel @Inject constructor(
     private val isobaricRepository: IsobaricRepository
 ) { //Businesslogikk for konsolidering av forskjellig type data
 
-    private fun Double.roundToPointXFive(): Double {
-        return round(this * 20) / 20
-    }
-
     private suspend fun convertGribData(lat: Double, lon: Double): Result<IsobaricData> {
-        return try {
-            val gribResult: GribDataMap = isobaricRepository.getCurrentIsobaricGribData()
-            val dataMap: Map<Int, GribVectors>? = gribResult[Pair(lat.roundToPointXFive(), lon.roundToPointXFive())]
-            val pressureValues = Constants.layerPressureValues
-            val isobaricData = IsobaricData(
-                timeSeries = listOf(
-                    IsobaricDataItem(
-                        valuesAtLayer = pressureValues.associateWith { pressure ->
-                            val gribVectors = dataMap?.get(pressure)
-                            val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
-                            val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
-                            IsobaricDataValues(
-                                altitude = pressure.toDouble(),
-                                windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
-                                windFromDirection = Math.toDegrees(atan2(uComponentWind, vComponentWind))
-                            )
-                        }
-                    )
-                )
 
-            )
-            Result.success(isobaricData)
-        } catch (exception: Exception) {
-            Result.failure(exception)
+        println("lat $lat, lon $lon")
+        if(CoordinateBoundaries.isWithinBounds(lat, lon)) {
+        println("Coordinate is within bounds")
+
+            return try {
+                val updatedLat = RoundDoubleToXDecimals(lat, 2)
+                val updatedLon = RoundDoubleToXDecimals(lon, 2)
+                val gribResult: GribDataMap = isobaricRepository.getCurrentIsobaricGribData()
+                val dataMap: Map<Int, GribVectors>? = gribResult[
+                    Pair(
+                        updatedLat.roundToPointXFive(),
+                        updatedLon
+                    )
+                ]
+                if (dataMap != null) {
+                    println("rounding success")
+                } else {
+                    println("rounding failure")
+                }
+                val pressureValues = Constants.layerPressureValues
+                val isobaricData = IsobaricData(
+                    timeSeries = listOf(
+                        IsobaricDataItem(
+                            valuesAtLayer = pressureValues.associateWith { pressure ->
+                                val gribVectors = dataMap?.get(pressure)
+                                val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
+                                val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
+                                IsobaricDataValues(
+                                    altitude = pressure.toDouble(),
+                                    windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
+                                    windFromDirection = Math.toDegrees(
+                                        atan2(
+                                            uComponentWind,
+                                            vComponentWind
+                                        )
+                                    )
+                                )
+                            }
+                        )
+                    )
+
+                )
+                Result.success(isobaricData)
+            } catch (exception: Exception) {
+                Result.failure(exception)
+            }
+        } else {
+            return Result.failure(Exception("Coordinate not within bounds"))
         }
     }
 
