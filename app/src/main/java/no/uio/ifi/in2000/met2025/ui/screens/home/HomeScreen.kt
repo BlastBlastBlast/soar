@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.mapbox.geojson.Point
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.maps.MapView
@@ -36,38 +38,52 @@ fun HomeScreen(
     locationViewModel: LocationViewModel = hiltViewModel(),
     onNavigateToWeather: (Double, Double) -> Unit
 ) {
-    val launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()  // For saving launch sites.
+    val launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val context = LocalContext.current
     val coordinates by locationViewModel.coordinates.collectAsState()
 
-    // States for input fields and dialog.
-    var latInput by remember { mutableStateOf(coordinates.first.toString()) }
-    var lonInput by remember { mutableStateOf(coordinates.second.toString()) }
-    var addressInput by remember { mutableStateOf("") }
-    var markerPosition by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    var showAddressField by remember { mutableStateOf(false) }
+    // Collect the temporary launch site from the DAO.
+    val tempLaunchSite by launchSiteViewModel.tempLaunchSite.collectAsState(initial = null)
+    // If a temp site exists, use its coordinates as the default.
+    val initialMarkerCoordinate: Point? = tempLaunchSite?.let {
+        Point.fromLngLat(it.longitude, it.latitude)
+    }
 
-    // States for saving launch site.
-    var showSaveDialog by remember { mutableStateOf(false) }
-    var launchSiteName by remember { mutableStateOf("") }
-    var savedMarkerCoordinates by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    // If the temporary site exists and differs from current coordinates, update shared state.
+    LaunchedEffect(tempLaunchSite) {
+        tempLaunchSite?.let {
+            if (coordinates.first != it.latitude || coordinates.second != it.longitude) {
+                locationViewModel.updateCoordinates(it.latitude, it.longitude)
+            }
+        }
+    }
+
+    var latInput by rememberSaveable { mutableStateOf(coordinates.first.toString()) }
+    var lonInput by rememberSaveable { mutableStateOf(coordinates.second.toString()) }
+    var addressInput by rememberSaveable { mutableStateOf("") }
+    var markerPosition by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
+    var showAddressField by rememberSaveable { mutableStateOf(false) }
+    var showSaveDialog by rememberSaveable { mutableStateOf(false) }
+    var launchSiteName by rememberSaveable { mutableStateOf("") }
+    var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
 
     if (locationPermissionState.status.isGranted) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // MapView with new onMarkerAnnotationClick callback.
             MapView(
                 latitude = coordinates.first,
                 longitude = coordinates.second,
+                initialMarkerCoordinate = initialMarkerCoordinate,
                 modifier = Modifier.fillMaxSize(),
                 onMarkerPlaced = { lat, lon ->
                     latInput = lat.toString()
                     lonInput = lon.toString()
                     markerPosition = Pair(lat, lon)
                     locationViewModel.updateCoordinates(lat, lon)
+                    // Update the temporary launch site in the database.
+                    launchSiteViewModel.updateTemporaryLaunchSite(lat, lon)
                 },
                 onMarkerAnnotationClick = { lat, lon ->
-                    // When annotation is clicked, store coordinates and show dialog.
                     savedMarkerCoordinates = Pair(lat, lon)
                     showSaveDialog = true
                 }
@@ -123,7 +139,7 @@ fun HomeScreen(
                 }
             }
 
-            // Floating action button.
+            // Floating action button to navigate to WeatherCardScreen.
             FloatingActionButton(
                 onClick = {
                     val lat = latInput.toDoubleOrNull()
@@ -159,7 +175,7 @@ fun HomeScreen(
                 }
             )
 
-            // Address Field toggle button.
+            // Button to toggle the optional address input field.
             Button(
                 onClick = { showAddressField = !showAddressField },
                 modifier = Modifier
@@ -188,8 +204,8 @@ fun HomeScreen(
                     confirmButton = {
                         Button(
                             onClick = {
-                                // Save the launch site using the LaunchSiteViewModel.
                                 val (lat, lon) = savedMarkerCoordinates!!
+                                // Save the launch site temporarily via the LaunchSiteViewModel.
                                 launchSiteViewModel.addLaunchSite(lat, lon, launchSiteName)
                                 showSaveDialog = false
                                 launchSiteName = ""
@@ -207,7 +223,7 @@ fun HomeScreen(
             }
         }
     } else {
-        // Permission request UI.
+        // UI when permission is not granted.
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

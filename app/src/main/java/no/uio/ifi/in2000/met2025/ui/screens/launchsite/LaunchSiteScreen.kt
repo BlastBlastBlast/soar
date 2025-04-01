@@ -33,22 +33,44 @@ import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 @Composable
 fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
+    // Collect the temporary (last visited) launch site.
+    val tempSite by viewModel.tempLaunchSite.collectAsState(initial = null)
 
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("Lagrede Launchsites", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
+        // Show the temporary launch site as "Last Visited" at the top.
+        tempSite?.let { site ->
+            Text("Last Visited", style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+            LaunchSiteItem(
+                site = site,
+                onDelete = {
+                    // Optionally allow deletion or clearing of the temporary site.
+                },
+                onUpdate = { updatedSite ->
+                    // If the user updates the temporary site (e.g. adds a new name), save it permanently.
+                    viewModel.addLaunchSite(updatedSite.latitude, updatedSite.longitude, updatedSite.name)
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
+        Text("Saved Launch Sites", style = MaterialTheme.typography.titleLarge)
+        Spacer(modifier = Modifier.height(8.dp))
         LazyColumn {
             items(launchSites) { site ->
-                LaunchSiteItem(
-                    site = site,
-                    onDelete = { viewModel.deleteLaunchSite(site) },
-                    onUpdate = { updatedSite -> viewModel.updateLaunchSite(updatedSite) }
-                )
+                // Optionally, you might want to filter out the "Last Visited" entry here if it's duplicated.
+                if (site.name != "Last Visited") {
+                    LaunchSiteItem(
+                        site = site,
+                        onDelete = { viewModel.deleteLaunchSite(site) },
+                        onUpdate = { updatedSite -> viewModel.updateLaunchSite(updatedSite) }
+                    )
+                }
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
-        // Example input to add a new launch site.
+        // Input fields to add a new launch site manually.
         var newSiteName by remember { mutableStateOf("") }
         var newSiteLat by remember { mutableStateOf("") }
         var newSiteLon by remember { mutableStateOf("") }

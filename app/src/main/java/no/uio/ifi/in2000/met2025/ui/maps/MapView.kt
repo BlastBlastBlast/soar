@@ -32,6 +32,7 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.viewannotation.annotationAnchor
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
+import kotlinx.coroutines.flow.first
 import no.uio.ifi.in2000.met2025.R
 
 @Composable
@@ -51,18 +52,20 @@ fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
     }
 }
 
-
+// TODO: Nav to marker location on launch, not post launch.
 
 @Composable
 fun MapView(
-    latitude: Double,
-    longitude: Double,
+    latitude: Double,                // User's current latitude.
+    longitude: Double,               // User's current longitude.
+    initialMarkerCoordinate: Point? = null,  // "Last visited" coordinate from the database.
     modifier: Modifier = Modifier,
     onMarkerPlaced: (Double, Double) -> Unit,
-    onMarkerAnnotationClick: (Double, Double) -> Unit  // New callback
+    onMarkerAnnotationClick: (Double, Double) -> Unit
 ) {
     val mapViewportState = rememberMapViewportState()
     val mapState = rememberMapState {
+        // Set the default camera to the user's location.
         cameraOptions {
             center(Point.fromLngLat(longitude, latitude))
             zoom(12.0)
@@ -70,8 +73,9 @@ fun MapView(
             bearing(0.0)
         }
     }
-    var markerCoordinate by remember { mutableStateOf<Point?>(null) }
-    var initialTransitionDone by remember { mutableStateOf(false) }
+    // Reinitialize marker state (and initialTransitionDone) whenever initialMarkerCoordinate changes.
+    var markerCoordinate by remember(initialMarkerCoordinate) { mutableStateOf(initialMarkerCoordinate) }
+    var initialTransitionDone by remember(initialMarkerCoordinate) { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         MapboxMap(
@@ -80,22 +84,26 @@ fun MapView(
             mapState = mapState,
             mapViewportState = mapViewportState,
             onMapLongClickListener = { point: Point ->
+                // When the user long-presses, update the marker and notify the callback.
                 markerCoordinate = point
                 onMarkerPlaced(point.latitude(), point.longitude())
                 true
             }
         ) {
-            MapEffect(markerCoordinate) { mapView ->
+            MapEffect(markerCoordinate, initialMarkerCoordinate) { mapView ->
+                // Update location puck settings.
                 mapView.location.updateSettings {
                     locationPuck = createDefault2DPuck(withBearing = true)
                     enabled = true
                     puckBearing = PuckBearing.COURSE
                     puckBearingEnabled = true
                 }
-                if (!initialTransitionDone) {
+                // On initial load (only once) and if a last visited coordinate exists,
+                // center the camera on it without interfering with later manual marker placement.
+                if (!initialTransitionDone && initialMarkerCoordinate != null) {
                     mapView.mapboxMap.setCamera(
                         cameraOptions {
-                            center(Point.fromLngLat(longitude, latitude))
+                            center(initialMarkerCoordinate)
                             zoom(12.0)
                             pitch(0.0)
                             bearing(0.0)
@@ -104,7 +112,7 @@ fun MapView(
                     initialTransitionDone = true
                 }
             }
-            // Draw the red marker using PointAnnotation.
+            // Draw the red marker if markerCoordinate exists.
             markerCoordinate?.let { coordinate ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
@@ -114,7 +122,7 @@ fun MapView(
                     iconImage = markerImage
                 }
             }
-            // Add a view annotation anchored to the marker.
+            // Draw a view annotation for the marker.
             markerCoordinate?.let { coordinate ->
                 ViewAnnotation(
                     options = viewAnnotationOptions {
@@ -127,7 +135,6 @@ fun MapView(
                     }
                 ) {
                     MarkerLabel(coordinate = coordinate) {
-                        // When tapped, call the callback with marker coordinates.
                         onMarkerAnnotationClick(coordinate.latitude(), coordinate.longitude())
                     }
                 }
