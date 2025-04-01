@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Size
+import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 
 //TODO: hook up screen to navigation graph
 
@@ -68,11 +69,6 @@ fun windShear(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
     val s1 = v1.windSpeed
     val s2 = v2.windSpeed
     return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((v2.windFromDirection - v1.windFromDirection) * Math.PI / 180))
-}
-
-//TODO: move function to another file, it could also be used in LocationForecastDataSource
-fun Double.roundToDecimals(n: Int) : Double {
-    return this.toBigDecimal().setScale(n, RoundingMode.HALF_UP).toDouble()
 }
 
 @Composable
