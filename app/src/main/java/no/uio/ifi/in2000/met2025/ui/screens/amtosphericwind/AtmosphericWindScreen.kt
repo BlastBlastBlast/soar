@@ -204,8 +204,8 @@ fun IsobaricDataItemCard(
                 val displayedValues = if (expanded.value) pressureValues else pressureValues.takeLast(6)
                 displayedValues.forEachIndexed { index, layer ->
                     val altitude = item.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
-                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed ?: "--"
-                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection ?: "--"
+                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed?.roundToDecimals(1) ?: "--"
+                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection?.roundToDecimals(1) ?: "--"
 
                     AtmosphericLayerRow(
                         altitudeText = "$altitude m",
