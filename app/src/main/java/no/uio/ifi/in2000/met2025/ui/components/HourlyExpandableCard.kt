@@ -39,11 +39,12 @@ import no.uio.ifi.in2000.met2025.R
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.ZoneId
+import java.util.Locale
 
 fun formatZuluTimeToLocalDate(zuluTime: String): String {
     val zonedDateTime = ZonedDateTime.parse(zuluTime)
     val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
-    return localTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+    return localTime.format(DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH))
 }
 
 
@@ -96,7 +97,7 @@ fun HourlyExpandableCard(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
-                    text = "Date: ${formatZuluTimeToLocalDate(forecastItem.time)}",
+                    text = "Day: ${formatZuluTimeToLocalDate(forecastItem.time)}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 LaunchStatusIndicator(forecast = forecastItem)
