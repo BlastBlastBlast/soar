@@ -16,6 +16,7 @@ import no.uio.ifi.in2000.met2025.data.models.GribDataMap
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.ui.navigation.AppNavLauncher
 
+/*
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,16 +28,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+ */
 
-/*
+
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     val client = HttpClient(CIO) {
-            install(Logging) {
-                level = LogLevel.HEADERS // Only headers for binary files
-            }
-            expectSuccess = false
+        install(Logging) {
+            level = LogLevel.HEADERS // Only headers for binary files
         }
+        expectSuccess = false
+    }
     val isoDS = IsobaricDataSource(client)
     val isoRep = IsobaricRepository(isoDS)
 
@@ -46,17 +49,16 @@ class MainActivity : ComponentActivity() {
 
         // Run fetchCurrentIsobaricgribData inside a coroutine
         lifecycleScope.launch {
-            val test = isoRep.getCurrentIsobaricGribData()
-            for ((latLon, isobaricMap) in test) {
+             val test = isoRep.getCurrentIsobaricGribData()
+             for ((latLon, isobaricMap) in test) {
                 println("Coordinates: $latLon")
-                for ((pressure, data) in isobaricMap) {
-                    println("  Pressure Level: $pressure hPa")
-                    println("    Temperature: ${data.temperature} K")
-                    println("    U-Wind: ${data.uComponentWind} m/s")
-                    println("    V-Wind: ${data.vComponentWind} m/s")
-                }
-            } // Print or use the fetched data
+//                for ((pressure, data) in isobaricMap) {
+//                    println("  Pressure Level: $pressure hPa")
+//                    println("    Temperature: ${data.temperature} K")
+//                    println("    U-Wind: ${data.uComponentWind} m/s")
+//                    println("    V-Wind: ${data.vComponentWind} m/s")
+//               }
+            } //Print or use the fetched data
         }
     }
-
- */
+}

@@ -1,13 +1,5 @@
 package no.uio.ifi.in2000.met2025.data.models
 
-data class IsobaricData(
-    val temperature: Float,
-    val uComponentWind: Float,
-    val vComponentWind: Float
-)
-
-typealias GribDataMap = Map<Pair<Float, Float>, Map<Float, IsobaricData>>
-
 data class IsobaricDataItem(
     val time: String,
     val valuesAtLayer: Map<Int, IsobaricDataValues> // key is pressure in hPa
