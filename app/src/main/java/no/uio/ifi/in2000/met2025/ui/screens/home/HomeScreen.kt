@@ -27,29 +27,35 @@ import com.google.accompanist.permissions.rememberPermissionState
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.maps.MapView
+import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel(),  // Inject here
+    locationViewModel: LocationViewModel = hiltViewModel(),
     onNavigateToWeather: (Double, Double) -> Unit
 ) {
+    val launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()  // For saving launch sites.
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val context = LocalContext.current
-    // Observe the coordinates from the LocationViewModel.
     val coordinates by locationViewModel.coordinates.collectAsState()
 
-    if (locationPermissionState.status.isGranted) {
-        // Local state for text fields if needed.
-        var latInput by remember { mutableStateOf(coordinates.first.toString()) }
-        var lonInput by remember { mutableStateOf(coordinates.second.toString()) }
-        var addressInput by remember { mutableStateOf("") }
-        var markerPosition by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-        var showAddressField by remember { mutableStateOf(false) }
+    // States for input fields and dialog.
+    var latInput by remember { mutableStateOf(coordinates.first.toString()) }
+    var lonInput by remember { mutableStateOf(coordinates.second.toString()) }
+    var addressInput by remember { mutableStateOf("") }
+    var markerPosition by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var showAddressField by remember { mutableStateOf(false) }
 
+    // States for saving launch site.
+    var showSaveDialog by remember { mutableStateOf(false) }
+    var launchSiteName by remember { mutableStateOf("") }
+    var savedMarkerCoordinates by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+
+    if (locationPermissionState.status.isGranted) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // MapView is drawn first.
+            // MapView with new onMarkerAnnotationClick callback.
             MapView(
                 latitude = coordinates.first,
                 longitude = coordinates.second,
@@ -59,31 +65,37 @@ fun HomeScreen(
                     lonInput = lon.toString()
                     markerPosition = Pair(lat, lon)
                     locationViewModel.updateCoordinates(lat, lon)
+                },
+                onMarkerAnnotationClick = { lat, lon ->
+                    // When annotation is clicked, store coordinates and show dialog.
+                    savedMarkerCoordinates = Pair(lat, lon)
+                    showSaveDialog = true
                 }
             )
 
+            // Top coordinate display.
             Row(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 40.dp)  // 20.dp padding from the top
+                    .padding(top = 40.dp)
                     .zIndex(1f)
             ) {
                 Box(
                     modifier = Modifier
                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp) // doubled padding
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
                         text = "Lat: ${"%.4f".format(coordinates.first)}",
                         color = Color.White,
-                        fontSize = 18.sp // optional larger text size
+                        fontSize = 18.sp
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(
                     modifier = Modifier
                         .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp) // doubled padding
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
                         text = "Lon: ${"%.4f".format(coordinates.second)}",
@@ -93,8 +105,7 @@ fun HomeScreen(
                 }
             }
 
-
-            // Optional: Address input field overlay.
+            // Optional address input field.
             if (showAddressField) {
                 Box(
                     modifier = Modifier
@@ -112,7 +123,7 @@ fun HomeScreen(
                 }
             }
 
-            // Floating action button at bottom right.
+            // Floating action button.
             FloatingActionButton(
                 onClick = {
                     val lat = latInput.toDoubleOrNull()
@@ -148,7 +159,7 @@ fun HomeScreen(
                 }
             )
 
-            // Address Field toggle button at bottom left.
+            // Address Field toggle button.
             Button(
                 onClick = { showAddressField = !showAddressField },
                 modifier = Modifier
@@ -158,9 +169,45 @@ fun HomeScreen(
             ) {
                 Text(text = "Address Field", color = Color.White)
             }
+
+            // Save Launch Site Dialog.
+            if (showSaveDialog && savedMarkerCoordinates != null) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showSaveDialog = false },
+                    title = { Text("Save Launch Site") },
+                    text = {
+                        Column {
+                            Text("Enter a name for this launch site:")
+                            OutlinedTextField(
+                                value = launchSiteName,
+                                onValueChange = { launchSiteName = it },
+                                label = { Text("Site Name") }
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                // Save the launch site using the LaunchSiteViewModel.
+                                val (lat, lon) = savedMarkerCoordinates!!
+                                launchSiteViewModel.addLaunchSite(lat, lon, launchSiteName)
+                                showSaveDialog = false
+                                launchSiteName = ""
+                            }
+                        ) {
+                            Text("Save")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showSaveDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
         }
     } else {
-        // Display permission request UI.
+        // Permission request UI.
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
