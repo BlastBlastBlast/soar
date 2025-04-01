@@ -35,10 +35,6 @@ import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
-import java.math.RoundingMode
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.math.pow
 import kotlin.math.sqrt
 import androidx.compose.material3.Icon
@@ -52,18 +48,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Size
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 
 //TODO: hook up screen to navigation graph
-
-//TODO: move this function to another file, it is also defined and used in HourlyExpandableCard
-fun formatZuluTimeToLocal(zuluTime: String): String {
-    // Parse the ISO date‑time string (Zulu/UTC format)
-    val zonedDateTime = ZonedDateTime.parse(zuluTime)
-    // Convert the time to the system default timezone (or specify ZoneId.of("Europe/Oslo"))
-    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
-    // Format as 24‑h time
-    return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-}
 
 fun windShear(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
     val s1 = v1.windSpeed
