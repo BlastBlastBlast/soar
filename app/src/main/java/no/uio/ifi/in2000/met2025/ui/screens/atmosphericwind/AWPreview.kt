@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.amtosphericwind
+package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind
 
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.amtosphericwind
+package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

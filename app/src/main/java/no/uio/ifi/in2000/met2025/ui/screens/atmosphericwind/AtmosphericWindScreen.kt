@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.amtosphericwind
+package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,7 +76,7 @@ fun Double.roundToDecimals(n: Int) : Double {
 }
 
 @Composable
-fun AtmosphericWindScreen(viewModel: AtmosphericWindViewModel = hiltViewModel()) {
+fun AtmosphericWindScreen(viewModel: AtmosphericWindViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     ScreenContent(uiState = uiState, onLoadData = { lat, lon ->
         viewModel.loadIsobaricData(lat, lon)
