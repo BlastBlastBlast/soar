@@ -39,8 +39,12 @@ data class Units(
     @SerialName("fog_area_fraction")        val fogAreaFraction: String = "not_included",
     @SerialName("dew_point_temperature")    val dewPointTemperature: String = "not_included",
     @SerialName("cloud_area_fraction")      val cloudAreaFraction: String,
+    @SerialName("cloud_area_fraction_high") val cloudAreaFractionHigh: String,
+    @SerialName("cloud_area_fraction_low")  val cloudAreaFractionLow: String,
+    @SerialName("cloud_area_fraction_medium") val cloudAreaFractionMedium: String,
     @SerialName("probability_of_thunder")   val probabilityOfThunder: String = "not_included"
 )
+
 
 
 @Serializable
@@ -69,8 +73,12 @@ data class Details(
     @SerialName("wind_from_direction")      val windFromDirection: Double,
     @SerialName("fog_area_fraction")        val fogAreaFraction: Double = 0.0,
     @SerialName("dew_point_temperature")    val dewPointTemperature: Double = 0.0,
-    @SerialName("cloud_area_fraction")      val cloudAreaFraction: Double
+    @SerialName("cloud_area_fraction")      val cloudAreaFraction: Double,
+    @SerialName("cloud_area_fraction_high") val cloudAreaFractionHigh: Double,
+    @SerialName("cloud_area_fraction_low")  val cloudAreaFractionLow: Double,
+    @SerialName("cloud_area_fraction_medium") val cloudAreaFractionMedium: Double
 )
+
 
 @Serializable
 data class NextHours(

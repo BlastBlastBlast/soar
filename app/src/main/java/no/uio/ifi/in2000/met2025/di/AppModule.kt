@@ -1,8 +1,11 @@
 package no.uio.ifi.in2000.met2025.di
 
+import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -13,6 +16,8 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import no.uio.ifi.in2000.met2025.data.local.Database.AppDatabase
+import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
@@ -32,7 +37,6 @@ object AppModule {
         isLenient = true
     }
 
-    // Provide a JSON client for fetching location forecast data over HTTPS.
     @Provides
     @Singleton
     @Named("jsonClient")
@@ -43,7 +47,6 @@ object AppModule {
         install(Logging) {
             level = LogLevel.INFO
         }
-        // Set a default User-Agent header as required by the MET API.
         defaultRequest {
             header("TEAM21", "RakettOppskyting larswt@uio.no")
         }
@@ -53,31 +56,22 @@ object AppModule {
     @Singleton
     @Named("gribClient")
     fun provideGribClient(): HttpClient = HttpClient(CIO) {
-        install(ContentNegotiation) {
-        }
+        install(ContentNegotiation) { }
         install(Logging) {
             level = LogLevel.INFO
         }
     }
 
-    // Provide the LocationForecastDataSource using the JSON client.
     @Provides
     @Singleton
     fun provideLocationForecastDataSource(@Named("jsonClient") client: HttpClient): LocationForecastDataSource {
         return LocationForecastDataSource(client)
     }
 
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object AppModule {
-        @Provides
-        @Singleton
-        fun provideLocationViewModel(): LocationViewModel = LocationViewModel()
+    @Provides
+    @Singleton
+    fun provideLocationViewModel(): LocationViewModel = LocationViewModel()
 
-        // (Existing module definitions remain unchanged)
-    }
-
-    // Provide the LocationForecastRepository which depends on the data source.
     @Provides
     @Singleton
     fun provideLocationForecastRepository(
@@ -98,5 +92,25 @@ object AppModule {
         dataSource: IsobaricDataSource
     ): IsobaricRepository {
         return IsobaricRepository(dataSource)
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
+        return Room.databaseBuilder(
+            appContext,
+            AppDatabase::class.java,
+            "launch_site_db"
+        ).build()
+    }
+
+    @Provides
+    fun provideLaunchSiteDao(db: AppDatabase): LaunchSiteDAO {
+        return db.launchSiteDao()
     }
 }
