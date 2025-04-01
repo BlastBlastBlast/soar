@@ -29,7 +29,7 @@ class AtmosphericWindViewModel @Inject constructor(
     fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
             _uiState.value = AtmosphericWindUiState.Loading
-            /*_uiState.value = weatherModel.getCurrentIsobaricData()
+            _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon)
                 .fold(
                     onSuccess = { data ->
                         AtmosphericWindUiState.Success(data)
@@ -37,7 +37,7 @@ class AtmosphericWindViewModel @Inject constructor(
                     onFailure = { throwable ->
                         AtmosphericWindUiState.Error(throwable.message ?: "Ukjent feil")
                     }
-                )*/
+                )
         }
     }
 }

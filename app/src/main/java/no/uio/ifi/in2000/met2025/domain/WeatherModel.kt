@@ -23,7 +23,7 @@ class WeatherModel @Inject constructor(
         return round(this * 20) / 20
     }
 
-    suspend fun convertData(lat: Double, lon: Double): Result<IsobaricData> {
+    private suspend fun convertGribData(lat: Double, lon: Double): Result<IsobaricData> {
         return try {
             val gribResult: GribDataMap = getCurrentIsobaricData()
             val dataMap: Map<Float, GribVectors> = isobaricResult[Pair(lat.roundToPointXFive(), lon.roundToPointXFive())]
@@ -52,9 +52,9 @@ class WeatherModel @Inject constructor(
 
     suspend fun getCurrentIsobaricData(lat: Double, lon: Double) : Result<IsobaricData>
     = withContext(Dispatchers.IO) {
-        convertData(lat, lon).fold(
+        convertGribData(lat, lon).fold(
             onFailure = { exception: Throwable ->
-                Result.failure<IsobaricData>(exception)
+                Result.failure(exception)
             },
             onSuccess = { isobaricData: IsobaricData ->
                 combinedDataResult(isobaricData, lat, lon)
