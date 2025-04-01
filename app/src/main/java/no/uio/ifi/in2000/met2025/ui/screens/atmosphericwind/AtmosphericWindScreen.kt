@@ -59,7 +59,7 @@ import kotlin.math.sin
 fun windShearSpeed(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
     val s1 = d1.windSpeed
     val s2 = d2.windSpeed
-    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((d2.windFromDirection - d1.windFromDirection) * Math.PI / 180))
+    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * cos((d2.windFromDirection - d1.windFromDirection) * Math.PI / 180))
 }
 
 fun windShearDirection(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
@@ -67,7 +67,7 @@ fun windShearDirection(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
     val y1 = d1.windSpeed * sin(d1.windFromDirection)
     val x2 = d2.windSpeed * cos(d2.windFromDirection)
     val y2 = d2.windSpeed * sin(d2.windFromDirection)
-    return (atan2(y2 - y1, x2 - x1) * 180 / Math.PI).floorModDouble(360)
+    return (atan2(y2 - y1, x2 - x1) * 180 / Math.PI)
 }
 
 @Composable
@@ -200,8 +200,11 @@ fun IsobaricDataItemCard(
                 val displayedValues = if (expanded.value) pressureValues else pressureValues.takeLast(6)
                 displayedValues.forEachIndexed { index, layer ->
                     val altitude = item.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
-                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed?.roundToDecimals(1) ?: "--"
-                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection?.roundToDecimals(1) ?: "--"
+                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed
+                        ?.roundToDecimals(1) ?: "--"
+                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection
+                        ?.floorModDouble(360)
+                        ?.roundToDecimals(1) ?: "--"
 
                     AtmosphericLayerRow(
                         altitudeText = "$altitude m",
@@ -225,7 +228,7 @@ fun IsobaricDataItemCard(
                                 item.valuesAtLayer[layer]!!,
                                 item.valuesAtLayer[nextLayer]!!
                             )
-                                .roundToDecimals(1)
+                                .floorModDouble(360).roundToDecimals(1)
 
                             WindShearRow(
                                 backgroundColor = windshearColor,
