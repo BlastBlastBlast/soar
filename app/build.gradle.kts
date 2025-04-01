@@ -88,6 +88,9 @@ dependencies {
     implementation("com.mapbox.extension:maps-compose:11.10.3")
     implementation("com.mapbox.maps:android:11.10.3")
 
+    // Icons
+    implementation(libs.androidx.material.icons.extended)
+
     // Removed logback dependency:
     // implementation(libs.logback.classic)
 

@@ -18,10 +18,12 @@ class LocationForecastRepository @Inject constructor(
                 return Result.success(
                     ForecastData(
                         updatedAt = response.properties.meta.updatedAt,
+                        altitude = response.geometry.coordinates[2],
                         timeSeries = response.properties.timeSeries.take(timeSpanInHours).map {
                             ForecastDataItem(
                                 time = it.time,
                                 values = ForecastDataValues(
+                                    airPressureAtSeaLevel = it.data.instant.details.airPressureAtSeaLevel,
                                     airTemperature = it.data.instant.details.airTemperature,
                                     relativeHumidity = it.data.instant.details.relativeHumidity,
                                     windSpeed = it.data.instant.details.windSpeed,

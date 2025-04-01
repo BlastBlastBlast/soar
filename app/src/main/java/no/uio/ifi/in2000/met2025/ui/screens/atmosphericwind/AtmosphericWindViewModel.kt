@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.amtosphericwind
+package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,11 +8,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Inject
 
 @HiltViewModel
 class AtmosphericWindViewModel @Inject constructor(
-    private val isobaricRepository: IsobaricRepository
+    private val weatherModel: WeatherModel
 ) : ViewModel() {
 
     sealed class AtmosphericWindUiState {
@@ -28,7 +29,7 @@ class AtmosphericWindViewModel @Inject constructor(
     fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
             _uiState.value = AtmosphericWindUiState.Loading
-            /*_uiState.value = isobaricRepository.getCurrentIsobaricgribData()
+            _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon)
                 .fold(
                     onSuccess = { data ->
                         AtmosphericWindUiState.Success(data)
@@ -36,7 +37,7 @@ class AtmosphericWindViewModel @Inject constructor(
                     onFailure = { throwable ->
                         AtmosphericWindUiState.Error(throwable.message ?: "Ukjent feil")
                     }
-                )*/
+                )
         }
     }
 }

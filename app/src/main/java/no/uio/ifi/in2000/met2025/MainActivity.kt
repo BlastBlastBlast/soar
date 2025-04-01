@@ -46,37 +46,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
-
-/*
-@AndroidEntryPoint
-class MainActivity : ComponentActivity() {
-    val client = HttpClient(CIO) {
-        install(Logging) {
-            level = LogLevel.HEADERS // Only headers for binary files
-        }
-        expectSuccess = false
-    }
-    val isoDS = IsobaricDataSource(client)
-    val isoRep = IsobaricRepository(isoDS)
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Run fetchCurrentIsobaricgribData inside a coroutine
-        lifecycleScope.launch {
-            val test = isoRep.getCurrentIsobaricGribData()
-            for ((latLon, isobaricMap) in test) {
-                println("Coordinates: $latLon")
-                //for ((pressure, data) in isobaricMap) {
-                //    println("  Pressure Level: $pressure hPa")
-                //    println("    Temperature: ${data.temperature} K")
-                //    println("    U-Wind: ${data.uComponentWind} m/s")
-                //    println("    V-Wind: ${data.vComponentWind} m/s")
-                }
-            } // Print or use the fetched data
-        }
-    }
-*/

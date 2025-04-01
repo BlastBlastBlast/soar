@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -20,6 +18,8 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindScreen
+import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
@@ -38,6 +38,7 @@ sealed class Screen(val route: String) {
         fun createRoute(lat: Double, lon: Double) = "weather?lat=$lat&lon=$lon"
     }
     object LaunchSite : Screen("launchsite")
+    object AtmosphericWind: Screen("atmosphericwind")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,10 +56,15 @@ fun AppNavLauncher(
     val currentScreenTitle = when (currentBackStackEntry?.destination?.route) {
         Screen.Home.route -> "Home"
         Screen.LaunchSite.route -> "Launch Sites"
+        Screen.AtmosphericWind.route -> "Atmospheric Wind"
         else -> if (currentBackStackEntry?.destination?.route?.startsWith("weather") == true) "Weather" else "Unknown"
     }
     // Disable gestures on Home so the drawer is only opened by tapping the logo.
     val gesturesEnabled = currentScreenTitle != "Home"
+
+    val atmosphericWindViewModel : AtmosphericWindViewModel = hiltViewModel()
+    val weatherCardViewModel : WeatherCardViewmodel = hiltViewModel()
+    val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -94,6 +100,18 @@ fun AppNavLauncher(
                     selected = currentScreenTitle == "Launch Sites",
                     onClick = {
                         navController.navigate(Screen.LaunchSite.route) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                        scope.launch { drawerState.close() }
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
+                    label = { Text("Atmospheric Wind") },
+                    selected = currentScreenTitle == "Atmospheric Wind",
+                    onClick = {
+                        navController.navigate(Screen.AtmosphericWind.route) {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }
@@ -146,9 +164,8 @@ fun AppNavLauncher(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(Screen.Home.route) {
-                    val homeViewModel: HomeScreenViewModel = hiltViewModel()
                     HomeScreen(
-                        viewModel = homeViewModel,
+                        viewModel = homeScreenViewModel,
                         onNavigateToWeather = { lat, lon ->
                             navController.navigate(Screen.Weather.createRoute(lat, lon))
                         }
@@ -163,14 +180,17 @@ fun AppNavLauncher(
                 ) { backStackEntry ->
                     val lat = backStackEntry.arguments?.getDouble("lat") ?: 0.0
                     val lon = backStackEntry.arguments?.getDouble("lon") ?: 0.0
-                    val weatherViewModel: WeatherCardViewmodel = hiltViewModel()
+
                     LaunchedEffect(lat, lon) {
-                        weatherViewModel.loadForecast(lat, lon)
+                        weatherCardViewModel.loadForecast(lat, lon)
                     }
-                    WeatherCardScreen(viewModel = weatherViewModel)
+                    WeatherCardScreen(weatherCardViewModel)
                 }
                 composable(Screen.LaunchSite.route) {
                     LaunchSiteScreen()
+                }
+                composable(Screen.AtmosphericWind.route) {
+                    AtmosphericWindScreen(atmosphericWindViewModel)
                 }
             }
         }
