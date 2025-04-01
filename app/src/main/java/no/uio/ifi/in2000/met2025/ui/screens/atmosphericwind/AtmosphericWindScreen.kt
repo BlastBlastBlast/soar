@@ -52,7 +52,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 
 //TODO: hook up screen to navigation graph
 
-fun windShear(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
+fun windShearSpeed(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
     val s1 = v1.windSpeed
     val s2 = v2.windSpeed
     return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((v2.windFromDirection - v1.windFromDirection) * Math.PI / 180))
@@ -202,7 +202,7 @@ fun IsobaricDataItemCard(
                         val nextLayer = displayedValues[index + 1]
 
                         if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
-                            val windShearValue = windShear(
+                            val windShearValue = windShearSpeed(
                                 item.valuesAtLayer[layer]!!,
                                 item.valuesAtLayer[nextLayer]!!
                             )
