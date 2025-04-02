@@ -1,16 +1,9 @@
+// HomeScreen.kt
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
 import android.Manifest
-import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -18,18 +11,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.mapbox.geojson.Point
-import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
-import no.uio.ifi.in2000.met2025.ui.maps.MapView
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.CoordinateDisplay
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.PermissionRequestScreen
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.SaveLaunchSiteDialog
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.WeatherNavigationButton
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -44,14 +38,11 @@ fun HomeScreen(
     val context = LocalContext.current
     val coordinates by locationViewModel.coordinates.collectAsState()
 
-    // Retrieve the temporary "Last Visited" launch site.
+    // Get "Last Visited" launch site and initialize marker if available.
     val tempLastVisited by launchSiteViewModel.tempLaunchSite.collectAsState(initial = null)
-    // Use the "Last Visited" site's coordinates for initial marker if available.
     val initialMarkerCoordinate: Point? = tempLastVisited?.let {
         Point.fromLngLat(it.longitude, it.latitude)
     }
-
-    // Ensure shared location state is in sync with "Last Visited".
     LaunchedEffect(tempLastVisited) {
         tempLastVisited?.let {
             if (coordinates.first != it.latitude || coordinates.second != it.longitude) {
@@ -60,36 +51,29 @@ fun HomeScreen(
         }
     }
 
-    // Local state for coordinate input fields (if needed).
+    // Local states for inputs and dialog.
     var latInput by rememberSaveable { mutableStateOf(coordinates.first.toString()) }
     var lonInput by rememberSaveable { mutableStateOf(coordinates.second.toString()) }
     var markerPosition by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
     var showSaveDialog by rememberSaveable { mutableStateOf(false) }
     var launchSiteName by rememberSaveable { mutableStateOf("") }
     var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
-
-    // New state: toggle for showing the launch sites menu.
     var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
-    // Retrieve all saved launch sites.
     val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
-    // In the menu, filter out "Last Visited" so that the "New Marker" is shown (along with any other saved sites).
     val menuLaunchSites = launchSites.filter { it.name != "Last Visited" }
 
+    // Only display the main content if the location permission is granted.
     if (locationPermissionState.status.isGranted) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // MapView receives the "Last Visited" coordinates as initialMarkerCoordinate.
-            // When a marker is placed, we update the "New Marker" temporary instead.
-            MapView(
-                latitude = coordinates.first,
-                longitude = coordinates.second,
+            // Map Container encapsulates the MapView logic.
+            MapContainer(
+                coordinates = coordinates,
                 initialMarkerCoordinate = initialMarkerCoordinate,
-                modifier = Modifier.fillMaxSize(),
                 onMarkerPlaced = { lat, lon ->
                     latInput = lat.toString()
                     lonInput = lon.toString()
                     markerPosition = Pair(lat, lon)
                     locationViewModel.updateCoordinates(lat, lon)
-                    // Update the "New Marker" temporary launch site.
                     launchSiteViewModel.updateNewMarkerSite(lat, lon)
                 },
                 onMarkerAnnotationClick = { lat, lon ->
@@ -99,38 +83,9 @@ fun HomeScreen(
             )
 
             // Top coordinate display.
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 40.dp)
-                    .zIndex(1f)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Lat: ${"%.4f".format(coordinates.first)}",
-                        color = Color.White,
-                        fontSize = 18.sp
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Box(
-                    modifier = Modifier
-                        .background(Color.Black, shape = RoundedCornerShape(8.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Lon: ${"%.4f".format(coordinates.second)}",
-                        color = Color.White,
-                        fontSize = 18.sp
-                    )
-                }
-            }
+            CoordinateDisplay(coordinates = coordinates)
 
-            // Button to toggle the launch sites menu.
+            // Toggle button for the launch sites menu.
             Button(
                 onClick = { isLaunchSiteMenuExpanded = !isLaunchSiteMenuExpanded },
                 modifier = Modifier
@@ -141,110 +96,57 @@ fun HomeScreen(
                 Text(text = "Launch Sites", color = Color.White)
             }
 
-            // Expanded menu of launch sites (excluding "Last Visited").
+            // Display the launch sites menu if toggled.
             if (isLaunchSiteMenuExpanded) {
-                Column(
+                LaunchSitesMenu(
+                    launchSites = menuLaunchSites,
+                    onSiteSelected = { site ->
+                        locationViewModel.updateCoordinates(site.latitude, site.longitude)
+                        launchSiteViewModel.updateTemporaryLaunchSite(site.latitude, site.longitude)
+                        latInput = site.latitude.toString()
+                        lonInput = site.longitude.toString()
+                        isLaunchSiteMenuExpanded = false
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(start = 16.dp, bottom = 80.dp)
-                        .background(Color.White.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
-                        .padding(8.dp)
-                ) {
-                    menuLaunchSites.forEach { site ->
-                        Text(
-                            text = site.name,
-                            modifier = Modifier
-                                .clickable {
-                                    locationViewModel.updateCoordinates(site.latitude, site.longitude)
-                                    // Update "Last Visited" temporary so the marker moves accordingly.
-                                    launchSiteViewModel.updateTemporaryLaunchSite(site.latitude, site.longitude)
-                                    latInput = site.latitude.toString()
-                                    lonInput = site.longitude.toString()
-                                    isLaunchSiteMenuExpanded = false
-                                }
-                                .padding(8.dp)
-                        )
-                    }
-                }
+                )
             }
 
-            // Floating action button to navigate to WeatherCardScreen.
-            FloatingActionButton(
-                onClick = {
-                    val lat = latInput.toDoubleOrNull()
-                    val lon = lonInput.toDoubleOrNull()
-                    if (lat != null && lon != null) {
-                        locationViewModel.updateCoordinates(lat, lon)
-                        onNavigateToWeather(lat, lon)
-                    } else {
-                        Toast.makeText(context, "Please enter valid coordinates", Toast.LENGTH_SHORT).show()
-                    }
-                },
+            // Floating action button to navigate to Weather Screen.
+            WeatherNavigationButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp)
                     .size(90.dp),
-                containerColor = Color.Black,
-                shape = CircleShape,
-                content = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.weather_icon),
-                        contentDescription = "Navigate to Weather",
-                        modifier = Modifier.size(50.dp),
-                        tint = Color.White
-                    )
-                }
+                latInput = latInput,
+                lonInput = lonInput,
+                onNavigate = { lat, lon ->
+                    locationViewModel.updateCoordinates(lat, lon)
+                    onNavigateToWeather(lat, lon)
+                },
+                context = context
             )
 
-            // Save Launch Site Dialog.
+            // Dialog for saving a launch site.
             if (showSaveDialog && savedMarkerCoordinates != null) {
-                androidx.compose.material3.AlertDialog(
-                    onDismissRequest = { showSaveDialog = false },
-                    title = { Text("Save Launch Site") },
-                    text = {
-                        Column {
-                            Text("Enter a name for this launch site:")
-                            OutlinedTextField(
-                                value = launchSiteName,
-                                onValueChange = { launchSiteName = it },
-                                label = { Text("Site Name") }
-                            )
-                        }
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                val (lat, lon) = savedMarkerCoordinates!!
-                                // Save the launch site permanently via the LaunchSiteViewModel.
-                                launchSiteViewModel.addLaunchSite(lat, lon, launchSiteName)
-                                showSaveDialog = false
-                                launchSiteName = ""
-                            }
-                        ) {
-                            Text("Save")
-                        }
-                    },
-                    dismissButton = {
-                        Button(onClick = { showSaveDialog = false }) {
-                            Text("Cancel")
-                        }
+                SaveLaunchSiteDialog(
+                    launchSiteName = launchSiteName,
+                    onNameChange = { launchSiteName = it },
+                    onDismiss = { showSaveDialog = false },
+                    onConfirm = {
+                        val (lat, lon) = savedMarkerCoordinates!!
+                        launchSiteViewModel.addLaunchSite(lat, lon, launchSiteName)
+                        showSaveDialog = false
+                        launchSiteName = ""
                     }
                 )
             }
         }
     } else {
-        // UI when location permission is not granted.
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Location permission is required to display your current location on the map.")
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { locationPermissionState.launchPermissionRequest() }) {
-                    Text("Grant Permission")
-                }
-            }
-        }
+        // Fallback UI when permission is not granted.
+        PermissionRequestScreen(
+            onRequestPermission = { locationPermissionState.launchPermissionRequest() }
+        )
     }
 }
