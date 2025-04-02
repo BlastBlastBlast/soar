@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.maps
+package no.uio.ifi.in2000.met2025.ui.screens.home.maps
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
