@@ -90,6 +90,6 @@ data class NextHours(
 @Serializable
 data class NextHoursDetails(
     @SerialName("precipitation_amount")     val precipitationAmount: Double,
-    @SerialName("probability_of_thunder")   val probabilityOfThunder: Double
+    @SerialName("probability_of_thunder")   val probabilityOfThunder: Double = 0.0
 )
 
