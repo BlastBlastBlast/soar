@@ -56,9 +56,9 @@ fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
 
 @Composable
 fun MapView(
-    latitude: Double,                // User's current latitude.
-    longitude: Double,               // User's current longitude.
-    initialMarkerCoordinate: Point? = null,  // "Last visited" coordinate from the database.
+    latitude: Double,
+    longitude: Double,
+    initialMarkerCoordinate: Point? = null,
     modifier: Modifier = Modifier,
     onMarkerPlaced: (Double, Double) -> Unit,
     onMarkerAnnotationClick: (Double, Double) -> Unit
@@ -99,19 +99,22 @@ fun MapView(
                     puckBearingEnabled = true
                 }
                 // On initial load (only once) and if a last visited coordinate exists,
-                // center the camera on it without interfering with later manual marker placement.
+                // center the camera on it while preserving the current zoom level.
                 if (!initialTransitionDone && initialMarkerCoordinate != null) {
+                    val currentCameraState = mapView.mapboxMap.cameraState
                     mapView.mapboxMap.setCamera(
                         cameraOptions {
                             center(initialMarkerCoordinate)
-                            zoom(12.0)
-                            pitch(0.0)
-                            bearing(0.0)
+                            // Preserve the current zoom level instead of hardcoding zoom(12.0)
+                            zoom(currentCameraState.zoom)
+                            pitch(currentCameraState.pitch)
+                            bearing(currentCameraState.bearing)
                         }
                     )
                     initialTransitionDone = true
                 }
             }
+
             // Draw the red marker if markerCoordinate exists.
             markerCoordinate?.let { coordinate ->
                 val markerImage = rememberIconImage(
