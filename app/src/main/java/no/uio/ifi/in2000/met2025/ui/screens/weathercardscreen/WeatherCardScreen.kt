@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.components.DailyForecastCard
+import no.uio.ifi.in2000.met2025.ui.components.DailyForecastRowSection
 
 
 @Composable
@@ -58,16 +59,28 @@ fun ScreenContent(
             }
             is WeatherCardViewmodel.WeatherCardUiState.Success -> {
 
+                val forecastItems = uiState.forecastItems
+
+                // 👇 Plasser LazyRow med tre dagers kort her
+                DailyForecastRowSection(forecastItems = forecastItems)
+
+                // 👇 Timevis visning etterpå
+                Text(
+                    text = "Hourly Forecast",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+
                 val today = uiState.forecastItems.firstOrNull()?.time?.substring(0, 10)
                 val dailyItems = uiState.forecastItems.filter { it.time.startsWith(today ?: "") }
 
 
-                DailyForecastCard(
+                /*DailyForecastCard(
                     forecastItems = dailyItems,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
 
-                Text(text = "Hourly Forecast",style = MaterialTheme.typography.titleLarge)
+                Text(text = "Hourly Forecast",style = MaterialTheme.typography.titleLarge) */
 
                 //  Vis detaljer time for time
                 dailyItems.forEach { forecastItem ->
