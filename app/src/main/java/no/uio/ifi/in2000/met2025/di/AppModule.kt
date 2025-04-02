@@ -17,6 +17,8 @@ import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.local.Database.AppDatabase
+import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
+import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
@@ -83,16 +85,21 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideIsobaricDataSource(@Named("gribClient") client: HttpClient): IsobaricDataSource {
-        return IsobaricDataSource(client)
+    fun provideIsobaricDataSource(
+        @Named("gribClient") gribClient: HttpClient,
+        @Named("jsonClient") jsonClient: HttpClient
+    ): IsobaricDataSource {
+        return IsobaricDataSource(gribClient, jsonClient)
     }
 
     @Provides
     @Singleton
     fun provideIsobaricRepository(
-        dataSource: IsobaricDataSource
+        dataSource: IsobaricDataSource,
+        gribDataDAO: GribDataDAO,
+        gribUpdatedDAO: GribUpdatedDAO
     ): IsobaricRepository {
-        return IsobaricRepository(dataSource)
+        return IsobaricRepository(dataSource, gribDataDAO, gribUpdatedDAO)
     }
 
     @Provides
@@ -122,5 +129,15 @@ object DatabaseModule {
     @Provides
     fun provideLaunchSiteDao(db: AppDatabase): LaunchSiteDAO {
         return db.launchSiteDao()
+    }
+
+    @Provides
+    fun provideGribDataDao(db: AppDatabase): GribDataDAO {
+        return db.gribDataDao()
+    }
+
+    @Provides
+    fun provideGribUpdatedDao(db: AppDatabase): GribUpdatedDAO {
+        return db.gribUpdatedDao()
     }
 }

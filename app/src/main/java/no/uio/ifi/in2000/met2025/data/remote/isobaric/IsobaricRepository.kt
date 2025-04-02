@@ -2,107 +2,167 @@ package no.uio.ifi.in2000.met2025.data.remote.isobaric
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
+import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdatedDAO
+import no.uio.ifi.in2000.met2025.data.models.AvailabilityData
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.GribVectors
+import no.uio.ifi.in2000.met2025.data.models.IsobaricAvailabilityResponse
+import no.uio.ifi.in2000.met2025.data.models.StructuredAvailability
 import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
-import java.math.BigDecimal
-import java.math.RoundingMode
+import java.time.Instant
 import javax.inject.Inject
 
+//TODO: Inject GribDAO
+
 class IsobaricRepository @Inject constructor(
-    private val isobaricDataSource: IsobaricDataSource
+    private val isobaricDataSource: IsobaricDataSource,
+    private val gribDAO: GribDataDAO,
+    private val updatedDAO: GribUpdatedDAO
 ) {
-    suspend fun getCurrentIsobaricGribData(): GribDataMap {
-        val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
-
-        try {
-            val isobaricData: Result<ByteArray> = isobaricDataSource.fetchCurrentIsobaricGribData()
-            val byteArray = isobaricData.getOrNull() ?: return emptyMap()
-
-            val tempFile = withContext(Dispatchers.IO) {
-                File.createTempFile("isobaric", ".grib2")
-            }.apply {
-                writeBytes(byteArray)
+    suspend fun getIsobaricGribData(timeSlot: Instant): GribDataMap {
+        val availableData = getAvailabilityData()
+        if (availableData != null) {
+            val data = availableData.findClosestBefore(timeSlot)
+            val time = data?.time
+            if (!isGribUpToDate(availableData)) {
+                gribDAO.deleteAll()
+                updatedDAO.delete()
+                time?.let { updatedDAO.insert(it) }
+            } else {
+                time?.let {
+                    if (gribDAO.getGribData(it) != null) {
+                        return gribDAO.getGribData(time)!!
+                    }
+                }
             }
 
-            NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
-                //Henter ut variablene som ligger i vanlige arrayer.
-                //Disse trengs for å hente ut data fra 4d arrayene
-                val latitudes = (netcdfFile.findVariable("lat")?.read() as? ArrayFloat.D1)
-                    ?.let { array ->
-                        (0 until array.size).map { idx -> array.get(idx.toInt()) }
-                    }
+            val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
 
-                val longitudes = (netcdfFile.findVariable("lon")?.read() as? ArrayFloat.D1)
-                    ?.let { array ->
-                        (0 until array.size).map { idx -> array.get(idx.toInt()) }
-                    }
+            try {
+                val isobaricData: Result<ByteArray> = isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                val byteArray = isobaricData.getOrNull() ?: return emptyMap()
 
-                val isobaricLevels = (netcdfFile.findVariable("isobaric")?.read() as? ArrayFloat.D1)
-                    ?.let { array ->
-                        (0 until array.size).map { idx -> array.get(idx.toInt()) }
-                    }
-
-                if (latitudes == null || longitudes == null || isobaricLevels == null) {
-                    println("Missing lat/lon/isobaric data")
-                    return emptyMap()
+                val tempFile = withContext(Dispatchers.IO) {
+                    File.createTempFile("isobaric", ".grib2")
+                }.apply {
+                    writeBytes(byteArray)
                 }
 
-                // Henter ut 4d arrayene for variablene på gitte punkter.
-                //val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
-                val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
-                val vWindVar = netcdfFile.findVariable("v-component_of_wind_isobaric")?.read() as? ArrayFloat.D4
-
-                if (uWindVar == null || vWindVar == null) { //temperatureVar == null
-                    println("Missing temperature or wind data")
-                    return emptyMap()
-                }
-
-                //test prints for å forstå datasettet
-                //println("Temperature shape: ${temperatureVar.shape.contentToString()}")
-                println("uWind shape: ${uWindVar.shape.contentToString()}")
-                println("vWind shape: ${vWindVar.shape.contentToString()}")
-                println("Latitudes size: ${latitudes.size}, Longitudes size: ${longitudes.size}")
-                println("Isobaric levels size: ${isobaricLevels.size}")
-                println("Isobaric levels from NetCDF: ${isobaricLevels.joinToString()}")
-
-                // Nøsted løkke over kombinasjonen latitude, longitude og isobaric level
-                for (latIdx in latitudes.indices) {
-                    for (lonIdx in longitudes.indices) {
-                        val lat = latitudes[latIdx]
-                        val lon = longitudes[lonIdx]
-
-                        val isobaricMap = mutableMapOf<Int, GribVectors>()
-
-                        for (levelIdx in isobaricLevels.indices) {
-                            val level = isobaricLevels[levelIdx] / 100  //Convert from Pa to hPa
-
-                            try {
-                                //val temperature = temperatureVar.get(0, levelIdx, latIdx, lonIdx)
-                                val uWind = uWindVar.get(0, levelIdx, latIdx, lonIdx)
-                                val vWind = vWindVar.get(0, levelIdx, latIdx, lonIdx)
-
-                                isobaricMap[level.toInt()] = GribVectors(uWind, vWind)
-                            } catch (e: IndexOutOfBoundsException) {
-                                println("Index error: levelIdx=$levelIdx, latIdx=$latIdx, lonIdx=$lonIdx")
-                            }
+                NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
+                    //Henter ut variablene som ligger i vanlige arrayer.
+                    //Disse trengs for å hente ut data fra 4d arrayene
+                    val latitudes = (netcdfFile.findVariable("lat")?.read() as? ArrayFloat.D1)
+                        ?.let { array ->
+                            (0 until array.size).map { idx -> array.get(idx.toInt()) }
                         }
 
-                        gribDataMap[Pair(
-                            RoundFloatToXDecimalsDouble(lat, 2),
-                            RoundFloatToXDecimalsDouble(lon - 360, 2)
-                        )] = isobaricMap
+                    val longitudes = (netcdfFile.findVariable("lon")?.read() as? ArrayFloat.D1)
+                        ?.let { array ->
+                            (0 until array.size).map { idx -> array.get(idx.toInt()) }
+                        }
+
+                    val isobaricLevels =
+                        (netcdfFile.findVariable("isobaric")?.read() as? ArrayFloat.D1)
+                            ?.let { array ->
+                                (0 until array.size).map { idx -> array.get(idx.toInt()) }
+                            }
+
+                    if (latitudes == null || longitudes == null || isobaricLevels == null) {
+                        println("Missing lat/lon/isobaric data")
+                        return emptyMap()
+                    }
+
+                    // Henter ut 4d arrayene for variablene på gitte punkter.
+                    //val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
+                    val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")
+                        ?.read() as? ArrayFloat.D4
+                    val vWindVar = netcdfFile.findVariable("v-component_of_wind_isobaric")
+                        ?.read() as? ArrayFloat.D4
+
+                    if (uWindVar == null || vWindVar == null) { //temperatureVar == null
+                        println("Missing temperature or wind data")
+                        return emptyMap()
+                    }
+
+                    //test prints for å forstå datasettet
+                    //println("Temperature shape: ${temperatureVar.shape.contentToString()}")
+                    println("uWind shape: ${uWindVar.shape.contentToString()}")
+                    println("vWind shape: ${vWindVar.shape.contentToString()}")
+                    println("Latitudes size: ${latitudes.size}, Longitudes size: ${longitudes.size}")
+                    println("Isobaric levels size: ${isobaricLevels.size}")
+                    println("Isobaric levels from NetCDF: ${isobaricLevels.joinToString()}")
+
+                    // Nøsted løkke over kombinasjonen latitude, longitude og isobaric level
+                    for (latIdx in latitudes.indices) {
+                        for (lonIdx in longitudes.indices) {
+                            val lat = latitudes[latIdx]
+                            val lon = longitudes[lonIdx]
+
+                            val isobaricMap = mutableMapOf<Int, GribVectors>()
+
+                            for (levelIdx in isobaricLevels.indices) {
+                                val level = isobaricLevels[levelIdx] / 100  //Convert from Pa to hPa
+
+                                try {
+                                    //val temperature = temperatureVar.get(0, levelIdx, latIdx, lonIdx)
+                                    val uWind = uWindVar.get(0, levelIdx, latIdx, lonIdx)
+                                    val vWind = vWindVar.get(0, levelIdx, latIdx, lonIdx)
+
+                                    isobaricMap[level.toInt()] = GribVectors(uWind, vWind)
+                                } catch (e: IndexOutOfBoundsException) {
+                                    println("Index error: levelIdx=$levelIdx, latIdx=$latIdx, lonIdx=$lonIdx")
+                                }
+                            }
+
+                            gribDataMap[Pair(
+                                RoundFloatToXDecimalsDouble(lat, 2),
+                                RoundFloatToXDecimalsDouble(lon - 360, 2)
+                            )] = isobaricMap
+                        }
                     }
                 }
+                // Sletter tempFilen siden dataen er lagt i map
+                tempFile.delete()
+            } catch (e: Exception) {
+                println("Error processing GRIB file: ${e.message}")
             }
-            // Sletter tempFilen siden dataen er lagt i map
-            tempFile.delete()
-        } catch (e: Exception) {
-            println("Error processing GRIB file: ${e.message}")
+            return gribDataMap
+        } else {
+            return emptyMap()
         }
-        return gribDataMap
+    }
+
+    suspend fun getAvailabilityData(): StructuredAvailability?{
+        val response = isobaricDataSource.fetchAvailabilityData()
+        val data = response.getOrNull() ?: return null
+        return restructureAvailabilityResponse(data)
+    }
+
+    suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
+        return availResponse.updated == updatedDAO.getUpdated()
+    }
+
+    suspend fun restructureAvailabilityResponse(
+        availResponse: IsobaricAvailabilityResponse
+    ): StructuredAvailability {
+        val updatedInstant = Instant.parse(availResponse.dataEntries.first().updated)
+
+        val availData = availResponse.dataEntries.map { entry ->
+            AvailabilityData(entry.params.area, Instant.parse(entry.params.time), entry.uri)
+        }
+
+        return StructuredAvailability(updatedInstant, availData)
+    }
+
+    fun StructuredAvailability.findClosestBefore(targetTime: Instant): AvailabilityData? {
+        val data = this.availData
+            .filter { it.time < targetTime }
+            .maxByOrNull { it.time }
+        return data
     }
 }
+
