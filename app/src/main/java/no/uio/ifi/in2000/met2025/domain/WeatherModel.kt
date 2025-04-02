@@ -14,6 +14,8 @@ import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
+import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
+import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
 import javax.inject.Inject
 import kotlin.math.atan2
@@ -24,7 +26,36 @@ class WeatherModel @Inject constructor(
     private val isobaricRepository: IsobaricRepository
 ) { //Businesslogikk for konsolidering av forskjellig type data
 
-    private suspend fun convertGribData(lat: Double, lon: Double): Result<IsobaricData> {
+    suspend fun getCurrentIsobaricData(lat: Double, lon: Double) : Result<IsobaricData> {
+        val gribResult = try {
+            isobaricRepository.getCurrentIsobaricGribData()
+        } catch (exception: Exception) {
+            return Result.failure(exception)
+        }
+        val forecastResult = locationForecastRepository.getForecastData(lat, lon, 1) //TODO: change to find one that matches the time
+        if (forecastResult.isFailure) {
+            return Result.failure(forecastResult.exceptionOrNull() ?: Exception("Unknown error"))
+        }
+        val forecastData = forecastResult.fold(
+            onFailure = {
+                return Result.failure(it)
+            },
+            onSuccess = { forecastData ->
+                forecastData
+            }
+        )
+
+        return convertGribToIsobaricData(lat, lon, forecastData).fold(
+            onFailure = { exception: Throwable ->
+                Result.failure(exception)
+            },
+            onSuccess = { isobaricData: IsobaricData ->
+                combinedDataResult(isobaricData, lat, lon)
+            }
+        )
+    }
+
+    private suspend fun convertGribToIsobaricData(lat: Double, lon: Double, forecastData: ForecastData): Result<IsobaricData> {
 
         println("lat $lat, lon $lon")
         if(CoordinateBoundaries.isWithinBounds(lat, lon)) {
@@ -58,7 +89,7 @@ class WeatherModel @Inject constructor(
                                 val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
                                 val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
                                 IsobaricDataValues(
-                                    altitude = pressure.toDouble(), //TODO: calculate and assign altitude value here
+                                    altitude = calculateAltitude(pressure.toDouble(), forecastData.timeSeries[0].values.airPressureAtSeaLevel),
                                     windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
                                     windFromDirection = Math.toDegrees(
                                         atan2(
@@ -70,7 +101,6 @@ class WeatherModel @Inject constructor(
                             }
                         )
                     )
-
                 )
                 Result.success(isobaricData)
             } catch (exception: Exception) {
@@ -79,18 +109,6 @@ class WeatherModel @Inject constructor(
         } else {
             return Result.failure(Exception("Coordinate not within bounds"))
         }
-    }
-
-    suspend fun getCurrentIsobaricData(lat: Double, lon: Double) : Result<IsobaricData>
-    = withContext(Dispatchers.IO) {
-        convertGribData(lat, lon).fold(
-            onFailure = { exception: Throwable ->
-                Result.failure(exception)
-            },
-            onSuccess = { isobaricData: IsobaricData ->
-                combinedDataResult(isobaricData, lat, lon)
-            }
-        )
     }
 
     private fun combinedDataResult(isobaricData: IsobaricData, lat: Double, lon: Double): Result<IsobaricData> {
@@ -121,7 +139,7 @@ class WeatherModel @Inject constructor(
                                     isobaricItem.valuesAtLayer
                                 } else {
                                     isobaricItem.valuesAtLayer.plus(
-                                        forecastItem.values.airPressureAtSeaLevel.toInt() to
+                                        calculatePressureAtAltitude(forecastData.altitude, forecastItem.values.airPressureAtSeaLevel).toInt() to
                                                 IsobaricDataValues(
                                                     altitude = forecastData.altitude,
                                                     windSpeed = forecastItem.values.windSpeed,
