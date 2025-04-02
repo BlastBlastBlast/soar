@@ -17,7 +17,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.mapbox.geojson.Point
-import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.CoordinateDisplay
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer

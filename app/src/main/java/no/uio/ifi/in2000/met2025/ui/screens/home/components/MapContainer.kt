@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.mapbox.geojson.Point
-import no.uio.ifi.in2000.met2025.ui.maps.MapView
+import no.uio.ifi.in2000.met2025.ui.screens.home.maps.MapView
 
 @Composable
 fun MapContainer(

@@ -19,7 +19,7 @@ import no.uio.ifi.in2000.met2025.ui.components.HourlyExpandableCard
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
-import no.uio.ifi.in2000.met2025.ui.maps.LocationViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 
 @Composable
 fun WeatherCardScreen(
