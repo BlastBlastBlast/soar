@@ -52,46 +52,6 @@ fun evaluateDailyLaunchStatus(items: List<ForecastDataItem>): LaunchStatus {
     }
 }
 
-/*
-@Composable
-fun DailyForecastCard(
-    forecastItems: List<ForecastDataItem>,
-    modifier: Modifier = Modifier
-) {
-    val day = formatZuluTimeToLocalDate(forecastItems.first().time)
-    val overallStatus = evaluateDailyLaunchStatus(forecastItems)
-
-    // Bruk første time for å vise verdier fikser logikk for gjennomsnitt senere
-    val representativeItem = forecastItems.first()
-    val evaluations = evaluateParameterConditions(representativeItem)
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Day: $day", style = MaterialTheme.typography.headlineSmall)
-
-            LaunchStatusIcon(status = overallStatus)
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            evaluations.forEach { param ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(param.label, style = MaterialTheme.typography.bodyMedium)
-                    Row {
-                        Text(param.value, style = MaterialTheme.typography.bodyMedium)
-                        LaunchStatusIcon(status = param.status)
-                    }
-                }
-            }
-        }
-    }
-} */
-
 @Composable
 fun DailyForecastCard(
     forecastItems: List<ForecastDataItem>,
@@ -114,7 +74,6 @@ fun DailyForecastCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header
             Text("Day: $day", style = MaterialTheme.typography.headlineSmall)
             LaunchStatusIcon(status = overallStatus)
 
@@ -126,7 +85,6 @@ fun DailyForecastCard(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
-            // Kun vis utvidet info hvis expanded er true
             AnimatedVisibility(visible = expanded) {
                 Column {
                     evaluations.forEach { param ->
@@ -148,34 +106,7 @@ fun DailyForecastCard(
 }
 
 @Composable
-fun ThreeDaysForecastLazyRow(allForecastItems: List<ForecastDataItem>) {
-    // Gruppér forecast-items etter dag
-    val dailyForecasts = allForecastItems
-        .groupBy { formatZuluTimeToLocalDate(it.time) }
-        .values
-        .toList()
-
-    // Ta de tre første dagene
-    val threeDaysForecasts = dailyForecasts.take(3)
-
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        items(threeDaysForecasts) { dayForecast ->
-            // Gi hvert kort en fast bredde (for eksempel 250.dp) slik at flere kort kan vises side om side
-            DailyForecastCard(
-                forecastItems = dayForecast,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .width(250.dp)
-            )
-        }
-    }
-}
-
-@Composable
 fun DailyLazyRow(allForecastItems: List<ForecastDataItem>) {
-    // Gruppér forecast items etter dag
     val dailyForecasts = allForecastItems
         .groupBy { formatZuluTimeToLocalDate(it.time) }
         .values
@@ -205,32 +136,3 @@ fun DailyForecastRowSection(forecastItems: List<ForecastDataItem>) {
         DailyLazyRow(allForecastItems = forecastItems)
     }
 }
-
-
-
-
-
-
-
-/*
-@Composable
-fun DailyExpandableCard(forecastItem: ForecastDataItem,
-                        modifier: Modifier = Modifier
-){
-    var expanded by remember { mutableStateOf(false) }
-    Card(modifier = modifier
-        .fillMaxWidth()
-        .clickable { expanded = !expanded },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
-
-    }
-    LazyRow(modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        item {
-
-        }
-
-    }
-
-
-}*/

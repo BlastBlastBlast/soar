@@ -61,10 +61,8 @@ fun ScreenContent(
 
                 val forecastItems = uiState.forecastItems
 
-                // 👇 Plasser LazyRow med tre dagers kort her
                 DailyForecastRowSection(forecastItems = forecastItems)
 
-                // 👇 Timevis visning etterpå
                 Text(
                     text = "Hourly Forecast",
                     style = MaterialTheme.typography.titleLarge,
@@ -74,15 +72,6 @@ fun ScreenContent(
                 val today = uiState.forecastItems.firstOrNull()?.time?.substring(0, 10)
                 val dailyItems = uiState.forecastItems.filter { it.time.startsWith(today ?: "") }
 
-
-                /*DailyForecastCard(
-                    forecastItems = dailyItems,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                Text(text = "Hourly Forecast",style = MaterialTheme.typography.titleLarge) */
-
-                //  Vis detaljer time for time
                 dailyItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
