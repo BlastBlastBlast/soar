@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.met2025.di
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -68,10 +69,6 @@ object AppModule {
     fun provideLocationForecastDataSource(@Named("jsonClient") client: HttpClient): LocationForecastDataSource {
         return LocationForecastDataSource(client)
     }
-
-    @Provides
-    @Singleton
-    fun provideLocationViewModel(): LocationViewModel = LocationViewModel()
 
     @Provides
     @Singleton
