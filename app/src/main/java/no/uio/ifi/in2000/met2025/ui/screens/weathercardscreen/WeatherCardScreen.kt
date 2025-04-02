@@ -20,6 +20,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
+import no.uio.ifi.in2000.met2025.ui.components.DailyForecastCard
+import no.uio.ifi.in2000.met2025.ui.components.DailyForecastRowSection
 
 @Composable
 fun WeatherCardScreen(
@@ -55,7 +57,21 @@ fun ScreenContent(
                 Text("Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Success -> {
-                uiState.forecastItems.forEach { forecastItem ->
+
+                val forecastItems = uiState.forecastItems
+
+                DailyForecastRowSection(forecastItems = forecastItems)
+
+                Text(
+                    text = "Hourly Forecast",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+
+                val today = uiState.forecastItems.firstOrNull()?.time?.substring(0, 10)
+                val dailyItems = uiState.forecastItems.filter { it.time.startsWith(today ?: "") }
+
+                dailyItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
                         modifier = Modifier.padding(vertical = 8.dp)
