@@ -38,6 +38,7 @@ fun DailyForecastCard(
     val day = formatZuluTimeToLocalDate(forecastItems.first().time)
     val overallStatus = evaluateDailyLaunchStatus(forecastItems)
 
+    val avgTemperature = forecastItems.map { it.values.airTemperature }.average()
     val avgFog = forecastItems.map { it.values.fogAreaFraction }.average()
     val totalPrecipitation = forecastItems.sumOf { it.values.precipitationAmount }
     val maxDewPoint = forecastItems.maxOf { it.values.dewPointTemperature }
@@ -62,20 +63,22 @@ fun DailyForecastCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("☁️ Avg. Cloud Cover: ${"%.1f".format(avgCloudCover)}%", style = MaterialTheme.typography.bodyMedium)
-            Text("🌧️ Total Precipitation: ${"%.1f".format(totalPrecipitation)} mm", style = MaterialTheme.typography.bodyMedium)
-            Text("🌫️ Avg. Fog: ${"%.1f".format(avgFog)}%", style = MaterialTheme.typography.bodyMedium)
-            Text("💧 Max Humidity: ${"%.1f".format(maxHumidity)}%", style = MaterialTheme.typography.bodyMedium)
-            Text("🌡️ Max Dew Point: ${"%.1f".format(maxDewPoint)}°C", style = MaterialTheme.typography.bodyMedium)
-            Text("💨 Air Wind Gust: ${"%.1f".format(minAirWind)} - ${"%.1f".format(maxAirWind)} m/s", style = MaterialTheme.typography.bodyMedium)
-            Text("🌬️ Ground Wind: ${"%.1f".format(minGroundWind)} - ${"%.1f".format(maxGroundWind)} m/s", style = MaterialTheme.typography.bodyMedium)
-            Text("🧭 Avg. Wind Direction: ${"%.1f".format(avgWindDirection)}°", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "🌡️ Avg. Temperature: ${"%.1f".format(avgTemperature)}°C",
+                style = MaterialTheme.typography.bodyMedium
+            )
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    forecastItems.forEach {
-                        Text("${formatZuluTimeToLocalTime(it.time)}: ${it.values.airTemperature}°C")
-                    }
+                    Text("☁️ Avg. Cloud Cover: ${"%.1f".format(avgCloudCover)}%", style = MaterialTheme.typography.bodyMedium)
+                    Text("🌧️ Total Precipitation: ${"%.1f".format(totalPrecipitation)} mm", style = MaterialTheme.typography.bodyMedium)
+                    Text("🌫️ Avg. Fog: ${"%.1f".format(avgFog)}%", style = MaterialTheme.typography.bodyMedium)
+                    Text("💧 Max Humidity: ${"%.1f".format(maxHumidity)}%", style = MaterialTheme.typography.bodyMedium)
+                    Text("🌡️ Max Dew Point: ${"%.1f".format(maxDewPoint)}°C", style = MaterialTheme.typography.bodyMedium)
+                    Text("💨 Air Wind Gust: ${"%.1f".format(minAirWind)} - ${"%.1f".format(maxAirWind)} m/s", style = MaterialTheme.typography.bodyMedium)
+                    Text("🌬️ Ground Wind: ${"%.1f".format(minGroundWind)} - ${"%.1f".format(maxGroundWind)} m/s", style = MaterialTheme.typography.bodyMedium)
+                    Text("🧭 Avg. Wind Direction: ${"%.1f".format(avgWindDirection)}°", style = MaterialTheme.typography.bodyMedium)
+
                 }
             }
         }
