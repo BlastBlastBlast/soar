@@ -23,6 +23,12 @@ interface LaunchSiteDAO {
     @Update
     suspend fun updateSites(vararg sites: LaunchSite)
 
+    // Existing temporary site (Last Visited)
     @Query("SELECT * FROM LaunchSite WHERE name = :tempName LIMIT 1")
     fun getTempSite(tempName: String = "Last Visited"): Flow<LaunchSite?>
+
+    // New temporary site (New Marker)
+    @Query("SELECT * FROM LaunchSite WHERE name = :tempName LIMIT 1")
+    fun getNewMarkerTempSite(tempName: String = "New Marker"): Flow<LaunchSite?>
 }
+

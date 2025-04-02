@@ -44,23 +44,23 @@ fun HomeScreen(
     val context = LocalContext.current
     val coordinates by locationViewModel.coordinates.collectAsState()
 
-    // Collect the temporary (last visited) launch site.
-    val tempLaunchSite by launchSiteViewModel.tempLaunchSite.collectAsState(initial = null)
-    // Use the temporary site (if available) as the initial marker coordinate.
-    val initialMarkerCoordinate: Point? = tempLaunchSite?.let {
+    // Retrieve the temporary "Last Visited" launch site.
+    val tempLastVisited by launchSiteViewModel.tempLaunchSite.collectAsState(initial = null)
+    // Use the "Last Visited" site's coordinates for initial marker if available.
+    val initialMarkerCoordinate: Point? = tempLastVisited?.let {
         Point.fromLngLat(it.longitude, it.latitude)
     }
 
-    // If the temporary site exists and differs from current coordinates, update shared state.
-    LaunchedEffect(tempLaunchSite) {
-        tempLaunchSite?.let {
+    // Ensure shared location state is in sync with "Last Visited".
+    LaunchedEffect(tempLastVisited) {
+        tempLastVisited?.let {
             if (coordinates.first != it.latitude || coordinates.second != it.longitude) {
                 locationViewModel.updateCoordinates(it.latitude, it.longitude)
             }
         }
     }
 
-    // Local state for input fields (if needed).
+    // Local state for coordinate input fields (if needed).
     var latInput by rememberSaveable { mutableStateOf(coordinates.first.toString()) }
     var lonInput by rememberSaveable { mutableStateOf(coordinates.second.toString()) }
     var markerPosition by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
@@ -68,13 +68,17 @@ fun HomeScreen(
     var launchSiteName by rememberSaveable { mutableStateOf("") }
     var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
 
-    // New state for toggling the launch sites menu.
+    // New state: toggle for showing the launch sites menu.
     var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
-    // Get the list of all saved launch sites.
+    // Retrieve all saved launch sites.
     val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
+    // In the menu, filter out "Last Visited" so that the "New Marker" is shown (along with any other saved sites).
+    val menuLaunchSites = launchSites.filter { it.name != "Last Visited" }
 
     if (locationPermissionState.status.isGranted) {
         Box(modifier = Modifier.fillMaxSize()) {
+            // MapView receives the "Last Visited" coordinates as initialMarkerCoordinate.
+            // When a marker is placed, we update the "New Marker" temporary instead.
             MapView(
                 latitude = coordinates.first,
                 longitude = coordinates.second,
@@ -85,8 +89,8 @@ fun HomeScreen(
                     lonInput = lon.toString()
                     markerPosition = Pair(lat, lon)
                     locationViewModel.updateCoordinates(lat, lon)
-                    // Update the temporary launch site in the database.
-                    launchSiteViewModel.updateTemporaryLaunchSite(lat, lon)
+                    // Update the "New Marker" temporary launch site.
+                    launchSiteViewModel.updateNewMarkerSite(lat, lon)
                 },
                 onMarkerAnnotationClick = { lat, lon ->
                     savedMarkerCoordinates = Pair(lat, lon)
@@ -137,7 +141,7 @@ fun HomeScreen(
                 Text(text = "Launch Sites", color = Color.White)
             }
 
-            // Expanded menu of launch sites.
+            // Expanded menu of launch sites (excluding "Last Visited").
             if (isLaunchSiteMenuExpanded) {
                 Column(
                     modifier = Modifier
@@ -146,18 +150,16 @@ fun HomeScreen(
                         .background(Color.White.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
                         .padding(8.dp)
                 ) {
-                    launchSites.forEach { site ->
+                    menuLaunchSites.forEach { site ->
                         Text(
                             text = site.name,
                             modifier = Modifier
                                 .clickable {
-                                    // When a launch site is tapped, update the shared location and temp site.
                                     locationViewModel.updateCoordinates(site.latitude, site.longitude)
+                                    // Update "Last Visited" temporary so the marker moves accordingly.
                                     launchSiteViewModel.updateTemporaryLaunchSite(site.latitude, site.longitude)
-                                    // Optionally update input fields.
                                     latInput = site.latitude.toString()
                                     lonInput = site.longitude.toString()
-                                    // Collapse the menu.
                                     isLaunchSiteMenuExpanded = false
                                 }
                                 .padding(8.dp)
@@ -231,7 +233,7 @@ fun HomeScreen(
             }
         }
     } else {
-        // UI when permission is not granted.
+        // UI when location permission is not granted.
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center

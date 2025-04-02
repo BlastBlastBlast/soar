@@ -33,21 +33,22 @@ import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 @Composable
 fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
-    // Collect the temporary (last visited) launch site.
-    val tempSite by viewModel.tempLaunchSite.collectAsState(initial = null)
+    // Collect the temporary "New Marker" launch site.
+    val newMarkerTemp by viewModel.newMarkerTempSite.collectAsState(initial = null)
 
     Column(modifier = Modifier.padding(16.dp)) {
-        // Show the temporary launch site as "Last Visited" at the top.
-        tempSite?.let { site ->
-            Text("Last Visited", style = MaterialTheme.typography.titleLarge)
+        // Show the temporary "New Marker" site at the top.
+        newMarkerTemp?.let { site ->
+            Text("New Marker", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             LaunchSiteItem(
                 site = site,
                 onDelete = {
-                    // Optionally allow deletion or clearing of the temporary site.
+                    // Optionally handle deletion of the temporary new marker.
                 },
                 onUpdate = { updatedSite ->
-                    // If the user updates the temporary site (e.g. adds a new name), save it permanently.
+                    // If the user updates the temporary site (e.g. adds a new name),
+                    // save it permanently.
                     viewModel.addLaunchSite(updatedSite.latitude, updatedSite.longitude, updatedSite.name)
                 }
             )
@@ -58,8 +59,8 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
         Spacer(modifier = Modifier.height(8.dp))
         LazyColumn {
             items(launchSites) { site ->
-                // Optionally, you might want to filter out the "Last Visited" entry here if it's duplicated.
-                if (site.name != "Last Visited") {
+                // Filter out the "New Marker" item if it's already shown at the top.
+                if (site.name != "New Marker") {
                     LaunchSiteItem(
                         site = site,
                         onDelete = { viewModel.deleteLaunchSite(site) },
@@ -70,7 +71,7 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        // Input fields to add a new launch site manually.
+        // Input fields to add a new permanent launch site manually.
         var newSiteName by remember { mutableStateOf("") }
         var newSiteLat by remember { mutableStateOf("") }
         var newSiteLon by remember { mutableStateOf("") }
