@@ -52,13 +52,23 @@ fun LaunchSiteItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    // If it's the special marker, show the red marker icon instead of text.
+                    // If it's the special marker, show the red marker icon and text in a row.
                     if (isSpecialMarker) {
-                        Image(
-                            painter = painterResource(id = R.drawable.red_marker),
-                            contentDescription = "Launch Site Icon",
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Last Marker",
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.red_marker),
+                                contentDescription = "Launch Site Icon",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     } else {
                         Text(
                             text = site.name,
