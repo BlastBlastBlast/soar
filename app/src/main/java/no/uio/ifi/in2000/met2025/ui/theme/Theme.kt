@@ -12,16 +12,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.R
 
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
+
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    background = Color.Black,
+    surface = Color.Black,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color.White, // ensures text on dark backgrounds is white
+    onSurface = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
+    background = Color.White,
+    surface = Color.White,
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onTertiary = Color.Black,
+    onBackground = Color.Black, // ensures text on light backgrounds is dark
+    onSurface = Color.Black
 )
 
 // Define your JetBrains Mono Nerd FontFamily.
@@ -59,14 +77,24 @@ val AppTypography = Typography(
 @Composable
 fun In2000_met2025_team21Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = true, // keep dynamic color if you want
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
-            else dynamicLightColorScheme(context)
+            if (darkTheme) {
+                // Override the dynamic dark scheme with white text colors.
+                dynamicDarkColorScheme(context).copy(
+                    onBackground = Color.White,
+                    onSurface = Color.White,
+                    onPrimary = Color.White,
+                    onSecondary = Color.White,
+                    onTertiary = Color.White
+                )
+            } else {
+                dynamicLightColorScheme(context)
+            }
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
@@ -78,3 +106,4 @@ fun In2000_met2025_team21Theme(
         content = content
     )
 }
+
