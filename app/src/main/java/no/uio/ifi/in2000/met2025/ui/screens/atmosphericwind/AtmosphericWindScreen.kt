@@ -54,8 +54,6 @@ import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
 
-//TODO: hook up screen to navigation graph
-
 @Composable
 fun AtmosphericWindScreen(
     atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
