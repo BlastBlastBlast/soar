@@ -32,3 +32,29 @@ interface LaunchSiteDAO {
     fun getNewMarkerTempSite(tempName: String = "New Marker"): Flow<LaunchSite?>
 }
 
+
+
+@Dao
+interface GribDataDAO {
+    @Insert
+    suspend fun insert(gribFile: GribData)
+
+    @Query("SELECT * FROM grib_files WHERE timestamp = :timestamp LIMIT 1")
+    suspend fun getByTimestamp(timestamp: String): GribData?
+
+    @Query("DELETE FROM grib_files")
+    suspend fun clearAll()
+}
+
+@Dao
+interface GribUpdatedDAO {
+    @Insert
+    suspend fun insert(vararg gribUpdated: GribUpdated)
+
+    @Query("DELETE FROM GribUpdated")
+    suspend fun delete()
+
+    @Query("SELECT * FROM GribUpdated LIMIT 1")
+    suspend fun getUpdated(): String?
+
+}

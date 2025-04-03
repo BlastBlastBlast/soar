@@ -67,5 +67,5 @@ fun AtmosphericWindScreenMock(
     uiState: AtmosphericWindViewModel.AtmosphericWindUiState,
     onLoadData: (Double, Double) -> Unit
 ) {
-    ScreenContent(uiState = uiState, onLoadData = onLoadData)
+    ScreenContent(windUiState = uiState, coordinates = Pair(59.942, 10.726), onLoadData = onLoadData)
 }

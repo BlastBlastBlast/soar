@@ -34,29 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import no.uio.ifi.in2000.met2025.R
-
-// Kotlin
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.ZoneId
-import java.util.Locale
-
-fun formatZuluTimeToLocalDate(zuluTime: String): String {
-    val zonedDateTime = ZonedDateTime.parse(zuluTime)
-    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
-    return localTime.format(DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH))
-}
-
-
-fun formatZuluTimeToLocalTime(zuluTime: String): String {
-    val zonedDateTime = ZonedDateTime.parse(zuluTime)
-    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
-    return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-}
-
-
-
-
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 
 @Composable
 fun WindDirectionIcon(windDirection: Double) {

@@ -6,6 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
+import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
@@ -13,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AtmosphericWindViewModel @Inject constructor(
-    private val weatherModel: WeatherModel
+    private val weatherModel: WeatherModel,
+    private val launchSiteDAO: LaunchSiteDAO
 ) : ViewModel() {
 
     sealed class AtmosphericWindUiState {
@@ -26,8 +29,24 @@ class AtmosphericWindViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
     val uiState: StateFlow<AtmosphericWindUiState> = _uiState
 
+    private val _launchSite = MutableStateFlow<LaunchSite?>(null)
+    val launchSite: StateFlow<LaunchSite?> = _launchSite
+
+    init {
+        observeTempSite()
+    }
+
+    private fun observeTempSite() {
+        viewModelScope.launch {
+            launchSiteDAO.getTempSite().collect { site ->
+                _launchSite.value = site
+            }
+        }
+    }
+
     fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
+            observeTempSite()
             _uiState.value = AtmosphericWindUiState.Loading
             _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon)
                 .fold(

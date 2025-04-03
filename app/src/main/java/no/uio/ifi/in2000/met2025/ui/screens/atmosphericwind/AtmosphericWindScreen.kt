@@ -30,17 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
-import java.math.RoundingMode
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import kotlin.math.pow
-import kotlin.math.sqrt
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.ui.graphics.Outline
@@ -51,47 +43,37 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Size
+import androidx.hilt.navigation.compose.hiltViewModel
+import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
+import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
+import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
+import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
+import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 
 //TODO: hook up screen to navigation graph
 
-//TODO: move this function to another file, it is also defined and used in HourlyExpandableCard
-fun formatZuluTimeToLocal(zuluTime: String): String {
-    // Parse the ISO date‑time string (Zulu/UTC format)
-    val zonedDateTime = ZonedDateTime.parse(zuluTime)
-    // Convert the time to the system default timezone (or specify ZoneId.of("Europe/Oslo"))
-    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
-    // Format as 24‑h time
-    return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-}
-
-fun windShear(v1: IsobaricDataValues, v2: IsobaricDataValues): Double {
-    val s1 = v1.windSpeed
-    val s2 = v2.windSpeed
-    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * kotlin.math.cos((v2.windFromDirection - v1.windFromDirection) * Math.PI / 180))
-}
-
-//TODO: move function to another file, it could also be used in LocationForecastDataSource
-fun Double.roundToDecimals(n: Int) : Double {
-    return this.toBigDecimal().setScale(n, RoundingMode.HALF_UP).toDouble()
-}
-
 @Composable
-fun AtmosphericWindScreen(viewModel: AtmosphericWindViewModel) {
-    val uiState by viewModel.uiState.collectAsState()
-    ScreenContent(uiState = uiState, onLoadData = { lat, lon ->
-        viewModel.loadIsobaricData(lat, lon)
-    })
+fun AtmosphericWindScreen(
+    atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
+) {
+    val windUiState by atmosphericWindViewModel.uiState.collectAsState()
+    val launchSite by atmosphericWindViewModel.launchSite.collectAsState()
+    val latitude = launchSite?.latitude ?: 0.0
+    val longitude = launchSite?.longitude ?: 0.0
+    ScreenContent(windUiState = windUiState,
+        Pair(latitude, longitude), onLoadData = { lat, lon ->
+        atmosphericWindViewModel.loadIsobaricData(lat, lon) }
+    )
+
 }
 
 @Composable
 fun ScreenContent(
-    uiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+    windUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+    coordinates: Pair<Double, Double>,
     onLoadData: (Double, Double) -> Unit = { _, _ -> }
 ) {
-    // Pre-fill with coordinates for Ole Johan Dahl's hus
-    //TODO: Change to use coordinates from HomeScreen
-    var latInput by remember { mutableStateOf("59.942") }
-    var lonInput by remember { mutableStateOf("10.726") }
 
     val scrollState = rememberScrollState()
 
@@ -100,45 +82,56 @@ fun ScreenContent(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-        when (uiState) {
+
+
+        when (windUiState) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
-                Text(
-                    text = "Enter coordinates for forecast:",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                OutlinedTextField(
-                    value = latInput,
-                    onValueChange = { latInput = it },
-                    label = { Text("Latitude") },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                OutlinedTextField(
-                    value = lonInput,
-                    onValueChange = { lonInput = it },
-                    label = { Text("Longitude") },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                Button(
-                    onClick = {
-                        val lat = latInput.toDoubleOrNull()
-                        val lon = lonInput.toDoubleOrNull()
-                        if (lat != null && lon != null) {
-                            onLoadData(lat, lon)
-                        }
-                    },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text(text = "Load Isobaric Data")
-                }
+//                Text(
+//                    text = "Enter coordinates for forecast:",
+//                    style = MaterialTheme.typography.headlineSmall
+//                )
+//                OutlinedTextField(
+//                    value = latInput,
+//                    onValueChange = { latInput = it },
+//                    label = { Text("Latitude") },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                )
+//                OutlinedTextField(
+//                    value = lonInput,
+//                    onValueChange = { lonInput = it },
+//                    label = { Text("Longitude") },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                )
+//                Button(
+//                    onClick = {
+//                        val lat = latInput.toDoubleOrNull()
+//                        val lon = lonInput.toDoubleOrNull()
+//                        if (lat != null && lon != null) {
+//                            onLoadData(lat, lon)
+//                        }
+//                    },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                ) {
+//                    Text(text = "Load Isobaric Data")
+//                }
+
+//                Button(
+//                    onClick = { onLoadData(coordinates.first, coordinates.second) },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                ) {
+//                    Text(text = "Load Isobaric Data")
+//                }
+
+                onLoadData(coordinates.first, coordinates.second)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
                 Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
-                Text(text = "Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
+                Text(text = "Error: ${windUiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                uiState.isobaricData.timeSeries.forEach { item ->
+                windUiState.isobaricData.timeSeries.forEach { item ->
                     IsobaricDataItemCard(item = item)
                 }
             }
@@ -181,7 +174,8 @@ fun IsobaricDataItemCard(
             // Static header row to label columns
             WindShearRow(
                 backgroundColor = windshearColor,
-                text = "Wind Shear",
+                speedText = "Wind Shear Speed",
+                directionText = "Wind Shear Direction",
                 style = MaterialTheme.typography.titleSmall
             )
 
@@ -204,8 +198,11 @@ fun IsobaricDataItemCard(
                 val displayedValues = if (expanded.value) pressureValues else pressureValues.takeLast(6)
                 displayedValues.forEachIndexed { index, layer ->
                     val altitude = item.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
-                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed?.roundToDecimals(1) ?: "--"
-                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection?.roundToDecimals(1) ?: "--"
+                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed
+                        ?.roundToDecimals(1) ?: "--"
+                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection
+                        ?.floorModDouble(360)
+                        ?.roundToDecimals(1) ?: "--"
 
                     AtmosphericLayerRow(
                         altitudeText = "$altitude m",
@@ -219,14 +216,22 @@ fun IsobaricDataItemCard(
                         val nextLayer = displayedValues[index + 1]
 
                         if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
-                            val windShearValue = windShear(
+                            val windShearValue = windShearSpeed(
                                 item.valuesAtLayer[layer]!!,
                                 item.valuesAtLayer[nextLayer]!!
                             )
+                                .roundToDecimals(1)
+
+                            val windShearDirection = windShearDirection(
+                                item.valuesAtLayer[layer]!!,
+                                item.valuesAtLayer[nextLayer]!!
+                            )
+                                .floorModDouble(360).roundToDecimals(1)
 
                             WindShearRow(
                                 backgroundColor = windshearColor,
-                                text = "${windShearValue.roundToDecimals(1)} m/s",
+                                speedText = "$windShearValue m/s",
+                                directionText = "$windShearDirection°",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -255,7 +260,7 @@ fun AtmosphericLayerRow(
             style = style,
             modifier = Modifier.weight(1f)
         )
-        Text(
+        Text( //TODO: Add wind direction icon. Pointing downwards at 0° rotating clockwise
             text = windDirectionText,
             style = style,
             modifier = Modifier.weight(1f)
@@ -266,7 +271,8 @@ fun AtmosphericLayerRow(
 @Composable
 fun WindShearRow(
     backgroundColor: Color,
-    text: String,
+    speedText: String,
+    directionText: String,
     style: androidx.compose.ui.text.TextStyle
 ) {
     Row(
@@ -282,12 +288,16 @@ fun WindShearRow(
         Box(modifier = Modifier.weight(1f))
 
         Text(
-            text = text,
+            text = speedText,
             style = style,
             modifier = Modifier.weight(1f)
         )
 
-        Box(modifier = Modifier.weight(1f))
+        Text(
+            text = directionText,
+            style = style,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
