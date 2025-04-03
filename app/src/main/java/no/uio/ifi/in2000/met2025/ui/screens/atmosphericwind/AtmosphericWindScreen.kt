@@ -30,13 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
-import kotlin.math.pow
-import kotlin.math.sqrt
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.ui.graphics.Outline
@@ -47,46 +43,35 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Size
+import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
+import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
+import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
+import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 
 //TODO: hook up screen to navigation graph
 
-fun windShearSpeed(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
-    val s1 = d1.windSpeed
-    val s2 = d2.windSpeed
-    return sqrt(s1.pow(2) + s2.pow(2) - 2 * s1 * s2 * cos((d2.windFromDirection - d1.windFromDirection) * Math.PI / 180))
-}
-
-fun windShearDirection(d1: IsobaricDataValues, d2: IsobaricDataValues): Double {
-    val x1 = d1.windSpeed * cos(d1.windFromDirection)
-    val y1 = d1.windSpeed * sin(d1.windFromDirection)
-    val x2 = d2.windSpeed * cos(d2.windFromDirection)
-    val y2 = d2.windSpeed * sin(d2.windFromDirection)
-    return (atan2(y2 - y1, x2 - x1) * 180 / Math.PI)
-}
-
 @Composable
-fun AtmosphericWindScreen(viewModel: AtmosphericWindViewModel) {
-    val uiState by viewModel.uiState.collectAsState()
-    ScreenContent(uiState = uiState, onLoadData = { lat, lon ->
-        viewModel.loadIsobaricData(lat, lon)
+fun AtmosphericWindScreen(
+    atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
+    locationViewModel: LocationViewModel = hiltViewModel()
+) {
+    val windUiState by atmosphericWindViewModel.uiState.collectAsState()
+    val coordinates by locationViewModel.coordinates.collectAsState()
+        ScreenContent(windUiState = windUiState, coordinates, onLoadData = { lat, lon ->
+        atmosphericWindViewModel.loadIsobaricData(lat, lon)
     })
+
 }
 
 @Composable
 fun ScreenContent(
-    uiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+    windUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+    coordinates: Pair<Double, Double>,
     onLoadData: (Double, Double) -> Unit = { _, _ -> }
 ) {
-    // Pre-fill with coordinates for Ole Johan Dahl's hus
-    //TODO: Change to use coordinates from HomeScreen
-    var latInput by remember { mutableStateOf("59.942") }
-    var lonInput by remember { mutableStateOf("10.726") }
 
     val scrollState = rememberScrollState()
 
@@ -95,45 +80,56 @@ fun ScreenContent(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-        when (uiState) {
+
+
+        when (windUiState) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
-                Text(
-                    text = "Enter coordinates for forecast:",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                OutlinedTextField(
-                    value = latInput,
-                    onValueChange = { latInput = it },
-                    label = { Text("Latitude") },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                OutlinedTextField(
-                    value = lonInput,
-                    onValueChange = { lonInput = it },
-                    label = { Text("Longitude") },
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                Button(
-                    onClick = {
-                        val lat = latInput.toDoubleOrNull()
-                        val lon = lonInput.toDoubleOrNull()
-                        if (lat != null && lon != null) {
-                            onLoadData(lat, lon)
-                        }
-                    },
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    Text(text = "Load Isobaric Data")
-                }
+//                Text(
+//                    text = "Enter coordinates for forecast:",
+//                    style = MaterialTheme.typography.headlineSmall
+//                )
+//                OutlinedTextField(
+//                    value = latInput,
+//                    onValueChange = { latInput = it },
+//                    label = { Text("Latitude") },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                )
+//                OutlinedTextField(
+//                    value = lonInput,
+//                    onValueChange = { lonInput = it },
+//                    label = { Text("Longitude") },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                )
+//                Button(
+//                    onClick = {
+//                        val lat = latInput.toDoubleOrNull()
+//                        val lon = lonInput.toDoubleOrNull()
+//                        if (lat != null && lon != null) {
+//                            onLoadData(lat, lon)
+//                        }
+//                    },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                ) {
+//                    Text(text = "Load Isobaric Data")
+//                }
+
+//                Button(
+//                    onClick = { onLoadData(coordinates.first, coordinates.second) },
+//                    modifier = Modifier.padding(top = 8.dp)
+//                ) {
+//                    Text(text = "Load Isobaric Data")
+//                }
+
+                onLoadData(coordinates.first, coordinates.second)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
                 Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
-                Text(text = "Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
+                Text(text = "Error: ${windUiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                uiState.isobaricData.timeSeries.forEach { item ->
+                windUiState.isobaricData.timeSeries.forEach { item ->
                     IsobaricDataItemCard(item = item)
                 }
             }
