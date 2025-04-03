@@ -10,3 +10,7 @@ fun RoundDoubleToXDecimals(value: Double, x: Int) : Double {
 fun RoundFloatToXDecimalsDouble(value: Float, x: Int) : Double {
     return BigDecimal(value.toDouble()).setScale(x, RoundingMode.HALF_UP).toDouble()
 }
+
+fun Double.roundToDecimals(n: Int) : Double {
+    return this.toBigDecimal().setScale(n, RoundingMode.HALF_UP).toDouble()
+}
