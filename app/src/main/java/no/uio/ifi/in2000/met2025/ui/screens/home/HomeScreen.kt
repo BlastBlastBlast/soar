@@ -25,19 +25,15 @@ import no.uio.ifi.in2000.met2025.ui.screens.home.components.CoordinateDisplay
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesButton
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.PermissionRequestScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.SaveLaunchSiteDialog
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.WeatherNavigationButton
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
     onNavigateToWeather: (Double, Double) -> Unit
 ) {
-    // uiState contains the launch sites list.
     val uiState by viewModel.uiState.collectAsState()
-    // coordinates come directly from viewModel.coordinates.
     val coordinates by viewModel.coordinates.collectAsState()
     val context = LocalContext.current
 
@@ -61,11 +57,9 @@ fun HomeScreen(
         is HomeScreenViewModel.HomeScreenUiState.Success -> {
             val state = uiState as HomeScreenViewModel.HomeScreenUiState.Success
             Box(modifier = Modifier.fillMaxSize()) {
-                // MapContainer now uses the updated coordinates directly.
                 MapContainer(
                     coordinates = coordinates,
                     initialMarkerCoordinate = state.launchSites.firstOrNull()?.let {
-                        // Mapbox expects (lon, lat)
                         Point.fromLngLat(it.longitude, it.latitude)
                     },
                     onMarkerPlaced = { lat, lon ->
@@ -76,9 +70,7 @@ fun HomeScreen(
                         showSaveDialog = true
                     }
                 )
-                // Display coordinate overlay.
                 CoordinateDisplay(coordinates = coordinates)
-                // Button to toggle the launch sites menu.
                 LaunchSitesButton(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -86,7 +78,6 @@ fun HomeScreen(
                         .size(90.dp),
                     onClick = { isLaunchSiteMenuExpanded = !isLaunchSiteMenuExpanded }
                 )
-                // Animated menu.
                 AnimatedVisibility(
                     visible = isLaunchSiteMenuExpanded,
                     enter = expandVertically(animationSpec = tween(durationMillis = 300)) + fadeIn(animationSpec = tween(durationMillis = 300)),
@@ -106,7 +97,6 @@ fun HomeScreen(
                         }
                     )
                 }
-
 
                 // Button to navigate to the Weather screen.
                 WeatherNavigationButton(

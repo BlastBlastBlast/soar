@@ -32,7 +32,6 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.viewannotation.annotationAnchor
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
-import kotlinx.coroutines.flow.first
 import no.uio.ifi.in2000.met2025.R
 
 @Composable

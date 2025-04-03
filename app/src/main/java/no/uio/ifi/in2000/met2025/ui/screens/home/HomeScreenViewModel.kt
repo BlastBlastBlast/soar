@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
@@ -93,15 +92,12 @@ class HomeScreenViewModel @Inject constructor(
         updateCoordinates(lat, lon)
         updateLastVisited(lat, lon)
         updateNewMarker(lat, lon)
-        // No manual loadLaunchSites() call is necessary now,
-        // as the continuous Flow collection will update the UI state.
     }
 
     fun addLaunchSite(lat: Double, lon: Double, name: String) {
         viewModelScope.launch {
             try {
                 launchSiteDao.insertAll(LaunchSite(latitude = lat, longitude = lon, name = name))
-                // The continuous flow in init will pick up this change.
             } catch (e: Exception) {
                 _uiState.value = HomeScreenUiState.Error(e.message ?: "Failed to add launch site")
             }
