@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
+import java.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,7 +27,7 @@ class AtmosphericWindViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
     val uiState: StateFlow<AtmosphericWindUiState> = _uiState
 
-    fun loadIsobaricData(lat: Double, lon: Double) {
+    fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
         viewModelScope.launch {
             _uiState.value = AtmosphericWindUiState.Loading
             _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon)

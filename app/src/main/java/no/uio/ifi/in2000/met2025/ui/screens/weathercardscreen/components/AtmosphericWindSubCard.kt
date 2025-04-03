@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
@@ -47,19 +49,26 @@ import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
 
 @Composable
 fun AtmosphericWindSubCard(
     atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel()
+    launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
 ) {
     val windUiState by atmosphericWindViewModel.uiState.collectAsState()
-    val coordinates by locationViewModel.coordinates.collectAsState()
-    ScreenContent(windUiState = windUiState, coordinates, onLoadData = { lat, lon ->
-        atmosphericWindViewModel.loadIsobaricData(lat, lon)
-    })
-
+    val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
+    val coordinates = launchSites.firstOrNull {it.name == "Last Visited"}
+    when (coordinates) {
+        is LaunchSite -> ScreenContent(
+            windUiState = windUiState,
+            coordinates = Pair(coordinates.latitude, coordinates.longitude),
+            onLoadData = { lat, lon ->
+                atmosphericWindViewModel.loadIsobaricData(lat, lon)
+            }
+        )
+        else -> Text("Failed to load coordinates")
+    }
 }
 
 @Composable
@@ -68,7 +77,6 @@ fun ScreenContent(
     coordinates: Pair<Double, Double>,
     onLoadData: (Double, Double) -> Unit = { _, _ -> }
 ) {
-
     val scrollState = rememberScrollState()
 
     Column(
@@ -76,8 +84,6 @@ fun ScreenContent(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-
-
         when (windUiState) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
                 onLoadData(coordinates.first, coordinates.second)
@@ -103,14 +109,12 @@ fun IsobaricDataItemCard(
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
     val windshearColor = Color(0xFFe2e0ff)
-    val expanded = remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable { expanded.value = !expanded.value },
-        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+            .padding(vertical = 8.dp),
+        //colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -137,17 +141,15 @@ fun IsobaricDataItemCard(
                 style = MaterialTheme.typography.titleSmall
             )
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
-            CornerBorderColumn {
+            CornerBorderColumn { expanded ->
                 Icon(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = "Expand",
                     tint = Color.Gray,
                     modifier = Modifier
                         .fillMaxWidth()
-                        //.padding(8.dp)
                         .graphicsLayer(rotationZ = if (expanded.value) 0f else 180f)
                 )
 
@@ -306,15 +308,18 @@ class CustomRoundedCornerShape(private val cornerSize: Dp) : Shape {
 }
 
 @Composable
-fun CornerBorderColumn(content: @Composable() (ColumnScope.() -> Unit)) {
+fun CornerBorderColumn(content: @Composable (ColumnScope.(MutableState<Boolean>) -> Unit)) {
+    val expanded = remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, Color.Gray, shape = CustomRoundedCornerShape(8.dp))
             .padding(top = 8.dp/*, bottom = 8.dp*/)
+            .clickable { expanded.value = !expanded.value }
     ) {
         Column {
-            content()
+            content(expanded)
         }
     }
 }
