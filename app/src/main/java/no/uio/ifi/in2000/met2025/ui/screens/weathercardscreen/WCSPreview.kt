@@ -16,6 +16,7 @@ fun WeatherCardPreview() {
     val sampleForecastItems = listOf(
         ForecastDataItem(
             time = "08:00",
+            altitude = 0.0,
             values = ForecastDataValues(
                 airPressureAtSeaLevel = 1013.0,
                 airTemperature = 10.0,
@@ -35,6 +36,7 @@ fun WeatherCardPreview() {
         ),
         ForecastDataItem(
             time = "09:00",
+            altitude = 0.0,
             values = ForecastDataValues(
                 airPressureAtSeaLevel = 1012.0,
                 airTemperature = 11.0,
@@ -54,6 +56,7 @@ fun WeatherCardPreview() {
         ),
         ForecastDataItem(
             time = "10:00",
+            altitude = 0.0,
             values = ForecastDataValues(
                 airPressureAtSeaLevel = 1011.0,
                 airTemperature = 12.0,
@@ -73,6 +76,7 @@ fun WeatherCardPreview() {
         ),
         ForecastDataItem(
             time = "11:00",
+            altitude = 0.0,
             values = ForecastDataValues(
                 airPressureAtSeaLevel = 1010.0,
                 airTemperature = 13.0,

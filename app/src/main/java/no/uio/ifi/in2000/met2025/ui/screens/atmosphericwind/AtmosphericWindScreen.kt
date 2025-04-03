@@ -98,8 +98,13 @@ fun ScreenContent(
                 Text(text = "Error: ${windUiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                windUiState.isobaricData.timeSeries.forEach { item ->
-                    IsobaricDataItemCard(item = item)
+                windUiState.isobaricItems.keys.sorted().forEach { time ->
+                    val isobaricDataItem = windUiState.isobaricItems[time]
+                    if (isobaricDataItem == null) {
+                        Text("No data available for $time", style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        IsobaricDataItemCard(item = isobaricDataItem)
+                    }
                 }
             }
         }

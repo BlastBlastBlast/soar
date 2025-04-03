@@ -95,8 +95,13 @@ fun ScreenContent(
                 Text(text = "Error: ${windUiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                windUiState.isobaricData.timeSeries.forEach { item ->
-                    IsobaricDataItemCard(item = item)
+                windUiState.isobaricItems.keys.sorted().forEach { time ->
+                    val isobaricDataItem = windUiState.isobaricItems[time]
+                    if (isobaricDataItem == null) {
+                        Text("No data available for $time", style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        IsobaricDataItemCard(item = isobaricDataItem)
+                    }
                 }
             }
         }
@@ -114,7 +119,7 @@ fun IsobaricDataItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        //colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -141,6 +146,7 @@ fun IsobaricDataItemCard(
                 style = MaterialTheme.typography.titleSmall
             )
 
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
             CornerBorderColumn { expanded ->

@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+//import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import java.time.Instant
@@ -23,7 +24,7 @@ class AtmosphericWindViewModel @Inject constructor(
     sealed class AtmosphericWindUiState {
         data object Idle : AtmosphericWindUiState()
         data object Loading : AtmosphericWindUiState()
-        data class Success(val isobaricData: IsobaricData) : AtmosphericWindUiState()
+        data class Success(val isobaricItems: Map<String, IsobaricDataItem>) : AtmosphericWindUiState()
         data class Error(val message: String) : AtmosphericWindUiState()
     }
 
@@ -47,14 +48,23 @@ class AtmosphericWindViewModel @Inject constructor(
 
     fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
+            val currentItems = uiState.value
             _uiState.value = AtmosphericWindUiState.Loading
-            _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon)
+            _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon, Instant.now())
                 .fold(
-                    onSuccess = { data ->
-                        AtmosphericWindUiState.Success(data)
-                    },
                     onFailure = { throwable ->
+                    if (currentItems !is AtmosphericWindUiState.Success)
                         AtmosphericWindUiState.Error(throwable.message ?: "Ukjent feil")
+                    else
+                        AtmosphericWindUiState.Success(currentItems.isobaricItems)
+                    },
+                    onSuccess = { data ->
+                        AtmosphericWindUiState.Success(
+                            if (currentItems !is AtmosphericWindUiState.Success)
+                                mapOf(data.time to data)
+                            else
+                                currentItems.isobaricItems + (data.time to data)
+                        )
                     }
                 )
         }
