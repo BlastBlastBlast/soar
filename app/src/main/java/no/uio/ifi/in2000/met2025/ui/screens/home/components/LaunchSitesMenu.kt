@@ -29,7 +29,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 
@@ -42,7 +45,7 @@ fun LaunchSitesMenu(
     // Get screen width from configuration.
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
-    // Set a minimum width (e.g. 30% of the screen) and a maximum width (e.g. 80%).
+    // Set a minimum width (e.g. 40% of the screen) and a maximum width (e.g. 80%).
     val minWidth = screenWidth * 0.4f
     val maxWidth = screenWidth * 0.8f
 
@@ -66,12 +69,23 @@ fun LaunchSitesMenu(
                         .animateContentSize()
                         .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
                         .background(Color.White.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
-                        .padding(8.dp)
+                        .padding(4.dp)
                         .widthIn(min = minWidth, max = maxWidth)
                         .wrapContentWidth(Alignment.Start),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Last Marker")
+                    // Column for text (title and coordinates) without forcing full width.
+                    Column(modifier = Modifier.wrapContentWidth(Alignment.Start)) {
+                        Text(
+                            text = "Last Marker",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${"%.4f".format(site.latitude)}, ${"%.4f".format(site.longitude)}",
+                            fontSize = 7.sp,
+                            textAlign = TextAlign.Start
+                        )
+                    }
                     Image(
                         painter = painterResource(id = R.drawable.red_marker),
                         contentDescription = "New Marker",
@@ -81,7 +95,7 @@ fun LaunchSitesMenu(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         // Other (unpinned) site elements.
@@ -100,12 +114,22 @@ fun LaunchSitesMenu(
                             .animateContentSize()
                             .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
                             .background(Color.White.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
-                            .padding(8.dp)
+                            .padding(4.dp)
                             .widthIn(min = minWidth, max = maxWidth)
                             .wrapContentWidth(Alignment.Start),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = site.name)
+                        Column(modifier = Modifier.wrapContentWidth(Alignment.Start)) {
+                            Text(
+                                text = site.name,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "${"%.4f".format(site.latitude)}, ${"%.4f".format(site.longitude)}",
+                                fontSize = 7.sp,
+                                textAlign = TextAlign.Start
+                            )
+                        }
                     }
                     // Divider between items (if not the last one).
                     if (index < otherSites.lastIndex) {
