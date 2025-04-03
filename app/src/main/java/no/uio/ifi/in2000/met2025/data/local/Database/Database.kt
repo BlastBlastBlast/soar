@@ -49,7 +49,7 @@ data class GribUpdated(
 
 
 
-@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class], version = 1)
+@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
     abstract fun gribDataDao(): GribDataDAO

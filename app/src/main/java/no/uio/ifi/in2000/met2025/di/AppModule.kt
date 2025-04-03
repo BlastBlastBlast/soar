@@ -120,7 +120,9 @@ object DatabaseModule {
             appContext,
             AppDatabase::class.java,
             "launch_site_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration() // WARNING: This wipes data on version change
+            .build()
     }
 
     @Provides
