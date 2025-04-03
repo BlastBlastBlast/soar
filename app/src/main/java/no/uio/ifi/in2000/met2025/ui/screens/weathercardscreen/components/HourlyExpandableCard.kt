@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.components
+package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -34,20 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import no.uio.ifi.in2000.met2025.R
-
-// Kotlin
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.ZoneId
-
-fun formatZuluTimeToLocal(zuluTime: String): String {
-    // Parse the ISO date‑time string (Zulu/UTC format)
-    val zonedDateTime = ZonedDateTime.parse(zuluTime)
-    // Convert the time to the system default timezone (or specify ZoneId.of("Europe/Oslo"))
-    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
-    // Format as 24‑h time
-    return localTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-}
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 
 @Composable
 fun WindDirectionIcon(windDirection: Double) {
@@ -84,8 +72,12 @@ fun HourlyExpandableCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Time: ${formatZuluTimeToLocal(forecastItem.time)}",
+                    text = "Time: ${formatZuluTimeToLocalTime(forecastItem.time)}",
                     style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "Day: ${formatZuluTimeToLocalDate(forecastItem.time)}",
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 LaunchStatusIndicator(forecast = forecastItem)
             }

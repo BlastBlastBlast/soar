@@ -8,7 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
-import no.uio.ifi.in2000.met2025.ui.components.HourlyExpandableCard
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyExpandableCard
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable

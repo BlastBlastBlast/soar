@@ -43,7 +43,10 @@ sealed class Screen(val route: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavLauncher() {
+fun AppNavLauncher(
+    darkTheme: Boolean,
+    toggleTheme: () -> Unit
+) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -133,19 +136,20 @@ fun AppNavLauncher() {
                         }
                     },
                     actions = {
-                        // Back button
-                        IconButton(onClick = { navController.popBackStack() }) {
+                        // Toggle theme button.
+                        IconButton(onClick = toggleTheme) {
+                            val iconRes = if (darkTheme) R.drawable.sun_icon else R.drawable.moon_icon
                             Icon(
-                                imageVector = Icons.Default.KeyboardArrowLeft,
-                                contentDescription = "Back",
+                                painter = painterResource(id = iconRes),
+                                contentDescription = "Toggle Theme",
                                 tint = Color.White
                             )
                         }
-                        // Forward button (if needed)
-                        IconButton(onClick = { /* forward navigation logic */ }) {
+                        // Launch Sites navigation button.
+                        IconButton(onClick = { navController.navigate(Screen.LaunchSite.route) }) {
                             Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Forward",
+                                painter = painterResource(id = R.drawable.fav_launchsites),
+                                contentDescription = "Launch Sites",
                                 tint = Color.White
                             )
                         }
@@ -182,9 +186,7 @@ fun AppNavLauncher() {
                     }
                     WeatherCardScreen(weatherCardViewModel)
                 }
-                // New launch site route entry
                 composable(Screen.LaunchSite.route) {
-                    // hiltViewModel() will automatically provide your LaunchSiteViewModel
                     LaunchSiteScreen()
                 }
                 composable(Screen.AtmosphericWind.route) {
