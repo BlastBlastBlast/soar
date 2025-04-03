@@ -22,15 +22,29 @@ dataklassen holder på verdiene til oppskytningspunkt
 gir også bruker mulighet til å gi et navn til oppskytningspunktet
 */
 
-@Entity
+@Entity(tableName = "grib_files")
 data class GribData(
-    @PrimaryKey() val time: Instant,
-    @ColumnInfo(name = "GribDataMap") val gribDataMap: GribDataMap,
-)
+    @PrimaryKey val timestamp: String,
+    val data: ByteArray,
+) {
+    //IDE generert oppsett for korrekt funksjon av ByteArray i database
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GribData
+
+        return timestamp == other.timestamp
+    }
+
+    override fun hashCode(): Int {
+        return timestamp.hashCode()
+    }
+}
 
 @Entity
 data class GribUpdated(
-    @PrimaryKey() val time: Instant,
+    @PrimaryKey() val time: String,
 )
 
 
@@ -41,3 +55,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun gribDataDao(): GribDataDAO
     abstract fun gribUpdatedDao(): GribUpdatedDAO
 }
+
+/*
+@Entity
+data class GribData(
+    @PrimaryKey() val time: Instant,
+    @ColumnInfo(name = "GribDataMap") val gribDataMap: GribDataMap,
+)
+ */

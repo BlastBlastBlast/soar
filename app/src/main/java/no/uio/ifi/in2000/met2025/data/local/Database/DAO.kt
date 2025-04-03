@@ -6,8 +6,6 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-import no.uio.ifi.in2000.met2025.data.models.GribDataMap
-import java.time.Instant
 
 
 @Dao
@@ -28,24 +26,24 @@ interface LaunchSiteDAO {
 @Dao
 interface GribDataDAO {
     @Insert
-    suspend fun insertAll(vararg gribData: GribData)
+    suspend fun insert(gribFile: GribData)
 
-    @Query("DELETE FROM GribData")
-    suspend fun deleteAll()
+    @Query("SELECT * FROM grib_files WHERE timestamp = :timestamp LIMIT 1")
+    suspend fun getByTimestamp(timestamp: String): GribData?
 
-    @Query("SELECT gribDataMap FROM GribData WHERE time = :queryTime")
-    suspend fun getGribData(queryTime: Instant): GribDataMap?
+    @Query("DELETE FROM grib_files")
+    suspend fun clearAll()
 }
 
 @Dao
 interface GribUpdatedDAO {
     @Insert
-    suspend fun insert(vararg gribUpdated: Instant)
+    suspend fun insert(vararg gribUpdated: GribUpdated)
 
     @Delete
-    suspend fun delete(vararg gribUpdated: Instant)
+    suspend fun delete(vararg gribUpdated: GribUpdated)
 
     @Query("SELECT * FROM GribUpdated LIMIT 1")
-    suspend fun getUpdated(): Instant?
+    suspend fun getUpdated(): String?
 
 }

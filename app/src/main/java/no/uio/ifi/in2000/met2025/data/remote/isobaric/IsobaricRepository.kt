@@ -2,7 +2,9 @@ package no.uio.ifi.in2000.met2025.data.remote.isobaric
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.uio.ifi.in2000.met2025.data.local.Database.GribData
 import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
+import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdated
 import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.models.AvailabilityData
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
@@ -24,28 +26,35 @@ class IsobaricRepository @Inject constructor(
     private val updatedDAO: GribUpdatedDAO
 ) {
     suspend fun getIsobaricGribData(timeSlot: Instant): GribDataMap {
+        //holds a common updated timestamp and individual time stamps and uri's for each dataset
         val availableData = getAvailabilityData()
         if (availableData != null) {
+            //returns the uri and time stamp for the dataset where timeSlot is valid
             val data = availableData.findClosestBefore(timeSlot)
             val time = data?.time
+            val byteArray: ByteArray
             if (!isGribUpToDate(availableData)) {
-                gribDAO.deleteAll()
+                gribDAO.clearAll()
                 updatedDAO.delete()
-                time?.let { updatedDAO.insert(it) }
+                time?.let { updatedDAO.insert(GribUpdated(it.toString())) }
+                val isobaricData: Result<ByteArray> =
+                    isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                byteArray = isobaricData.getOrNull() ?: return emptyMap()
             } else {
-                time?.let {
-                    if (gribDAO.getGribData(it) != null) {
-                        return gribDAO.getGribData(time)!!
-                    }
+                if (gribDAO.getByTimestamp(time.toString()) != null) {
+                    val isobaricData = gribDAO.getByTimestamp(time.toString())!!
+                    byteArray = isobaricData.data
+                } else {
+                    val isobaricData: Result<ByteArray> =
+                        isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                    byteArray = isobaricData.getOrNull() ?: return emptyMap()
                 }
             }
-
             val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
+            val gribData = GribData(time.toString(), byteArray)
+            gribDAO.insert(gribData)
 
             try {
-                val isobaricData: Result<ByteArray> = isobaricDataSource.fetchIsobaricGribData(data!!.uri)
-                val byteArray = isobaricData.getOrNull() ?: return emptyMap()
-
                 val tempFile = withContext(Dispatchers.IO) {
                     File.createTempFile("isobaric", ".grib2")
                 }.apply {
@@ -142,8 +151,13 @@ class IsobaricRepository @Inject constructor(
         return restructureAvailabilityResponse(data)
     }
 
+    suspend fun isGribDataAvailable(time: Instant): Boolean {
+        val availableData = getAvailabilityData()
+        return availableData?.findClosestBefore(time) != null
+    }
+
     suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
-        return availResponse.updated == updatedDAO.getUpdated()
+        return availResponse.updated.toString() == updatedDAO.getUpdated()
     }
 
     suspend fun restructureAvailabilityResponse(
