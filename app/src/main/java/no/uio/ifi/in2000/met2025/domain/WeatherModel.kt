@@ -17,6 +17,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
+import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -28,7 +29,7 @@ class WeatherModel @Inject constructor(
 
     suspend fun getCurrentIsobaricData(lat: Double, lon: Double) : Result<IsobaricData> {
         val gribResult = try {
-            isobaricRepository.getCurrentIsobaricGribData()
+            isobaricRepository.getIsobaricGribData(Instant.now())
         } catch (exception: Exception) {
             return Result.failure(exception)
         }
@@ -68,7 +69,7 @@ class WeatherModel @Inject constructor(
                 val update2Lat = RoundDoubleToXDecimals(updatedLat, 2)
                 val update2Lon = RoundDoubleToXDecimals(updatedLon, 2)
                 println("updated lat $update2Lat, updated lon $update2Lon")
-                val gribResult: GribDataMap = isobaricRepository.getCurrentIsobaricGribData()
+                val gribResult: GribDataMap = isobaricRepository.getIsobaricGribData(Instant.parse(forecastData.timeSeries[0].time))
                 val dataMap: Map<Int, GribVectors>? = gribResult[
                     Pair(
                         update2Lat,
