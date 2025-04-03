@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
@@ -16,12 +17,10 @@ class HomeScreenViewModel @Inject constructor(
     private val launchSiteDao: LaunchSiteDAO
 ) : ViewModel() {
 
-    // UI state for the full screen (currently used for the launch sites list)
     sealed class HomeScreenUiState {
         object Loading : HomeScreenUiState()
         data class Success(
             val launchSites: List<LaunchSite>,
-            // For full UI state we store the list.
             val apiKeyAvailable: Boolean,
             val isOnline: Boolean
         ) : HomeScreenUiState()
@@ -31,25 +30,34 @@ class HomeScreenViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     val uiState: StateFlow<HomeScreenUiState> = _uiState
 
-    // A separate state holding the current map coordinates.
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
 
     init {
+        // Continuously collect the launch sites list so that any update is emitted.
         viewModelScope.launch {
-            // At startup, try to load the "Last Visited" record.
-            val lastVisited = launchSiteDao.getTempSite("Last Visited").first()
-            if (lastVisited != null) {
-                updateCoordinates(lastVisited.latitude, lastVisited.longitude)
+            launchSiteDao.getAll().collect { sites ->
+                // Get the "Last Visited" record continuously.
+                val tempSite = launchSiteDao.getTempSite("Last Visited").firstOrNull()
+                val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
+                updateCoordinates(newCoords.first, newCoords.second)
+                _uiState.value = HomeScreenUiState.Success(
+                    launchSites = sites,
+                    apiKeyAvailable = true,
+                    isOnline = true
+                )
             }
-            loadLaunchSites()
         }
+    }
+
+    fun updateCoordinates(lat: Double, lon: Double) {
+        _coordinates.value = Pair(lat, lon)
     }
 
     fun updateLastVisited(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val currentVisited = launchSiteDao.getTempSite("Last Visited").first()
+                val currentVisited = launchSiteDao.getTempSite("Last Visited").firstOrNull()
                 if (currentVisited == null) {
                     launchSiteDao.insertAll(
                         LaunchSite(latitude = lat, longitude = lon, name = "Last Visited")
@@ -66,7 +74,7 @@ class HomeScreenViewModel @Inject constructor(
     fun updateNewMarker(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val currentMarker = launchSiteDao.getTempSite("New Marker").first()
+                val currentMarker = launchSiteDao.getTempSite("New Marker").firstOrNull()
                 if (currentMarker == null) {
                     launchSiteDao.insertAll(
                         LaunchSite(latitude = lat, longitude = lon, name = "New Marker")
@@ -80,44 +88,20 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-
-    fun updateCoordinates(lat: Double, lon: Double) {
-        _coordinates.value = Pair(lat, lon)
-    }
-
-    // When a marker is placed, update the local coordinates immediately,
-    // then update (or insert) the "Last Visited" record in the DAO.
     fun onMarkerPlaced(lat: Double, lon: Double) {
+        // When placing a marker, update both temporary records.
         updateCoordinates(lat, lon)
         updateLastVisited(lat, lon)
         updateNewMarker(lat, lon)
-        loadLaunchSites() // refresh UI state if needed
+        // No manual loadLaunchSites() call is necessary now,
+        // as the continuous Flow collection will update the UI state.
     }
 
-
-    // Loads the full list of launch sites.
-    fun loadLaunchSites() {
-        viewModelScope.launch {
-            try {
-                val sites = launchSiteDao.getAll().first()
-                // We don't update coordinates here; they come from _coordinates.
-                _uiState.value = HomeScreenUiState.Success(
-                    launchSites = sites,
-                    apiKeyAvailable = true,
-                    isOnline = true
-                )
-            } catch (e: Exception) {
-                _uiState.value = HomeScreenUiState.Error(e.message ?: "Unknown error")
-            }
-        }
-    }
-
-    // Adds a launch site (permanent save) when the user confirms a dialog.
     fun addLaunchSite(lat: Double, lon: Double, name: String) {
         viewModelScope.launch {
             try {
                 launchSiteDao.insertAll(LaunchSite(latitude = lat, longitude = lon, name = name))
-                loadLaunchSites()
+                // The continuous flow in init will pick up this change.
             } catch (e: Exception) {
                 _uiState.value = HomeScreenUiState.Error(e.message ?: "Failed to add launch site")
             }

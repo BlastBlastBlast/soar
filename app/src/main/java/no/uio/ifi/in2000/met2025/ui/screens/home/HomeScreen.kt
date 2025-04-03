@@ -89,10 +89,8 @@ fun HomeScreen(
                 // Animated menu.
                 AnimatedVisibility(
                     visible = isLaunchSiteMenuExpanded,
-                    enter = expandVertically(animationSpec = tween(durationMillis = 300)) +
-                            fadeIn(animationSpec = tween(durationMillis = 300)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) +
-                            fadeOut(animationSpec = tween(durationMillis = 300)),
+                    enter = expandVertically(animationSpec = tween(durationMillis = 300)) + fadeIn(animationSpec = tween(durationMillis = 300)),
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) + fadeOut(animationSpec = tween(durationMillis = 300)),
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(start = 16.dp, bottom = 100.dp)
@@ -100,15 +98,16 @@ fun HomeScreen(
                     LaunchSitesMenu(
                         launchSites = state.launchSites.filter { it.name != "Last Visited" },
                         onSiteSelected = { site ->
-
-                            // When a launch site is selected, update coordinates immediately.
+                            // When a launch site is selected, update coordinates immediately...
                             viewModel.updateCoordinates(site.latitude, site.longitude)
-                            // Also update the "Last Visited" record.
+                            // ...and update only the "Last Visited" record.
                             viewModel.updateLastVisited(site.latitude, site.longitude)
                             isLaunchSiteMenuExpanded = false
                         }
                     )
                 }
+
+
                 // Button to navigate to the Weather screen.
                 WeatherNavigationButton(
                     modifier = Modifier
