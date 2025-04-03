@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -68,13 +69,14 @@ fun LaunchSitesMenu(
                         .clickable { onSiteSelected(site) }
                         .animateContentSize()
                         .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
+                        // Use the theme's surface color for background.
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
                         .padding(4.dp)
                         .widthIn(min = minWidth, max = maxWidth)
                         .wrapContentWidth(Alignment.Start),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Column for text (title and coordinates) without forcing full width.
+                    // Column for text (title and coordinates)
                     Column(modifier = Modifier.wrapContentWidth(Alignment.Start)) {
                         Text(
                             text = "Last Marker",
@@ -113,7 +115,8 @@ fun LaunchSitesMenu(
                             .clickable { onSiteSelected(site) }
                             .animateContentSize()
                             .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
-                            .background(Color.White.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
+                            // Use the theme's surface color so it adapts to dark/light mode.
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
                             .padding(4.dp)
                             .widthIn(min = minWidth, max = maxWidth)
                             .wrapContentWidth(Alignment.Start),
@@ -131,7 +134,6 @@ fun LaunchSitesMenu(
                             )
                         }
                     }
-                    // Divider between items (if not the last one).
                     if (index < otherSites.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 8.dp),
