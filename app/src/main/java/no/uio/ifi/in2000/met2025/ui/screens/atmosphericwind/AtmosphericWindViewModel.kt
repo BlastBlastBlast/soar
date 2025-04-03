@@ -27,7 +27,7 @@ class AtmosphericWindViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
     val uiState: StateFlow<AtmosphericWindUiState> = _uiState
 
-    fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
+    fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
             _uiState.value = AtmosphericWindUiState.Loading
             _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon)
