@@ -177,9 +177,9 @@ class IsobaricRepository @Inject constructor(
     suspend fun restructureAvailabilityResponse(
         availResponse: IsobaricAvailabilityResponse
     ): StructuredAvailability {
-        val updatedInstant = Instant.parse(availResponse.dataEntries.first().updated)
+        val updatedInstant = Instant.parse(availResponse.entries.first().updated)
 
-        val availData = availResponse.dataEntries.map { entry ->
+        val availData = availResponse.entries.map { entry ->
             AvailabilityData(entry.params.area, Instant.parse(entry.params.time), entry.uri)
         }
 

@@ -51,8 +51,8 @@ interface GribUpdatedDAO {
     @Insert
     suspend fun insert(vararg gribUpdated: GribUpdated)
 
-    @Delete
-    suspend fun delete(vararg gribUpdated: GribUpdated)
+    @Query("DELETE FROM GribUpdated")
+    suspend fun delete()
 
     @Query("SELECT * FROM GribUpdated LIMIT 1")
     suspend fun getUpdated(): String?

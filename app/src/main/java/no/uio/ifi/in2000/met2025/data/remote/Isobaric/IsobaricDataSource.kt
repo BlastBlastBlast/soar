@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.url
+import no.uio.ifi.in2000.met2025.data.models.DataEntry
 import no.uio.ifi.in2000.met2025.data.models.IsobaricAvailabilityResponse
 import javax.inject.Inject
 import javax.inject.Named
@@ -28,9 +29,10 @@ class IsobaricDataSource @Inject constructor(
 
     suspend fun fetchAvailabilityData(): Result<IsobaricAvailabilityResponse> {
         return try {
-            Result.success(jsonClient.get {
+            val response: List<DataEntry> = jsonClient.get {
                 url(availUrl)
-            }.body())
+            }.body()
+            Result.success(IsobaricAvailabilityResponse(response))
         } catch (e: Exception) {
             val errorMessage = "Error fetching grib availability data: ${e.message}"
             Result.failure(Exception(errorMessage))
