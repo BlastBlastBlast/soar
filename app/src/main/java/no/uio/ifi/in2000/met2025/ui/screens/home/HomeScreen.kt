@@ -2,6 +2,12 @@
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
 import android.Manifest
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -19,6 +25,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.mapbox.geojson.Point
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.CoordinateDisplay
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesButton
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.PermissionRequestScreen
@@ -86,18 +93,23 @@ fun HomeScreen(
             CoordinateDisplay(coordinates = coordinates)
 
             // Toggle button for the launch sites menu.
-            Button(
-                onClick = { isLaunchSiteMenuExpanded = !isLaunchSiteMenuExpanded },
+            LaunchSitesButton(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(16.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color.Black)
-            ) {
-                Text(text = "Launch Sites", color = Color.White)
-            }
+                    .padding(16.dp)
+                    .size(90.dp),
+                onClick = { isLaunchSiteMenuExpanded = !isLaunchSiteMenuExpanded }
+            )
 
             // Display the launch sites menu if toggled.
-            if (isLaunchSiteMenuExpanded) {
+            AnimatedVisibility(
+                visible = isLaunchSiteMenuExpanded,
+                enter = expandVertically(animationSpec = tween(durationMillis = 300)) + fadeIn(animationSpec = tween(durationMillis = 300)),
+                exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) + fadeOut(animationSpec = tween(durationMillis = 300)),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = 100.dp)
+            ) {
                 LaunchSitesMenu(
                     launchSites = menuLaunchSites,
                     onSiteSelected = { site ->
@@ -106,10 +118,7 @@ fun HomeScreen(
                         latInput = site.latitude.toString()
                         lonInput = site.longitude.toString()
                         isLaunchSiteMenuExpanded = false
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(start = 16.dp, bottom = 80.dp)
+                    }
                 )
             }
 
