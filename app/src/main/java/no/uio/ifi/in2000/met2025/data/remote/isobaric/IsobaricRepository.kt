@@ -28,6 +28,7 @@ class IsobaricRepository @Inject constructor(
     suspend fun getIsobaricGribData(timeSlot: Instant): GribDataMap {
         //holds a common updated timestamp and individual time stamps and uri's for each dataset
         val availableData = getAvailabilityData()
+        println("IsobaricGribDataCalled")
         if (availableData != null) {
             //returns the uri and time stamp for the dataset where timeSlot is valid
             val data = availableData.findClosestBefore(timeSlot)
@@ -39,7 +40,10 @@ class IsobaricRepository @Inject constructor(
                 time?.let { updatedDAO.insert(GribUpdated(it.toString())) }
                 val isobaricData: Result<ByteArray> =
                     isobaricDataSource.fetchIsobaricGribData(data!!.uri)
-                byteArray = isobaricData.getOrNull() ?: return emptyMap()
+                byteArray = isobaricData.fold(
+                    onSuccess = { it },
+                    onFailure = { println("Error fetching grib data"); return emptyMap() }
+                )
             } else {
                 if (gribDAO.getByTimestamp(time.toString()) != null) {
                     val isobaricData = gribDAO.getByTimestamp(time.toString())!!
@@ -47,7 +51,10 @@ class IsobaricRepository @Inject constructor(
                 } else {
                     val isobaricData: Result<ByteArray> =
                         isobaricDataSource.fetchIsobaricGribData(data!!.uri)
-                    byteArray = isobaricData.getOrNull() ?: return emptyMap()
+                    byteArray = isobaricData.fold(
+                        onSuccess = { it },
+                        onFailure = { println("Error fetching grib data"); return emptyMap() }
+                    )
                 }
             }
             val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
@@ -55,11 +62,13 @@ class IsobaricRepository @Inject constructor(
             gribDAO.insert(gribData)
 
             try {
+                println("trycatch started")
                 val tempFile = withContext(Dispatchers.IO) {
                     File.createTempFile("isobaric", ".grib2")
                 }.apply {
                     writeBytes(byteArray)
                 }
+                println("Tempfile created")
 
                 NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
                     //Henter ut variablene som ligger i vanlige arrayer.
@@ -84,6 +93,7 @@ class IsobaricRepository @Inject constructor(
                         println("Missing lat/lon/isobaric data")
                         return emptyMap()
                     }
+                    println("lat/lon/isobaric data found")
 
                     // Henter ut 4d arrayene for variablene på gitte punkter.
                     //val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
@@ -96,6 +106,7 @@ class IsobaricRepository @Inject constructor(
                         println("Missing temperature or wind data")
                         return emptyMap()
                     }
+                    println("temperature/wind data found")
 
                     //test prints for å forstå datasettet
                     //println("Temperature shape: ${temperatureVar.shape.contentToString()}")
@@ -139,8 +150,10 @@ class IsobaricRepository @Inject constructor(
             } catch (e: Exception) {
                 println("Error processing GRIB file: ${e.message}")
             }
+            println("IsobaricGribDataReturned")
             return gribDataMap
         } else {
+            println("shits fucked")
             return emptyMap()
         }
     }
@@ -148,6 +161,7 @@ class IsobaricRepository @Inject constructor(
     suspend fun getAvailabilityData(): StructuredAvailability?{
         val response = isobaricDataSource.fetchAvailabilityData()
         val data = response.getOrNull() ?: return null
+        println("Availability data fetched")
         return restructureAvailabilityResponse(data)
     }
 

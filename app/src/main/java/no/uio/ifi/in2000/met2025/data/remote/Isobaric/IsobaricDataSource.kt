@@ -36,10 +36,4 @@ class IsobaricDataSource @Inject constructor(
             Result.failure(Exception(errorMessage))
         }
     }
-
-    //TODO: Finn ut hvor i koden man skal legge logikk for henting av timestamp
-    //timestamp bruker Zulu tid, og hentes i 3'er verdier (0, 3, 6, 9, 12, 15, 18, 21)
-    //suspend fun fetchSpecificIsobaricgribData(timestamp : String) : ByteArray {
-    //    return httpClient.get("$url&time=$timestamp").body<ByteArray>()
-    //}
 }

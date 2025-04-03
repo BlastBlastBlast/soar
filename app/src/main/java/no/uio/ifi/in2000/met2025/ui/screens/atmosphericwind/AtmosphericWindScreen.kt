@@ -56,13 +56,15 @@ import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 @Composable
 fun AtmosphericWindScreen(
     atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel()
 ) {
     val windUiState by atmosphericWindViewModel.uiState.collectAsState()
-    val coordinates by locationViewModel.coordinates.collectAsState()
-        ScreenContent(windUiState = windUiState, coordinates, onLoadData = { lat, lon ->
-        atmosphericWindViewModel.loadIsobaricData(lat, lon)
-    })
+    val launchSite by atmosphericWindViewModel.launchSite.collectAsState()
+    val latitude = launchSite?.latitude ?: 0.0
+    val longitude = launchSite?.longitude ?: 0.0
+    ScreenContent(windUiState = windUiState,
+        Pair(latitude, longitude), onLoadData = { lat, lon ->
+        atmosphericWindViewModel.loadIsobaricData(lat, lon) }
+    )
 
 }
 
