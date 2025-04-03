@@ -60,7 +60,7 @@ fun AtmosphericWindScreen(
 ) {
     val windUiState by atmosphericWindViewModel.uiState.collectAsState()
     val coordinates by locationViewModel.coordinates.collectAsState()
-        ScreenContent(windUiState = windUiState, coordinates, onLoadData = { lat, lon ->
+    ScreenContent(windUiState = windUiState, coordinates, onLoadData = { lat, lon ->
         atmosphericWindViewModel.loadIsobaricData(lat, lon)
     })
 
@@ -84,42 +84,6 @@ fun ScreenContent(
 
         when (windUiState) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
-//                Text(
-//                    text = "Enter coordinates for forecast:",
-//                    style = MaterialTheme.typography.headlineSmall
-//                )
-//                OutlinedTextField(
-//                    value = latInput,
-//                    onValueChange = { latInput = it },
-//                    label = { Text("Latitude") },
-//                    modifier = Modifier.padding(top = 8.dp)
-//                )
-//                OutlinedTextField(
-//                    value = lonInput,
-//                    onValueChange = { lonInput = it },
-//                    label = { Text("Longitude") },
-//                    modifier = Modifier.padding(top = 8.dp)
-//                )
-//                Button(
-//                    onClick = {
-//                        val lat = latInput.toDoubleOrNull()
-//                        val lon = lonInput.toDoubleOrNull()
-//                        if (lat != null && lon != null) {
-//                            onLoadData(lat, lon)
-//                        }
-//                    },
-//                    modifier = Modifier.padding(top = 8.dp)
-//                ) {
-//                    Text(text = "Load Isobaric Data")
-//                }
-
-//                Button(
-//                    onClick = { onLoadData(coordinates.first, coordinates.second) },
-//                    modifier = Modifier.padding(top = 8.dp)
-//                ) {
-//                    Text(text = "Load Isobaric Data")
-//                }
-
                 onLoadData(coordinates.first, coordinates.second)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
