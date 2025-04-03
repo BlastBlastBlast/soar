@@ -44,26 +44,35 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Size
 import androidx.hilt.navigation.compose.hiltViewModel
+import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
 
 //TODO: hook up screen to navigation graph
 
 @Composable
 fun AtmosphericWindScreen(
     atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel()
+    launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
 ) {
     val windUiState by atmosphericWindViewModel.uiState.collectAsState()
-    val coordinates by locationViewModel.coordinates.collectAsState()
-    ScreenContent(windUiState = windUiState, coordinates, onLoadData = { lat, lon ->
-        atmosphericWindViewModel.loadIsobaricData(lat, lon)
-    })
-
+    val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
+    val coordinates = launchSites.firstOrNull {it.name == "Last Visited"}
+    when (coordinates) {
+        is LaunchSite -> ScreenContent(
+            windUiState = windUiState,
+            coordinates = Pair(coordinates.latitude, coordinates.longitude),
+            onLoadData = { lat, lon ->
+                atmosphericWindViewModel.loadIsobaricData(lat, lon)
+            }
+        )
+        else -> Text("Failed to load coordinates")
+    }
 }
 
 @Composable
@@ -72,7 +81,6 @@ fun ScreenContent(
     coordinates: Pair<Double, Double>,
     onLoadData: (Double, Double) -> Unit = { _, _ -> }
 ) {
-
     val scrollState = rememberScrollState()
 
     Column(
@@ -80,8 +88,6 @@ fun ScreenContent(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-
-
         when (windUiState) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
                 onLoadData(coordinates.first, coordinates.second)
