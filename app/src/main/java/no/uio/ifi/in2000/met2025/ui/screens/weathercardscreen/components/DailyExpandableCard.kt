@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.components
+package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
