@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
@@ -113,13 +114,11 @@ fun IsobaricDataItemCard(
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
     val windshearColor = Color(0xFFe2e0ff)
-    val expanded = remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable { expanded.value = !expanded.value },
+            .padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
@@ -150,14 +149,13 @@ fun IsobaricDataItemCard(
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
-            CornerBorderColumn {
+            CornerBorderColumn { expanded ->
                 Icon(
                     imageVector = Icons.Default.ExpandMore,
                     contentDescription = "Expand",
                     tint = Color.Gray,
                     modifier = Modifier
                         .fillMaxWidth()
-                        //.padding(8.dp)
                         .graphicsLayer(rotationZ = if (expanded.value) 0f else 180f)
                 )
 
@@ -316,15 +314,18 @@ class CustomRoundedCornerShape(private val cornerSize: Dp) : Shape {
 }
 
 @Composable
-fun CornerBorderColumn(content: @Composable() (ColumnScope.() -> Unit)) {
+fun CornerBorderColumn(content: @Composable (ColumnScope.(MutableState<Boolean>) -> Unit)) {
+    val expanded = remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, Color.Gray, shape = CustomRoundedCornerShape(8.dp))
             .padding(top = 8.dp/*, bottom = 8.dp*/)
+            .clickable { expanded.value = !expanded.value }
     ) {
         Column {
-            content()
+            content(expanded)
         }
     }
 }
