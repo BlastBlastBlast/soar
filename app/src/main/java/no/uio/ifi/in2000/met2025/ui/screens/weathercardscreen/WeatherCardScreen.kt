@@ -15,13 +15,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.ui.components.HourlyExpandableCard
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyExpandableCard
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
-import no.uio.ifi.in2000.met2025.ui.components.DailyForecastCard
-import no.uio.ifi.in2000.met2025.ui.components.DailyForecastRowSection
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 
 @Composable
 fun WeatherCardScreen(
