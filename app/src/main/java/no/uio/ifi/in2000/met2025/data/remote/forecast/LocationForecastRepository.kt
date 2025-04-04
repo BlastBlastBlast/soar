@@ -4,6 +4,7 @@ import androidx.compose.animation.core.rememberTransition
 import no.uio.ifi.in2000.met2025.data.models.ForecastData
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
+import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Named
@@ -20,11 +21,10 @@ class LocationForecastRepository @Inject constructor(
                 return Result.success(
                     ForecastData(
                         updatedAt = response.properties.meta.updatedAt,
-
+                        altitude = response.geometry.coordinates[2],
                         timeSeries = response.properties.timeSeries.take(timeSpanInHours).map {
                             ForecastDataItem(
                                 time = it.time,
-                                altitude = response.geometry.coordinates[2],
                                 values = ForecastDataValues(
                                     airPressureAtSeaLevel = it.data.instant.details.airPressureAtSeaLevel,
                                     airTemperature = it.data.instant.details.airTemperature,
@@ -59,7 +59,6 @@ class LocationForecastRepository @Inject constructor(
             .filter { Instant.parse(it.time) >= time.minus(Duration.ofHours(1)) }
             .filterIndexed{ index, _ -> index % frequencyInHours == 0 }
             .take(items)
-            //?: return Result.failure(Exception("No forecast data available for the given time"))
 
         return Result.success(
             ForecastData(
@@ -68,7 +67,6 @@ class LocationForecastRepository @Inject constructor(
                 timeSeries = responseItems.map { responseItem ->
                     ForecastDataItem(
                         time = responseItem.time,
-                        altitude = response.geometry.coordinates[2],
                         values = ForecastDataValues(
                             airPressureAtSeaLevel = responseItem.data.instant.details.airPressureAtSeaLevel,
                             airTemperature = responseItem.data.instant.details.airTemperature,
