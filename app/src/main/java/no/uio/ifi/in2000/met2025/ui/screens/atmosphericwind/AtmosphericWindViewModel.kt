@@ -83,7 +83,7 @@ class AtmosphericWindViewModel @Inject constructor(
         }
     }
 
-    fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
+    fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
             Mutex().withLock {
                 updateIsobaricData(lat, lon, time)
