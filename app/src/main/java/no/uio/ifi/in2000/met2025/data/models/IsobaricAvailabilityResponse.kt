@@ -4,14 +4,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class IsobaricAvailabilityResponse (
-    val dataEntries: List<DataEntry>
+    val entries: List<DataEntry>
 )
 
 @Serializable
 data class DataEntry (
     val endpoint: String,
-    val updated: String,
     val params: Params,
+    val updated: String,
     val uri: String
 )
 

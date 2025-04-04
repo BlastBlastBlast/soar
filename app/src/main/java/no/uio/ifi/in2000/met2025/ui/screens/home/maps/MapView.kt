@@ -32,7 +32,6 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.viewannotation.annotationAnchor
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
-import kotlinx.coroutines.flow.first
 import no.uio.ifi.in2000.met2025.R
 
 @Composable
@@ -52,7 +51,6 @@ fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
     }
 }
 
-// TODO: Nav to marker location on launch, not post launch.
 
 @Composable
 fun MapView(
@@ -63,9 +61,7 @@ fun MapView(
     onMarkerPlaced: (Double, Double) -> Unit,
     onMarkerAnnotationClick: (Double, Double) -> Unit
 ) {
-    val mapViewportState = rememberMapViewportState()
     val mapState = rememberMapState {
-        // Set the default camera to the user's location.
         cameraOptions {
             center(Point.fromLngLat(longitude, latitude))
             zoom(12.0)
@@ -73,9 +69,18 @@ fun MapView(
             bearing(0.0)
         }
     }
-    // Reinitialize marker state (and initialTransitionDone) whenever initialMarkerCoordinate changes.
-    var markerCoordinate by remember(initialMarkerCoordinate) { mutableStateOf(initialMarkerCoordinate) }
-    var initialTransitionDone by remember(initialMarkerCoordinate) { mutableStateOf(false) }
+    val mapViewportState = rememberMapViewportState()
+
+    // Hold the marker state; initialize with the initialMarkerCoordinate.
+    var markerCoordinate by remember { mutableStateOf(initialMarkerCoordinate) }
+    var initialTransitionDone by remember { mutableStateOf(false) }
+    var prevCoordinates by remember { mutableStateOf(Pair(latitude, longitude)) }
+
+    // Whenever external coordinates change (e.g. via a launch site selection),
+    // update the marker coordinate to match.
+    LaunchedEffect(latitude, longitude) {
+        markerCoordinate = Point.fromLngLat(longitude, latitude)
+    }
 
     Box(modifier = modifier) {
         MapboxMap(
@@ -84,28 +89,40 @@ fun MapView(
             mapState = mapState,
             mapViewportState = mapViewportState,
             onMapLongClickListener = { point: Point ->
-                // When the user long-presses, update the marker and notify the callback.
                 markerCoordinate = point
                 onMarkerPlaced(point.latitude(), point.longitude())
                 true
             }
         ) {
+            // Update the camera when external coordinates change.
+            MapEffect(latitude, longitude) { mapView ->
+                val newCoords = Pair(latitude, longitude)
+                if (prevCoordinates != newCoords) {
+                    val currentCameraState = mapView.mapboxMap.cameraState
+                    mapView.mapboxMap.setCamera(
+                        cameraOptions {
+                            center(Point.fromLngLat(longitude, latitude))
+                            zoom(currentCameraState.zoom)
+                            pitch(currentCameraState.pitch)
+                            bearing(currentCameraState.bearing)
+                        }
+                    )
+                    prevCoordinates = newCoords
+                }
+            }
+            // MapEffect for location puck and initial camera transition.
             MapEffect(markerCoordinate, initialMarkerCoordinate) { mapView ->
-                // Update location puck settings.
                 mapView.location.updateSettings {
                     locationPuck = createDefault2DPuck(withBearing = true)
                     enabled = true
                     puckBearing = PuckBearing.COURSE
                     puckBearingEnabled = true
                 }
-                // On initial load (only once) and if a last visited coordinate exists,
-                // center the camera on it while preserving the current zoom level.
                 if (!initialTransitionDone && initialMarkerCoordinate != null) {
                     val currentCameraState = mapView.mapboxMap.cameraState
                     mapView.mapboxMap.setCamera(
                         cameraOptions {
                             center(initialMarkerCoordinate)
-                            // Preserve the current zoom level instead of hardcoding zoom(12.0)
                             zoom(currentCameraState.zoom)
                             pitch(currentCameraState.pitch)
                             bearing(currentCameraState.bearing)
@@ -114,8 +131,7 @@ fun MapView(
                     initialTransitionDone = true
                 }
             }
-
-            // Draw the red marker if markerCoordinate exists.
+            // Draw the marker if markerCoordinate exists.
             markerCoordinate?.let { coordinate ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
@@ -130,10 +146,7 @@ fun MapView(
                 ViewAnnotation(
                     options = viewAnnotationOptions {
                         geometry(coordinate)
-                        annotationAnchor {
-                            anchor(ViewAnnotationAnchor.BOTTOM)
-                            offsetY(60.0)
-                        }
+                        annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
                         allowOverlap(true)
                     }
                 ) {
