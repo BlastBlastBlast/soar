@@ -83,7 +83,7 @@ class AtmosphericWindViewModel @Inject constructor(
         }
     }
 
-    fun loadIsobaricData(lat: Double, lon: Double) {
+    fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
         viewModelScope.launch {
             Mutex().withLock {
                 updateIsobaricData(lat, lon, time)
@@ -96,6 +96,7 @@ class AtmosphericWindViewModel @Inject constructor(
         lon: Double,
         time: Instant
     ) {
+        observeTempSite()
         val currentItem = isobaricData.value[time]
         _isobaricData.value += (time to AtmosphericWindUiState.Loading)
         _isobaricData.value += (
