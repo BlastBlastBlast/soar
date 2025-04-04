@@ -49,37 +49,44 @@ class LocationForecastRepository @Inject constructor(
         return Result.failure(Exception("Unknown error fetching forecast data"))
     }
 
-    suspend fun getForecastDataAtTime(lat: Double, lon: Double, time: Instant): Result<ForecastDataItem> {
+    suspend fun getForecastDataAtTime(lat: Double, lon: Double, time: Instant, items: Int, frequencyInHours: Int = 1): Result<ForecastData> {
         val response = locationForecastDataSource.fetchForecastDataResponse(lat, lon).fold(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
         )
 
-        val responseItem = response.properties.timeSeries
-            .filter { Instant.parse(it.time) < time }
-            .maxByOrNull { it.time }
-            ?: return Result.failure(Exception("No forecast data available for the given time"))
+        val responseItems = response.properties.timeSeries
+            .filter { Instant.parse(it.time) >= time.minus(Duration.ofHours(1)) }
+            .filterIndexed{ index, _ -> index % frequencyInHours == 0 }
+            .take(items)
+            //?: return Result.failure(Exception("No forecast data available for the given time"))
 
         return Result.success(
-            ForecastDataItem(
-                time = responseItem.time,
+            ForecastData(
+                updatedAt = response.properties.meta.updatedAt,
                 altitude = response.geometry.coordinates[2],
-                values = ForecastDataValues(
-                    airPressureAtSeaLevel = responseItem.data.instant.details.airPressureAtSeaLevel,
-                    airTemperature = responseItem.data.instant.details.airTemperature,
-                    relativeHumidity = responseItem.data.instant.details.relativeHumidity,
-                    windSpeed = responseItem.data.instant.details.windSpeed,
-                    windSpeedOfGust = responseItem.data.instant.details.windSpeedOfGust,
-                    windFromDirection = responseItem.data.instant.details.windFromDirection,
-                    fogAreaFraction = responseItem.data.instant.details.fogAreaFraction,
-                    dewPointTemperature = responseItem.data.instant.details.dewPointTemperature,
-                    cloudAreaFraction = responseItem.data.instant.details.cloudAreaFraction,
-                    cloudAreaFractionHigh = responseItem.data.instant.details.cloudAreaFractionHigh,
-                    cloudAreaFractionLow = responseItem.data.instant.details.cloudAreaFractionLow,
-                    cloudAreaFractionMedium = responseItem.data.instant.details.cloudAreaFractionMedium,
-                    precipitationAmount = responseItem.data.next1Hours?.details?.precipitationAmount ?: 0.0,
-                    probabilityOfThunder = responseItem.data.next1Hours?.details?.probabilityOfThunder ?: 0.0
-                )
+                timeSeries = responseItems.map { responseItem ->
+                    ForecastDataItem(
+                        time = responseItem.time,
+                        altitude = response.geometry.coordinates[2],
+                        values = ForecastDataValues(
+                            airPressureAtSeaLevel = responseItem.data.instant.details.airPressureAtSeaLevel,
+                            airTemperature = responseItem.data.instant.details.airTemperature,
+                            relativeHumidity = responseItem.data.instant.details.relativeHumidity,
+                            windSpeed = responseItem.data.instant.details.windSpeed,
+                            windSpeedOfGust = responseItem.data.instant.details.windSpeedOfGust,
+                            windFromDirection = responseItem.data.instant.details.windFromDirection,
+                            fogAreaFraction = responseItem.data.instant.details.fogAreaFraction,
+                            dewPointTemperature = responseItem.data.instant.details.dewPointTemperature,
+                            cloudAreaFraction = responseItem.data.instant.details.cloudAreaFraction,
+                            cloudAreaFractionHigh = responseItem.data.instant.details.cloudAreaFractionHigh,
+                            cloudAreaFractionLow = responseItem.data.instant.details.cloudAreaFractionLow,
+                            cloudAreaFractionMedium = responseItem.data.instant.details.cloudAreaFractionMedium,
+                            precipitationAmount = responseItem.data.next1Hours?.details?.precipitationAmount ?: 0.0,
+                            probabilityOfThunder = responseItem.data.next1Hours?.details?.probabilityOfThunder ?: 0.0
+                        )
+                    )
+                }
             )
         )
     }

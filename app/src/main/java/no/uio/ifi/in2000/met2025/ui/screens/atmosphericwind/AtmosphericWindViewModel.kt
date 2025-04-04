@@ -48,6 +48,7 @@ class AtmosphericWindViewModel @Inject constructor(
 
     fun loadIsobaricData(lat: Double, lon: Double) {
         viewModelScope.launch {
+            observeTempSite()
             val currentItems = uiState.value
             _uiState.value = AtmosphericWindUiState.Loading
             _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon, Instant.now())
