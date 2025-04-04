@@ -124,73 +124,15 @@ fun ScreenContent(
                         text = "Idle state for $formattedItemTime",
                         style = MaterialTheme.typography.headlineSmall
                     )
-//                    Button(
-//                        onClick = {
-//                            onLoadData(coordinates.first, coordinates.second, itemTime)
-//                        },
-//                        modifier = Modifier.padding(8.dp)
-//                    ) {
-//                        Text(text = "Load data")
-//                    }
-                    //onLoadData(coordinates.first, coordinates.second, itemTime)
                 }
                 is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
                     IsobaricDataItemCard(item = dataItem.isobaricData)
                 }
                 else -> {
-                    Text(
-                        text = "Data for $formattedItemTime not yet available",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-//                    Button(
-//                        onClick = {
-//                            onLoadData(coordinates.first, coordinates.second, validTime.plus(Duration.ofHours(index.toLong() * 3)))
-//                        },
-//                        modifier = Modifier.padding(8.dp)
-//                    ) {
-//                        Text(text = "Load data")
-//                    }
-                    //onLoadData(coordinates.first, coordinates.second, itemTime)
                 }
             }
         }
     }
-
-//    if (validTime > Instant.now().plus(Duration.ofHours(21))) {
-//        Text(
-//            text = "Data for $formattedTime is not yet available",
-//            style = MaterialTheme.typography.headlineSmall
-//        )
-//    } else {
-//
-//        when (val dataItem = dataMap[validTime]) {
-//            is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
-//                onLoadData(coordinates.first, coordinates.second)
-//            }
-//            is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
-//                Text(text = "Loading data for $formattedTime...", style = MaterialTheme.typography.headlineSmall)
-//            }
-//            is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
-//                Text(text = "Error: ${dataItem.message}", style = MaterialTheme.typography.headlineSmall)
-//            }
-//            is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-//                Column {
-//                    IsobaricDataItemCard(item = dataItem.isobaricDataItem)
-//
-//                    ScreenContent(
-//                        validTime = validTime.plus(Duration.ofHours(3)),
-//                        dataMap = dataMap,
-//                        coordinates = coordinates,
-//                        onLoadData = onLoadData
-//                    )
-//                }
-//
-//            }
-//            else -> {
-//                onLoadData(coordinates.first, coordinates.second)
-//            }
-//        }
-//    }
 }
 
 @Composable
@@ -198,7 +140,7 @@ fun IsobaricDataItemCard(
     item: IsobaricData
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
-    val windshearColor = Color(0xFFe2e0ff)
+    val windShearColor = Color(0xFFe2e0ff)
 
     Card(
         modifier = Modifier
@@ -225,7 +167,7 @@ fun IsobaricDataItemCard(
 
             // Static header row to label columns
             WindShearRow(
-                backgroundColor = windshearColor,
+                backgroundColor = windShearColor,
                 speedText = "Wind Shear Speed",
                 directionText = "Wind Shear Direction",
                 style = MaterialTheme.typography.titleSmall
@@ -280,7 +222,7 @@ fun IsobaricDataItemCard(
                                 .floorModDouble(360).roundToDecimals(1)
 
                             WindShearRow(
-                                backgroundColor = windshearColor,
+                                backgroundColor = windShearColor,
                                 speedText = "$windShearValue m/s",
                                 directionText = "$windShearDirection°",
                                 style = MaterialTheme.typography.bodyMedium
