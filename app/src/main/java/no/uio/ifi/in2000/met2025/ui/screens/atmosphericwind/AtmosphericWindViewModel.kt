@@ -6,13 +6,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
 //import no.uio.ifi.in2000.met2025.data.models.IsobaricData
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
-import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
+import java.time.Duration
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,12 +29,12 @@ class AtmosphericWindViewModel @Inject constructor(
     sealed class AtmosphericWindUiState {
         data object Idle : AtmosphericWindUiState()
         data object Loading : AtmosphericWindUiState()
-        data class Success(val isobaricItems: Map<String, IsobaricDataItem>) : AtmosphericWindUiState()
+        data class Success(val isobaricData: IsobaricData) : AtmosphericWindUiState()
         data class Error(val message: String) : AtmosphericWindUiState()
     }
 
-    private val _uiState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
-    val uiState: StateFlow<AtmosphericWindUiState> = _uiState
+    private val _isobaricData = MutableStateFlow<Map<Instant, AtmosphericWindUiState>>(emptyMap())
+    val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
 
     private val _launchSite = MutableStateFlow<LaunchSite?>(null)
     val launchSite: StateFlow<LaunchSite?> = _launchSite
@@ -46,28 +51,67 @@ class AtmosphericWindViewModel @Inject constructor(
         }
     }
 
-    fun loadIsobaricData(lat: Double, lon: Double) {
+//    fun loadAllAvailableIsobaricData(lat: Double, lon: Double) {
+//        (1..<8).forEach { index ->
+//            val currentTime = Instant.now()
+//            val currentHour = LocalDateTime.ofInstant(currentTime, ZoneId.systemDefault()).truncatedTo(
+//                ChronoUnit.HOURS)
+//            val nextDivisibleHour = generateSequence(currentHour) { it.plusHours(1) }
+//                .first { it.hour % 3 == 0 }
+//            val validTime = nextDivisibleHour.atZone(ZoneId.systemDefault()).toInstant()
+//            val itemTime = validTime.plus(Duration.ofHours(index.toLong() * 3))
+//
+//            Mutex().withLock {
+//                loadIsobaricData(lat, lon, itemTime)
+//            }
+//        }
+//    }
+    fun loadAllAvailableIsobaricDataInOrder(lat: Double, lon: Double) {
         viewModelScope.launch {
-            observeTempSite()
-            val currentItems = uiState.value
-            _uiState.value = AtmosphericWindUiState.Loading
-            _uiState.value = weatherModel.getCurrentIsobaricData(lat, lon, Instant.now())
-                .fold(
+            val currentTime = Instant.now()
+            val currentHour = LocalDateTime.ofInstant(currentTime, ZoneId.systemDefault()).truncatedTo(ChronoUnit.HOURS)
+            val nextDivisibleHour = generateSequence(currentHour) { it.plusHours(1) }
+                .first { it.hour % 3 == 0 }
+            var validTime = nextDivisibleHour.atZone(ZoneId.systemDefault()).toInstant()
+
+            repeat(8) {
+                Mutex().withLock {
+                    updateIsobaricData(lat, lon, validTime)
+                    validTime = validTime.plus(Duration.ofHours(3))
+                }
+            }
+        }
+    }
+
+    fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
+        viewModelScope.launch {
+            Mutex().withLock {
+                updateIsobaricData(lat, lon, time)
+            }
+        }
+    }
+
+    private suspend fun updateIsobaricData(
+        lat: Double,
+        lon: Double,
+        time: Instant
+    ) {
+        val currentItem = isobaricData.value[time]
+        _isobaricData.value += (time to AtmosphericWindUiState.Loading)
+        _isobaricData.value += (
+                time to weatherModel.getCurrentIsobaricData(lat, lon, time).fold(
                     onFailure = { throwable ->
-                    if (currentItems !is AtmosphericWindUiState.Success)
-                        AtmosphericWindUiState.Error(throwable.message ?: "Ukjent feil")
-                    else
-                        AtmosphericWindUiState.Success(currentItems.isobaricItems)
-                    },
+                        if (currentItem !is AtmosphericWindUiState.Success)
+                            AtmosphericWindUiState.Error(
+                                throwable.message ?: "Ukjent feil"
+                            )
+                        else
+                            AtmosphericWindUiState.Success(currentItem.isobaricData) //TODO: add something on screen to show that this value is outdated
+                        },
                     onSuccess = { data ->
-                        AtmosphericWindUiState.Success(
-                            if (currentItems !is AtmosphericWindUiState.Success)
-                                mapOf(data.time to data)
-                            else
-                                currentItems.isobaricItems + (data.time to data)
-                        )
+                        AtmosphericWindUiState.Success(data)
                     }
                 )
-        }
+                )
     }
 }

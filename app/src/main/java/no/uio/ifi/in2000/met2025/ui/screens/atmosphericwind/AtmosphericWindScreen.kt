@@ -11,26 +11,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
+import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
@@ -51,69 +47,155 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
-import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun AtmosphericWindScreen(
     atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
-    launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
+    //launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
 ) {
-    val windUiState by atmosphericWindViewModel.uiState.collectAsState()
-    val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
-    val coordinates = launchSites.firstOrNull {it.name == "Last Visited"}
+    val dataMap by atmosphericWindViewModel.isobaricData.collectAsState()
+    val coordinates by atmosphericWindViewModel.launchSite.collectAsState()
+    val latitude = coordinates?.latitude ?: 0.0
+    val longitude = coordinates?.longitude ?: 0.0
+
+    val currentTime = Instant.now()
+    val currentHour = LocalDateTime.ofInstant(currentTime, ZoneId.systemDefault()).truncatedTo(
+        ChronoUnit.HOURS)
+    val nextDivisibleHour = generateSequence(currentHour) { it.plusHours(1) }
+        .first { it.hour % 3 == 0 }
+    val validTime = nextDivisibleHour.atZone(ZoneId.systemDefault()).toInstant()
+
     when (coordinates) {
-        is LaunchSite -> ScreenContent(
-            windUiState = windUiState,
-            coordinates = Pair(coordinates.latitude, coordinates.longitude),
-            onLoadData = { lat, lon ->
-                atmosphericWindViewModel.loadIsobaricData(lat, lon)
-            }
-        )
-        else -> Text("Failed to load coordinates")
-    }
-}
-
-@Composable
-fun ScreenContent(
-    windUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
-    coordinates: Pair<Double, Double>,
-    onLoadData: (Double, Double) -> Unit = { _, _ -> }
-) {
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .verticalScroll(scrollState)
-    ) {
-        when (windUiState) {
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
-                onLoadData(coordinates.first, coordinates.second)
-            }
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
-                Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
-            }
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
-                Text(text = "Error: ${windUiState.message}", style = MaterialTheme.typography.headlineSmall)
-            }
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                windUiState.isobaricItems.keys.sorted().forEach { time ->
-                    val isobaricDataItem = windUiState.isobaricItems[time]
-                    if (isobaricDataItem == null) {
-                        Text("No data available for $time", style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        IsobaricDataItemCard(item = isobaricDataItem)
-                    }
+        is LaunchSite -> {
+            ScreenContent(
+                validTime = validTime,
+                dataMap = dataMap,
+                coordinates = Pair(latitude, longitude),
+                onLoadData = { lat, lon ->
+                    atmosphericWindViewModel.loadAllAvailableIsobaricDataInOrder(lat, lon)
                 }
-            }
+            )
+        }
+        else -> {
+            Text("Failed to load coordinates")
         }
     }
 }
 
 @Composable
+fun ScreenContent(
+    validTime: Instant,
+    dataMap: Map<Instant, AtmosphericWindViewModel.AtmosphericWindUiState>,
+    coordinates: Pair<Double, Double>,
+    onLoadData: (Double, Double) -> Unit = { _, _ -> }
+) {
+
+    if (dataMap.isEmpty()) {
+        onLoadData(coordinates.first, coordinates.second)
+    }
+    LazyColumn(Modifier.padding(16.dp)) {
+        items(8) { index ->
+            val itemTime = validTime.plus(Duration.ofHours(index.toLong() * 3))
+
+            val memeTime = itemTime.minus(Duration.ofHours(1)) //TODO: find a better way to display the correct time
+            val formattedItemTime = memeTime.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm"))
+
+            when (val dataItem = dataMap[itemTime]) {
+                is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
+                    Text(
+                        text = "Error: ${dataItem.message}",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                }
+                is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
+                    Text(
+                        text = "Loading data for $formattedItemTime...",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                }
+                is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
+                    Text(
+                        text = "Idle state for $formattedItemTime",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+//                    Button(
+//                        onClick = {
+//                            onLoadData(coordinates.first, coordinates.second, itemTime)
+//                        },
+//                        modifier = Modifier.padding(8.dp)
+//                    ) {
+//                        Text(text = "Load data")
+//                    }
+                    //onLoadData(coordinates.first, coordinates.second, itemTime)
+                }
+                is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
+                    IsobaricDataItemCard(item = dataItem.isobaricData)
+                }
+                else -> {
+                    Text(
+                        text = "Data for $formattedItemTime not yet available",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+//                    Button(
+//                        onClick = {
+//                            onLoadData(coordinates.first, coordinates.second, validTime.plus(Duration.ofHours(index.toLong() * 3)))
+//                        },
+//                        modifier = Modifier.padding(8.dp)
+//                    ) {
+//                        Text(text = "Load data")
+//                    }
+                    //onLoadData(coordinates.first, coordinates.second, itemTime)
+                }
+            }
+        }
+    }
+
+//    if (validTime > Instant.now().plus(Duration.ofHours(21))) {
+//        Text(
+//            text = "Data for $formattedTime is not yet available",
+//            style = MaterialTheme.typography.headlineSmall
+//        )
+//    } else {
+//
+//        when (val dataItem = dataMap[validTime]) {
+//            is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
+//                onLoadData(coordinates.first, coordinates.second)
+//            }
+//            is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
+//                Text(text = "Loading data for $formattedTime...", style = MaterialTheme.typography.headlineSmall)
+//            }
+//            is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
+//                Text(text = "Error: ${dataItem.message}", style = MaterialTheme.typography.headlineSmall)
+//            }
+//            is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
+//                Column {
+//                    IsobaricDataItemCard(item = dataItem.isobaricDataItem)
+//
+//                    ScreenContent(
+//                        validTime = validTime.plus(Duration.ofHours(3)),
+//                        dataMap = dataMap,
+//                        coordinates = coordinates,
+//                        onLoadData = onLoadData
+//                    )
+//                }
+//
+//            }
+//            else -> {
+//                onLoadData(coordinates.first, coordinates.second)
+//            }
+//        }
+//    }
+}
+
+@Composable
 fun IsobaricDataItemCard(
-    item: IsobaricDataItem
+    item: IsobaricData
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
     val windshearColor = Color(0xFFe2e0ff)

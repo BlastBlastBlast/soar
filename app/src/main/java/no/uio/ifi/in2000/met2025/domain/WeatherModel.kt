@@ -1,16 +1,13 @@
 package no.uio.ifi.in2000.met2025.domain
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.models.Constants
 import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries
-import no.uio.ifi.in2000.met2025.data.models.ForecastData
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.GribVectors
 //import no.uio.ifi.in2000.met2025.data.models.IsobaricData
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
+import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
@@ -28,26 +25,27 @@ class WeatherModel @Inject constructor(
     private val isobaricRepository: IsobaricRepository
 ) { //Businesslogikk for konsolidering av forskjellig type data
 
-    suspend fun getCurrentIsobaricData(lat: Double, lon: Double, time: Instant) : Result<IsobaricDataItem> {
+    suspend fun getCurrentIsobaricData(lat: Double, lon: Double, time: Instant) : Result<IsobaricData> {
         val gribResult = try {
             isobaricRepository.getIsobaricGribData(time)
         } catch (exception: Exception) {
             return Result.failure(exception)
         }
 
-        val forecastResult = locationForecastRepository.getForecastDataAtTime(lat, lon, time)
-        val forecastItem = forecastResult.fold(
+        val forecastResult = locationForecastRepository.getForecastDataAtTime(lat, lon, time, 3, 1)
+        val forecastData = forecastResult.fold(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
         )
+        val forecastItem = combinedForecastDataItems(forecastData.timeSeries)
 
         val isobaricResult = convertGribToIsobaricData(lat, lon, gribResult, forecastItem)
         return isobaricResult.fold(
             onFailure = { exception: Throwable ->
                 Result.failure(exception)
             },
-            onSuccess = { isobaricItem: IsobaricDataItem ->
-                Result.success(combinedDataResult(isobaricItem, forecastItem))
+            onSuccess = { isobaricItem: IsobaricData ->
+                Result.success(combinedDataResult(isobaricItem, forecastItem, forecastData.altitude))
             }
         )
     }
@@ -57,7 +55,7 @@ class WeatherModel @Inject constructor(
         lon: Double,
         gribResult: GribDataMap,
         forecastItem: ForecastDataItem
-    ): Result<IsobaricDataItem> {
+    ): Result<IsobaricData> {
         println("lat $lat, lon $lon")
 
         return if (CoordinateBoundaries.isWithinBounds(lat, lon)) {
@@ -76,7 +74,7 @@ class WeatherModel @Inject constructor(
                 println(if (dataMap != null) "rounding success" else "rounding failure")
 
                 val pressureValues = Constants.layerPressureValues
-                val isobaricItem = IsobaricDataItem(
+                val isobaricData = IsobaricData(
                     time = forecastItem.time,
                     valuesAtLayer = pressureValues.associateWith { pressure ->
                         val gribVectors = dataMap?.get(pressure)
@@ -92,7 +90,7 @@ class WeatherModel @Inject constructor(
                             )
                         }
                     )
-                Result.success(isobaricItem)
+                Result.success(isobaricData)
             } catch (exception: Exception) {
                 Result.failure(exception)
             }
@@ -101,17 +99,39 @@ class WeatherModel @Inject constructor(
         }
     }
 
-    private fun combinedDataResult(isobaricItem: IsobaricDataItem, forecastItem: ForecastDataItem): IsobaricDataItem {
-        return IsobaricDataItem(
-            time = isobaricItem.time,
-            valuesAtLayer = isobaricItem.valuesAtLayer.plus(
-            calculatePressureAtAltitude(forecastItem.altitude, forecastItem.values.airPressureAtSeaLevel).toInt()
+    private fun combinedDataResult(isobaricData: IsobaricData, forecastItem: ForecastDataItem, altitude: Double): IsobaricData {
+        return IsobaricData(
+            time = isobaricData.time,
+            valuesAtLayer = isobaricData.valuesAtLayer.plus(
+            calculatePressureAtAltitude(altitude, forecastItem.values.airPressureAtSeaLevel).toInt()
                     to
                     IsobaricDataValues(
-                        altitude = forecastItem.altitude,
+                        altitude = altitude,
                         windSpeed = forecastItem.values.windSpeed,
                         windFromDirection = forecastItem.values.windFromDirection
                     )
+            )
+        )
+    }
+
+    private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>) : ForecastDataItem {
+        return ForecastDataItem(
+            time = timeSeries.first().time,
+            values = ForecastDataValues(
+                airPressureAtSeaLevel = timeSeries.maxOfOrNull { it.values.airPressureAtSeaLevel } ?: 0.0,
+                airTemperature = timeSeries.maxOfOrNull { it.values.airTemperature } ?: 0.0,
+                relativeHumidity = timeSeries.maxOfOrNull { it.values.relativeHumidity } ?: 0.0,
+                windSpeed = timeSeries.maxOfOrNull { it.values.windSpeed } ?: 0.0,
+                windSpeedOfGust = timeSeries.maxOfOrNull { it.values.windSpeedOfGust } ?: 0.0,
+                windFromDirection = timeSeries.map { it.values.windFromDirection }.average(),
+                fogAreaFraction = timeSeries.maxOfOrNull { it.values.fogAreaFraction } ?: 0.0,
+                dewPointTemperature = timeSeries.maxOfOrNull { it.values.dewPointTemperature } ?: 0.0,
+                cloudAreaFraction = timeSeries.maxOfOrNull { it.values.cloudAreaFraction } ?: 0.0,
+                cloudAreaFractionHigh = timeSeries.maxOfOrNull { it.values.cloudAreaFractionHigh } ?: 0.0,
+                cloudAreaFractionLow = timeSeries.maxOfOrNull { it.values.cloudAreaFractionLow } ?: 0.0,
+                cloudAreaFractionMedium = timeSeries.maxOfOrNull { it.values.cloudAreaFractionMedium } ?: 0.0,
+                precipitationAmount = timeSeries.maxOfOrNull { it.values.precipitationAmount } ?: 0.0,
+                probabilityOfThunder = timeSeries.maxOfOrNull { it.values.probabilityOfThunder } ?: 0.0
             )
         )
     }

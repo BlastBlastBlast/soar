@@ -42,38 +42,47 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataItem
+import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteViewModel
+import java.time.Duration
+import java.time.Instant
 
 @Composable
 fun AtmosphericWindSubCard(
     atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
-    launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
+    //launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
 ) {
-    val windUiState by atmosphericWindViewModel.uiState.collectAsState()
-    val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
-    val coordinates = launchSites.firstOrNull {it.name == "Last Visited"}
+    val dataMap by atmosphericWindViewModel.isobaricData.collectAsState()
+    //val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
+    val coordinates by atmosphericWindViewModel.launchSite.collectAsState()// = launchSites.firstOrNull {it.name == "Last Visited"}
+    val latitude = coordinates?.latitude ?: 0.0
+    val longitude = coordinates?.longitude ?: 0.0
+    val time = Instant.now()
     when (coordinates) {
-        is LaunchSite -> ScreenContent(
-            windUiState = windUiState,
-            coordinates = Pair(coordinates.latitude, coordinates.longitude),
-            onLoadData = { lat, lon ->
-                atmosphericWindViewModel.loadIsobaricData(lat, lon)
-            }
-        )
+        is LaunchSite -> (0..<8).forEach{
+            val validTime = time.plus(Duration.ofHours(it.toLong()))
+            SubCardContent(
+                validTime = validTime,
+                dataMap = dataMap,
+                coordinates = Pair(latitude, longitude),
+                onLoadData = { lat, lon ->
+                    atmosphericWindViewModel.loadIsobaricData(lat, lon, validTime)
+                }
+            )
+        }
         else -> Text("Failed to load coordinates")
     }
 }
 
 @Composable
-fun ScreenContent(
-    windUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+fun SubCardContent(
+    validTime: Instant,
+    dataMap: Map<Instant, AtmosphericWindViewModel.AtmosphericWindUiState>,
     coordinates: Pair<Double, Double>,
     onLoadData: (Double, Double) -> Unit = { _, _ -> }
 ) {
@@ -84,7 +93,7 @@ fun ScreenContent(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-        when (windUiState) {
+        when (val dataItem = dataMap[validTime]) {
             is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
                 onLoadData(coordinates.first, coordinates.second)
             }
@@ -92,17 +101,17 @@ fun ScreenContent(
                 Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
-                Text(text = "Error: ${windUiState.message}", style = MaterialTheme.typography.headlineSmall)
+                Text(text = "Error: ${dataItem.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                windUiState.isobaricItems.keys.sorted().forEach { time ->
-                    val isobaricDataItem = windUiState.isobaricItems[time]
-                    if (isobaricDataItem == null) {
-                        Text("No data available for $time", style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        IsobaricDataItemCard(item = isobaricDataItem)
-                    }
-                }
+                IsobaricDataItemCard(item = dataItem.isobaricData)
+            }
+            else -> {
+                Text(
+                    text = "No data available",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
@@ -110,7 +119,7 @@ fun ScreenContent(
 
 @Composable
 fun IsobaricDataItemCard(
-    item: IsobaricDataItem
+    item: IsobaricData
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
     val windshearColor = Color(0xFFe2e0ff)

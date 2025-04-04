@@ -1,6 +1,8 @@
 package no.uio.ifi.in2000.met2025.data.remote.isobaric
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.local.Database.GribData
 import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
@@ -57,9 +59,20 @@ class IsobaricRepository @Inject constructor(
                     )
                 }
             }
-            val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
             val gribData = GribData(time.toString(), byteArray)
             gribDAO.insert(gribData)
+            val res = parseGribData(byteArray)
+            println("IsobaricGribDataReturned")
+            return res
+        } else {
+            println("availability data is null")
+            return emptyMap()
+        }
+    }
+
+    private suspend fun parseGribData(byteArray: ByteArray): GribDataMap {
+        //Mutex().withLock {
+            val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
 
             try {
                 println("trycatch started")
@@ -150,12 +163,8 @@ class IsobaricRepository @Inject constructor(
             } catch (e: Exception) {
                 println("Error processing GRIB file: ${e.message}")
             }
-            println("IsobaricGribDataReturned")
             return gribDataMap
-        } else {
-            println("shits fucked")
-            return emptyMap()
-        }
+        //}
     }
 
     suspend fun getAvailabilityData(): StructuredAvailability?{
