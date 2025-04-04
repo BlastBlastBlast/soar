@@ -15,6 +15,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
+import no.uio.ifi.in2000.met2025.domain.helpers.startOfIsobaricDataWindow
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2
@@ -75,7 +76,7 @@ class WeatherModel @Inject constructor(
 
                 val pressureValues = Constants.layerPressureValues
                 val isobaricData = IsobaricData(
-                    time = forecastItem.time,
+                    time = Instant.parse(forecastItem.time).startOfIsobaricDataWindow().toString(),
                     valuesAtLayer = pressureValues.associateWith { pressure ->
                         val gribVectors = dataMap?.get(pressure)
                         val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()

@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel

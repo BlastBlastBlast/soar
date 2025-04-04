@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -54,75 +57,56 @@ import java.time.Instant
 
 @Composable
 fun AtmosphericWindSubCard(
-    atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
-    //launchSiteViewModel: LaunchSiteViewModel = hiltViewModel()
+    isobaricDataUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+    onClickGetIsobaricData: () -> Unit = {},
 ) {
-    val dataMap by atmosphericWindViewModel.isobaricData.collectAsState()
-    //val launchSites by launchSiteViewModel.launchSites.collectAsState(initial = emptyList())
-    val coordinates by atmosphericWindViewModel.launchSite.collectAsState()// = launchSites.firstOrNull {it.name == "Last Visited"}
-    val latitude = coordinates?.latitude ?: 0.0
-    val longitude = coordinates?.longitude ?: 0.0
-    val time = Instant.now()
-    when (coordinates) {
-        is LaunchSite -> (0..<8).forEach{
-            val validTime = time.plus(Duration.ofHours(it.toLong()))
-            SubCardContent(
-                validTime = validTime,
-                dataMap = dataMap,
-                coordinates = Pair(latitude, longitude),
-                onLoadData = { lat, lon ->
-                    atmosphericWindViewModel.loadIsobaricData(lat, lon, validTime)
-                }
+    when (isobaricDataUiState) {
+        is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
+            Button(
+                onClick = { onClickGetIsobaricData() },
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .background(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(text = "Get Isobaric Data")
+            }
+        }
+        is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
+            Text(
+                text = "Loading isobaric data...",
+                style = MaterialTheme.typography.bodyMedium
             )
         }
-        else -> Text("Failed to load coordinates")
-    }
-}
-
-@Composable
-fun SubCardContent(
-    validTime: Instant,
-    dataMap: Map<Instant, AtmosphericWindViewModel.AtmosphericWindUiState>,
-    coordinates: Pair<Double, Double>,
-    onLoadData: (Double, Double) -> Unit = { _, _ -> }
-) {
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .verticalScroll(scrollState)
-    ) {
-        when (val dataItem = dataMap[validTime]) {
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
-                onLoadData(coordinates.first, coordinates.second)
+        is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
+            Text(
+                text = "Error loading isobaric data: ${isobaricDataUiState.message}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Button(
+                onClick = { onClickGetIsobaricData() },
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .background(shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp), color = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(text = "Retry loading isobaric data")
             }
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
-                Text(text = "Loading...", style = MaterialTheme.typography.headlineSmall)
-            }
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
-                Text(text = "Error: ${dataItem.message}", style = MaterialTheme.typography.headlineSmall)
-            }
-            is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
-                IsobaricDataItemCard(item = dataItem.isobaricData)
-            }
-            else -> {
-                Text(
-                    text = "No data available",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
+        }
+        is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
+            AtmosphericWindSubCardContent(isobaricDataUiState.isobaricData)
         }
     }
 }
 
 @Composable
-fun IsobaricDataItemCard(
+fun AtmosphericWindSubCardContent(
     item: IsobaricData
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
-    val windshearColor = Color(0xFFe2e0ff)
+    val windShearColor = Color(0xFFe2e0ff)
+
+    var expanded by remember { mutableStateOf(true) }
 
     Card(
         modifier = Modifier
@@ -132,83 +116,97 @@ fun IsobaricDataItemCard(
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = formatZuluTimeToLocal(item.time),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            Row {
+                Text(
+                    text = formatZuluTimeToLocal(item.time),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Button(
+                    onClick = {expanded = !expanded},
+                    content = {
+                        Text(
+                            text = if (expanded) "-" else "+",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                )
+            }
+            if (expanded) {
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-            // Static header row to label columns
-            AtmosphericLayerRow(
-                altitudeText = "Altitude",
-                windSpeedText = "Wind Speed",
-                windDirectionText = "Wind Direction",
-                style = MaterialTheme.typography.titleSmall
-            )
-
-            // Static header row to label columns
-            WindShearRow(
-                backgroundColor = windshearColor,
-                speedText = "Wind Shear Speed",
-                directionText = "Wind Shear Direction",
-                style = MaterialTheme.typography.titleSmall
-            )
-
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-
-            CornerBorderColumn { expanded ->
-                Icon(
-                    imageVector = Icons.Default.ExpandMore,
-                    contentDescription = "Expand",
-                    tint = Color.Gray,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer(rotationZ = if (expanded.value) 0f else 180f)
+                // Static header row to label columns
+                AtmosphericLayerRow(
+                    altitudeText = "Altitude",
+                    windSpeedText = "Wind Speed",
+                    windDirectionText = "Wind Direction",
+                    style = MaterialTheme.typography.titleSmall
                 )
 
-                // Iterate through layer pressure values and display data
-                val pressureValues = item.valuesAtLayer.keys.sorted()
-                val displayedValues = if (expanded.value) pressureValues else pressureValues.takeLast(6)
-                displayedValues.forEachIndexed { index, layer ->
-                    val altitude = item.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
-                    val windSpeed = item.valuesAtLayer[layer]?.windSpeed
-                        ?.roundToDecimals(1) ?: "--"
-                    val windDirection = item.valuesAtLayer[layer]?.windFromDirection
-                        ?.floorModDouble(360)
-                        ?.roundToDecimals(1) ?: "--"
+                // Static header row to label columns
+                WindShearRow(
+                    backgroundColor = windShearColor,
+                    speedText = "Wind Shear Speed",
+                    directionText = "Wind Shear Direction",
+                    style = MaterialTheme.typography.titleSmall
+                )
 
-                    AtmosphericLayerRow(
-                        altitudeText = "$altitude m",
-                        windSpeedText = "$windSpeed m/s",
-                        windDirectionText = "$windDirection°",
-                        style = MaterialTheme.typography.bodyMedium
+                //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CornerBorderColumn { expanded ->
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = "Expand",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer(rotationZ = if (expanded) 0f else 180f)
                     )
 
-                    // Calculate wind shear if not the last item in list and both layers exist
-                    if (index < displayedValues.size - 1) {
-                        val nextLayer = displayedValues[index + 1]
+                    // Iterate through layer pressure values and display data
+                    val pressureValues = item.valuesAtLayer.keys.sorted()
+                    val displayedValues = if (expanded) pressureValues else pressureValues.takeLast(6)
+                    displayedValues.forEachIndexed { index, layer ->
+                        val altitude = item.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
+                        val windSpeed = item.valuesAtLayer[layer]?.windSpeed
+                            ?.roundToDecimals(1) ?: "--"
+                        val windDirection = item.valuesAtLayer[layer]?.windFromDirection
+                            ?.floorModDouble(360)
+                            ?.roundToDecimals(1) ?: "--"
 
-                        if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
-                            val windShearValue = windShearSpeed(
-                                item.valuesAtLayer[layer]!!,
-                                item.valuesAtLayer[nextLayer]!!
-                            )
-                                .roundToDecimals(1)
+                        AtmosphericLayerRow(
+                            altitudeText = "$altitude m",
+                            windSpeedText = "$windSpeed m/s",
+                            windDirectionText = "$windDirection°",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
 
-                            val windShearDirection = windShearDirection(
-                                item.valuesAtLayer[layer]!!,
-                                item.valuesAtLayer[nextLayer]!!
-                            )
-                                .floorModDouble(360).roundToDecimals(1)
+                        // Calculate wind shear if not the last item in list and both layers exist
+                        if (index < displayedValues.size - 1) {
+                            val nextLayer = displayedValues[index + 1]
 
-                            WindShearRow(
-                                backgroundColor = windshearColor,
-                                speedText = "$windShearValue m/s",
-                                directionText = "$windShearDirection°",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            if (item.valuesAtLayer[layer] != null && item.valuesAtLayer[nextLayer] != null) {
+                                val windShearValue = windShearSpeed(
+                                    item.valuesAtLayer[layer]!!,
+                                    item.valuesAtLayer[nextLayer]!!
+                                )
+                                    .roundToDecimals(1)
+
+                                val windShearDirection = windShearDirection(
+                                    item.valuesAtLayer[layer]!!,
+                                    item.valuesAtLayer[nextLayer]!!
+                                )
+                                    .floorModDouble(360).roundToDecimals(1)
+
+                                WindShearRow(
+                                    backgroundColor = windShearColor,
+                                    speedText = "$windShearValue m/s",
+                                    directionText = "$windShearDirection°",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
                     }
                 }
@@ -323,15 +321,15 @@ class CustomRoundedCornerShape(private val cornerSize: Dp) : Shape {
 }
 
 @Composable
-fun CornerBorderColumn(content: @Composable (ColumnScope.(MutableState<Boolean>) -> Unit)) {
-    val expanded = remember { mutableStateOf(false) }
+fun CornerBorderColumn(content: @Composable (ColumnScope.(Boolean) -> Unit)) {
+    var expanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, Color.Gray, shape = CustomRoundedCornerShape(8.dp))
             .padding(top = 8.dp/*, bottom = 8.dp*/)
-            .clickable { expanded.value = !expanded.value }
+            .clickable { expanded = !expanded }
     ) {
         Column {
             content(expanded)

@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +39,8 @@ import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
+import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
+import java.time.Instant
 
 @Composable
 fun WindDirectionIcon(windDirection: Double) {
@@ -56,7 +61,9 @@ fun WindDirectionIcon(windDirection: Double) {
 @Composable
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isobaricDataUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
+    onClickGetIsobaricData: (Instant) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     Card(
@@ -111,6 +118,14 @@ fun HourlyExpandableCard(
                         }
                     }
                 }
+            }
+
+            AtmosphericWindSubCard(isobaricDataUiState) {
+                onClickGetIsobaricData(
+                    Instant.parse(
+                        forecastItem.time
+                    )
+                )
             }
         }
     }

@@ -8,6 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
+import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyExpandableCard
 import java.time.Instant
 
@@ -97,7 +98,8 @@ fun WeatherCardPreview() {
         sampleForecastItems.forEach { forecastItem ->
             HourlyExpandableCard(
                 forecastItem = forecastItem,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp),
+                isobaricDataUiState = AtmosphericWindViewModel.AtmosphericWindUiState.Idle,
             )
         }
     }

@@ -19,28 +19,41 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyE
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
+import no.uio.ifi.in2000.met2025.domain.helpers.startOfIsobaricDataWindow
+import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
+import java.time.Instant
 
 @Composable
 fun WeatherCardScreen(
     viewModel: WeatherCardViewmodel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel()
+    locationViewModel: LocationViewModel = hiltViewModel(),
+    atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coordinates by locationViewModel.coordinates.collectAsState()
+    val isobaricDataUiStates by atmosphericWindViewModel.isobaricData.collectAsState()
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
     }
 
-    ScreenContent(uiState = uiState)
+    ScreenContent(
+        uiState = uiState,
+        isobaricDataUiStates = isobaricDataUiStates,
+        onClickGetIsobaricData = { time ->
+            atmosphericWindViewModel.loadIsobaricData(coordinates.first, coordinates.second, time)
+        }
+    )
 }
 
 @Composable
 fun ScreenContent(
-    uiState: WeatherCardViewmodel.WeatherCardUiState
+    uiState: WeatherCardViewmodel.WeatherCardUiState,
+    isobaricDataUiStates: Map<Instant, AtmosphericWindViewModel.AtmosphericWindUiState>,
+    onClickGetIsobaricData: (Instant) -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
 
@@ -74,7 +87,10 @@ fun ScreenContent(
                 dailyItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        isobaricDataUiState = isobaricDataUiStates[Instant.parse(forecastItem.time)]
+                            ?: AtmosphericWindViewModel.AtmosphericWindUiState.Idle,
+                        onClickGetIsobaricData = onClickGetIsobaricData,
                     )
                 }
             }
