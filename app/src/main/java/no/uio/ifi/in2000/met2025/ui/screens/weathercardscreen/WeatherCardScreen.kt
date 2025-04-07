@@ -19,6 +19,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyE
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
+import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
@@ -29,21 +30,27 @@ fun WeatherCardScreen(
     locationViewModel: LocationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val activeConfig by viewModel.activeConfig.collectAsState()
     val coordinates by locationViewModel.coordinates.collectAsState()
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
     }
 
-    ScreenContent(uiState = uiState)
+    // Only show the screen once the config is loaded
+    if (activeConfig != null) {
+        ScreenContent(uiState = uiState, config = activeConfig!!)
+    } else {
+        Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
+    }
 }
 
 @Composable
 fun ScreenContent(
-    uiState: WeatherCardViewmodel.WeatherCardUiState
+    uiState: WeatherCardViewmodel.WeatherCardUiState,
+    config: ConfigProfile
 ) {
     val scrollState = rememberScrollState()
-
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -57,23 +64,19 @@ fun ScreenContent(
                 Text("Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Success -> {
-
                 val forecastItems = uiState.forecastItems
-
                 DailyForecastRowSection(forecastItems = forecastItems)
-
                 Text(
                     text = "Hourly Forecast",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
-
-                val today = uiState.forecastItems.firstOrNull()?.time?.substring(0, 10)
-                val dailyItems = uiState.forecastItems.filter { it.time.startsWith(today ?: "") }
-
+                val today = forecastItems.firstOrNull()?.time?.substring(0, 10)
+                val dailyItems = forecastItems.filter { it.time.startsWith(today ?: "") }
                 dailyItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
+                        config = config,  // Pass the active configuration here
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -82,3 +85,4 @@ fun ScreenContent(
         }
     }
 }
+

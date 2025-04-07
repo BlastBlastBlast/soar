@@ -6,13 +6,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class WeatherCardViewmodel @Inject constructor(
-    private val locationForecastRepository: LocationForecastRepository
+    private val locationForecastRepository: LocationForecastRepository,
+    private val configProfileDao: ConfigProfileDAO
 ) : ViewModel() {
 
     sealed class WeatherCardUiState {
@@ -25,7 +28,28 @@ class WeatherCardViewmodel @Inject constructor(
     private val _uiState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
     val uiState: StateFlow<WeatherCardUiState> = _uiState
 
-    fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) { //shows 10 weather cards
+    // Hold the active configuration
+    private val _activeConfig = MutableStateFlow<ConfigProfile?>(null)
+    val activeConfig: StateFlow<ConfigProfile?> = _activeConfig
+
+    init {
+        viewModelScope.launch {
+            configProfileDao.getDefaultConfigProfile().collect { defaultConfig ->
+                if (defaultConfig == null) {
+                    // Insert a default config if none exists
+                    val newDefault = ConfigProfile(
+                        name = "Default Config",
+                        isDefault = true
+                    )
+                    configProfileDao.insertConfigProfile(newDefault)
+                } else {
+                    _activeConfig.value = defaultConfig
+                }
+            }
+        }
+    }
+
+    fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) {
         viewModelScope.launch {
             _uiState.value = WeatherCardUiState.Loading
             val result = locationForecastRepository.getForecastData(lat, lon, timeSpanInHours)
@@ -41,3 +65,4 @@ class WeatherCardViewmodel @Inject constructor(
         }
     }
 }
+

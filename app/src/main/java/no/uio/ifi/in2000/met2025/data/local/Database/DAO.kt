@@ -75,5 +75,5 @@ interface ConfigProfileDAO {
     fun getAllConfigProfiles(): Flow<List<ConfigProfile>>
 
     @Query("SELECT * FROM config_profiles WHERE is_default = 1 LIMIT 1")
-    fun getDefaultConfigProfile(): Flow<ConfigProfile>
+    fun getDefaultConfigProfile(): Flow<ConfigProfile?>
 }

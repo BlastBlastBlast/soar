@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
 
 enum class LaunchStatus {
     SAFE,      // All values comfortably within spec
@@ -14,43 +15,39 @@ enum class LaunchStatus {
     UNSAFE     // One or more values exceed the allowed threshold
 }
 
-// Function to evaluate a forecast item.
-// You can adjust the “buffer” ranges as needed.
-fun evaluateLaunchConditions(forecast: ForecastDataItem): LaunchStatus {
+// Modified to use config thresholds
+fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile): LaunchStatus {
     var caution = false
 
     // Ground wind: measured as windSpeed
-    val groundWindThreshold = 8.6
-    if (forecast.values.windSpeed > groundWindThreshold * 1.1) {
+    if (forecast.values.windSpeed > config.groundWindThreshold * 1.1) {
         return LaunchStatus.UNSAFE
-    } else if (forecast.values.windSpeed > groundWindThreshold * 0.9) {
+    } else if (forecast.values.windSpeed > config.groundWindThreshold * 0.9) {
         caution = true
     }
 
     // Air wind (using wind gust as a proxy)
-    val airWindThreshold = 17.2
-    if (forecast.values.windSpeedOfGust > airWindThreshold * 1.1) {
+    if (forecast.values.windSpeedOfGust > config.airWindThreshold * 1.1) {
         return LaunchStatus.UNSAFE
-    } else if (forecast.values.windSpeedOfGust > airWindThreshold * 0.9) {
+    } else if (forecast.values.windSpeedOfGust > config.airWindThreshold * 0.9) {
         caution = true
     }
 
     // Cloud cover (overall)
-    val cloudCoverThreshold = 15.0
-    if (forecast.values.cloudAreaFraction > cloudCoverThreshold * 1.1) {
+    if (forecast.values.cloudAreaFraction > config.cloudCoverThreshold * 1.1) {
         return LaunchStatus.UNSAFE
-    } else if (forecast.values.cloudAreaFraction > cloudCoverThreshold * 0.9) {
+    } else if (forecast.values.cloudAreaFraction > config.cloudCoverThreshold * 0.9) {
         caution = true
     }
 
     // Cloud cover (sub-levels)
-    if (forecast.values.cloudAreaFractionHigh > cloudCoverThreshold * 1.1 ||
-        forecast.values.cloudAreaFractionLow > cloudCoverThreshold * 1.1 ||
-        forecast.values.cloudAreaFractionMedium > cloudCoverThreshold * 1.1) {
+    if (forecast.values.cloudAreaFractionHigh > config.cloudCoverThreshold * 1.1 ||
+        forecast.values.cloudAreaFractionLow > config.cloudCoverThreshold * 1.1 ||
+        forecast.values.cloudAreaFractionMedium > config.cloudCoverThreshold * 1.1) {
         return LaunchStatus.UNSAFE
-    } else if (forecast.values.cloudAreaFractionHigh > cloudCoverThreshold * 0.9 ||
-        forecast.values.cloudAreaFractionLow > cloudCoverThreshold * 0.9 ||
-        forecast.values.cloudAreaFractionMedium > cloudCoverThreshold * 0.9) {
+    } else if (forecast.values.cloudAreaFractionHigh > config.cloudCoverThreshold * 0.9 ||
+        forecast.values.cloudAreaFractionLow > config.cloudCoverThreshold * 0.9 ||
+        forecast.values.cloudAreaFractionMedium > config.cloudCoverThreshold * 0.9) {
         caution = true
     }
 
@@ -64,19 +61,17 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem): LaunchStatus {
         return LaunchStatus.UNSAFE
     }
 
-    // Humidity: target is around 75% or lower
-    val humidityThreshold = 75.0
-    if (forecast.values.relativeHumidity > humidityThreshold * 1.1) {
+    // Humidity: target is around the threshold specified in the config
+    if (forecast.values.relativeHumidity > config.humidityThreshold * 1.1) {
         return LaunchStatus.UNSAFE
-    } else if (forecast.values.relativeHumidity > humidityThreshold * 0.9) {
+    } else if (forecast.values.relativeHumidity > config.humidityThreshold * 0.9) {
         caution = true
     }
 
-    // Dew point: max 15°C
-    val dewPointThreshold = 15.0
-    if (forecast.values.dewPointTemperature > dewPointThreshold * 1.1) {
+    // Dew point: max as specified in the config
+    if (forecast.values.dewPointTemperature > config.dewPointThreshold * 1.1) {
         return LaunchStatus.UNSAFE
-    } else if (forecast.values.dewPointTemperature > dewPointThreshold * 0.9) {
+    } else if (forecast.values.dewPointTemperature > config.dewPointThreshold * 0.9) {
         caution = true
     }
 
@@ -90,45 +85,42 @@ data class ParameterEvaluation(
     val status: LaunchStatus
 )
 
-fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvaluation> {
+// Modified to use thresholds from the provided config
+fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation> {
     val evaluations = mutableListOf<ParameterEvaluation>()
 
     // Ground Wind (using windSpeed)
-    val groundWindThreshold = 8.6
     val groundWindValue = forecast.values.windSpeed
-    val groundWindStatus = evaluateValue(groundWindValue, groundWindThreshold)
+    val groundWindStatus = evaluateValue(groundWindValue, config.groundWindThreshold)
     evaluations.add(ParameterEvaluation("Ground Wind", "$groundWindValue m/s", groundWindStatus))
 
     // Air Wind (using wind gust as a proxy)
-    val airWindThreshold = 17.2
     val airWindValue = forecast.values.windSpeedOfGust
-    val airWindStatus = evaluateValue(airWindValue, airWindThreshold)
+    val airWindStatus = evaluateValue(airWindValue, config.airWindThreshold)
     evaluations.add(ParameterEvaluation("Air Wind", "$airWindValue m/s", airWindStatus))
 
-    // **Wind Direction:** simply show the value (and icon in the UI)
+    // Wind Direction is always displayed (assumed safe)
     val windDirectionValue = forecast.values.windFromDirection
     evaluations.add(ParameterEvaluation("Wind Direction", "$windDirectionValue°", LaunchStatus.SAFE))
 
-    // Existing evaluations (cloud cover, fog, precipitation, humidity, dew point, etc.)
     // Cloud Cover: overall
-    val cloudCoverThreshold = 15.0
     val cloudCoverValue = forecast.values.cloudAreaFraction
-    val cloudCoverStatus = evaluateValue(cloudCoverValue, cloudCoverThreshold)
+    val cloudCoverStatus = evaluateValue(cloudCoverValue, config.cloudCoverThreshold)
     evaluations.add(ParameterEvaluation("Cloud Cover", "$cloudCoverValue%", cloudCoverStatus))
 
     // Cloud Cover High
     val cloudCoverHighValue = forecast.values.cloudAreaFractionHigh
-    val cloudCoverHighStatus = evaluateValue(cloudCoverHighValue, cloudCoverThreshold)
+    val cloudCoverHighStatus = evaluateValue(cloudCoverHighValue, config.cloudCoverThreshold)
     evaluations.add(ParameterEvaluation("Cloud Cover High", "$cloudCoverHighValue%", cloudCoverHighStatus))
 
     // Cloud Cover Low
     val cloudCoverLowValue = forecast.values.cloudAreaFractionLow
-    val cloudCoverLowStatus = evaluateValue(cloudCoverLowValue, cloudCoverThreshold)
+    val cloudCoverLowStatus = evaluateValue(cloudCoverLowValue, config.cloudCoverThreshold)
     evaluations.add(ParameterEvaluation("Cloud Cover Low", "$cloudCoverLowValue%", cloudCoverLowStatus))
 
     // Cloud Cover Medium
     val cloudCoverMediumValue = forecast.values.cloudAreaFractionMedium
-    val cloudCoverMediumStatus = evaluateValue(cloudCoverMediumValue, cloudCoverThreshold)
+    val cloudCoverMediumStatus = evaluateValue(cloudCoverMediumValue, config.cloudCoverThreshold)
     evaluations.add(ParameterEvaluation("Cloud Cover Medium", "$cloudCoverMediumValue%", cloudCoverMediumStatus))
 
     // Fog
@@ -142,23 +134,19 @@ fun evaluateParameterConditions(forecast: ForecastDataItem): List<ParameterEvalu
     evaluations.add(ParameterEvaluation("Precipitation", "$precipitationValue mm", precipitationStatus))
 
     // Humidity
-    val humidityThreshold = 75.0
     val humidityValue = forecast.values.relativeHumidity
-    val humidityStatus = evaluateValue(humidityValue, humidityThreshold)
+    val humidityStatus = evaluateValue(humidityValue, config.humidityThreshold)
     evaluations.add(ParameterEvaluation("Humidity", "$humidityValue%", humidityStatus))
 
     // Dew Point
-    val dewPointThreshold = 15.0
     val dewPointValue = forecast.values.dewPointTemperature
-    val dewPointStatus = evaluateValue(dewPointValue, dewPointThreshold)
+    val dewPointStatus = evaluateValue(dewPointValue, config.dewPointThreshold)
     evaluations.add(ParameterEvaluation("Dew Point", "$dewPointValue°C", dewPointStatus))
 
     return evaluations
 }
 
-
-
-// Helper function for numeric parameters with a buffer of ±10%.
+// Helper function for numeric parameters with a buffer of ±10%
 fun evaluateValue(value: Double, threshold: Double): LaunchStatus {
     return when {
         value > threshold * 1.1 -> LaunchStatus.UNSAFE
@@ -178,11 +166,9 @@ fun LaunchStatusIcon(status: LaunchStatus) {
     Icon(imageVector = icon, contentDescription = description, tint = color)
 }
 
-
 @Composable
-fun LaunchStatusIndicator(forecast: ForecastDataItem) {
-    val status = evaluateLaunchConditions(forecast)
-    // Define your colors – you might use MaterialTheme.colorScheme for consistency.
+fun LaunchStatusIndicator(forecast: ForecastDataItem, config: ConfigProfile) {
+    val status = evaluateLaunchConditions(forecast, config)
     val (color, icon, description) = when (status) {
         LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Default.CheckCircle, "Safe to launch")
         LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Default.Warning, "Caution: Check conditions")

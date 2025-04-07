@@ -18,6 +18,7 @@ import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.local.Database.AppDatabase
+import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
@@ -121,22 +122,20 @@ object DatabaseModule {
             AppDatabase::class.java,
             "launch_site_db"
         )
-            .fallbackToDestructiveMigration() // WARNING: This wipes data on version change
+            .fallbackToDestructiveMigration() // This wipes data on version change – use with caution!
             .build()
     }
 
     @Provides
-    fun provideLaunchSiteDao(db: AppDatabase): LaunchSiteDAO {
-        return db.launchSiteDao()
-    }
+    fun provideLaunchSiteDao(db: AppDatabase): LaunchSiteDAO = db.launchSiteDao()
 
     @Provides
-    fun provideGribDataDao(db: AppDatabase): GribDataDAO {
-        return db.gribDataDao()
-    }
+    fun provideGribDataDao(db: AppDatabase): GribDataDAO = db.gribDataDao()
 
     @Provides
-    fun provideGribUpdatedDao(db: AppDatabase): GribUpdatedDAO {
-        return db.gribUpdatedDao()
-    }
+    fun provideGribUpdatedDao(db: AppDatabase): GribUpdatedDAO = db.gribUpdatedDao()
+
+    @Provides
+    fun provideConfigProfileDao(db: AppDatabase): ConfigProfileDAO = db.configProfileDao()
 }
+

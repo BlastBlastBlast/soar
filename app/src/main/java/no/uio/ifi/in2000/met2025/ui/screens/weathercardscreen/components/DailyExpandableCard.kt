@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.*
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 
+/*
 fun evaluateDailyLaunchStatus(items: List<ForecastDataItem>): LaunchStatus {
     var hasUnsafe = false
     var hasCaution = false
@@ -30,14 +31,14 @@ fun evaluateDailyLaunchStatus(items: List<ForecastDataItem>): LaunchStatus {
         else -> LaunchStatus.SAFE
     }
 }
-
+*/
 @Composable
 fun DailyForecastCard(
     forecastItems: List<ForecastDataItem>,
     modifier: Modifier = Modifier
 ) {
     val day = formatZuluTimeToLocalDate(forecastItems.first().time)
-    val overallStatus = evaluateDailyLaunchStatus(forecastItems)
+    //val overallStatus = evaluateDailyLaunchStatus(forecastItems)
 
     val avgTemperature = forecastItems.map { it.values.airTemperature }.average()
     val avgFog = forecastItems.map { it.values.fogAreaFraction }.average()
@@ -60,7 +61,7 @@ fun DailyForecastCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Day: $day", style = MaterialTheme.typography.headlineSmall)
-            LaunchStatusIcon(status = overallStatus)
+            //LaunchStatusIcon(status = overallStatus)
 
             Spacer(modifier = Modifier.height(8.dp))
 

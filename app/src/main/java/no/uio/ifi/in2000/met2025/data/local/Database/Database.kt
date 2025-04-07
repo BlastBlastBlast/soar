@@ -6,7 +6,13 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 
-
+@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class], version = 3)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun launchSiteDao(): LaunchSiteDAO
+    abstract fun gribDataDao(): GribDataDAO
+    abstract fun gribUpdatedDao(): GribUpdatedDAO
+    abstract fun configProfileDao(): ConfigProfileDAO
+}
 
 @Entity
 data class LaunchSite(
@@ -42,14 +48,6 @@ data class GribUpdated(
     @PrimaryKey() val time: String,
 )
 
-
-
-@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class], version = 2)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun launchSiteDao(): LaunchSiteDAO
-    abstract fun gribDataDao(): GribDataDAO
-    abstract fun gribUpdatedDao(): GribUpdatedDAO
-}
 
 /*
 @Entity
