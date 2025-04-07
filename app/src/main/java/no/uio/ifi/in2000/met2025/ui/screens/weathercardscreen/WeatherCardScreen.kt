@@ -17,7 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavHostController
 import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.ui.navigation.Screen
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigSelectionOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
@@ -25,7 +27,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyFo
 @Composable
 fun WeatherCardScreen(
     viewModel: WeatherCardViewmodel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel()
+    locationViewModel: LocationViewModel = hiltViewModel(),
+    navController: NavHostController  // Pass navController from your NavGraph
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
@@ -39,13 +42,13 @@ fun WeatherCardScreen(
     if (activeConfig != null) {
         Box(modifier = Modifier.fillMaxSize()) {
             ScreenContent(uiState = uiState, config = activeConfig!!)
-            // Pass in the modifier to position the overlay.
             ConfigSelectionOverlay(
                 configList = configList,
                 activeConfig = activeConfig!!,
                 onConfigSelected = { selectedConfig ->
                     viewModel.setActiveConfig(selectedConfig)
                 },
+                onNavigateToEditConfigs = { navController.navigate(Screen.EditConfigs.route) },
                 modifier = Modifier.fillMaxSize()
             )
         }

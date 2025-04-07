@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -16,7 +17,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+
+@Composable
+fun EditConfigsMenuItem(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clickable { onClick() }
+            .background(
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Edit Configs",
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
+            fontSize = 14.sp
+        )
+    }
+}
 
 @Composable
 fun ConfigMenuItem(
@@ -24,7 +51,6 @@ fun ConfigMenuItem(
     onConfigSelected: (ConfigProfile) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Use screen width to determine min and max width.
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val minWidth = screenWidth * 0.4f

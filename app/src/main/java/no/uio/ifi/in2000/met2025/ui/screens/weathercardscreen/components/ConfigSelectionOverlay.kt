@@ -30,13 +30,12 @@ fun ConfigSelectionOverlay(
     configList: List<ConfigProfile>,
     activeConfig: ConfigProfile,
     onConfigSelected: (ConfigProfile) -> Unit,
-    // Overall modifier for positioning (passed from parent)
+    onNavigateToEditConfigs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isConfigMenuExpanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        // The FloatingActionButton for config selection.
         FloatingActionButton(
             onClick = { isConfigMenuExpanded = !isConfigMenuExpanded },
             modifier = Modifier
@@ -45,10 +44,8 @@ fun ConfigSelectionOverlay(
                 .size(90.dp),
             containerColor = MaterialTheme.colorScheme.primary
         ) {
-            // Show an abbreviation of the active config's name.
             Text(text = activeConfig.name.take(3))
         }
-        // Animated dropdown menu that expands upward.
         AnimatedVisibility(
             visible = isConfigMenuExpanded,
             enter = expandVertically(
@@ -74,6 +71,14 @@ fun ConfigSelectionOverlay(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
+                // Extra item to navigate to the edit configs screen.
+                EditConfigsMenuItem(
+                    onClick = {
+                        onNavigateToEditConfigs()
+                        isConfigMenuExpanded = false
+                    },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
         }
     }
