@@ -17,10 +17,6 @@ data class LaunchSite(
     @ColumnInfo(name = "name") val name: String
 )
 
-/*
-dataklassen holder på verdiene til oppskytningspunkt
-gir også bruker mulighet til å gi et navn til oppskytningspunktet
-*/
 
 @Entity(tableName = "grib_files")
 data class GribData(
@@ -63,3 +59,23 @@ data class GribData(
     @ColumnInfo(name = "GribDataMap") val gribDataMap: GribDataMap,
 )
  */
+
+@Entity(tableName = "config_profiles")
+data class ConfigProfile(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String,
+    // Threshold values (defaults match your current hardcoded values)
+    @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6,
+    @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
+    @ColumnInfo(name = "cloud_cover_threshold") val cloudCoverThreshold: Double = 15.0,
+    @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
+    @ColumnInfo(name = "dew_point_threshold") val dewPointThreshold: Double = 15.0,
+    // Flags to enable/disable evaluation of each parameter
+    @ColumnInfo(name = "is_enabled_ground_wind") val isEnabledGroundWind: Boolean = true,
+    @ColumnInfo(name = "is_enabled_air_wind") val isEnabledAirWind: Boolean = true,
+    @ColumnInfo(name = "is_enabled_cloud_cover") val isEnabledCloudCover: Boolean = true,
+    @ColumnInfo(name = "is_enabled_humidity") val isEnabledHumidity: Boolean = true,
+    @ColumnInfo(name = "is_enabled_dew_point") val isEnabledDewPoint: Boolean = true,
+    // Mark the default config so it can never be deleted
+    @ColumnInfo(name = "is_default") val isDefault: Boolean = false
+)
