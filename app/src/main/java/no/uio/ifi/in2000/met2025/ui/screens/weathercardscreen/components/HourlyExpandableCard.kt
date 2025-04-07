@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -22,19 +20,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
 import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIndicator
 import no.uio.ifi.in2000.met2025.data.models.evaluateParameterConditions
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
-import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import no.uio.ifi.in2000.met2025.R
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 

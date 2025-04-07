@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
 @Composable
 fun EditConfigsMenuItem(

@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.data.local.Database
+package no.uio.ifi.in2000.met2025.data.local.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

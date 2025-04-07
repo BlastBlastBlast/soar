@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfileDAO
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DefaultConfig

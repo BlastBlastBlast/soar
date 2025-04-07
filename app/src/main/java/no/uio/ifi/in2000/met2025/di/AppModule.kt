@@ -1,7 +1,6 @@
 package no.uio.ifi.in2000.met2025.di
 
 import android.content.Context
-import androidx.lifecycle.SavedStateHandle
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -17,11 +16,11 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import no.uio.ifi.in2000.met2025.data.local.Database.AppDatabase
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfileDAO
-import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
-import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdatedDAO
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.local.database.AppDatabase
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
+import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
+import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource

@@ -20,7 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
 @Composable
 fun ConfigProfileItem(

@@ -16,9 +16,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyE
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigSelectionOverlay

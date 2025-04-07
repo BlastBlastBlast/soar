@@ -1,6 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
-import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
 object DefaultConfig {
     val instance = ConfigProfile(

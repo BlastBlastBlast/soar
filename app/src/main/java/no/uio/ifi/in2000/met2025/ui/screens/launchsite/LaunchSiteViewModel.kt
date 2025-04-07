@@ -4,13 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import javax.inject.Inject
 
 @HiltViewModel
