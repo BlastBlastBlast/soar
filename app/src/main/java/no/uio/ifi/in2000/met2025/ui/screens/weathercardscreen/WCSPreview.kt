@@ -98,8 +98,8 @@ fun WeatherCardPreview() {
         sampleForecastItems.forEach { forecastItem ->
             HourlyExpandableCard(
                 forecastItem = forecastItem,
+                coordinates = Pair(60.0, 10.0),
                 modifier = Modifier.padding(vertical = 8.dp),
-                isobaricDataUiState = AtmosphericWindViewModel.AtmosphericWindUiState.Idle,
             )
         }
     }

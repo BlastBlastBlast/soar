@@ -39,6 +39,7 @@ import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
+import no.uio.ifi.in2000.met2025.domain.helpers.startOfIsobaricDataWindow
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import java.time.Instant
 
@@ -61,9 +62,8 @@ fun WindDirectionIcon(windDirection: Double) {
 @Composable
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
+    coordinates: Pair<Double, Double>,
     modifier: Modifier = Modifier,
-    isobaricDataUiState: AtmosphericWindViewModel.AtmosphericWindUiState,
-    onClickGetIsobaricData: (Instant) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     Card(
@@ -117,15 +117,11 @@ fun HourlyExpandableCard(
                             }
                         }
                     }
-                }
-            }
 
-            AtmosphericWindSubCard(isobaricDataUiState) {
-                onClickGetIsobaricData(
-                    Instant.parse(
-                        forecastItem.time
-                    )
-                )
+                    AtmosphericWindTable(
+                        coordinates = coordinates,
+                        time = Instant.parse(forecastItem.time).startOfIsobaricDataWindow())
+                }
             }
         }
     }

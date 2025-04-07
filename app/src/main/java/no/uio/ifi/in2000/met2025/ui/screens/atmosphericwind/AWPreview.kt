@@ -68,12 +68,12 @@ val mockIsobaricDataItems = mapOf(
 @Preview(showBackground = true)
 @Composable
 fun AtmosphericWindScreenPreview() {
-    AtmosphericWindScreenMock(onLoadData = { _, _ -> })
+    AtmosphericWindScreenMock(onLoadData = { _, _, _ -> })
 }
 
 @Composable
 fun AtmosphericWindScreenMock(
-    onLoadData: (Double, Double) -> Unit
+    onLoadData: (Double, Double, Instant) -> Unit
 ) {
     ScreenContent(validTime = Instant.parse("2025-03-15T17:00:00Z"), dataMap = mockIsobaricDataItems, coordinates = Pair(59.942, 10.726), onLoadData = onLoadData)
 }

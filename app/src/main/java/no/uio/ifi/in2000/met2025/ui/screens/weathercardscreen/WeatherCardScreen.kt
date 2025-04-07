@@ -30,11 +30,9 @@ import java.time.Instant
 fun WeatherCardScreen(
     viewModel: WeatherCardViewmodel = hiltViewModel(),
     locationViewModel: LocationViewModel = hiltViewModel(),
-    atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coordinates by locationViewModel.coordinates.collectAsState()
-    val isobaricDataUiStates by atmosphericWindViewModel.isobaricData.collectAsState()
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
@@ -42,18 +40,14 @@ fun WeatherCardScreen(
 
     ScreenContent(
         uiState = uiState,
-        isobaricDataUiStates = isobaricDataUiStates,
-        onClickGetIsobaricData = { time ->
-            atmosphericWindViewModel.loadIsobaricData(coordinates.first, coordinates.second, time)
-        }
+        coordinates = coordinates
     )
 }
 
 @Composable
 fun ScreenContent(
     uiState: WeatherCardViewmodel.WeatherCardUiState,
-    isobaricDataUiStates: Map<Instant, AtmosphericWindViewModel.AtmosphericWindUiState>,
-    onClickGetIsobaricData: (Instant) -> Unit = {},
+    coordinates: Pair<Double, Double>
 ) {
     val scrollState = rememberScrollState()
 
@@ -87,10 +81,8 @@ fun ScreenContent(
                 dailyItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        isobaricDataUiState = isobaricDataUiStates[Instant.parse(forecastItem.time)]
-                            ?: AtmosphericWindViewModel.AtmosphericWindUiState.Idle,
-                        onClickGetIsobaricData = onClickGetIsobaricData,
+                        coordinates = coordinates,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
             }
