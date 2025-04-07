@@ -87,7 +87,7 @@ fun ScreenContent(
                 dailyItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
-                        config = config,  // Pass the active configuration here
+                        config = config,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }

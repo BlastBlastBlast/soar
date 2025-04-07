@@ -44,7 +44,6 @@ fun ConfigProfileItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = config.name, style = MaterialTheme.typography.bodyLarge)
-                // You can also show a summary of key threshold values here if desired.
             }
             Row {
                 IconButton(onClick = onEdit) {

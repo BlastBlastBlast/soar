@@ -24,31 +24,23 @@ import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
 @Composable
 fun ConfigEditScreen(
-    config: ConfigProfile? = null, // null means new; otherwise editing
+    config: ConfigProfile? = null,
     viewModel: ConfigEditViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     var configName by remember { mutableStateOf(config?.name ?: "") }
     var groundWindThreshold by remember { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
     var airWindThreshold by remember { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
-
-    // Overall cloud cover
     var cloudCoverThreshold by remember { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
     var isEnabledCloudCover by remember { mutableStateOf(config?.isEnabledCloudCover ?: true) }
-
-    // Individual cloud cover thresholds and switches
     var cloudCoverHighThreshold by remember { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
     var isEnabledCloudCoverHigh by remember { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
-
     var cloudCoverMediumThreshold by remember { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
     var isEnabledCloudCoverMedium by remember { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
-
     var cloudCoverLowThreshold by remember { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
     var isEnabledCloudCoverLow by remember { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
-
     var humidityThreshold by remember { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
     var dewPointThreshold by remember { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
-
     var isEnabledGroundWind by remember { mutableStateOf(config?.isEnabledGroundWind ?: true) }
     var isEnabledAirWind by remember { mutableStateOf(config?.isEnabledAirWind ?: true) }
     var isEnabledHumidity by remember { mutableStateOf(config?.isEnabledHumidity ?: true) }
@@ -75,7 +67,6 @@ fun ConfigEditScreen(
             onValueChange = { airWindThreshold = it },
             label = { Text("Air Wind Threshold") }
         )
-        // Overall Cloud Cover
         OutlinedTextField(
             value = cloudCoverThreshold,
             onValueChange = { cloudCoverThreshold = it },
@@ -85,7 +76,6 @@ fun ConfigEditScreen(
             Text("Enable Overall Cloud Cover")
             Switch(checked = isEnabledCloudCover, onCheckedChange = { isEnabledCloudCover = it })
         }
-        // Individual Cloud Cover High
         OutlinedTextField(
             value = cloudCoverHighThreshold,
             onValueChange = { cloudCoverHighThreshold = it },
@@ -95,7 +85,6 @@ fun ConfigEditScreen(
             Text("Enable Cloud Cover High")
             Switch(checked = isEnabledCloudCoverHigh, onCheckedChange = { isEnabledCloudCoverHigh = it })
         }
-        // Individual Cloud Cover Medium
         OutlinedTextField(
             value = cloudCoverMediumThreshold,
             onValueChange = { cloudCoverMediumThreshold = it },
@@ -105,7 +94,6 @@ fun ConfigEditScreen(
             Text("Enable Cloud Cover Medium")
             Switch(checked = isEnabledCloudCoverMedium, onCheckedChange = { isEnabledCloudCoverMedium = it })
         }
-        // Individual Cloud Cover Low
         OutlinedTextField(
             value = cloudCoverLowThreshold,
             onValueChange = { cloudCoverLowThreshold = it },

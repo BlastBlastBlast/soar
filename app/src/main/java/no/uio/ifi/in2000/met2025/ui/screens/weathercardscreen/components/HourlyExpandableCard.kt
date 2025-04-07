@@ -50,7 +50,7 @@ fun WindDirectionIcon(windDirection: Double) {
 @Composable
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
-    config: ConfigProfile,  // New parameter for config thresholds
+    config: ConfigProfile,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }

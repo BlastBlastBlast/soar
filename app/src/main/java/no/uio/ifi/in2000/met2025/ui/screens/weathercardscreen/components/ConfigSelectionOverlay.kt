@@ -68,7 +68,6 @@ fun ConfigSelectionOverlay(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
-                // Extra item to navigate to the edit configs screen.
                 EditConfigsMenuItem(
                     onClick = {
                         onNavigateToEditConfigs()

@@ -30,11 +30,9 @@ class WeatherCardViewmodel @Inject constructor(
     private val _uiState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
     val uiState: StateFlow<WeatherCardUiState> = _uiState
 
-    // Hold the active configuration
     private val _activeConfig = MutableStateFlow<ConfigProfile?>(null)
     val activeConfig: StateFlow<ConfigProfile?> = _activeConfig
 
-    // Expose a list of all config profiles from the database
     private val _configList = MutableStateFlow<List<ConfigProfile>>(emptyList())
     val configList: StateFlow<List<ConfigProfile>> = _configList
 

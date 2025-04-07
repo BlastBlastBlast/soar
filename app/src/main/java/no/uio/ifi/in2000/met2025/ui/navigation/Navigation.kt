@@ -199,22 +199,18 @@ fun AppNavLauncher(
                 composable(Screen.AtmosphericWind.route) {
                     AtmosphericWindScreen(atmosphericWindViewModel)
                 }
-                // New route: Config List Screen
                 composable(Screen.ConfigList.route) {
                     ConfigListScreen(
                         onEditConfig = { config ->
-                            // Navigate to edit screen with this config; pass via savedStateHandle if needed.
                             navController.navigate(Screen.ConfigEdit.route)
                         },
                         onAddConfig = { navController.navigate(Screen.ConfigEdit.route) },
                         onSelectConfig = { config ->
-                            // Set active config, then return to WeatherCardScreen.
                             weatherCardViewModel.setActiveConfig(config)
                             navController.popBackStack()
                         }
                     )
                 }
-                // New route: Config Edit Screen
                 composable(Screen.ConfigEdit.route) {
                     ConfigEditScreen(onNavigateBack = { navController.popBackStack() })
                 }

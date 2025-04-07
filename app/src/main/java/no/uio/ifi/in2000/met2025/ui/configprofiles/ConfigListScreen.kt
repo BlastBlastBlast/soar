@@ -41,10 +41,8 @@ fun ConfigListScreen(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        // "+" button to add a new configuration.
         Button(
             onClick = onAddConfig,
-            modifier = Modifier.fillMaxWidth()
         ) {
             Text("+")
         }
