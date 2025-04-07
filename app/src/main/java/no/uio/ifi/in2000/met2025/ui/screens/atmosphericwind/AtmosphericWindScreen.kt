@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,17 +21,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material3.Button
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
-import no.uio.ifi.in2000.met2025.domain.helpers.startOfIsobaricDataWindow
+import no.uio.ifi.in2000.met2025.domain.helpers.firstAvailableIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.components.AWTableContents
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 @Composable
 fun AtmosphericWindScreen(
@@ -44,7 +40,7 @@ fun AtmosphericWindScreen(
     val longitude = coordinates?.longitude ?: 0.0
 
     val currentTime = Instant.now()
-    val validTime = currentTime.startOfIsobaricDataWindow()
+    val validTime = currentTime.firstAvailableIsobaricDataWindowBefore()
 
     when (coordinates) {
         is LaunchSite -> {

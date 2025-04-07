@@ -67,28 +67,29 @@ class AtmosphericWindViewModel @Inject constructor(
 //            }
 //        }
 //    }
-    fun loadAllAvailableIsobaricDataInOrder(lat: Double, lon: Double) {
-        viewModelScope.launch {
-            val currentTime = Instant.now()
-            val currentHour = LocalDateTime.ofInstant(currentTime, ZoneId.systemDefault()).truncatedTo(ChronoUnit.HOURS)
-            val nextDivisibleHour = generateSequence(currentHour) { it.plusHours(1) }
-                .first { it.hour % 3 == 0 }
-            var validTime = nextDivisibleHour.atZone(ZoneId.systemDefault()).toInstant()
 
-            repeat(8) {
-                Mutex().withLock {
-                    updateIsobaricData(lat, lon, validTime)
-                    validTime = validTime.plus(Duration.ofHours(3))
-                }
-            }
-        }
-    }
+//    fun loadAllAvailableIsobaricDataInOrder(lat: Double, lon: Double) {
+//        viewModelScope.launch {
+//            val currentTime = Instant.now()
+//            val currentHour = LocalDateTime.ofInstant(currentTime, ZoneId.systemDefault()).truncatedTo(ChronoUnit.HOURS)
+//            val nextDivisibleHour = generateSequence(currentHour) { it.plusHours(1) }
+//                .first { it.hour % 3 == 0 }
+//            var validTime = nextDivisibleHour.atZone(ZoneId.systemDefault()).toInstant()
+//
+//            repeat(8) {
+//                Mutex().withLock {
+//                    updateIsobaricData(lat, lon, validTime)
+//                    validTime = validTime.plus(Duration.ofHours(3))
+//                }
+//            }
+//        }
+//    }
 
     fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
         viewModelScope.launch {
-            Mutex().withLock {
+            //Mutex().withLock {
                 updateIsobaricData(lat, lon, time)
-            }
+            //}
         }
     }
 

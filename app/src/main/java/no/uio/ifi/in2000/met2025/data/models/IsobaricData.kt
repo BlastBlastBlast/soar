@@ -13,6 +13,7 @@ data class IsobaricData(
 
 data class IsobaricDataValues(
     val altitude: Double,
+    val airTemperature: Double,
     val windSpeed: Double,
     val windFromDirection: Double
 )

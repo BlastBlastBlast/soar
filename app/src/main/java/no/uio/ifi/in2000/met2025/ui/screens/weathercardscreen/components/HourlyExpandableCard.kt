@@ -2,7 +2,6 @@ package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,10 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,22 +20,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
 import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIndicator
 import no.uio.ifi.in2000.met2025.data.models.evaluateParameterConditions
-import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
-import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
-import no.uio.ifi.in2000.met2025.domain.helpers.startOfIsobaricDataWindow
-import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
+import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import java.time.Instant
 
 @Composable
@@ -120,7 +109,7 @@ fun HourlyExpandableCard(
 
                     AtmosphericWindTable(
                         coordinates = coordinates,
-                        time = Instant.parse(forecastItem.time).startOfIsobaricDataWindow())
+                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore())
                 }
             }
         }

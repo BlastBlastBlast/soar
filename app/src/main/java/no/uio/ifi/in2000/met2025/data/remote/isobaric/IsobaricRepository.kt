@@ -27,7 +27,7 @@ class IsobaricRepository @Inject constructor(
     private val gribDAO: GribDataDAO,
     private val updatedDAO: GribUpdatedDAO
 ) {
-    suspend fun getIsobaricGribData(timeSlot: Instant): GribDataMap {
+    suspend fun getIsobaricGribData(timeSlot: Instant): Result<GribDataMap> {
         //holds a common updated timestamp and individual time stamps and uri's for each dataset
         val availableData = getAvailabilityData()
         println("IsobaricGribDataCalled")
@@ -44,7 +44,7 @@ class IsobaricRepository @Inject constructor(
                     isobaricDataSource.fetchIsobaricGribData(data!!.uri)
                 byteArray = isobaricData.fold(
                     onSuccess = { it },
-                    onFailure = { println("Error fetching grib data"); return emptyMap() }
+                    onFailure = { return returnErrorAndPrint("Error fetching grib data") }
                 )
             } else {
                 if (gribDAO.getByTimestamp(time.toString()) != null) {
@@ -55,24 +55,23 @@ class IsobaricRepository @Inject constructor(
                         isobaricDataSource.fetchIsobaricGribData(data!!.uri)
                     byteArray = isobaricData.fold(
                         onSuccess = { it },
-                        onFailure = { println("Error fetching grib data"); return emptyMap() }
+                        onFailure = { return returnErrorAndPrint("Error fetching grib data") }
                     )
                 }
             }
             val gribData = GribData(time.toString(), byteArray)
             gribDAO.insert(gribData)
-            val res = parseGribData(byteArray)
+            val res = parseGribData(byteArray, time.toString())
             println("IsobaricGribDataReturned")
             return res
         } else {
-            println("availability data is null")
-            return emptyMap()
+            return returnErrorAndPrint("Availability data is null")
         }
     }
 
-    private suspend fun parseGribData(byteArray: ByteArray): GribDataMap {
-        //Mutex().withLock {
-            val gribDataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
+    private suspend fun parseGribData(byteArray: ByteArray, time: String): Result<GribDataMap> {
+        Mutex().withLock {
+            val dataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
 
             try {
                 println("trycatch started")
@@ -103,21 +102,21 @@ class IsobaricRepository @Inject constructor(
                             }
 
                     if (latitudes == null || longitudes == null || isobaricLevels == null) {
-                        println("Missing lat/lon/isobaric data")
-                        return emptyMap()
+                        val errorMsg = "Missing lat/lon/isobaric data"
+                        println(errorMsg)
+                        return Result.failure((Exception(errorMsg)))
                     }
                     println("lat/lon/isobaric data found")
 
                     // Henter ut 4d arrayene for variablene på gitte punkter.
-                    //val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
+                    val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
                     val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")
                         ?.read() as? ArrayFloat.D4
                     val vWindVar = netcdfFile.findVariable("v-component_of_wind_isobaric")
                         ?.read() as? ArrayFloat.D4
 
-                    if (uWindVar == null || vWindVar == null) { //temperatureVar == null
-                        println("Missing temperature or wind data")
-                        return emptyMap()
+                    if (uWindVar == null || vWindVar == null || temperatureVar == null) { //
+                        return returnErrorAndPrint("Missing temperature or wind data")
                     }
                     println("temperature/wind data found")
 
@@ -125,6 +124,7 @@ class IsobaricRepository @Inject constructor(
                     //println("Temperature shape: ${temperatureVar.shape.contentToString()}")
                     println("uWind shape: ${uWindVar.shape.contentToString()}")
                     println("vWind shape: ${vWindVar.shape.contentToString()}")
+                    println("temperature shape: ${temperatureVar.shape.contentToString()}")
                     println("Latitudes size: ${latitudes.size}, Longitudes size: ${longitudes.size}")
                     println("Isobaric levels size: ${isobaricLevels.size}")
                     println("Isobaric levels from NetCDF: ${isobaricLevels.joinToString()}")
@@ -141,17 +141,17 @@ class IsobaricRepository @Inject constructor(
                                 val level = isobaricLevels[levelIdx] / 100  //Convert from Pa to hPa
 
                                 try {
-                                    //val temperature = temperatureVar.get(0, levelIdx, latIdx, lonIdx)
+                                    val temperature = temperatureVar.get(0, levelIdx, latIdx, lonIdx)
                                     val uWind = uWindVar.get(0, levelIdx, latIdx, lonIdx)
                                     val vWind = vWindVar.get(0, levelIdx, latIdx, lonIdx)
 
-                                    isobaricMap[level.toInt()] = GribVectors(uWind, vWind)
+                                    isobaricMap[level.toInt()] = GribVectors(temperature, uWind, vWind)
                                 } catch (e: IndexOutOfBoundsException) {
                                     println("Index error: levelIdx=$levelIdx, latIdx=$latIdx, lonIdx=$lonIdx")
                                 }
                             }
 
-                            gribDataMap[Pair(
+                            dataMap[Pair( // ikkje bruk +, for den returnerer eit nytt map og muterer ikkje det gamle :)))
                                 RoundFloatToXDecimalsDouble(lat, 2),
                                 RoundFloatToXDecimalsDouble(lon - 360, 2)
                             )] = isobaricMap
@@ -163,11 +163,12 @@ class IsobaricRepository @Inject constructor(
             } catch (e: Exception) {
                 println("Error processing GRIB file: ${e.message}")
             }
-            return gribDataMap
-        //}
+            val gribDataMap = GribDataMap(time, dataMap)
+            return Result.success(gribDataMap)
+        }
     }
 
-    suspend fun getAvailabilityData(): StructuredAvailability?{
+    private suspend fun getAvailabilityData(): StructuredAvailability?{
         val response = isobaricDataSource.fetchAvailabilityData()
         val data = response.getOrNull() ?: return null
         println("Availability data fetched")
@@ -179,11 +180,11 @@ class IsobaricRepository @Inject constructor(
         return availableData?.findClosestBefore(time) != null
     }
 
-    suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
+    private suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
         return availResponse.updated.toString() == updatedDAO.getUpdated()
     }
 
-    suspend fun restructureAvailabilityResponse(
+    private fun restructureAvailabilityResponse(
         availResponse: IsobaricAvailabilityResponse
     ): StructuredAvailability {
         val updatedInstant = Instant.parse(availResponse.entries.first().updated)
@@ -195,11 +196,16 @@ class IsobaricRepository @Inject constructor(
         return StructuredAvailability(updatedInstant, availData)
     }
 
-    fun StructuredAvailability.findClosestBefore(targetTime: Instant): AvailabilityData? {
+    private fun StructuredAvailability.findClosestBefore(targetTime: Instant): AvailabilityData? {
         val data = this.availData
-            .filter { it.time < targetTime }
+            .filter { it.time <= targetTime } //kryssa fingrane for at <= ikkje ødelegge alt
             .maxByOrNull { it.time }
         return data
+    }
+
+    private fun <T> returnErrorAndPrint(message: String): Result<T> {
+        println(message)
+        return Result.failure(Exception(message))
     }
 }
 
