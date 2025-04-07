@@ -51,6 +51,7 @@ fun WeatherCardScreen(
             )
         }
     } else {
+        //TODO: Add better error handling for default config
         Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
     }
 }
