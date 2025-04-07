@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindScreen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
@@ -40,7 +41,8 @@ sealed class Screen(val route: String) {
     }
     data object LaunchSite : Screen("launchsite")
     data object AtmosphericWind: Screen("atmosphericwind")
-    data object EditConfigs : Screen("edit_configs")
+    data object ConfigList : Screen("config_list")
+    data object ConfigEdit : Screen("config_edit")
 
 }
 
@@ -197,10 +199,27 @@ fun AppNavLauncher(
                 composable(Screen.AtmosphericWind.route) {
                     AtmosphericWindScreen(atmosphericWindViewModel)
                 }
-                composable(Screen.EditConfigs.route) {
+                // New route: Config List Screen
+                composable(Screen.ConfigList.route) {
+                    ConfigListScreen(
+                        onEditConfig = { config ->
+                            // Navigate to edit screen with this config; pass via savedStateHandle if needed.
+                            navController.navigate(Screen.ConfigEdit.route)
+                        },
+                        onAddConfig = { navController.navigate(Screen.ConfigEdit.route) },
+                        onSelectConfig = { config ->
+                            // Set active config, then return to WeatherCardScreen.
+                            weatherCardViewModel.setActiveConfig(config)
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                // New route: Config Edit Screen
+                composable(Screen.ConfigEdit.route) {
                     ConfigEditScreen(onNavigateBack = { navController.popBackStack() })
                 }
             }
         }
     }
 }
+

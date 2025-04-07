@@ -10,6 +10,7 @@ import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DefaultConfig
 import javax.inject.Inject
 
 
@@ -38,15 +39,16 @@ class WeatherCardViewmodel @Inject constructor(
     val configList: StateFlow<List<ConfigProfile>> = _configList
 
     init {
-        // Collect the default config from the DAO
         viewModelScope.launch {
             configProfileDao.getDefaultConfigProfile().collect { defaultConfig ->
                 if (defaultConfig != null) {
                     _activeConfig.value = defaultConfig
+                } else {
+                    _activeConfig.value = DefaultConfig.instance
                 }
             }
         }
-        // Collect the full list of configurations
+        // Collect the full list of configurations.
         viewModelScope.launch {
             configProfileDao.getAllConfigProfiles().collect { list ->
                 _configList.value = list

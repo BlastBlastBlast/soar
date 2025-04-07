@@ -48,8 +48,7 @@ fun WeatherCardScreen(
                 onConfigSelected = { selectedConfig ->
                     viewModel.setActiveConfig(selectedConfig)
                 },
-                onNavigateToEditConfigs = { navController.navigate(Screen.EditConfigs.route) },
-                modifier = Modifier.fillMaxSize()
+                onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) }
             )
         }
     } else {
