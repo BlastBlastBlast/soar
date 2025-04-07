@@ -1,17 +1,14 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -19,9 +16,10 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyE
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import no.uio.ifi.in2000.met2025.data.local.Database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigSelectionOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 
 @Composable
@@ -31,19 +29,31 @@ fun WeatherCardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
+    val configList by viewModel.configList.collectAsState()
     val coordinates by locationViewModel.coordinates.collectAsState()
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
     }
 
-    // Only show the screen once the config is loaded
     if (activeConfig != null) {
-        ScreenContent(uiState = uiState, config = activeConfig!!)
+        Box(modifier = Modifier.fillMaxSize()) {
+            ScreenContent(uiState = uiState, config = activeConfig!!)
+            // Pass in the modifier to position the overlay.
+            ConfigSelectionOverlay(
+                configList = configList,
+                activeConfig = activeConfig!!,
+                onConfigSelected = { selectedConfig ->
+                    viewModel.setActiveConfig(selectedConfig)
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     } else {
         Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
     }
 }
+
 
 @Composable
 fun ScreenContent(

@@ -12,6 +12,7 @@ import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import javax.inject.Inject
 
+
 @HiltViewModel
 class WeatherCardViewmodel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
@@ -32,21 +33,29 @@ class WeatherCardViewmodel @Inject constructor(
     private val _activeConfig = MutableStateFlow<ConfigProfile?>(null)
     val activeConfig: StateFlow<ConfigProfile?> = _activeConfig
 
+    // Expose a list of all config profiles from the database
+    private val _configList = MutableStateFlow<List<ConfigProfile>>(emptyList())
+    val configList: StateFlow<List<ConfigProfile>> = _configList
+
     init {
+        // Collect the default config from the DAO
         viewModelScope.launch {
             configProfileDao.getDefaultConfigProfile().collect { defaultConfig ->
-                if (defaultConfig == null) {
-                    // Insert a default config if none exists
-                    val newDefault = ConfigProfile(
-                        name = "Default Config",
-                        isDefault = true
-                    )
-                    configProfileDao.insertConfigProfile(newDefault)
-                } else {
+                if (defaultConfig != null) {
                     _activeConfig.value = defaultConfig
                 }
             }
         }
+        // Collect the full list of configurations
+        viewModelScope.launch {
+            configProfileDao.getAllConfigProfiles().collect { list ->
+                _configList.value = list
+            }
+        }
+    }
+
+    fun setActiveConfig(config: ConfigProfile) {
+        _activeConfig.value = config
     }
 
     fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) {
@@ -65,4 +74,3 @@ class WeatherCardViewmodel @Inject constructor(
         }
     }
 }
-
