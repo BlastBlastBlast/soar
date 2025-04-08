@@ -123,8 +123,8 @@ fun ScreenContent(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
+                //FIXME: Add better filtering to allow more cards
                 val today = forecastItems.firstOrNull()?.time?.substring(0, 10)
-
                 val filteredItems = forecastItems
                     .filter { it.time.startsWith(today ?: "") }
                     .let { daily ->

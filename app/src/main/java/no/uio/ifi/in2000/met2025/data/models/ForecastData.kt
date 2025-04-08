@@ -18,17 +18,18 @@ data class ForecastDataValues(
     val airTemperature: Double,
     val relativeHumidity: Double,
     val windSpeed: Double,
-    val windSpeedOfGust: Double,
+    val windSpeedOfGust: Double?,
     val windFromDirection: Double,
-    val fogAreaFraction: Double,
-    val dewPointTemperature: Double,
+    val fogAreaFraction: Double?,
+    val dewPointTemperature: Double?,
     val cloudAreaFraction: Double,
     val cloudAreaFractionHigh: Double,
     val cloudAreaFractionLow: Double,
     val cloudAreaFractionMedium: Double,
-    val precipitationAmount: Double,
-    val probabilityOfThunder: Double
+    val precipitationAmount: Double?,
+    val probabilityOfThunder: Double?
 )
+
 
 
 // ein mindre nøsta struktur enn responsdataen

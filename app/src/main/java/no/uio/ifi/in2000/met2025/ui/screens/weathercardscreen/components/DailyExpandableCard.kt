@@ -41,12 +41,12 @@ fun DailyForecastCard(
     //val overallStatus = evaluateDailyLaunchStatus(forecastItems)
 
     val avgTemperature = forecastItems.map { it.values.airTemperature }.average()
-    val avgFog = forecastItems.map { it.values.fogAreaFraction }.average()
-    val totalPrecipitation = forecastItems.sumOf { it.values.precipitationAmount }
-    val maxDewPoint = forecastItems.maxOf { it.values.dewPointTemperature }
+    val avgFog = forecastItems.map { it.values.fogAreaFraction ?: 0.0}.average()
+    val totalPrecipitation = forecastItems.sumOf { it.values.precipitationAmount ?: 0.0}
+    val maxDewPoint = forecastItems.maxOf { it.values.dewPointTemperature ?: 0.0}
     val maxHumidity = forecastItems.maxOf { it.values.relativeHumidity }
-    val maxAirWind = forecastItems.maxOf { it.values.windSpeedOfGust }
-    val minAirWind = forecastItems.minOf { it.values.windSpeedOfGust }
+    val maxAirWind = forecastItems.maxOf { it.values.windSpeedOfGust ?: 0.0}
+    val minAirWind = forecastItems.minOf { it.values.windSpeedOfGust ?: 0.0}
     val maxGroundWind = forecastItems.maxOf { it.values.windSpeed }
     val minGroundWind = forecastItems.minOf { it.values.windSpeed }
     val avgWindDirection = forecastItems.map { it.values.windFromDirection }.average()
