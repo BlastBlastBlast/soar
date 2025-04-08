@@ -47,15 +47,6 @@ data class GribUpdated(
     @PrimaryKey() val time: String,
 )
 
-
-/*
-@Entity
-data class GribData(
-    @PrimaryKey() val time: Instant,
-    @ColumnInfo(name = "GribDataMap") val gribDataMap: GribDataMap,
-)
- */
-
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

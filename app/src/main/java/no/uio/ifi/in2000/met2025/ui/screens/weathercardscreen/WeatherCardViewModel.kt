@@ -22,8 +22,8 @@ class WeatherCardViewmodel @Inject constructor(
 ) : ViewModel() {
 
     sealed class WeatherCardUiState {
-        object Idle : WeatherCardUiState()
-        object Loading : WeatherCardUiState()
+        data object Idle : WeatherCardUiState()
+        data object Loading : WeatherCardUiState()
         data class Success(val forecastItems: List<ForecastDataItem>) : WeatherCardUiState()
         data class Error(val message: String) : WeatherCardUiState()
     }

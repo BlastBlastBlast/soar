@@ -75,7 +75,6 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
     return if (caution) LaunchStatus.CAUTION else LaunchStatus.SAFE
 }
 
-// New data class for individual parameter evaluations
 data class ParameterEvaluation(
     val label: String,
     val value: String,
