@@ -22,8 +22,9 @@ import androidx.compose.material3.Button
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.helpers.firstAvailableIsobaricDataWindowBefore
+import no.uio.ifi.in2000.met2025.ui.navigation.Screen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.components.AWTableContents
 import java.time.Duration
 import java.time.Instant
