@@ -17,6 +17,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyE
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -155,7 +156,7 @@ fun FilterToggleButton(
     isActive: Boolean,
     onClick: () -> Unit
 ) {
-    TextButton(onClick = onClick) {
+    FilledTonalButton(onClick = onClick) {
         Text(text = if (isActive) "Vis alle" else "Vis kun gyldige")
     }
 }
