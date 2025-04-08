@@ -83,12 +83,6 @@ fun ScreenContent(
 ) {
     val scrollState = rememberScrollState()
 
-    // Velg aktivt filter
-    val currentFilter = if (filterActive)
-        LaunchStatusFilter(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION))
-    else
-        LaunchStatusFilter() // Bruker default med DISABLED inkludert
-
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -121,9 +115,21 @@ fun ScreenContent(
                 )
 
                 val today = forecastItems.firstOrNull()?.time?.substring(0, 10)
+
                 val filteredItems = forecastItems
                     .filter { it.time.startsWith(today ?: "") }
-                    .filter { forecastPassesFilter(it, config, currentFilter) }
+                    .let { daily ->
+                        if (filterActive)
+                            daily.filter {
+                                forecastPassesFilter(
+                                    it,
+                                    config,
+                                    LaunchStatusFilter(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION))
+                                )
+                            }
+                        else
+                            daily // ingen filtrering før knapp er trykket
+                    }
 
                 filteredItems.forEach { forecastItem ->
                     HourlyExpandableCard(
