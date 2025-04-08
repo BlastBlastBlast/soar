@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditViewModel
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindScreen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
@@ -66,7 +67,7 @@ fun AppNavLauncher(
     }
     // Disable gestures on Home so the drawer is only opened by tapping the logo.
     val gesturesEnabled = currentScreenTitle != "Home"
-
+    val configEditViewModel : ConfigEditViewModel = hiltViewModel()
     val atmosphericWindViewModel : AtmosphericWindViewModel = hiltViewModel()
     val weatherCardViewModel : WeatherCardViewmodel = hiltViewModel()
     val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
@@ -202,18 +203,38 @@ fun AppNavLauncher(
                 composable(Screen.ConfigList.route) {
                     ConfigListScreen(
                         onEditConfig = { config ->
-                            navController.navigate(Screen.ConfigEdit.route)
+                            // Navigate with the config id as part of the route.
+                            navController.navigate("config_edit/${config.id}")
                         },
-                        onAddConfig = { navController.navigate(Screen.ConfigEdit.route) },
+                        onAddConfig = {
+                            // Using -1 to indicate a new configuration.
+                            navController.navigate("config_edit/-1")
+                        },
                         onSelectConfig = { config ->
                             weatherCardViewModel.setActiveConfig(config)
                             navController.popBackStack()
                         }
                     )
                 }
-                composable(Screen.ConfigEdit.route) {
-                    ConfigEditScreen(onNavigateBack = { navController.popBackStack() })
+                composable(
+                    route = "config_edit/{configId}",
+                    arguments = listOf(
+                        navArgument("configId") {
+                            type = NavType.IntType
+                            defaultValue = -1 // -1 indicates a new config.
+                        }
+                    )
+                ) { backStackEntry ->
+                    val configId = backStackEntry.arguments?.getInt("configId") ?: -1
+                    // Load the config if editing (configId != -1), else pass null
+                    val config by configEditViewModel.getConfigProfile(configId).collectAsState(initial = null)
+
+                    ConfigEditScreen(
+                        config = config,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
                 }
+
             }
         }
     }
