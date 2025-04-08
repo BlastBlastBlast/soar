@@ -34,31 +34,30 @@ fun ConfigEditScreen(
     viewModel: ConfigEditViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    var configName by remember { mutableStateOf(config?.name ?: "") }
-    var groundWindThreshold by remember { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
-    var airWindThreshold by remember { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
-    var cloudCoverThreshold by remember { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCover by remember { mutableStateOf(config?.isEnabledCloudCover ?: true) }
-    var cloudCoverHighThreshold by remember { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverHigh by remember { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
-    var cloudCoverMediumThreshold by remember { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverMedium by remember { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
-    var cloudCoverLowThreshold by remember { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverLow by remember { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
-    var humidityThreshold by remember { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
-    var dewPointThreshold by remember { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
-    var isEnabledGroundWind by remember { mutableStateOf(config?.isEnabledGroundWind ?: true) }
-    var isEnabledAirWind by remember { mutableStateOf(config?.isEnabledAirWind ?: true) }
-    var isEnabledHumidity by remember { mutableStateOf(config?.isEnabledHumidity ?: true) }
-    var isEnabledDewPoint by remember { mutableStateOf(config?.isEnabledDewPoint ?: true) }
-    var isEnabledWindDirection by remember { mutableStateOf(config?.isEnabledWindDirection ?: true) }
-    var isEnabledFog by remember { mutableStateOf(config?.isEnabledFog ?: true) }
-    var isEnabledPrecipitation by remember { mutableStateOf(config?.isEnabledPrecipitation ?: true) }
-    var isEnabledProbabilityOfThunder by remember { mutableStateOf(config?.isEnabledProbabilityOfThunder ?: true) }
-    var fogThreshold by remember { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
-    var precipitationThreshold by remember { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
-    var probabilityOfThunderThreshold by remember { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
-
+    var configName by remember(config) { mutableStateOf(config?.name ?: "") }
+    var groundWindThreshold by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
+    var airWindThreshold by remember(config) { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
+    var cloudCoverThreshold by remember(config) { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
+    var isEnabledCloudCover by remember(config) { mutableStateOf(config?.isEnabledCloudCover ?: true) }
+    var cloudCoverHighThreshold by remember(config) { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
+    var isEnabledCloudCoverHigh by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
+    var cloudCoverMediumThreshold by remember(config) { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
+    var isEnabledCloudCoverMedium by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
+    var cloudCoverLowThreshold by remember(config) { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
+    var isEnabledCloudCoverLow by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
+    var humidityThreshold by remember(config) { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
+    var dewPointThreshold by remember(config) { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
+    var isEnabledGroundWind by remember(config) { mutableStateOf(config?.isEnabledGroundWind ?: true) }
+    var isEnabledAirWind by remember(config) { mutableStateOf(config?.isEnabledAirWind ?: true) }
+    var isEnabledHumidity by remember(config) { mutableStateOf(config?.isEnabledHumidity ?: true) }
+    var isEnabledDewPoint by remember(config) { mutableStateOf(config?.isEnabledDewPoint ?: true) }
+    var isEnabledWindDirection by remember(config) { mutableStateOf(config?.isEnabledWindDirection ?: true) }
+    var isEnabledFog by remember(config) { mutableStateOf(config?.isEnabledFog ?: true) }
+    var isEnabledPrecipitation by remember(config) { mutableStateOf(config?.isEnabledPrecipitation ?: true) }
+    var isEnabledProbabilityOfThunder by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder ?: true) }
+    var fogThreshold by remember(config) { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
+    var precipitationThreshold by remember(config) { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
+    var probabilityOfThunderThreshold by remember(config) { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
     Column(
         modifier = Modifier
             .fillMaxSize()

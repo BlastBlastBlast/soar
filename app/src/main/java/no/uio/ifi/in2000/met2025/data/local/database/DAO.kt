@@ -76,4 +76,7 @@ interface ConfigProfileDAO {
 
     @Query("SELECT * FROM config_profiles WHERE is_default = 1 LIMIT 1")
     fun getDefaultConfigProfile(): Flow<ConfigProfile?>
+
+    @Query("SELECT * FROM config_profiles WHERE id = :configId LIMIT 1")
+    fun getConfigProfile(configId: Int): Flow<ConfigProfile?>
 }
