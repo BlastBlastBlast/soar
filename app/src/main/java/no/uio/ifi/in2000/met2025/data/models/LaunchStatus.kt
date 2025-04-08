@@ -16,7 +16,6 @@ enum class LaunchStatus {
     DISABLED   // Parameter evaluation is turned off
 }
 
-
 fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile): LaunchStatus {
     var caution = false
 
@@ -32,7 +31,7 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
         else if (forecast.values.windSpeedOfGust > config.airWindThreshold * 0.9) caution = true
     }
 
-    // Overall Cloud Cover (from API overall value)
+    // Overall Cloud Cover
     if (config.isEnabledCloudCover) {
         if (forecast.values.cloudAreaFraction > config.cloudCoverThreshold * 1.1) return LaunchStatus.UNSAFE
         else if (forecast.values.cloudAreaFraction > config.cloudCoverThreshold * 0.9) caution = true
@@ -43,22 +42,48 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
         if (forecast.values.cloudAreaFractionHigh > config.cloudCoverHighThreshold * 1.1) return LaunchStatus.UNSAFE
         else if (forecast.values.cloudAreaFractionHigh > config.cloudCoverHighThreshold * 0.9) caution = true
     }
+
     // Cloud Cover Medium
     if (config.isEnabledCloudCoverMedium) {
         if (forecast.values.cloudAreaFractionMedium > config.cloudCoverMediumThreshold * 1.1) return LaunchStatus.UNSAFE
         else if (forecast.values.cloudAreaFractionMedium > config.cloudCoverMediumThreshold * 0.9) caution = true
     }
+
     // Cloud Cover Low
     if (config.isEnabledCloudCoverLow) {
         if (forecast.values.cloudAreaFractionLow > config.cloudCoverLowThreshold * 1.1) return LaunchStatus.UNSAFE
         else if (forecast.values.cloudAreaFractionLow > config.cloudCoverLowThreshold * 0.9) caution = true
     }
 
-    // Fog: always evaluate.
-    if (forecast.values.fogAreaFraction > 0.0) return LaunchStatus.UNSAFE
+    // Fog
+    if (config.isEnabledFog) {
+        if (config.fogThreshold == 0.0) {
+            if (forecast.values.fogAreaFraction > 0.0) return LaunchStatus.UNSAFE
+        } else {
+            if (forecast.values.fogAreaFraction > config.fogThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (forecast.values.fogAreaFraction > config.fogThreshold * 0.9) caution = true
+        }
+    }
 
-    // Precipitation: always evaluate.
-    if (forecast.values.precipitationAmount > 0.0) return LaunchStatus.UNSAFE
+    // Precipitation
+    if (config.isEnabledPrecipitation) {
+        if (config.precipitationThreshold == 0.0) {
+            if (forecast.values.precipitationAmount > 0.0) caution = true
+        } else {
+            if (forecast.values.precipitationAmount > config.precipitationThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (forecast.values.precipitationAmount > config.precipitationThreshold * 0.9) caution = true
+        }
+    }
+
+    // Probability of Thunder
+    if (config.isEnabledProbabilityOfThunder) {
+        if (config.probabilityOfThunderThreshold == 0.0) {
+            if (forecast.values.probabilityOfThunder > 0.0) caution = true
+        } else {
+            if (forecast.values.probabilityOfThunder > config.probabilityOfThunderThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (forecast.values.probabilityOfThunder > config.probabilityOfThunderThreshold * 0.9) caution = true
+        }
+    }
 
     // Humidity
     if (config.isEnabledHumidity) {
@@ -74,6 +99,8 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
 
     return if (caution) LaunchStatus.CAUTION else LaunchStatus.SAFE
 }
+
+
 
 data class ParameterEvaluation(
     val label: String,
@@ -102,11 +129,15 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
         evaluations.add(ParameterEvaluation("Air Wind", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Wind Direction (always displayed)
-    val windDirectionValue = forecast.values.windFromDirection
-    evaluations.add(ParameterEvaluation("Wind Direction", "$windDirectionValue°", LaunchStatus.SAFE))
+    // Wind Direction
+    if (config.isEnabledWindDirection) {
+        val windDirectionValue = forecast.values.windFromDirection
+        evaluations.add(ParameterEvaluation("Wind Direction", "$windDirectionValue°", LaunchStatus.SAFE))
+    } else {
+        evaluations.add(ParameterEvaluation("Wind Direction", "Turned Off", LaunchStatus.DISABLED))
+    }
 
-    // Overall Cloud Cover (using API's overall cloudAreaFraction)
+    // Overall Cloud Cover
     if (config.isEnabledCloudCover) {
         val overallCloudCover = forecast.values.cloudAreaFraction
         val overallCloudStatus = evaluateValue(overallCloudCover, config.cloudCoverThreshold)
@@ -142,15 +173,31 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
         evaluations.add(ParameterEvaluation("Cloud Cover Low", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Fog: Always evaluated.
-    val fogValue = forecast.values.fogAreaFraction
-    val fogStatus = if (fogValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
-    evaluations.add(ParameterEvaluation("Fog", "$fogValue%", fogStatus))
+    // Fog
+    if (config.isEnabledFog) {
+        val fogValue = forecast.values.fogAreaFraction
+        val fogStatus = if (config.fogThreshold == 0.0) {
+            if (fogValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
+        } else {
+            evaluateValue(fogValue, config.fogThreshold)
+        }
+        evaluations.add(ParameterEvaluation("Fog", "$fogValue%", fogStatus))
+    } else {
+        evaluations.add(ParameterEvaluation("Fog", "Turned Off", LaunchStatus.DISABLED))
+    }
 
-    // Precipitation: Always evaluated.
-    val precipitationValue = forecast.values.precipitationAmount
-    val precipitationStatus = if (precipitationValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
-    evaluations.add(ParameterEvaluation("Precipitation", "$precipitationValue mm", precipitationStatus))
+    // Precipitation
+    if (config.isEnabledPrecipitation) {
+        val precipitationValue = forecast.values.precipitationAmount
+        val precipitationStatus = if (config.precipitationThreshold == 0.0) {
+            if (precipitationValue > 0.0) LaunchStatus.CAUTION else LaunchStatus.SAFE
+        } else {
+            evaluateValue(precipitationValue, config.precipitationThreshold)
+        }
+        evaluations.add(ParameterEvaluation("Precipitation", "$precipitationValue mm", precipitationStatus))
+    } else {
+        evaluations.add(ParameterEvaluation("Precipitation", "Turned Off", LaunchStatus.DISABLED))
+    }
 
     // Humidity
     if (config.isEnabledHumidity) {
@@ -170,9 +217,21 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
         evaluations.add(ParameterEvaluation("Dew Point", "Turned Off", LaunchStatus.DISABLED))
     }
 
+    // Probability of Thunder
+    if (config.isEnabledProbabilityOfThunder) {
+        val thunderValue = forecast.values.probabilityOfThunder
+        val thunderStatus = if (config.probabilityOfThunderThreshold == 0.0) {
+            if (thunderValue > 0.0) LaunchStatus.CAUTION else LaunchStatus.SAFE
+        } else {
+            evaluateValue(thunderValue, config.probabilityOfThunderThreshold)
+        }
+        evaluations.add(ParameterEvaluation("Probability of Thunder", "$thunderValue%", thunderStatus))
+    } else {
+        evaluations.add(ParameterEvaluation("Probability of Thunder", "Turned Off", LaunchStatus.DISABLED))
+    }
+
     return evaluations
 }
-
 
 
 // A composable to display an icon based on a single parameter's status.

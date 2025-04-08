@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -50,6 +51,13 @@ fun ConfigEditScreen(
     var isEnabledAirWind by remember { mutableStateOf(config?.isEnabledAirWind ?: true) }
     var isEnabledHumidity by remember { mutableStateOf(config?.isEnabledHumidity ?: true) }
     var isEnabledDewPoint by remember { mutableStateOf(config?.isEnabledDewPoint ?: true) }
+    var isEnabledWindDirection by remember { mutableStateOf(config?.isEnabledWindDirection ?: true) }
+    var isEnabledFog by remember { mutableStateOf(config?.isEnabledFog ?: true) }
+    var isEnabledPrecipitation by remember { mutableStateOf(config?.isEnabledPrecipitation ?: true) }
+    var isEnabledProbabilityOfThunder by remember { mutableStateOf(config?.isEnabledProbabilityOfThunder ?: true) }
+    var fogThreshold by remember { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
+    var precipitationThreshold by remember { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
+    var probabilityOfThunderThreshold by remember { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
 
     Column(
         modifier = Modifier
@@ -57,190 +65,152 @@ fun ConfigEditScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // General Settings Section
-        Card(
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("General Settings", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = configName,
-                    onValueChange = { configName = it },
-                    label = { Text("Configuration Name") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = groundWindThreshold,
-                    onValueChange = { groundWindThreshold = it },
-                    label = { Text("Ground Wind Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = airWindThreshold,
-                    onValueChange = { airWindThreshold = it },
-                    label = { Text("Air Wind Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = humidityThreshold,
-                    onValueChange = { humidityThreshold = it },
-                    label = { Text("Humidity Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = dewPointThreshold,
-                    onValueChange = { dewPointThreshold = it },
-                    label = { Text("Dew Point Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Ground Wind")
-                    Spacer(modifier = Modifier.weight(1f))
+                Text("Wind Settings", style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("Wind Direction", modifier = Modifier.weight(1f))
+                    Switch(checked = isEnabledWindDirection, onCheckedChange = { isEnabledWindDirection = it })
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = groundWindThreshold,
+                        onValueChange = { groundWindThreshold = it },
+                        label = { Text("Ground Wind Threshold") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Switch(checked = isEnabledGroundWind, onCheckedChange = { isEnabledGroundWind = it })
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Air Wind")
-                    Spacer(modifier = Modifier.weight(1f))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = airWindThreshold,
+                        onValueChange = { airWindThreshold = it },
+                        label = { Text("Air Wind Threshold") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Switch(checked = isEnabledAirWind, onCheckedChange = { isEnabledAirWind = it })
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Humidity")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledHumidity, onCheckedChange = { isEnabledHumidity = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Dew Point")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledDewPoint, onCheckedChange = { isEnabledDewPoint = it })
-                }
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
-        // Cloud Cover Section
-        Card(
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
+
+        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Cloud Cover Settings", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                // Overall Cloud Cover
-                OutlinedTextField(
-                    value = cloudCoverThreshold,
-                    onValueChange = { cloudCoverThreshold = it },
-                    label = { Text("Overall Cloud Cover Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                // Cloud Cover High
-                OutlinedTextField(
-                    value = cloudCoverHighThreshold,
-                    onValueChange = { cloudCoverHighThreshold = it },
-                    label = { Text("Cloud Cover High Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = cloudCoverMediumThreshold,
-                    onValueChange = { cloudCoverMediumThreshold = it },
-                    label = { Text("Cloud Cover Medium Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = cloudCoverLowThreshold,
-                    onValueChange = { cloudCoverLowThreshold = it },
-                    label = { Text("Cloud Cover Low Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Overall Cloud Cover")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCover, onCheckedChange = { isEnabledCloudCover = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Cloud Cover High")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCoverHigh, onCheckedChange = { isEnabledCloudCoverHigh = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Cloud Cover Medium")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCoverMedium, onCheckedChange = { isEnabledCloudCoverMedium = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Cloud Cover Low")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCoverLow, onCheckedChange = { isEnabledCloudCoverLow = it })
+                listOf(
+                    Triple("Overall Cloud Cover", cloudCoverThreshold, isEnabledCloudCover),
+                    Triple("Cloud Cover High", cloudCoverHighThreshold, isEnabledCloudCoverHigh),
+                    Triple("Cloud Cover Medium", cloudCoverMediumThreshold, isEnabledCloudCoverMedium),
+                    Triple("Cloud Cover Low", cloudCoverLowThreshold, isEnabledCloudCoverLow)
+                ).forEachIndexed { index, (label, threshold, enabled) ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = threshold,
+                            onValueChange = {
+                                when (index) {
+                                    0 -> cloudCoverThreshold = it
+                                    1 -> cloudCoverHighThreshold = it
+                                    2 -> cloudCoverMediumThreshold = it
+                                    3 -> cloudCoverLowThreshold = it
+                                }
+                            },
+                            label = { Text(label) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Switch(checked = enabled, onCheckedChange = {
+                            when (index) {
+                                0 -> isEnabledCloudCover = it
+                                1 -> isEnabledCloudCoverHigh = it
+                                2 -> isEnabledCloudCoverMedium = it
+                                3 -> isEnabledCloudCoverLow = it
+                            }
+                        })
+                    }
                 }
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
-        // Save Button
-        Button(
-            onClick = {
-                val updatedConfig = ConfigProfile(
-                    id = config?.id ?: 0,
-                    name = configName,
-                    groundWindThreshold = groundWindThreshold.toDoubleOrNull() ?: 8.6,
-                    airWindThreshold = airWindThreshold.toDoubleOrNull() ?: 17.2,
-                    cloudCoverThreshold = cloudCoverThreshold.toDoubleOrNull() ?: 15.0,
-                    cloudCoverHighThreshold = cloudCoverHighThreshold.toDoubleOrNull() ?: 15.0,
-                    cloudCoverMediumThreshold = cloudCoverMediumThreshold.toDoubleOrNull() ?: 15.0,
-                    cloudCoverLowThreshold = cloudCoverLowThreshold.toDoubleOrNull() ?: 15.0,
-                    humidityThreshold = humidityThreshold.toDoubleOrNull() ?: 75.0,
-                    dewPointThreshold = dewPointThreshold.toDoubleOrNull() ?: 15.0,
-                    isEnabledGroundWind = isEnabledGroundWind,
-                    isEnabledAirWind = isEnabledAirWind,
-                    isEnabledCloudCover = isEnabledCloudCover,
-                    isEnabledCloudCoverHigh = isEnabledCloudCoverHigh,
-                    isEnabledCloudCoverMedium = isEnabledCloudCoverMedium,
-                    isEnabledCloudCoverLow = isEnabledCloudCoverLow,
-                    isEnabledHumidity = isEnabledHumidity,
-                    isEnabledDewPoint = isEnabledDewPoint,
-                    isDefault = config?.isDefault ?: false
-                )
-                if (config == null) viewModel.saveConfig(updatedConfig)
-                else viewModel.updateConfig(updatedConfig)
-                onNavigateBack()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
+
+        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Water & Weather Settings", style = MaterialTheme.typography.titleMedium)
+                listOf(
+                    Triple("Fog Threshold", fogThreshold, isEnabledFog),
+                    Triple("Precipitation Threshold", precipitationThreshold, isEnabledPrecipitation),
+                    Triple("Humidity Threshold", humidityThreshold, isEnabledHumidity),
+                    Triple("Dew Point Threshold", dewPointThreshold, isEnabledDewPoint),
+                    Triple("% Thunder Threshold", probabilityOfThunderThreshold, isEnabledProbabilityOfThunder)
+                ).forEachIndexed { index, (label, threshold, enabled) ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = threshold,
+                            onValueChange = {
+                                when (index) {
+                                    0 -> fogThreshold = it
+                                    1 -> precipitationThreshold = it
+                                    2 -> humidityThreshold = it
+                                    3 -> dewPointThreshold = it
+                                    4 -> probabilityOfThunderThreshold = it
+                                }
+                            },
+                            label = { Text(label) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Switch(checked = enabled, onCheckedChange = {
+                            when (index) {
+                                0 -> isEnabledFog = it
+                                1 -> isEnabledPrecipitation = it
+                                2 -> isEnabledHumidity = it
+                                3 -> isEnabledDewPoint = it
+                                4 -> isEnabledProbabilityOfThunder = it
+                            }
+                        })
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            val updatedConfig = ConfigProfile(
+                id = config?.id ?: 0,
+                name = configName,
+                groundWindThreshold = groundWindThreshold.toDoubleOrNull() ?: 8.6,
+                airWindThreshold = airWindThreshold.toDoubleOrNull() ?: 17.2,
+                cloudCoverThreshold = cloudCoverThreshold.toDoubleOrNull() ?: 15.0,
+                cloudCoverHighThreshold = cloudCoverHighThreshold.toDoubleOrNull() ?: 15.0,
+                cloudCoverMediumThreshold = cloudCoverMediumThreshold.toDoubleOrNull() ?: 15.0,
+                cloudCoverLowThreshold = cloudCoverLowThreshold.toDoubleOrNull() ?: 15.0,
+                humidityThreshold = humidityThreshold.toDoubleOrNull() ?: 75.0,
+                dewPointThreshold = dewPointThreshold.toDoubleOrNull() ?: 15.0,
+                isEnabledGroundWind = isEnabledGroundWind,
+                isEnabledAirWind = isEnabledAirWind,
+                isEnabledCloudCover = isEnabledCloudCover,
+                isEnabledCloudCoverHigh = isEnabledCloudCoverHigh,
+                isEnabledCloudCoverMedium = isEnabledCloudCoverMedium,
+                isEnabledCloudCoverLow = isEnabledCloudCoverLow,
+                isEnabledHumidity = isEnabledHumidity,
+                isEnabledDewPoint = isEnabledDewPoint,
+                isEnabledWindDirection = isEnabledWindDirection,
+                isEnabledFog = isEnabledFog,
+                fogThreshold = fogThreshold.toDoubleOrNull() ?: 0.0,
+                isEnabledPrecipitation = isEnabledPrecipitation,
+                precipitationThreshold = precipitationThreshold.toDoubleOrNull() ?: 0.0,
+                isEnabledProbabilityOfThunder = isEnabledProbabilityOfThunder,
+                probabilityOfThunderThreshold = probabilityOfThunderThreshold.toDoubleOrNull() ?: 0.0,
+                isDefault = config?.isDefault ?: false
+            )
+            if (config == null) viewModel.saveConfig(updatedConfig)
+            else viewModel.updateConfig(updatedConfig)
+            onNavigateBack()
+        }, modifier = Modifier.fillMaxWidth()) {
             Text("Save Configuration")
         }
     }
