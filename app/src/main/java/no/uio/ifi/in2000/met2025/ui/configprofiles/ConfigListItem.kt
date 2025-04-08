@@ -46,17 +46,20 @@ fun ConfigProfileItem(
                 Text(text = config.name, style = MaterialTheme.typography.bodyLarge)
             }
             Row {
-                IconButton(onClick = onEdit) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Configuration"
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Configuration"
-                    )
+                // Show edit and delete options only if config is not default.
+                if (!config.isDefault) {
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Configuration"
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Configuration"
+                        )
+                    }
                 }
             }
         }

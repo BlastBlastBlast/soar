@@ -19,21 +19,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import androidx.compose.ui.draw.shadow
 
 @Composable
 fun EditConfigsMenuItem(
     onClick: () -> Unit,
+    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val minWidth = screenWidth * 0.4f
+    val maxWidth = screenWidth * 0.8f
+
     Row(
         modifier = modifier
-            .clickable { onClick() }
+            .clickable(enabled = enabled) { onClick() }
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
             .background(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(8.dp)
-            .fillMaxWidth(),
+            .widthIn(min = minWidth, max = maxWidth),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -59,6 +67,7 @@ fun ConfigMenuItem(
     Row(
         modifier = modifier
             .clickable { onConfigSelected(config) }
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
             .background(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                 shape = RoundedCornerShape(8.dp)

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
@@ -38,15 +39,16 @@ class WeatherCardViewmodel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            configProfileDao.getDefaultConfigProfile().collect { defaultConfig ->
-                if (defaultConfig != null) {
-                    _activeConfig.value = defaultConfig
-                } else {
-                    _activeConfig.value = DefaultConfig.instance
-                }
+            val currentConfigs = configProfileDao.getAllConfigProfiles().first()
+            if (currentConfigs.none { it.isDefault }) {
+                configProfileDao.insertConfigProfile(DefaultConfig.instance)
             }
         }
-        // Collect the full list of configurations.
+        viewModelScope.launch {
+            configProfileDao.getDefaultConfigProfile().collect { defaultConfig ->
+                _activeConfig.value = defaultConfig ?: DefaultConfig.instance
+            }
+        }
         viewModelScope.launch {
             configProfileDao.getAllConfigProfiles().collect { list ->
                 _configList.value = list
@@ -67,8 +69,7 @@ class WeatherCardViewmodel @Inject constructor(
                     _uiState.value = WeatherCardUiState.Success(forecastData.timeSeries)
                 },
                 onFailure = { throwable ->
-                    _uiState.value =
-                        WeatherCardUiState.Error(throwable.message ?: "Unknown error")
+                    _uiState.value = WeatherCardUiState.Error(throwable.message ?: "Unknown error")
                 }
             )
         }

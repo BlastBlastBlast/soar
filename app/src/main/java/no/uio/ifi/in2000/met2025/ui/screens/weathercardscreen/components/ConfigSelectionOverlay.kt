@@ -58,6 +58,14 @@ fun ConfigSelectionOverlay(
                 .padding(start = 16.dp, bottom = 100.dp)
         ) {
             Column {
+                EditConfigsMenuItem(
+                    onClick = {
+                        onNavigateToEditConfigs()
+                        isConfigMenuExpanded = false
+                    },
+                    enabled = true,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
                 configList.forEach { item ->
                     ConfigMenuItem(
                         config = item,
@@ -68,13 +76,6 @@ fun ConfigSelectionOverlay(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
-                EditConfigsMenuItem(
-                    onClick = {
-                        onNavigateToEditConfigs()
-                        isConfigMenuExpanded = false
-                    },
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
             }
         }
     }
