@@ -67,6 +67,19 @@ fun ConfigEditScreen(
     ) {
         Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
+                Text("Configuration Name", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = configName,
+                    onValueChange = { configName = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Wind Settings", style = MaterialTheme.typography.titleMedium)
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Text("Wind Direction", modifier = Modifier.weight(1f))
