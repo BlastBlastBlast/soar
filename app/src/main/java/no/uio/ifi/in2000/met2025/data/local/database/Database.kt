@@ -49,8 +49,7 @@ data class GribUpdated(
 
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val name: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
     @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6,
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
     @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
