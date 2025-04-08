@@ -10,9 +10,7 @@ import kotlin.math.pow
 fun calculatePressureAtAltitude(altitude: Double, referencePressure: Double, referenceAirTemperature: Double, referenceAltitude: Double = 0.0): Double {
     // probably not correct yet
     val exponent = (GRAVITY * EARTH_AIR_MOLAR_MASS / (UNIVERSAL_GAS_CONSTANT * TEMPERATURE_LAPSE_RATE))
-    val pressure = referencePressure * (1 - (TEMPERATURE_LAPSE_RATE * (altitude - referenceAltitude)) / (referenceAirTemperature + CELSIUS_TO_KELVIN)).pow(
-        exponent
-    )
+    val pressure = referencePressure * (1 - (TEMPERATURE_LAPSE_RATE * (altitude - referenceAltitude)) / referenceAirTemperature).pow(exponent)
 
     return pressure
 }

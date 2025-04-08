@@ -1,6 +1,8 @@
 package no.uio.ifi.in2000.met2025.domain
 
 import no.uio.ifi.in2000.met2025.data.models.Constants
+import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
+import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
 import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
@@ -19,6 +21,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 class WeatherModel @Inject constructor(
@@ -26,7 +29,11 @@ class WeatherModel @Inject constructor(
     private val isobaricRepository: IsobaricRepository
 ) { //Businesslogikk for konsolidering av forskjellig type data
 
-    suspend fun getCurrentIsobaricData(lat: Double, lon: Double, time: Instant) : Result<IsobaricData> {
+    suspend fun getCurrentIsobaricData(
+        lat: Double,
+        lon: Double,
+        time: Instant
+    ): Result<IsobaricData> {
         val gribResult = isobaricRepository.getIsobaricGribData(time).fold(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
@@ -39,17 +46,23 @@ class WeatherModel @Inject constructor(
         )
         val forecastItem = combinedForecastDataItems(forecastData.timeSeries)
 
-        val groundLevelPressure = calculatePressureAtAltitude(forecastData.altitude, forecastItem.values.airPressureAtSeaLevel, forecastItem.values.airTemperature).toInt()
+        val airTemperatureAtSeaLevel = forecastItem.values.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
 
-        return convertGribToIsobaricData(lat, lon, gribResult, forecastItem, groundLevelPressure, forecastData.altitude)
-//        return isobaricResult.fold(
-//            onFailure = { exception: Throwable ->
-//                Result.failure(exception)
-//            },
-//            onSuccess = { isobaricItem: IsobaricData ->
-//                Result.success(combinedDataResult(isobaricItem, forecastItem, forecastData.altitude))
-//            }
-//        )
+        val groundPressure = calculatePressureAtAltitude(
+            altitude = forecastData.altitude,
+            referencePressure = forecastItem.values.airPressureAtSeaLevel,
+            referenceAirTemperature = airTemperatureAtSeaLevel
+        ).toInt()
+
+        return convertGribToIsobaricData(
+            lat,
+            lon,
+            gribResult,
+            forecastItem,
+            groundPressure,
+            forecastData.altitude,
+            airTemperatureAtSeaLevel
+        )
     }
 
     private fun convertGribToIsobaricData(
@@ -57,8 +70,9 @@ class WeatherModel @Inject constructor(
         lon: Double,
         gribDataMap: GribDataMap,
         forecastItem: ForecastDataItem,
-        groundLevelPressure: Int,
-        groundAltitude: Double
+        groundPressure: Int,
+        groundAltitude: Double,
+        airTemperatureAtSeaLevel: Double
     ): Result<IsobaricData> {
         println("lat $lat, lon $lon")
 
@@ -76,24 +90,69 @@ class WeatherModel @Inject constructor(
 
                 val dataMap: Map<Int, GribVectors>? = gribDataMap.map[Pair(update2Lat, update2Lon)]
                 println(if (dataMap != null) "rounding success" else "rounding failure")
+                val gribVectorsMap = dataMap!!
 
-                val isobaricData = IsobaricData(
-                    time = gribDataMap.time,
-                    valuesAtLayer = buildValuesAtLayerR(
-                        pressureValues = layerPressureValues.reversed(),
-                        previousPressure = groundLevelPressure,
-                        gribVectorsMap = dataMap!!,
-                        result = mapOf(
-                            groundLevelPressure to IsobaricDataValues(
+                var referenceAltitude = 0.0
+                var referencePressure = forecastItem.values.airPressureAtSeaLevel
+                var referenceAirTemperature = airTemperatureAtSeaLevel //always in Kelvin
+
+                Result.success(
+                    IsobaricData(
+                        time = gribDataMap.time,
+                        valuesAtLayer = mapOf(
+                            groundPressure to IsobaricDataValues(
                                 altitude = groundAltitude,
                                 airTemperature = forecastItem.values.airTemperature,
                                 windSpeed = forecastItem.values.windSpeed,
                                 windFromDirection = forecastItem.values.windFromDirection
                             )
-                        )
+                        ) + layerPressureValues.reversed().associateWith { pressure ->
+                            val gribVectors = gribVectorsMap[pressure]
+                            val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble() //TODO: add support for null values
+                            val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
+
+                            val altitude = calculateAltitude(
+                                pressure = pressure.toDouble(),
+                                referencePressure = referencePressure,
+                                referenceAirTemperature = referenceAirTemperature,
+                                referenceAltitude = referenceAltitude
+                            )
+                            val airTemperature = gribVectorsMap[pressure]?.temperature?.toDouble() ?: 0.0
+                            val windSpeed = sqrt(uComponentWind.pow(2) + vComponentWind.pow(2))
+                            val windFromDirection = Math.toDegrees(atan2(uComponentWind, vComponentWind))
+
+                            if (altitude > 10000 && referenceAltitude < 10000) { // updates reference values when altitude is above 10km, only once
+                                referenceAltitude = altitude
+                                referencePressure = pressure.toDouble()
+                                referenceAirTemperature = airTemperature + CELSIUS_TO_KELVIN //ensure new reference temperature is in Kelvin
+                            }
+
+                            IsobaricDataValues(
+                                altitude = altitude,
+                                airTemperature = airTemperature,
+                                windSpeed = windSpeed,
+                                windFromDirection = windFromDirection
+                            )
+                        }
                     )
                 )
-                Result.success(isobaricData)
+
+//                val isobaricData = IsobaricData(
+//                    time = gribDataMap.time,
+//                    valuesAtLayer = buildValuesAtLayerR(
+//                        pressureValues = layerPressureValues.reversed(),
+//                        previousPressure = groundLevelPressure,
+//                        gribVectorsMap = dataMap!!,
+//                        result = mapOf(
+//                            groundLevelPressure to IsobaricDataValues(
+//                                altitude = groundAltitude,
+//                                airTemperature = forecastItem.values.airTemperature,
+//                                windSpeed = forecastItem.values.windSpeed,
+//                                windFromDirection = forecastItem.values.windFromDirection
+//                            )
+//                        )
+//                    )
+//                )
             } catch (exception: Exception) {
                 Result.failure(exception)
             }
@@ -102,45 +161,46 @@ class WeatherModel @Inject constructor(
         }
     }
 
-    private fun buildValuesAtLayerR(
-        pressureValues: List<Int>,
-        previousPressure: Int,
-        gribVectorsMap: Map<Int, GribVectors>,
-        result: Map<Int, IsobaricDataValues>
-    ): Map<Int, IsobaricDataValues> {
+//    private fun buildValuesAtLayerR(
+//        pressureValues: List<Int>,
+//        previousPressure: Int,
+//        gribVectorsMap: Map<Int, GribVectors>,
+//        result: Map<Int, IsobaricDataValues>
+//    ): Map<Int, IsobaricDataValues> {
+//
+//        if (pressureValues.isEmpty()) {
+//            return result
+//        }
+//
+//        val pressure = pressureValues.first()
+//        val previousIsobaricDataValues = result[previousPressure]!!
+//        val gribVectors = gribVectorsMap[pressure]
+//        val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
+//        val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
+//
+//        return buildValuesAtLayerR(
+//            pressureValues = pressureValues.drop(1),
+//            previousPressure = pressure,
+//            gribVectorsMap = gribVectorsMap,
+//            result = result + (pressure to IsobaricDataValues(
+//                altitude = calculateAltitude(
+//                    pressure = pressure.toDouble(),
+//                    referencePressure = previousPressure.toDouble(),
+//                    referenceAirTemperature = previousIsobaricDataValues.airTemperature,
+//                    referenceAltitude = previousIsobaricDataValues.altitude
+//                ),
+//                airTemperature = (gribVectorsMap[pressure]?.temperature)?.toDouble() ?: 0.0,
+//                windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
+//                windFromDirection = Math.toDegrees(
+//                    atan2(uComponentWind, vComponentWind)
+//                )
+//            )
+//                    )
+//        )
+//    }
 
-        if (pressureValues.isEmpty()) {
-            return result
-        }
 
-        val pressure = pressureValues.first()
-        val previousIsobaricDataValues = result[previousPressure]!!
-        val gribVectors = gribVectorsMap[pressure]
-        val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
-        val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
-
-        return buildValuesAtLayerR(
-            pressureValues = pressureValues.drop(1),
-            previousPressure = pressure,
-            gribVectorsMap = gribVectorsMap,
-            result = result + (pressure to IsobaricDataValues(
-                        altitude = calculateAltitude(
-                            pressure = pressure.toDouble(),
-                            referencePressure = previousPressure.toDouble(),
-                            referenceAirTemperature = previousIsobaricDataValues.airTemperature,
-                            referenceAltitude = previousIsobaricDataValues.altitude
-                        ),
-                        airTemperature = (gribVectorsMap[pressure]?.temperature)?.toDouble() ?: 0.0,
-                        windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
-                        windFromDirection = Math.toDegrees(
-                            atan2(uComponentWind, vComponentWind))
-                    )
-                    )
-        )
-    }
-
-
-    private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>) : ForecastDataItem {
+    private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>): ForecastDataItem {
         return ForecastDataItem(
             time = timeSeries.first().time,
             values = ForecastDataValues(
