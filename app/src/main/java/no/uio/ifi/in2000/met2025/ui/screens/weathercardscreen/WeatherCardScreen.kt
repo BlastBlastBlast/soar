@@ -3,6 +3,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,13 +16,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyExpandableCard
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigSelectionOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import no.uio.ifi.in2000.met2025.data.models.LaunchStatus
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
+
 
 @Composable
 fun WeatherCardScreen(
@@ -34,13 +45,20 @@ fun WeatherCardScreen(
     val configList by viewModel.configList.collectAsState()
     val coordinates by locationViewModel.coordinates.collectAsState()
 
+    var filterActive by remember { mutableStateOf(false) }
+
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
     }
 
     if (activeConfig != null) {
         Box(modifier = Modifier.fillMaxSize()) {
-            ScreenContent(uiState = uiState, config = activeConfig!!)
+            ScreenContent(
+                uiState = uiState,
+                config = activeConfig!!,
+                filterActive = filterActive,
+                onToggleFilter = { filterActive = !filterActive }
+            )
             ConfigSelectionOverlay(
                 configList = configList,
                 activeConfig = activeConfig!!,
@@ -51,7 +69,6 @@ fun WeatherCardScreen(
             )
         }
     } else {
-        //TODO: Add better error handling for default config
         Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -60,32 +77,55 @@ fun WeatherCardScreen(
 @Composable
 fun ScreenContent(
     uiState: WeatherCardViewmodel.WeatherCardUiState,
-    config: ConfigProfile
+    config: ConfigProfile,
+    filterActive: Boolean,
+    onToggleFilter: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+
+    // Velg aktivt filter
+    val currentFilter = if (filterActive)
+        LaunchStatusFilter(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION))
+    else
+        LaunchStatusFilter() // Bruker default med DISABLED inkludert
+
     Column(
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
+        Button(
+            onClick = onToggleFilter,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+        ) {
+            Text(if (filterActive) "Vis alle" else "Vis kun gyldige")
+        }
+
         when (uiState) {
             is WeatherCardViewmodel.WeatherCardUiState.Loading -> {
-                Text("Loading...", style = MaterialTheme.typography.headlineSmall)
+                Text("Laster værdata...", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Error -> {
-                Text("Error: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
+                Text("Feil: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Success -> {
                 val forecastItems = uiState.forecastItems
                 DailyForecastRowSection(forecastItems = forecastItems)
+
                 Text(
-                    text = "Hourly Forecast",
+                    text = "Time-for-time",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
+
                 val today = forecastItems.firstOrNull()?.time?.substring(0, 10)
-                val dailyItems = forecastItems.filter { it.time.startsWith(today ?: "") }
-                dailyItems.forEach { forecastItem ->
+                val filteredItems = forecastItems
+                    .filter { it.time.startsWith(today ?: "") }
+                    .filter { forecastPassesFilter(it, config, currentFilter) }
+
+                filteredItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
                         config = config,
