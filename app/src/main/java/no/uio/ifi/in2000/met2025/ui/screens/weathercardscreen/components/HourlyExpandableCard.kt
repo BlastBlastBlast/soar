@@ -30,6 +30,8 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
+import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
+import java.time.Instant
 
 @Composable
 fun WindDirectionIcon(windDirection: Double) {
@@ -50,6 +52,7 @@ fun WindDirectionIcon(windDirection: Double) {
 @Composable
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
+    coordinates: Pair<Double, Double>,
     config: ConfigProfile,
     modifier: Modifier = Modifier
 ) {
@@ -103,6 +106,10 @@ fun HourlyExpandableCard(
                             }
                         }
                     }
+
+                    AtmosphericWindTable(
+                        coordinates = coordinates,
+                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore())
                 }
             }
         }

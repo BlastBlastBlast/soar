@@ -58,6 +58,7 @@ fun WeatherCardScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             ScreenContent(
                 uiState = uiState,
+                coordinates = coordinates,
                 config = activeConfig!!,
                 filterActive = filterActive,
                 onToggleFilter = { filterActive = !filterActive }
@@ -80,6 +81,7 @@ fun WeatherCardScreen(
 @Composable
 fun ScreenContent(
     uiState: WeatherCardViewmodel.WeatherCardUiState,
+    coordinates: Pair<Double, Double>,
     config: ConfigProfile,
     filterActive: Boolean,
     onToggleFilter: () -> Unit
@@ -141,6 +143,7 @@ fun ScreenContent(
                 filteredItems.forEach { forecastItem ->
                     HourlyExpandableCard(
                         forecastItem = forecastItem,
+                        coordinates = coordinates,
                         config = config,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
