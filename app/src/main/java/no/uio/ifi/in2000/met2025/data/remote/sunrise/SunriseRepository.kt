@@ -6,12 +6,8 @@ import javax.inject.Inject
 class SunriseRepository @Inject constructor(
     private val sunriseDataSource: SunriseDataSource
 ) {
-    /**
-     * Hent første soloppgangsdata for angitt dato og koordinater.
-     * @param lat Breddegrad
-     * @param lon Lengdegrad
-     * @param date ISO 8601-dato
-     * @param offset Tidssoneforskyvning (f.eks. "+02:00")
+    /*
+     * Hent soloppgangsdata for angitt dato og koordinater.
      */
     suspend fun getSunTimes(
         lat: Double,
@@ -20,8 +16,6 @@ class SunriseRepository @Inject constructor(
         offset: String = "+00:00"
     ): Result<SunTime> {
         return sunriseDataSource.fetchSunriseData(lat, lon, date, offset)
-            .mapCatching { response ->
-                response.location.time.first()
-            }
     }
+
 }
