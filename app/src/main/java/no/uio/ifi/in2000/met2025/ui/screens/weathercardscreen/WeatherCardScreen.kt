@@ -17,6 +17,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyE
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import no.uio.ifi.in2000.met2025.data.models.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
@@ -88,13 +90,17 @@ fun ScreenContent(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-        Button(
-            onClick = onToggleFilter,
+        // Filter-knapp øverst til høyre
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = 8.dp),
+            contentAlignment = Alignment.CenterEnd
         ) {
-            Text(if (filterActive) "Vis alle" else "Vis kun gyldige")
+            FilterToggleButton(
+                isActive = filterActive,
+                onClick = onToggleFilter
+            )
         }
 
         when (uiState) {
@@ -128,7 +134,7 @@ fun ScreenContent(
                                 )
                             }
                         else
-                            daily // ingen filtrering før knapp er trykket
+                            daily
                     }
 
                 filteredItems.forEach { forecastItem ->
@@ -141,6 +147,16 @@ fun ScreenContent(
             }
             else -> Unit
         }
+    }
+}
+
+@Composable
+fun FilterToggleButton(
+    isActive: Boolean,
+    onClick: () -> Unit
+) {
+    TextButton(onClick = onClick) {
+        Text(text = if (isActive) "Vis alle" else "Vis kun gyldige")
     }
 }
 
