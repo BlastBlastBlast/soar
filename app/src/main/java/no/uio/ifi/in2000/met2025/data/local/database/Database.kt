@@ -67,6 +67,14 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_air_wind") val isEnabledAirWind: Boolean = true,
     @ColumnInfo(name = "is_enabled_humidity") val isEnabledHumidity: Boolean = true,
     @ColumnInfo(name = "is_enabled_dew_point") val isEnabledDewPoint: Boolean = true,
+    @ColumnInfo(name = "is_enabled_wind_direction") val isEnabledWindDirection: Boolean = true,
+    @ColumnInfo(name = "fog_threshold") val fogThreshold: Double = 0.0,
+    @ColumnInfo(name = "is_enabled_fog") val isEnabledFog: Boolean = true,
+    @ColumnInfo(name = "precipitation_threshold") val precipitationThreshold: Double = 0.0,
+    @ColumnInfo(name = "is_enabled_precipitation") val isEnabledPrecipitation: Boolean = true,
+    @ColumnInfo(name = "probability_of_thunder_threshold") val probabilityOfThunderThreshold: Double = 0.0,
+    @ColumnInfo(name = "is_enabled_probability_of_thunder") val isEnabledProbabilityOfThunder: Boolean = true,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
+
 
