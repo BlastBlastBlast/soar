@@ -13,6 +13,9 @@ object DefaultConfig {
         cloudCoverLowThreshold = 15.0,
         humidityThreshold = 75.0,
         dewPointThreshold = 15.0,
+        fogThreshold = 0.0,
+        precipitationThreshold = 0.0,
+        probabilityOfThunderThreshold = 0.0,
         isEnabledGroundWind = true,
         isEnabledAirWind = true,
         isEnabledCloudCover = true,
@@ -21,6 +24,11 @@ object DefaultConfig {
         isEnabledCloudCoverLow = true,
         isEnabledHumidity = true,
         isEnabledDewPoint = true,
+        isEnabledWindDirection = true,
+        isEnabledFog = true,
+        isEnabledPrecipitation = true,
+        isEnabledProbabilityOfThunder = true,
         isDefault = true
     )
 }
+
