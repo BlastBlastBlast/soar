@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
 @Composable
 fun LaunchSiteItem(

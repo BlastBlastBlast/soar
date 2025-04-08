@@ -6,10 +6,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.Database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
-import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Inject
 
