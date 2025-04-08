@@ -11,7 +11,7 @@ import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.HourlyExpandableCard
 import java.time.Instant
-
+/*
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun WeatherCardPreview() {
@@ -104,3 +104,4 @@ fun WeatherCardPreview() {
         }
     }
 }
+*/

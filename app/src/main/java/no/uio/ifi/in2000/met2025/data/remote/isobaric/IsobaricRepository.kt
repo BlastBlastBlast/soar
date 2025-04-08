@@ -4,10 +4,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import no.uio.ifi.in2000.met2025.data.local.Database.GribData
-import no.uio.ifi.in2000.met2025.data.local.Database.GribDataDAO
-import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdated
-import no.uio.ifi.in2000.met2025.data.local.Database.GribUpdatedDAO
+import no.uio.ifi.in2000.met2025.data.local.database.GribData
+import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
+import no.uio.ifi.in2000.met2025.data.local.database.GribUpdated
+import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.models.AvailabilityData
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.GribVectors

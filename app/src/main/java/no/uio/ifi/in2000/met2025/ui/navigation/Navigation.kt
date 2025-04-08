@@ -18,6 +18,8 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindScreen
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
@@ -33,12 +35,15 @@ object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
 }
 
 sealed class Screen(val route: String) {
-    object Home : Screen("home")
-    object Weather : Screen("weather?lat={lat}&lon={lon}") {
+    data object Home : Screen("home")
+    data object Weather : Screen("weather?lat={lat}&lon={lon}") {
         fun createRoute(lat: Double, lon: Double) = "weather?lat=$lat&lon=$lon"
     }
-    object LaunchSite : Screen("launchsite")
-    object AtmosphericWind: Screen("atmosphericwind")
+    data object LaunchSite : Screen("launchsite")
+    data object AtmosphericWind: Screen("atmosphericwind")
+    data object ConfigList : Screen("config_list")
+    data object ConfigEdit : Screen("config_edit")
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -180,11 +185,13 @@ fun AppNavLauncher(
                 ) { backStackEntry ->
                     val lat = backStackEntry.arguments?.getDouble("lat") ?: 0.0
                     val lon = backStackEntry.arguments?.getDouble("lon") ?: 0.0
-
                     LaunchedEffect(lat, lon) {
                         weatherCardViewModel.loadForecast(lat, lon)
                     }
-                    WeatherCardScreen(weatherCardViewModel)
+                    WeatherCardScreen(
+                        weatherCardViewModel,
+                        navController = navController
+                    )
                 }
                 composable(Screen.LaunchSite.route) {
                     LaunchSiteScreen()
@@ -192,7 +199,23 @@ fun AppNavLauncher(
                 composable(Screen.AtmosphericWind.route) {
                     AtmosphericWindScreen(atmosphericWindViewModel)
                 }
+                composable(Screen.ConfigList.route) {
+                    ConfigListScreen(
+                        onEditConfig = { config ->
+                            navController.navigate(Screen.ConfigEdit.route)
+                        },
+                        onAddConfig = { navController.navigate(Screen.ConfigEdit.route) },
+                        onSelectConfig = { config ->
+                            weatherCardViewModel.setActiveConfig(config)
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                composable(Screen.ConfigEdit.route) {
+                    ConfigEditScreen(onNavigateBack = { navController.popBackStack() })
+                }
             }
         }
     }
 }
+

@@ -27,6 +27,7 @@ import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIndicator
 import no.uio.ifi.in2000.met2025.data.models.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
@@ -52,7 +53,8 @@ fun WindDirectionIcon(windDirection: Double) {
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
     coordinates: Pair<Double, Double>,
-    modifier: Modifier = Modifier,
+    config: ConfigProfile,
+    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     Card(
@@ -62,7 +64,7 @@ fun HourlyExpandableCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: show time and overall launch status icon
+            // Header: show time and overall launch status icon using the config
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -75,17 +77,16 @@ fun HourlyExpandableCard(
                     text = "Day: ${formatZuluTimeToLocalDate(forecastItem.time)}",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                LaunchStatusIndicator(forecast = forecastItem)
+                LaunchStatusIndicator(forecast = forecastItem, config = config)
             }
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium
             )
-            // Expanded details: show detailed per-parameter evaluation
+            // Expanded details: show detailed evaluations using the provided config
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    // Get individual evaluations
-                    val evaluations = evaluateParameterConditions(forecastItem)
+                    val evaluations = evaluateParameterConditions(forecastItem, config)
                     evaluations.forEach { eval ->
                         Row(
                             modifier = Modifier
@@ -98,7 +99,6 @@ fun HourlyExpandableCard(
                                 text = "${eval.label}: ${eval.value}",
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            // If this is wind direction, show the custom icon
                             if (eval.label == "Wind Direction") {
                                 WindDirectionIcon(forecastItem.values.windFromDirection)
                             } else {
@@ -115,3 +115,4 @@ fun HourlyExpandableCard(
         }
     }
 }
+
