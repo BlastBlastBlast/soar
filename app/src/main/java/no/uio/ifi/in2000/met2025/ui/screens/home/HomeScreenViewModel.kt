@@ -9,11 +9,16 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
+import java.time.LocalDate
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val launchSiteDao: LaunchSiteDAO
+    private val launchSiteDao: LaunchSiteDAO,
+    private val sunriseRepository: SunriseRepository
 ) : ViewModel() {
 
     sealed class HomeScreenUiState {
@@ -31,6 +36,10 @@ class HomeScreenViewModel @Inject constructor(
 
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
+
+    private val _sunTimes = MutableStateFlow<Pair<String, String>?>(null)
+    val sunTimes: StateFlow<Pair<String, String>?> = _sunTimes
+
 
     init {
         // Continuously collect the launch sites list so that any update is emitted.
@@ -51,6 +60,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun updateCoordinates(lat: Double, lon: Double) {
         _coordinates.value = Pair(lat, lon)
+        fetchSunTimes(lat, lon)
     }
 
     fun updateLastVisited(lat: Double, lon: Double) {
@@ -111,4 +121,22 @@ class HomeScreenViewModel @Inject constructor(
             null
         }
     }
+
+    fun fetchSunTimes(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            val date = LocalDate.now().toString()
+            val result = sunriseRepository.getSunTimes(lat, lon, date)
+            result.onSuccess {
+                val formatter = DateTimeFormatter.ofPattern("HH:mm")
+                val sunrise = ZonedDateTime.parse(it.properties.sunrise.time)
+                    .withZoneSameInstant(java.time.ZoneId.systemDefault())
+                    .format(formatter)
+                val sunset = ZonedDateTime.parse(it.properties.sunset.time)
+                    .withZoneSameInstant(java.time.ZoneId.systemDefault())
+                    .format(formatter)
+                _sunTimes.value = Pair(sunrise, sunset)
+            }
+        }
+    }
+
 }

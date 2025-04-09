@@ -35,6 +35,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
+    val sunTimes by viewModel.sunTimes.collectAsState()
     val context = LocalContext.current
 
     var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
@@ -62,9 +63,11 @@ fun HomeScreen(
                     initialMarkerCoordinate = state.launchSites.firstOrNull()?.let {
                         Point.fromLngLat(it.longitude, it.latitude)
                     },
+
                     onMarkerPlaced = { lat, lon ->
                         viewModel.onMarkerPlaced(lat, lon)
                     },
+                    sunTimes = sunTimes,
                     onMarkerAnnotationClick = { lat, lon ->
                         savedMarkerCoordinates = Pair(lat, lon)
                         showSaveDialog = true

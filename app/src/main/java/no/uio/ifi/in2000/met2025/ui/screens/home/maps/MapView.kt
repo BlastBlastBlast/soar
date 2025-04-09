@@ -33,6 +33,7 @@ import com.mapbox.maps.viewannotation.annotationAnchor
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.SunIconsOverlayWithText
 
 @Composable
 fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
@@ -58,6 +59,7 @@ fun MapView(
     longitude: Double,
     initialMarkerCoordinate: Point? = null,
     modifier: Modifier = Modifier,
+    sunTimes: Pair<String, String>?,
     onMarkerPlaced: (Double, Double) -> Unit,
     onMarkerAnnotationClick: (Double, Double) -> Unit
 ) {
@@ -143,18 +145,19 @@ fun MapView(
             }
             // Draw a view annotation for the marker.
             markerCoordinate?.let { coordinate ->
-                ViewAnnotation(
-                    options = viewAnnotationOptions {
-                        geometry(coordinate)
-                        annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
-                        allowOverlap(true)
-                    }
-                ) {
-                    MarkerLabel(coordinate = coordinate) {
-                        onMarkerAnnotationClick(coordinate.latitude(), coordinate.longitude())
+                sunTimes?.let { (sunrise, sunset) ->
+                    ViewAnnotation(
+                        options = viewAnnotationOptions {
+                            geometry(coordinate)
+                            annotationAnchor { anchor(ViewAnnotationAnchor.TOP) }
+                            allowOverlap(true)
+                        }
+                    ) {
+                        SunIconsOverlayWithText(sunrise, sunset)
                     }
                 }
             }
+
         }
     }
 }
