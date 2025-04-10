@@ -36,7 +36,7 @@ class WeatherModel @Inject constructor(
             onSuccess = { it }
         )
 
-        val forecastResult = locationForecastRepository.getForecastDataAtTime(lat, lon, time, 3, 1)
+        val forecastResult = locationForecastRepository.getForecastData(lat = lat, lon = lon, timeSpanInHours = 3, time = time)
         val forecastData = forecastResult.fold(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
