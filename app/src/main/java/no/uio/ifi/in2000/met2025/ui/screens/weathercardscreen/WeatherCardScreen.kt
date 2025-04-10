@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import no.uio.ifi.in2000.met2025.data.models.LaunchStatus
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
 
@@ -110,9 +111,7 @@ fun ScreenContent(
         }
 
         when (uiState) {
-            is WeatherCardViewmodel.WeatherCardUiState.Loading -> {
-                Text("Loading weather data...", style = MaterialTheme.typography.headlineSmall)
-            }
+            is WeatherCardViewmodel.WeatherCardUiState.Loading -> { WeatherLoadingSpinner() }
             is WeatherCardViewmodel.WeatherCardUiState.Error -> {
                 Text("Feil: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
             }
