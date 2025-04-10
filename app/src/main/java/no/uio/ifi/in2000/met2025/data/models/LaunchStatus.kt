@@ -1,8 +1,10 @@
 package no.uio.ifi.in2000.met2025.data.models
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -281,9 +283,9 @@ fun LaunchStatusIcon(status: LaunchStatus) {
     val (color, icon, description) = when (status) {
         LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Filled.CheckCircle, "Safe")
         LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Filled.Warning, "Caution")
-        LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Close, "Unsafe")
+        LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Cancel, "Unsafe")
         LaunchStatus.DISABLED -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
-        LaunchStatus.MISSING_DATA -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.Warning, "Data missing")
+        LaunchStatus.MISSING_DATA -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.CloudOff, "Data missing")
     }
     Icon(imageVector = icon, contentDescription = description, tint = color)
 }
@@ -303,9 +305,9 @@ fun LaunchStatusIndicator(forecast: ForecastDataItem, config: ConfigProfile) {
     val (color, icon, description) = when (status) {
         LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Filled.CheckCircle, "Safe to launch")
         LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Filled.Warning, "Caution: Check conditions")
-        LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Close, "Unsafe to launch")
+        LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Cancel, "Unsafe to launch")
         LaunchStatus.DISABLED -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
-        LaunchStatus.MISSING_DATA -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.Warning, "Data missing")
+        LaunchStatus.MISSING_DATA -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.CloudOff, "Data missing")
     }
     Icon(imageVector = icon, contentDescription = description, tint = color)
 }
