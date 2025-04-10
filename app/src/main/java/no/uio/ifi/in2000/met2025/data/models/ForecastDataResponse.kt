@@ -36,7 +36,7 @@ data class Units(
     @SerialName("wind_speed")               val windSpeed: String,
     @SerialName("wind_speed_of_gust")       val windSpeedOfGust: String = "not_included",
     @SerialName("wind_from_direction")      val windFromDirection: String,
-    @SerialName("precipitation_amount")     val precipitationAmount: String,
+    @SerialName("precipitation_amount")     val precipitationAmount: String = "not_included",
     @SerialName("fog_area_fraction")        val fogAreaFraction: String = "not_included",
     @SerialName("dew_point_temperature")    val dewPointTemperature: String = "not_included",
     @SerialName("cloud_area_fraction")      val cloudAreaFraction: String,
@@ -67,20 +67,19 @@ data class Instant(
 
 @Serializable
 data class Details(
-    @SerialName("air_pressure_at_sea_level")val airPressureAtSeaLevel: Double,
+    @SerialName("air_pressure_at_sea_level") val airPressureAtSeaLevel: Double,
     @SerialName("air_temperature")          val airTemperature: Double,
     @SerialName("relative_humidity")        val relativeHumidity: Double,
     @SerialName("wind_speed")               val windSpeed: Double,
-    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double = 0.0, // should probably not be 0.0 when not included, rather null
+    @SerialName("wind_speed_of_gust")       val windSpeedOfGust: Double? = null,
     @SerialName("wind_from_direction")      val windFromDirection: Double,
-    @SerialName("fog_area_fraction")        val fogAreaFraction: Double = 0.0,
-    @SerialName("dew_point_temperature")    val dewPointTemperature: Double = 0.0,
+    @SerialName("fog_area_fraction")        val fogAreaFraction: Double? = null,
+    @SerialName("dew_point_temperature")    val dewPointTemperature: Double? = null,
     @SerialName("cloud_area_fraction")      val cloudAreaFraction: Double,
     @SerialName("cloud_area_fraction_high") val cloudAreaFractionHigh: Double,
     @SerialName("cloud_area_fraction_low")  val cloudAreaFractionLow: Double,
     @SerialName("cloud_area_fraction_medium") val cloudAreaFractionMedium: Double
 )
-
 
 @Serializable
 data class NextHours(
@@ -89,7 +88,7 @@ data class NextHours(
 
 @Serializable
 data class NextHoursDetails(
-    @SerialName("precipitation_amount")     val precipitationAmount: Double,
-    @SerialName("probability_of_thunder")   val probabilityOfThunder: Double = 0.0
+    @SerialName("precipitation_amount")     val precipitationAmount: Double? = null,
+    @SerialName("probability_of_thunder")   val probabilityOfThunder: Double? = null
 )
 

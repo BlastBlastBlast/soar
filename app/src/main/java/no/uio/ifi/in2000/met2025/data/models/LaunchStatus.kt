@@ -10,97 +10,129 @@ import androidx.compose.runtime.Composable
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
 enum class LaunchStatus {
-    SAFE,      // All values comfortably within spec
-    CAUTION,   // Some values are close to threshold
-    UNSAFE,    // One or more values exceed the allowed threshold
-    DISABLED   // Parameter evaluation is turned off
+    SAFE,           // All values comfortably within spec
+    CAUTION,        // Some values are close to threshold
+    UNSAFE,         // One or more values exceed the allowed threshold
+    DISABLED,       // Parameter evaluation is turned off
+    MISSING_DATA    // One or more required values are missing
 }
 
 fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile): LaunchStatus {
     var caution = false
+    var missing = false
 
-    // Ground wind
+    // Ground Wind (non-null)
     if (config.isEnabledGroundWind) {
-        if (forecast.values.windSpeed > config.groundWindThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.windSpeed > config.groundWindThreshold * 0.9) caution = true
+        val groundWind = forecast.values.windSpeed
+        if (groundWind > config.groundWindThreshold * 1.1) return LaunchStatus.UNSAFE
+        else if (groundWind > config.groundWindThreshold * 0.9) caution = true
     }
 
-    // Air wind
+    // Air Wind (nullable)
     if (config.isEnabledAirWind) {
-        if (forecast.values.windSpeedOfGust > config.airWindThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.windSpeedOfGust > config.airWindThreshold * 0.9) caution = true
+        val airWind = forecast.values.windSpeedOfGust
+        if (airWind == null) {
+            missing = true
+        } else {
+            if (airWind > config.airWindThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (airWind > config.airWindThreshold * 0.9) caution = true
+        }
     }
 
-    // Overall Cloud Cover
+    // Overall Cloud Cover (non-null)
     if (config.isEnabledCloudCover) {
-        if (forecast.values.cloudAreaFraction > config.cloudCoverThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.cloudAreaFraction > config.cloudCoverThreshold * 0.9) caution = true
+        val overallCloud = forecast.values.cloudAreaFraction
+        if (overallCloud > config.cloudCoverThreshold * 1.1) return LaunchStatus.UNSAFE
+        else if (overallCloud > config.cloudCoverThreshold * 0.9) caution = true
     }
 
-    // Cloud Cover High
+    // Cloud Cover High (non-null)
     if (config.isEnabledCloudCoverHigh) {
-        if (forecast.values.cloudAreaFractionHigh > config.cloudCoverHighThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.cloudAreaFractionHigh > config.cloudCoverHighThreshold * 0.9) caution = true
+        val cloudHigh = forecast.values.cloudAreaFractionHigh
+        if (cloudHigh > config.cloudCoverHighThreshold * 1.1) return LaunchStatus.UNSAFE
+        else if (cloudHigh > config.cloudCoverHighThreshold * 0.9) caution = true
     }
 
-    // Cloud Cover Medium
+    // Cloud Cover Medium (non-null)
     if (config.isEnabledCloudCoverMedium) {
-        if (forecast.values.cloudAreaFractionMedium > config.cloudCoverMediumThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.cloudAreaFractionMedium > config.cloudCoverMediumThreshold * 0.9) caution = true
+        val cloudMedium = forecast.values.cloudAreaFractionMedium
+        if (cloudMedium > config.cloudCoverMediumThreshold * 1.1) return LaunchStatus.UNSAFE
+        else if (cloudMedium > config.cloudCoverMediumThreshold * 0.9) caution = true
     }
 
-    // Cloud Cover Low
+    // Cloud Cover Low (non-null)
     if (config.isEnabledCloudCoverLow) {
-        if (forecast.values.cloudAreaFractionLow > config.cloudCoverLowThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.cloudAreaFractionLow > config.cloudCoverLowThreshold * 0.9) caution = true
+        val cloudLow = forecast.values.cloudAreaFractionLow
+        if (cloudLow > config.cloudCoverLowThreshold * 1.1) return LaunchStatus.UNSAFE
+        else if (cloudLow > config.cloudCoverLowThreshold * 0.9) caution = true
     }
 
-    // Fog
+    // Fog (nullable)
     if (config.isEnabledFog) {
+        val fog = forecast.values.fogAreaFraction
+        // If no threshold is defined (0.0), any non-zero fog is unsafe.
         if (config.fogThreshold == 0.0) {
-            if (forecast.values.fogAreaFraction > 0.0) return LaunchStatus.UNSAFE
+            if (fog == null) missing = true
+            else if (fog > 0.0) return LaunchStatus.UNSAFE
         } else {
-            if (forecast.values.fogAreaFraction > config.fogThreshold * 1.1) return LaunchStatus.UNSAFE
-            else if (forecast.values.fogAreaFraction > config.fogThreshold * 0.9) caution = true
+            if (fog == null) missing = true
+            else {
+                if (fog > config.fogThreshold * 1.1) return LaunchStatus.UNSAFE
+                else if (fog > config.fogThreshold * 0.9) caution = true
+            }
         }
     }
 
-    // Precipitation
+    // Precipitation (nullable)
     if (config.isEnabledPrecipitation) {
+        val precip = forecast.values.precipitationAmount
+        // If no threshold is defined (0.0), any amount may cause caution.
         if (config.precipitationThreshold == 0.0) {
-            if (forecast.values.precipitationAmount > 0.0) caution = true
+            if (precip == null) missing = true
+            else if (precip > 0.0) caution = true
         } else {
-            if (forecast.values.precipitationAmount > config.precipitationThreshold * 1.1) return LaunchStatus.UNSAFE
-            else if (forecast.values.precipitationAmount > config.precipitationThreshold * 0.9) caution = true
+            if (precip == null) missing = true
+            else if (precip > config.precipitationThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (precip > config.precipitationThreshold * 0.9) caution = true
         }
     }
 
-    // Probability of Thunder
+    // Probability of Thunder (nullable)
     if (config.isEnabledProbabilityOfThunder) {
+        val thunder = forecast.values.probabilityOfThunder
         if (config.probabilityOfThunderThreshold == 0.0) {
-            if (forecast.values.probabilityOfThunder > 0.0) caution = true
+            if (thunder == null) missing = true
+            else if (thunder > 0.0) caution = true
         } else {
-            if (forecast.values.probabilityOfThunder > config.probabilityOfThunderThreshold * 1.1) return LaunchStatus.UNSAFE
-            else if (forecast.values.probabilityOfThunder > config.probabilityOfThunderThreshold * 0.9) caution = true
+            if (thunder == null) missing = true
+            else if (thunder > config.probabilityOfThunderThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (thunder > config.probabilityOfThunderThreshold * 0.9) caution = true
         }
     }
 
-    // Humidity
+    // Humidity (non-null)
     if (config.isEnabledHumidity) {
-        if (forecast.values.relativeHumidity > config.humidityThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.relativeHumidity > config.humidityThreshold * 0.9) caution = true
+        val humidity = forecast.values.relativeHumidity
+        if (humidity > config.humidityThreshold * 1.1) return LaunchStatus.UNSAFE
+        else if (humidity > config.humidityThreshold * 0.9) caution = true
     }
 
-    // Dew point
+    // Dew point (nullable)
     if (config.isEnabledDewPoint) {
-        if (forecast.values.dewPointTemperature > config.dewPointThreshold * 1.1) return LaunchStatus.UNSAFE
-        else if (forecast.values.dewPointTemperature > config.dewPointThreshold * 0.9) caution = true
+        val dew = forecast.values.dewPointTemperature
+        if (dew == null) {
+            missing = true
+        } else {
+            if (dew > config.dewPointThreshold * 1.1) return LaunchStatus.UNSAFE
+            else if (dew > config.dewPointThreshold * 0.9) caution = true
+        }
     }
 
+    // If any parameter was missing, return MISSING_DATA;
+    // otherwise, if any parameter is in caution range then overall status is CAUTION; else, SAFE.
+    if (missing) return LaunchStatus.MISSING_DATA
     return if (caution) LaunchStatus.CAUTION else LaunchStatus.SAFE
 }
-
-
 
 data class ParameterEvaluation(
     val label: String,
@@ -111,130 +143,139 @@ data class ParameterEvaluation(
 fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation> {
     val evaluations = mutableListOf<ParameterEvaluation>()
 
-    // Ground Wind
+    // Ground Wind (non-null)
     if (config.isEnabledGroundWind) {
-        val groundWindValue = forecast.values.windSpeed
-        val groundWindStatus = evaluateValue(groundWindValue, config.groundWindThreshold)
-        evaluations.add(ParameterEvaluation("Ground Wind", "$groundWindValue m/s", groundWindStatus))
+        val value = forecast.values.windSpeed
+        val status = evaluateValue(value, config.groundWindThreshold)
+        evaluations.add(ParameterEvaluation("Ground Wind", "$value m/s", status))
     } else {
         evaluations.add(ParameterEvaluation("Ground Wind", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Air Wind
+    // Air Wind (nullable)
     if (config.isEnabledAirWind) {
-        val airWindValue = forecast.values.windSpeedOfGust
-        val airWindStatus = evaluateValue(airWindValue, config.airWindThreshold)
-        evaluations.add(ParameterEvaluation("Air Wind", "$airWindValue m/s", airWindStatus))
+        val value = forecast.values.windSpeedOfGust
+        if (value == null) {
+            evaluations.add(ParameterEvaluation("Air Wind", "Not available", LaunchStatus.MISSING_DATA))
+        } else {
+            val status = evaluateValue(value, config.airWindThreshold)
+            evaluations.add(ParameterEvaluation("Air Wind", "$value m/s", status))
+        }
     } else {
         evaluations.add(ParameterEvaluation("Air Wind", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Wind Direction
+    // Wind Direction (non-null)
     if (config.isEnabledWindDirection) {
-        val windDirectionValue = forecast.values.windFromDirection
-        evaluations.add(ParameterEvaluation("Wind Direction", "$windDirectionValue°", LaunchStatus.SAFE))
+        val value = forecast.values.windFromDirection
+        evaluations.add(ParameterEvaluation("Wind Direction", "$value°", LaunchStatus.SAFE))
     } else {
         evaluations.add(ParameterEvaluation("Wind Direction", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Overall Cloud Cover
+    // Overall Cloud Cover (non-null)
     if (config.isEnabledCloudCover) {
-        val overallCloudCover = forecast.values.cloudAreaFraction
-        val overallCloudStatus = evaluateValue(overallCloudCover, config.cloudCoverThreshold)
-        evaluations.add(ParameterEvaluation("Cloud Cover", "$overallCloudCover%", overallCloudStatus))
+        val value = forecast.values.cloudAreaFraction
+        val status = evaluateValue(value, config.cloudCoverThreshold)
+        evaluations.add(ParameterEvaluation("Cloud Cover", "$value%", status))
     } else {
         evaluations.add(ParameterEvaluation("Cloud Cover", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Cloud Cover High
+    // Cloud Cover High (non-null)
     if (config.isEnabledCloudCoverHigh) {
-        val cloudCoverHighValue = forecast.values.cloudAreaFractionHigh
-        val cloudCoverHighStatus = evaluateValue(cloudCoverHighValue, config.cloudCoverHighThreshold)
-        evaluations.add(ParameterEvaluation("Cloud Cover High", "$cloudCoverHighValue%", cloudCoverHighStatus))
+        val value = forecast.values.cloudAreaFractionHigh
+        val status = evaluateValue(value, config.cloudCoverHighThreshold)
+        evaluations.add(ParameterEvaluation("Cloud Cover High", "$value%", status))
     } else {
         evaluations.add(ParameterEvaluation("Cloud Cover High", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Cloud Cover Medium
+    // Cloud Cover Medium (non-null)
     if (config.isEnabledCloudCoverMedium) {
-        val cloudCoverMediumValue = forecast.values.cloudAreaFractionMedium
-        val cloudCoverMediumStatus = evaluateValue(cloudCoverMediumValue, config.cloudCoverMediumThreshold)
-        evaluations.add(ParameterEvaluation("Cloud Cover Medium", "$cloudCoverMediumValue%", cloudCoverMediumStatus))
+        val value = forecast.values.cloudAreaFractionMedium
+        val status = evaluateValue(value, config.cloudCoverMediumThreshold)
+        evaluations.add(ParameterEvaluation("Cloud Cover Medium", "$value%", status))
     } else {
         evaluations.add(ParameterEvaluation("Cloud Cover Medium", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Cloud Cover Low
+    // Cloud Cover Low (non-null)
     if (config.isEnabledCloudCoverLow) {
-        val cloudCoverLowValue = forecast.values.cloudAreaFractionLow
-        val cloudCoverLowStatus = evaluateValue(cloudCoverLowValue, config.cloudCoverLowThreshold)
-        evaluations.add(ParameterEvaluation("Cloud Cover Low", "$cloudCoverLowValue%", cloudCoverLowStatus))
+        val value = forecast.values.cloudAreaFractionLow
+        val status = evaluateValue(value, config.cloudCoverLowThreshold)
+        evaluations.add(ParameterEvaluation("Cloud Cover Low", "$value%", status))
     } else {
         evaluations.add(ParameterEvaluation("Cloud Cover Low", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Fog
+    // Fog (nullable)
     if (config.isEnabledFog) {
-        val fogValue = forecast.values.fogAreaFraction
-        val fogStatus = if (config.fogThreshold == 0.0) {
-            if (fogValue > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
+        val value = forecast.values.fogAreaFraction
+        val status = if (config.fogThreshold == 0.0) {
+            if (value == null) LaunchStatus.MISSING_DATA else if (value > 0.0) LaunchStatus.UNSAFE else LaunchStatus.SAFE
         } else {
-            evaluateValue(fogValue, config.fogThreshold)
+            evaluateValue(value, config.fogThreshold)
         }
-        evaluations.add(ParameterEvaluation("Fog", "$fogValue%", fogStatus))
+        val display = if (value == null) "Not available" else "$value%"
+        evaluations.add(ParameterEvaluation("Fog", display, status))
     } else {
         evaluations.add(ParameterEvaluation("Fog", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Precipitation
+    // Precipitation (nullable)
     if (config.isEnabledPrecipitation) {
-        val precipitationValue = forecast.values.precipitationAmount
-        val precipitationStatus = if (config.precipitationThreshold == 0.0) {
-            if (precipitationValue > 0.0) LaunchStatus.CAUTION else LaunchStatus.SAFE
+        val value = forecast.values.precipitationAmount
+        val status = if (config.precipitationThreshold == 0.0) {
+            if (value == null) LaunchStatus.MISSING_DATA else if (value > 0.0) LaunchStatus.CAUTION else LaunchStatus.SAFE
         } else {
-            evaluateValue(precipitationValue, config.precipitationThreshold)
+            evaluateValue(value, config.precipitationThreshold)
         }
-        evaluations.add(ParameterEvaluation("Precipitation", "$precipitationValue mm", precipitationStatus))
+        val display = if (value == null) "Not available" else "$value mm"
+        evaluations.add(ParameterEvaluation("Precipitation", display, status))
     } else {
         evaluations.add(ParameterEvaluation("Precipitation", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Humidity
+    // Humidity (non-null)
     if (config.isEnabledHumidity) {
-        val humidityValue = forecast.values.relativeHumidity
-        val humidityStatus = evaluateValue(humidityValue, config.humidityThreshold)
-        evaluations.add(ParameterEvaluation("Humidity", "$humidityValue%", humidityStatus))
+        val value = forecast.values.relativeHumidity
+        val status = evaluateValue(value, config.humidityThreshold)
+        evaluations.add(ParameterEvaluation("Humidity", "$value%", status))
     } else {
         evaluations.add(ParameterEvaluation("Humidity", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Dew Point
+    // Dew Point (nullable)
     if (config.isEnabledDewPoint) {
-        val dewPointValue = forecast.values.dewPointTemperature
-        val dewPointStatus = evaluateValue(dewPointValue, config.dewPointThreshold)
-        evaluations.add(ParameterEvaluation("Dew Point", "$dewPointValue°C", dewPointStatus))
+        val value = forecast.values.dewPointTemperature
+        if (value == null) {
+            evaluations.add(ParameterEvaluation("Dew Point", "Not available", LaunchStatus.MISSING_DATA))
+        } else {
+            val status = evaluateValue(value, config.dewPointThreshold)
+            evaluations.add(ParameterEvaluation("Dew Point", "$value°C", status))
+        }
     } else {
         evaluations.add(ParameterEvaluation("Dew Point", "Turned Off", LaunchStatus.DISABLED))
     }
 
-    // Probability of Thunder
+    // Probability of Thunder (nullable)
     if (config.isEnabledProbabilityOfThunder) {
-        val thunderValue = forecast.values.probabilityOfThunder
-        val thunderStatus = if (config.probabilityOfThunderThreshold == 0.0) {
-            if (thunderValue > 0.0) LaunchStatus.CAUTION else LaunchStatus.SAFE
+        val value = forecast.values.probabilityOfThunder
+        val status = if (config.probabilityOfThunderThreshold == 0.0) {
+            if (value == null) LaunchStatus.MISSING_DATA else if (value > 0.0) LaunchStatus.CAUTION else LaunchStatus.SAFE
         } else {
-            evaluateValue(thunderValue, config.probabilityOfThunderThreshold)
+            evaluateValue(value, config.probabilityOfThunderThreshold)
         }
-        evaluations.add(ParameterEvaluation("Probability of Thunder", "$thunderValue%", thunderStatus))
+        val display = if (value == null) "Not available" else "$value%"
+        evaluations.add(ParameterEvaluation("Thunder %", display, status))
     } else {
-        evaluations.add(ParameterEvaluation("Probability of Thunder", "Turned Off", LaunchStatus.DISABLED))
+        evaluations.add(ParameterEvaluation("Thunder %", "Turned Off", LaunchStatus.DISABLED))
     }
 
     return evaluations
 }
 
-
-// A composable to display an icon based on a single parameter's status.
 @Composable
 fun LaunchStatusIcon(status: LaunchStatus) {
     val (color, icon, description) = when (status) {
@@ -242,11 +283,13 @@ fun LaunchStatusIcon(status: LaunchStatus) {
         LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Filled.Warning, "Caution")
         LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Close, "Unsafe")
         LaunchStatus.DISABLED -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
+        LaunchStatus.MISSING_DATA -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.Warning, "Data missing")
     }
     Icon(imageVector = icon, contentDescription = description, tint = color)
 }
 
-fun evaluateValue(value: Double, threshold: Double): LaunchStatus {
+fun evaluateValue(value: Double?, threshold: Double): LaunchStatus {
+    if (value == null) return LaunchStatus.MISSING_DATA
     return when {
         value > threshold * 1.1 -> LaunchStatus.UNSAFE
         value > threshold * 0.9 -> LaunchStatus.CAUTION
@@ -258,10 +301,11 @@ fun evaluateValue(value: Double, threshold: Double): LaunchStatus {
 fun LaunchStatusIndicator(forecast: ForecastDataItem, config: ConfigProfile) {
     val status = evaluateLaunchConditions(forecast, config)
     val (color, icon, description) = when (status) {
-        LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Default.CheckCircle, "Safe to launch")
-        LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Default.Warning, "Caution: Check conditions")
-        LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Default.Close, "Unsafe to launch")
+        LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Filled.CheckCircle, "Safe to launch")
+        LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Filled.Warning, "Caution: Check conditions")
+        LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Close, "Unsafe to launch")
         LaunchStatus.DISABLED -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
+        LaunchStatus.MISSING_DATA -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.Warning, "Data missing")
     }
     Icon(imageVector = icon, contentDescription = description, tint = color)
 }
