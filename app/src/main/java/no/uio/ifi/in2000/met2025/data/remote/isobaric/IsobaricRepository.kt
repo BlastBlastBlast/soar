@@ -17,6 +17,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
+import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 
@@ -200,6 +201,10 @@ class IsobaricRepository @Inject constructor(
         val data = this.availData
             .filter { it.time <= targetTime } //kryssa fingrane for at <= ikkje ødelegge alt
             .maxByOrNull { it.time }
+        if (data != null) {
+            if (Duration.between(targetTime, data.time).abs() > Duration.ofSeconds(10799))
+                return null
+        }
         return data
     }
 
