@@ -15,21 +15,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.components.AWTableContents
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import java.time.Instant
 
 @Composable
 fun AtmosphericWindTable(
-    atmosphericWindViewModel: AtmosphericWindViewModel = hiltViewModel(),
+    viewModel: WeatherCardViewmodel,
     coordinates: Pair<Double, Double>,
     time: Instant
 ) {
-    val onClickGetIsobaricData = { atmosphericWindViewModel.loadIsobaricData(coordinates.first, coordinates.second, time) }
+    val onClickGetIsobaricData = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) }
 
-    val isobaricTimeData by atmosphericWindViewModel.isobaricData.collectAsState()
-    val isobaricDataUiState = isobaricTimeData[time] ?: AtmosphericWindViewModel.AtmosphericWindUiState.Idle
+    val isobaricTimeData by viewModel.isobaricData.collectAsState()
+    val isobaricDataUiState = isobaricTimeData[time] ?: WeatherCardViewmodel.AtmosphericWindUiState.Idle
 
     when (isobaricDataUiState) {
-        is AtmosphericWindViewModel.AtmosphericWindUiState.Idle -> {
+        is WeatherCardViewmodel.AtmosphericWindUiState.Idle -> {
             Button(
                 onClick = { onClickGetIsobaricData() },
                 modifier = Modifier
@@ -40,13 +41,13 @@ fun AtmosphericWindTable(
                 Text(text = "Get Isobaric Data")
             }
         }
-        is AtmosphericWindViewModel.AtmosphericWindUiState.Loading -> {
+        is WeatherCardViewmodel.AtmosphericWindUiState.Loading -> {
             Text(
                 text = "Loading isobaric data...",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        is AtmosphericWindViewModel.AtmosphericWindUiState.Error -> {
+        is WeatherCardViewmodel.AtmosphericWindUiState.Error -> {
             Text(
                 text = "Error loading isobaric data: ${isobaricDataUiState.message}",
                 style = MaterialTheme.typography.bodyMedium
@@ -61,7 +62,7 @@ fun AtmosphericWindTable(
                 Text(text = "Retry loading isobaric data")
             }
         }
-        is AtmosphericWindViewModel.AtmosphericWindUiState.Success -> {
+        is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
             AWTableContents(isobaricDataUiState.isobaricData)
         }
     }

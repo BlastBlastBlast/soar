@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen
-import no.uio.ifi.in2000.met2025.ui.screens.home.maps.LocationViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigSelectionOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 import androidx.compose.runtime.mutableStateOf
@@ -42,13 +41,12 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.
 @Composable
 fun WeatherCardScreen(
     viewModel: WeatherCardViewmodel = hiltViewModel(),
-    locationViewModel: LocationViewModel = hiltViewModel(),
     navController: NavHostController  // Pass navController from your NavGraph
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
     val configList by viewModel.configList.collectAsState()
-    val coordinates by locationViewModel.coordinates.collectAsState()
+    val coordinates by viewModel.coordinates.collectAsState()
 
     var filterActive by remember { mutableStateOf(false) }
 
@@ -63,7 +61,8 @@ fun WeatherCardScreen(
                 coordinates = coordinates,
                 config = activeConfig!!,
                 filterActive = filterActive,
-                onToggleFilter = { filterActive = !filterActive }
+                onToggleFilter = { filterActive = !filterActive },
+                viewModel
             )
             ConfigSelectionOverlay(
                 configList = configList,
@@ -86,7 +85,8 @@ fun ScreenContent(
     coordinates: Pair<Double, Double>,
     config: ConfigProfile,
     filterActive: Boolean,
-    onToggleFilter: () -> Unit
+    onToggleFilter: () -> Unit,
+    viewModel: WeatherCardViewmodel
 ) {
     val scrollState = rememberScrollState()
     // Mutable state for the slider value (default = 24 hours, range: 4-72 hours)
@@ -169,7 +169,8 @@ fun ScreenContent(
                         forecastItem = forecastItem,
                         coordinates = coordinates,
                         config = config,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        viewModel
                     )
                 }
             }
