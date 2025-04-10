@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -87,13 +88,15 @@ fun ScreenContent(
     onToggleFilter: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    // Mutable state for the slider value (default = 24 hours, range: 4-72 hours)
+    var hoursToShow by remember { mutableStateOf(24f) }
 
     Column(
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-        // Filter-knapp øverst til høyre
+        // Filter toggle button at the top right.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -115,7 +118,24 @@ fun ScreenContent(
             }
             is WeatherCardViewmodel.WeatherCardUiState.Success -> {
                 val forecastItems = uiState.forecastItems
+
+                // Optionally, show a daily forecast row section for additional context.
                 DailyForecastRowSection(forecastItems = forecastItems)
+
+                // ===== TIME SLIDER SECTION =====
+                Text(
+                    text = "Vis prognose for ${hoursToShow.toInt()} timer",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                Slider(
+                    value = hoursToShow,
+                    onValueChange = { hoursToShow = it },
+                    valueRange = 4f..72f,
+                    steps = (72 - 4 - 1),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                // ===== END SLIDER SECTION =====
 
                 Text(
                     text = "Time-for-time",
@@ -123,22 +143,27 @@ fun ScreenContent(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
-                //FIXME: Add better filtering to allow more cards
-                val today = forecastItems.firstOrNull()?.time?.substring(0, 10)
+                // --- ORIGINAL FILTER BY TODAY (Commented Out) ---
+                // val today = forecastItems.firstOrNull()?.time?.substring(0, 10)
+                // val dailyForecast = forecastItems.filter { it.time.startsWith(today ?: "") }
+                // --- END ORIGINAL TODAY FILTER ---
+
+                // Now, without filtering by "today",
+                // optionally filter the forecast based on a launch status filter if active,
+                // then take as many items as specified by the slider.
                 val filteredItems = forecastItems
-                    .filter { it.time.startsWith(today ?: "") }
-                    .let { daily ->
+                    .let { allItems ->
                         if (filterActive)
-                            daily.filter {
+                            allItems.filter {
                                 forecastPassesFilter(
                                     it,
                                     config,
                                     LaunchStatusFilter(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION))
                                 )
                             }
-                        else
-                            daily
+                        else allItems
                     }
+                    .take(hoursToShow.toInt())
 
                 filteredItems.forEach { forecastItem ->
                     HourlyExpandableCard(
@@ -153,6 +178,9 @@ fun ScreenContent(
         }
     }
 }
+
+
+
 
 @Composable
 fun FilterToggleButton(

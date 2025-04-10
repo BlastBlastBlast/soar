@@ -17,26 +17,18 @@ enum class LaunchStatus {
     MISSING_DATA    // One or more required values are missing
 }
 
-/**
- * Evaluates the overall launch conditions from a forecast and a configuration.
- *
- * For parameters that might be missing (i.e. their value is null), we mark the global status as MISSING_DATA.
- * Otherwise, if any parameter exceeds 110% of the threshold, we return UNSAFE;
- * if at least one parameter is in the “caution” range (above 90% of the threshold)
- * then overall status is CAUTION (unless an unsafe condition was found).
- */
 fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile): LaunchStatus {
     var caution = false
     var missing = false
 
-    // Ground wind (non-null)
+    // Ground Wind (non-null)
     if (config.isEnabledGroundWind) {
         val groundWind = forecast.values.windSpeed
         if (groundWind > config.groundWindThreshold * 1.1) return LaunchStatus.UNSAFE
         else if (groundWind > config.groundWindThreshold * 0.9) caution = true
     }
 
-    // Air wind (nullable)
+    // Air Wind (nullable)
     if (config.isEnabledAirWind) {
         val airWind = forecast.values.windSpeedOfGust
         if (airWind == null) {
@@ -78,13 +70,13 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
     // Fog (nullable)
     if (config.isEnabledFog) {
         val fog = forecast.values.fogAreaFraction
+        // If no threshold is defined (0.0), any non-zero fog is unsafe.
         if (config.fogThreshold == 0.0) {
-            if (fog != null && fog > 0.0) return LaunchStatus.UNSAFE
-            else if (fog == null) missing = true
+            if (fog == null) missing = true
+            else if (fog > 0.0) return LaunchStatus.UNSAFE
         } else {
-            if (fog == null) {
-                missing = true
-            } else {
+            if (fog == null) missing = true
+            else {
                 if (fog > config.fogThreshold * 1.1) return LaunchStatus.UNSAFE
                 else if (fog > config.fogThreshold * 0.9) caution = true
             }
@@ -94,6 +86,7 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
     // Precipitation (nullable)
     if (config.isEnabledPrecipitation) {
         val precip = forecast.values.precipitationAmount
+        // If no threshold is defined (0.0), any amount may cause caution.
         if (config.precipitationThreshold == 0.0) {
             if (precip == null) missing = true
             else if (precip > 0.0) caution = true
@@ -136,29 +129,17 @@ fun evaluateLaunchConditions(forecast: ForecastDataItem, config: ConfigProfile):
     }
 
     // If any parameter was missing, return MISSING_DATA;
-    // otherwise, if any value caused caution then overall status is CAUTION; else SAFE.
+    // otherwise, if any parameter is in caution range then overall status is CAUTION; else, SAFE.
     if (missing) return LaunchStatus.MISSING_DATA
     return if (caution) LaunchStatus.CAUTION else LaunchStatus.SAFE
 }
 
-/**
- * Data class representing a single parameter's evaluation result.
- *
- * @param label A descriptive name (e.g. "Ground Wind").
- * @param value The measurement (e.g. "8.6 m/s" or "Not available").
- * @param status The evaluation status for this parameter.
- */
 data class ParameterEvaluation(
     val label: String,
     val value: String,
     val status: LaunchStatus
 )
 
-/**
- * Evaluates each parameter in [forecast] against the thresholds in [config] and returns a list
- * of [ParameterEvaluation]. For missing data (when a value is null), displays "Not available"
- * and the MISSING_DATA status.
- */
 fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation> {
     val evaluations = mutableListOf<ParameterEvaluation>()
 
@@ -287,18 +268,14 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
             evaluateValue(value, config.probabilityOfThunderThreshold)
         }
         val display = if (value == null) "Not available" else "$value%"
-        evaluations.add(ParameterEvaluation("Probability of Thunder", display, status))
+        evaluations.add(ParameterEvaluation("Thunder %", display, status))
     } else {
-        evaluations.add(ParameterEvaluation("Probability of Thunder", "Turned Off", LaunchStatus.DISABLED))
+        evaluations.add(ParameterEvaluation("Thunder %", "Turned Off", LaunchStatus.DISABLED))
     }
 
     return evaluations
 }
 
-/**
- * Displays an icon based on the provided [status]. A specific icon, color, and description
- * is selected for each [LaunchStatus] including MISSING_DATA.
- */
 @Composable
 fun LaunchStatusIcon(status: LaunchStatus) {
     val (color, icon, description) = when (status) {
@@ -311,10 +288,6 @@ fun LaunchStatusIcon(status: LaunchStatus) {
     Icon(imageVector = icon, contentDescription = description, tint = color)
 }
 
-/**
- * Evaluates an individual forecast value (which may be null) against a threshold.
- * If the value is null, returns MISSING_DATA; otherwise, compares the value to the threshold.
- */
 fun evaluateValue(value: Double?, threshold: Double): LaunchStatus {
     if (value == null) return LaunchStatus.MISSING_DATA
     return when {
@@ -324,10 +297,6 @@ fun evaluateValue(value: Double?, threshold: Double): LaunchStatus {
     }
 }
 
-/**
- * A composable indicator that displays an overall launch status icon for the forecast
- * according to the evaluated launch conditions.
- */
 @Composable
 fun LaunchStatusIndicator(forecast: ForecastDataItem, config: ConfigProfile) {
     val status = evaluateLaunchConditions(forecast, config)

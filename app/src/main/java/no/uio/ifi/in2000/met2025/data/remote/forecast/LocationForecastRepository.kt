@@ -22,24 +22,26 @@ class LocationForecastRepository @Inject constructor(
                     ForecastData(
                         updatedAt = response.properties.meta.updatedAt,
                         altitude = response.geometry.coordinates[2],
-                        timeSeries = response.properties.timeSeries.take(timeSpanInHours).map {
+                        timeSeries = response.properties.timeSeries.take(timeSpanInHours).map { ts ->
                             ForecastDataItem(
-                                time = it.time,
+                                time = ts.time,
                                 values = ForecastDataValues(
-                                    airPressureAtSeaLevel = it.data.instant.details.airPressureAtSeaLevel,
-                                    airTemperature = it.data.instant.details.airTemperature,
-                                    relativeHumidity = it.data.instant.details.relativeHumidity,
-                                    windSpeed = it.data.instant.details.windSpeed,
-                                    windSpeedOfGust = it.data.instant.details.windSpeedOfGust,
-                                    windFromDirection = it.data.instant.details.windFromDirection,
-                                    fogAreaFraction = it.data.instant.details.fogAreaFraction,
-                                    dewPointTemperature = it.data.instant.details.dewPointTemperature,
-                                    cloudAreaFraction = it.data.instant.details.cloudAreaFraction,
-                                    cloudAreaFractionHigh = it.data.instant.details.cloudAreaFractionHigh,
-                                    cloudAreaFractionLow = it.data.instant.details.cloudAreaFractionLow,
-                                    cloudAreaFractionMedium = it.data.instant.details.cloudAreaFractionMedium,
-                                    precipitationAmount = it.data.next1Hours?.details?.precipitationAmount ?: 0.0,
-                                    probabilityOfThunder = it.data.next1Hours?.details?.probabilityOfThunder ?: 0.0
+                                    airPressureAtSeaLevel = ts.data.instant.details.airPressureAtSeaLevel,
+                                    airTemperature = ts.data.instant.details.airTemperature,
+                                    relativeHumidity = ts.data.instant.details.relativeHumidity,
+                                    windSpeed = ts.data.instant.details.windSpeed,
+                                    // Nullable fields
+                                    windSpeedOfGust = ts.data.instant.details.windSpeedOfGust,
+                                    windFromDirection = ts.data.instant.details.windFromDirection,
+                                    fogAreaFraction = ts.data.instant.details.fogAreaFraction,
+                                    dewPointTemperature = ts.data.instant.details.dewPointTemperature,
+                                    cloudAreaFraction = ts.data.instant.details.cloudAreaFraction,
+                                    cloudAreaFractionHigh = ts.data.instant.details.cloudAreaFractionHigh,
+                                    cloudAreaFractionLow = ts.data.instant.details.cloudAreaFractionLow,
+                                    cloudAreaFractionMedium = ts.data.instant.details.cloudAreaFractionMedium,
+                                    // Nullable fields Next1Hours
+                                    precipitationAmount = ts.data.next1Hours?.details?.precipitationAmount,
+                                    probabilityOfThunder = ts.data.next1Hours?.details?.probabilityOfThunder
                                 )
                             )
                         }
@@ -57,31 +59,31 @@ class LocationForecastRepository @Inject constructor(
 
         val responseItems = response.properties.timeSeries
             .filter { Instant.parse(it.time) >= time.minus(Duration.ofHours(1)) }
-            .filterIndexed{ index, _ -> index % frequencyInHours == 0 }
+            .filterIndexed { index, _ -> index % frequencyInHours == 0 }
             .take(items)
 
         return Result.success(
             ForecastData(
                 updatedAt = response.properties.meta.updatedAt,
                 altitude = response.geometry.coordinates[2],
-                timeSeries = responseItems.map { responseItem ->
+                timeSeries = responseItems.map { ts ->
                     ForecastDataItem(
-                        time = responseItem.time,
+                        time = ts.time,
                         values = ForecastDataValues(
-                            airPressureAtSeaLevel = responseItem.data.instant.details.airPressureAtSeaLevel,
-                            airTemperature = responseItem.data.instant.details.airTemperature,
-                            relativeHumidity = responseItem.data.instant.details.relativeHumidity,
-                            windSpeed = responseItem.data.instant.details.windSpeed,
-                            windSpeedOfGust = responseItem.data.instant.details.windSpeedOfGust,
-                            windFromDirection = responseItem.data.instant.details.windFromDirection,
-                            fogAreaFraction = responseItem.data.instant.details.fogAreaFraction,
-                            dewPointTemperature = responseItem.data.instant.details.dewPointTemperature,
-                            cloudAreaFraction = responseItem.data.instant.details.cloudAreaFraction,
-                            cloudAreaFractionHigh = responseItem.data.instant.details.cloudAreaFractionHigh,
-                            cloudAreaFractionLow = responseItem.data.instant.details.cloudAreaFractionLow,
-                            cloudAreaFractionMedium = responseItem.data.instant.details.cloudAreaFractionMedium,
-                            precipitationAmount = responseItem.data.next1Hours?.details?.precipitationAmount ?: 0.0,
-                            probabilityOfThunder = responseItem.data.next1Hours?.details?.probabilityOfThunder ?: 0.0
+                            airPressureAtSeaLevel = ts.data.instant.details.airPressureAtSeaLevel,
+                            airTemperature = ts.data.instant.details.airTemperature,
+                            relativeHumidity = ts.data.instant.details.relativeHumidity,
+                            windSpeed = ts.data.instant.details.windSpeed,
+                            windSpeedOfGust = ts.data.instant.details.windSpeedOfGust,
+                            windFromDirection = ts.data.instant.details.windFromDirection,
+                            fogAreaFraction = ts.data.instant.details.fogAreaFraction,
+                            dewPointTemperature = ts.data.instant.details.dewPointTemperature,
+                            cloudAreaFraction = ts.data.instant.details.cloudAreaFraction,
+                            cloudAreaFractionHigh = ts.data.instant.details.cloudAreaFractionHigh,
+                            cloudAreaFractionLow = ts.data.instant.details.cloudAreaFractionLow,
+                            cloudAreaFractionMedium = ts.data.instant.details.cloudAreaFractionMedium,
+                            precipitationAmount = ts.data.next1Hours?.details?.precipitationAmount,
+                            probabilityOfThunder = ts.data.next1Hours?.details?.probabilityOfThunder
                         )
                     )
                 }

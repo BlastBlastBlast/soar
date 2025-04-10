@@ -208,16 +208,17 @@ class WeatherModel @Inject constructor(
                 airTemperature = timeSeries.maxOfOrNull { it.values.airTemperature } ?: 0.0,
                 relativeHumidity = timeSeries.maxOfOrNull { it.values.relativeHumidity } ?: 0.0,
                 windSpeed = timeSeries.maxOfOrNull { it.values.windSpeed } ?: 0.0,
-                windSpeedOfGust = timeSeries.maxOfOrNull { it.values.windSpeedOfGust ?: 0.0} ?: 0.0,
+                // Nullable fields: no non-null value exists, null is returned.
+                windSpeedOfGust = timeSeries.mapNotNull { it.values.windSpeedOfGust }.maxOrNull(),
                 windFromDirection = timeSeries.map { it.values.windFromDirection }.average(),
-                fogAreaFraction = timeSeries.maxOfOrNull { it.values.fogAreaFraction ?: 0.0} ?: 0.0,
-                dewPointTemperature = timeSeries.maxOfOrNull { it.values.dewPointTemperature ?: 0.0} ?: 0.0,
+                fogAreaFraction = timeSeries.mapNotNull { it.values.fogAreaFraction }.maxOrNull(),
+                dewPointTemperature = timeSeries.mapNotNull { it.values.dewPointTemperature }.maxOrNull(),
                 cloudAreaFraction = timeSeries.maxOfOrNull { it.values.cloudAreaFraction } ?: 0.0,
                 cloudAreaFractionHigh = timeSeries.maxOfOrNull { it.values.cloudAreaFractionHigh } ?: 0.0,
                 cloudAreaFractionLow = timeSeries.maxOfOrNull { it.values.cloudAreaFractionLow } ?: 0.0,
                 cloudAreaFractionMedium = timeSeries.maxOfOrNull { it.values.cloudAreaFractionMedium } ?: 0.0,
-                precipitationAmount = timeSeries.maxOfOrNull { it.values.precipitationAmount ?: 0.0} ?: 0.0,
-                probabilityOfThunder = timeSeries.maxOfOrNull { it.values.probabilityOfThunder ?: 0.0 } ?: 0.0
+                precipitationAmount = timeSeries.mapNotNull { it.values.precipitationAmount }.maxOrNull(),
+                probabilityOfThunder = timeSeries.mapNotNull { it.values.probabilityOfThunder }.maxOrNull()
             )
         )
     }

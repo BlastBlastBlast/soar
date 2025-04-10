@@ -36,7 +36,7 @@ data class Units(
     @SerialName("wind_speed")               val windSpeed: String,
     @SerialName("wind_speed_of_gust")       val windSpeedOfGust: String = "not_included",
     @SerialName("wind_from_direction")      val windFromDirection: String,
-    @SerialName("precipitation_amount")     val precipitationAmount: String,
+    @SerialName("precipitation_amount")     val precipitationAmount: String = "not_included",
     @SerialName("fog_area_fraction")        val fogAreaFraction: String = "not_included",
     @SerialName("dew_point_temperature")    val dewPointTemperature: String = "not_included",
     @SerialName("cloud_area_fraction")      val cloudAreaFraction: String,
