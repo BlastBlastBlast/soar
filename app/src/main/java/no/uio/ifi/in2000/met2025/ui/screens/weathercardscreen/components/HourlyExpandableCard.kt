@@ -64,55 +64,64 @@ fun HourlyExpandableCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: show time and overall launch status icon using the config
+            // Header: Display date, time and overall launch status
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Time: ${formatZuluTimeToLocalTime(forecastItem.time)}",
+                    text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${formatZuluTimeToLocalTime(forecastItem.time)}",
                     style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "Day: ${formatZuluTimeToLocalDate(forecastItem.time)}",
-                    style = MaterialTheme.typography.bodyMedium
                 )
                 LaunchStatusIndicator(forecast = forecastItem, config = config)
             }
+            // Display a quick temperature readout
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium
             )
-            // Expanded details: show detailed evaluations using the provided config
+            // Expanded details: show all parameter evaluations in a neat three-column layout.
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
+                    // Get evaluations based on forecast and configuration.
                     val evaluations = evaluateParameterConditions(forecastItem, config)
-                    evaluations.forEach { eval ->
+                    evaluations.forEach { evaluation ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                         ) {
+                            // Label column with weight 1 (can be given a fixed width if preferred)
                             Text(
-                                text = "${eval.label}: ${eval.value}",
-                                style = MaterialTheme.typography.bodyMedium
+                                text = evaluation.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(0.6f)
                             )
-                            if (eval.label == "Wind Direction") {
+                            // Value column with weight 1, right aligned
+                            Text(
+                                text = evaluation.value,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .weight(0.4f)
+                            )
+                            // Icon column with a small weight
+                            if (evaluation.label == "Wind Direction") {
                                 WindDirectionIcon(forecastItem.values.windFromDirection)
                             } else {
-                                LaunchStatusIcon(status = eval.status)
+                                LaunchStatusIcon(status = evaluation.status)
                             }
                         }
                     }
 
+                    // Additional content
                     AtmosphericWindTable(
                         coordinates = coordinates,
-                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore())
+                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore()
+                    )
                 }
             }
         }
     }
 }
-
