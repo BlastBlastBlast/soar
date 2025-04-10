@@ -111,7 +111,7 @@ fun ScreenContent(
 
         when (uiState) {
             is WeatherCardViewmodel.WeatherCardUiState.Loading -> {
-                Text("Laster værdata...", style = MaterialTheme.typography.headlineSmall)
+                Text("Loading weather data...", style = MaterialTheme.typography.headlineSmall)
             }
             is WeatherCardViewmodel.WeatherCardUiState.Error -> {
                 Text("Feil: ${uiState.message}", style = MaterialTheme.typography.headlineSmall)
@@ -124,7 +124,7 @@ fun ScreenContent(
 
                 // ===== TIME SLIDER SECTION =====
                 Text(
-                    text = "Vis prognose for ${hoursToShow.toInt()} timer",
+                    text = "Show forecast for ${hoursToShow.toInt()} hours",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -138,7 +138,7 @@ fun ScreenContent(
                 // ===== END SLIDER SECTION =====
 
                 Text(
-                    text = "Time-for-time",
+                    text = "Hourly",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
@@ -188,7 +188,7 @@ fun FilterToggleButton(
     onClick: () -> Unit
 ) {
     FilledTonalButton(onClick = onClick) {
-        Text(text = if (isActive) "Vis alle" else "Vis kun gyldige")
+        Text(text = if (isActive) "Show all" else "Show valid")
     }
 }
 
