@@ -1,0 +1,87 @@
+package no.uio.ifi.in2000.met2025.domain.helpers
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
+import no.uio.ifi.in2000.met2025.data.models.EvaluationIcon
+
+fun ConfigProfile.threshold(parameter: ConfigParameter): Double
+= when (parameter) {
+    ConfigParameter.GROUND_WIND -> groundWindThreshold
+    ConfigParameter.AIR_WIND -> airWindThreshold
+    ConfigParameter.WIND_DIRECTION -> Double.MIN_VALUE
+    ConfigParameter.CLOUD_COVER -> cloudCoverThreshold
+    ConfigParameter.CLOUD_COVER_HIGH -> cloudCoverHighThreshold
+    ConfigParameter.CLOUD_COVER_MEDIUM -> cloudCoverMediumThreshold
+    ConfigParameter.CLOUD_COVER_LOW -> cloudCoverLowThreshold
+    ConfigParameter.FOG -> fogThreshold
+    ConfigParameter.PRECIPITATION -> precipitationThreshold
+    ConfigParameter.HUMIDITY -> humidityThreshold
+    ConfigParameter.DEW_POINT -> dewPointThreshold
+    ConfigParameter.PROBABILITY_OF_THUNDER -> probabilityOfThunderThreshold
+}
+
+fun ConfigProfile.thresholdsMap()
+= mapOf(
+    ConfigParameter.GROUND_WIND to groundWindThreshold,
+    ConfigParameter.AIR_WIND to airWindThreshold,
+    ConfigParameter.CLOUD_COVER to cloudCoverThreshold,
+    ConfigParameter.CLOUD_COVER_HIGH to cloudCoverHighThreshold,
+    ConfigParameter.CLOUD_COVER_MEDIUM to cloudCoverMediumThreshold,
+    ConfigParameter.CLOUD_COVER_LOW to cloudCoverLowThreshold,
+    ConfigParameter.FOG to fogThreshold,
+    ConfigParameter.PRECIPITATION to precipitationThreshold,
+    ConfigParameter.HUMIDITY to humidityThreshold,
+    ConfigParameter.DEW_POINT to dewPointThreshold,
+    ConfigParameter.PROBABILITY_OF_THUNDER to probabilityOfThunderThreshold
+)
+
+fun ConfigParameter.label(): String
+= when (this) {
+    ConfigParameter.GROUND_WIND -> "Ground Wind"
+    ConfigParameter.AIR_WIND -> "Air Wind"
+    ConfigParameter.WIND_DIRECTION -> "Wind Direction"
+    ConfigParameter.CLOUD_COVER -> "Cloud Cover"
+    ConfigParameter.CLOUD_COVER_HIGH -> "High Cloud Cover"
+    ConfigParameter.CLOUD_COVER_MEDIUM -> "Medium Cloud Cover"
+    ConfigParameter.CLOUD_COVER_LOW -> "Low Cloud Cover"
+    ConfigParameter.FOG -> "Fog"
+    ConfigParameter.PRECIPITATION -> "Precipitation"
+    ConfigParameter.HUMIDITY -> "Humidity"
+    ConfigParameter.DEW_POINT -> "Dew Point"
+    ConfigParameter.PROBABILITY_OF_THUNDER -> "Probability of Thunder"
+}
+
+fun ConfigParameter.unit(): String
+= when (this) {
+    ConfigParameter.GROUND_WIND -> "m/s"
+    ConfigParameter.AIR_WIND -> "m/s"
+    ConfigParameter.WIND_DIRECTION -> "°"
+    ConfigParameter.CLOUD_COVER -> "%"
+    ConfigParameter.CLOUD_COVER_HIGH -> "%"
+    ConfigParameter.CLOUD_COVER_MEDIUM -> "%"
+    ConfigParameter.CLOUD_COVER_LOW -> "%"
+    ConfigParameter.FOG -> "%"
+    ConfigParameter.PRECIPITATION -> "mm"
+    ConfigParameter.HUMIDITY -> "%"
+    ConfigParameter.DEW_POINT -> "°C"
+    ConfigParameter.PROBABILITY_OF_THUNDER -> "%"
+}
+
+fun ConfigParameter.icon(): EvaluationIcon
+= when (this) {
+    ConfigParameter.GROUND_WIND -> EvaluationIcon.DrawableIcon(R.drawable.wind)
+    ConfigParameter.AIR_WIND -> EvaluationIcon.DrawableIcon(R.drawable.wind)
+    ConfigParameter.WIND_DIRECTION -> EvaluationIcon.VectorIcon(Icons.Filled.ArrowDownward)
+    ConfigParameter.CLOUD_COVER -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
+    ConfigParameter.CLOUD_COVER_HIGH -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
+    ConfigParameter.CLOUD_COVER_MEDIUM -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
+    ConfigParameter.CLOUD_COVER_LOW -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
+    ConfigParameter.FOG -> EvaluationIcon.DrawableIcon(R.drawable.fog)
+    ConfigParameter.PRECIPITATION -> EvaluationIcon.DrawableIcon(R.drawable.rain)
+    ConfigParameter.HUMIDITY -> EvaluationIcon.DrawableIcon(R.drawable.humidity)
+    ConfigParameter.DEW_POINT -> EvaluationIcon.DrawableIcon(R.drawable.mist)
+    ConfigParameter.PROBABILITY_OF_THUNDER -> EvaluationIcon.DrawableIcon(R.drawable.thunder)
+}
