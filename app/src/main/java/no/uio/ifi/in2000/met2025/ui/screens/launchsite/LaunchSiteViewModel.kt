@@ -8,32 +8,33 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class LaunchSiteViewModel @Inject constructor(
-    private val launchSiteDAO: LaunchSiteDAO
+    private val launchSitesRepository: LaunchSitesRepository
 ) : ViewModel() {
 
     // Flow of all saved launch sites.
-    val launchSites: Flow<List<LaunchSite>> = launchSiteDAO.getAll()
+    val launchSites: Flow<List<LaunchSite>> = launchSitesRepository.getAll()
 
     // Flow for "Last Visited" temporary site.
-    val tempLaunchSite: Flow<LaunchSite?> = launchSiteDAO.getTempSite()
+    val tempLaunchSite: Flow<LaunchSite?> = launchSitesRepository.getTempSite()
 
     // Flow for "New Marker" temporary site.
-    val newMarkerTempSite: Flow<LaunchSite?> = launchSiteDAO.getNewMarkerTempSite()
+    val newMarkerTempSite: Flow<LaunchSite?> = launchSitesRepository.getNewMarkerTempSite()
 
     // Update "Last Visited" temporary site.
     fun updateTemporaryLaunchSite(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             val currentTempSite = tempLaunchSite.firstOrNull()
             if (currentTempSite == null) {
-                launchSiteDAO.insertAll(
+                launchSitesRepository.insertAll(
                     LaunchSite(latitude = latitude, longitude = longitude, name = "Last Visited")
                 )
             } else {
-                launchSiteDAO.updateSites(
+                launchSitesRepository.updateSites(
                     currentTempSite.copy(latitude = latitude, longitude = longitude)
                 )
             }
@@ -45,11 +46,11 @@ class LaunchSiteViewModel @Inject constructor(
         viewModelScope.launch {
             val currentNewMarker = newMarkerTempSite.firstOrNull()
             if (currentNewMarker == null) {
-                launchSiteDAO.insertAll(
+                launchSitesRepository.insertAll(
                     LaunchSite(latitude = latitude, longitude = longitude, name = "New Marker")
                 )
             } else {
-                launchSiteDAO.updateSites(
+                launchSitesRepository.updateSites(
                     currentNewMarker.copy(latitude = latitude, longitude = longitude)
                 )
             }
@@ -59,19 +60,19 @@ class LaunchSiteViewModel @Inject constructor(
     // Permanently add a launch site.
     fun addLaunchSite(latitude: Double, longitude: Double, name: String) {
         viewModelScope.launch {
-            launchSiteDAO.insertAll(LaunchSite(latitude = latitude, longitude = longitude, name = name))
+            launchSitesRepository.insertAll(LaunchSite(latitude = latitude, longitude = longitude, name = name))
         }
     }
 
     fun deleteLaunchSite(site: LaunchSite) {
         viewModelScope.launch {
-            launchSiteDAO.delete(site)
+            launchSitesRepository.deleteSite(site)
         }
     }
 
     fun updateLaunchSite(site: LaunchSite) {
         viewModelScope.launch {
-            launchSiteDAO.updateSites(site)
+            launchSitesRepository.updateSites(site)
         }
     }
 }
