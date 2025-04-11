@@ -125,7 +125,7 @@ fun MapView(
     onMarkerAnnotationClick: (Point) -> Unit,
     onMarkerAnnotationLongPress: (Point) -> Unit,
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {},
-    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {}  // NEW callback
+    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {}
 ) {
     val mapState = rememberMapState {
         cameraOptions {
@@ -148,7 +148,6 @@ fun MapView(
                 true
             }
         ) {
-            // Configure the location puck.
             MapEffect(Unit) { mapView ->
                 val locationPlugin = mapView.getPlugin("location") as? LocationComponentPlugin
                 locationPlugin?.updateSettings {
@@ -158,7 +157,6 @@ fun MapView(
                     puckBearingEnabled = true
                 }
             }
-            // Draw the temporary marker.
             temporaryMarker?.let { point ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
@@ -178,13 +176,12 @@ fun MapView(
                             lat = "%.4f".format(point.latitude()),
                             lon = "%.4f".format(point.longitude()),
                             onClick = { onMarkerAnnotationClick(point) },
-                            onDoubleClick = { /* Optionally handle double tap on temporary marker */ },
+                            onDoubleClick = {  },
                             onLongPress = { onMarkerAnnotationLongPress(point) }
                         )
                     }
                 }
             }
-            // Draw saved launch site markers.
             launchSites.filter { it.name != "Last Visited" }.forEach { site ->
                 val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
                 val markerImage = rememberIconImage(
@@ -220,7 +217,6 @@ fun MapView(
                                 onLaunchSiteMarkerClick(site)
                             },
                             onLongPress = {
-                                // NEW: Instead of doing nothing, call the callback for editing saved marker.
                                 onSavedMarkerAnnotationLongPress(site)
                             }
                         )
