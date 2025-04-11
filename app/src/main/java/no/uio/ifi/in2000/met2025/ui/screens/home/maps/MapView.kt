@@ -47,6 +47,7 @@ fun MarkerLabel(
     text: String,
     onClick: () -> Unit,
     onDoubleClick: () -> Unit,
+    onLongPress: () -> Unit,
     fontSize: TextUnit = 10.sp
 ) {
     Box(
@@ -54,7 +55,8 @@ fun MarkerLabel(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
-                    onDoubleTap = { onDoubleClick() }
+                    onDoubleTap = { onDoubleClick() },
+                    onLongPress = { onLongPress() }
                 )
             }
             .background(Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(8.dp))
@@ -77,7 +79,9 @@ fun MapView(
     showAnnotations: Boolean = true,
     onMapLongClick: (Point) -> Unit,
     onMarkerAnnotationClick: (Point) -> Unit,
-    onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {}
+    onMarkerAnnotationLongPress: (Point) -> Unit,
+    onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {},
+    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {}  // NEW callback
 ) {
     val mapState = rememberMapState {
         cameraOptions {
@@ -94,7 +98,7 @@ fun MapView(
             modifier = Modifier.fillMaxSize(),
             style = { MapStyle(style = Style.STANDARD) },
             mapState = mapState,
-            mapViewportState = mapViewportState,  // Use the passed viewport state.
+            mapViewportState = mapViewportState,
             onMapLongClickListener = { point ->
                 onMapLongClick(point)
                 true
@@ -110,15 +114,13 @@ fun MapView(
                     puckBearingEnabled = true
                 }
             }
-            // Draw the temporary marker (if any).
+            // Draw the temporary marker.
             temporaryMarker?.let { point ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
                     painter = painterResource(id = R.drawable.red_marker)
                 )
-                PointAnnotation(point = point) {
-                    iconImage = markerImage
-                }
+                PointAnnotation(point = point) { iconImage = markerImage }
                 if (showAnnotations) {
                     ViewAnnotation(
                         options = viewAnnotationOptions {
@@ -130,7 +132,8 @@ fun MapView(
                         MarkerLabel(
                             text = "New Marker\nLat: ${"%.4f".format(point.latitude())}\nLon: ${"%.4f".format(point.longitude())}",
                             onClick = { onMarkerAnnotationClick(point) },
-                            onDoubleClick = { /* Optionally handle double tap on temporary marker */ }
+                            onDoubleClick = { /* Optionally handle double tap on temporary marker */ },
+                            onLongPress = { onMarkerAnnotationLongPress(point) }
                         )
                     }
                 }
@@ -153,10 +156,9 @@ fun MapView(
                     ) {
                         MarkerLabel(
                             text = "${site.name}\nLat: ${"%.4f".format(site.latitude)}\nLon: ${"%.4f".format(site.longitude)}",
-                            onClick = { /* Optionally handle single tap */ },
+                            onClick = { /* Optionally handle single tap on saved marker */ },
                             onDoubleClick = {
                                 scope.launch {
-                                    // Animate the camera to the site's coordinates using the shared mapViewportState.
                                     mapViewportState.easeTo(
                                         cameraOptions {
                                             center(sitePoint)
@@ -164,12 +166,14 @@ fun MapView(
                                             pitch(0.0)
                                             bearing(0.0)
                                         },
-                                        MapAnimationOptions.mapAnimationOptions {
-                                            duration(1000L)
-                                        },
+                                        MapAnimationOptions.mapAnimationOptions { duration(1000L) }
                                     )
                                 }
                                 onLaunchSiteMarkerClick(site)
+                            },
+                            onLongPress = {
+                                // NEW: Instead of doing nothing, call the callback for editing saved marker.
+                                onSavedMarkerAnnotationLongPress(site)
                             }
                         )
                     }

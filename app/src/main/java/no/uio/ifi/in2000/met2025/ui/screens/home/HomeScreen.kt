@@ -49,12 +49,15 @@ fun HomeScreen(
     val context = LocalContext.current
     var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
     var showSaveDialog by remember { mutableStateOf(false) }
-    var launchSiteName by remember { mutableStateOf("") }
+    // We'll use these states for both adding new markers and editing saved markers.
     var savedMarkerCoordinates by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var launchSiteName by remember { mutableStateOf("") }
+    var isEditingMarker by remember { mutableStateOf(false) } // false: new marker; true: editing existing marker
+    var editingMarkerId by remember { mutableStateOf(0) }
     var showAnnotations by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Create a shared MapViewportState.
+    // Shared MapViewportState.
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
             center(Point.fromLngLat(coordinates.second, coordinates.first))
@@ -81,18 +84,34 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 MapContainer(
                     coordinates = coordinates,
-                    temporaryMarker = null,
+                    temporaryMarker = null,  // For demonstration, replace this with your temporary marker if needed.
                     launchSites = launchSites,
                     mapViewportState = mapViewportState,
                     showAnnotations = showAnnotations,
                     onMapLongClick = { point ->
+                        // When the user long presses the map, place a temporary marker.
                         viewModel.onMarkerPlaced(point.latitude(), point.longitude())
                     },
                     onMarkerAnnotationClick = { point ->
-                        // Handle temporary marker tap if needed.
+                        // Optionally handle single-tap on a temporary marker.
+                    },
+                    onMarkerAnnotationLongPress = { point ->
+                        // Temporary marker: open the save dialog (for new marker).
+                        isEditingMarker = false
+                        savedMarkerCoordinates = Pair(point.latitude(), point.longitude())
+                        launchSiteName = "New Marker"
+                        showSaveDialog = true
                     },
                     onLaunchSiteMarkerClick = { site ->
-                        // Optional extra callback if needed.
+                        // Optional extra behavior on double-tap.
+                    },
+                    onSavedMarkerAnnotationLongPress = { site ->
+                        // Saved marker: open the edit dialog.
+                        isEditingMarker = true
+                        editingMarkerId = site.uid
+                        savedMarkerCoordinates = Pair(site.latitude, site.longitude)
+                        launchSiteName = site.name  // Pre-fill with the current name.
+                        showSaveDialog = true
                     }
                 )
 
@@ -117,7 +136,6 @@ fun HomeScreen(
                     LaunchSitesMenu(
                         launchSites = state.launchSites.filter { it.name != "Last Visited" },
                         onSiteSelected = { site ->
-                            // Animate the camera to the site's coordinates.
                             coroutineScope.launch {
                                 mapViewportState.easeTo(
                                     cameraOptions {
@@ -135,6 +153,33 @@ fun HomeScreen(
                     )
                 }
 
+               /* // Show the save/edit dialog.
+                if (showSaveDialog && savedMarkerCoordinates != null) {
+                    SaveLaunchSiteDialog(
+                        launchSiteName = launchSiteName,
+                        onNameChange = { launchSiteName = it },
+                        onDismiss = {
+                            showSaveDialog = false
+                            savedMarkerCoordinates = null
+                            launchSiteName = ""
+                        },
+                        onConfirm = {
+                            val (lat, lon) = savedMarkerCoordinates!!
+                            if (isEditingMarker) {
+                                // For editing, add a new marker with the edited values.
+                                viewModel.addLaunchSite(lat, lon, launchSiteName)
+                            } else {
+                                // For a new marker.
+                                viewModel.addLaunchSite(lat, lon, launchSiteName)
+                                // Update the new marker placeholder so that next time it is fresh.
+                                viewModel.updateNewMarker(lat, lon)
+                            }
+                            showSaveDialog = false
+                            savedMarkerCoordinates = null
+                            launchSiteName = ""
+                        }
+                    )
+                } */
                 IconButton(
                     onClick = { showAnnotations = !showAnnotations },
                     modifier = Modifier

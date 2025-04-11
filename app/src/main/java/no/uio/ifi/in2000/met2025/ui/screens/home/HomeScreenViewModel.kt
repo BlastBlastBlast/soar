@@ -66,9 +66,7 @@ class HomeScreenViewModel @Inject constructor(
                 val currentVisited = launchSitesRepository.getTempSite("Last Visited").firstOrNull()
                 if (currentVisited == null) {
                     launchSitesRepository.insertAll(
-                        // Still using the DB model here since the repository expects it.
-                        // The UI never sees this model.
-                        no.uio.ifi.in2000.met2025.data.local.database.LaunchSite(
+                        LaunchSite(
                             latitude = lat,
                             longitude = lon,
                             name = "Last Visited"
@@ -91,7 +89,7 @@ class HomeScreenViewModel @Inject constructor(
                 val currentMarker = launchSitesRepository.getNewMarkerTempSite("New Marker").firstOrNull()
                 if (currentMarker == null) {
                     launchSitesRepository.insertAll(
-                        no.uio.ifi.in2000.met2025.data.local.database.LaunchSite(
+                        LaunchSite(
                             latitude = lat,
                             longitude = lon,
                             name = "New Marker"
@@ -119,7 +117,7 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 launchSitesRepository.insertAll(
-                    no.uio.ifi.in2000.met2025.data.local.database.LaunchSite(
+                    LaunchSite(
                         latitude = lat,
                         longitude = lon,
                         name = name
