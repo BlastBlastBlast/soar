@@ -13,8 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.dsl.cameraOptions
@@ -35,7 +38,11 @@ import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import no.uio.ifi.in2000.met2025.R
 
 @Composable
-fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
+fun MarkerLabel(
+    text: String,
+    onClick: () -> Unit,
+    fontSize: TextUnit = 10.sp
+) {
     Box(
         modifier = Modifier
             .clickable { onClick() }
@@ -44,26 +51,37 @@ fun MarkerLabel(coordinate: Point, onClick: () -> Unit) {
             .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Lat: ${"%.4f".format(coordinate.latitude())}\nLon: ${"%.4f".format(coordinate.longitude())}",
-            color = Color.White
-        )
+        Text(text = text, color = Color.White, fontSize = fontSize)
     }
 }
 
 
+/**
+ * MapView is now configuration–friendly. All important inputs are passed as parameters:
+ *
+ * @param center a Pair (latitude, longitude) that defines the camera center.
+ * @param temporaryMarker an optional Point representing a newly placed marker.
+ * @param launchSites a list of saved launch sites.
+ * @param showAnnotations toggles marker labels.
+ * @param onMapLongClick invoked when the user long–presses on the map (passing the clicked Point).
+ * @param onMarkerAnnotationClick invoked when a temporary marker label is tapped.
+ * @param onLaunchSiteMarkerClick invoked when a saved launch site’s label is tapped.
+ */
 @Composable
 fun MapView(
-    latitude: Double,
-    longitude: Double,
-    initialMarkerCoordinate: Point? = null,
+    center: Pair<Double, Double>,
+    temporaryMarker: Point? = null,
+    launchSites: List<LaunchSite> = emptyList(),
     modifier: Modifier = Modifier,
-    onMarkerPlaced: (Double, Double) -> Unit,
-    onMarkerAnnotationClick: (Double, Double) -> Unit
+    showAnnotations: Boolean = true,
+    onMapLongClick: (Point) -> Unit,
+    onMarkerAnnotationClick: (Point) -> Unit,
+    onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {}
 ) {
+    // Set up the map state with a default camera:
     val mapState = rememberMapState {
         cameraOptions {
-            center(Point.fromLngLat(longitude, latitude))
+            center(Point.fromLngLat(center.second, center.first))
             zoom(12.0)
             pitch(0.0)
             bearing(0.0)
@@ -71,90 +89,75 @@ fun MapView(
     }
     val mapViewportState = rememberMapViewportState()
 
-    // Hold the marker state; initialize with the initialMarkerCoordinate.
-    var markerCoordinate by remember { mutableStateOf(initialMarkerCoordinate) }
-    var initialTransitionDone by remember { mutableStateOf(false) }
-    var prevCoordinates by remember { mutableStateOf(Pair(latitude, longitude)) }
-
-    // Whenever external coordinates change (e.g. via a launch site selection),
-    // update the marker coordinate to match.
-    LaunchedEffect(latitude, longitude) {
-        markerCoordinate = Point.fromLngLat(longitude, latitude)
-    }
-
     Box(modifier = modifier) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
             style = { MapStyle(style = Style.STANDARD) },
             mapState = mapState,
             mapViewportState = mapViewportState,
-            onMapLongClickListener = { point: Point ->
-                markerCoordinate = point
-                onMarkerPlaced(point.latitude(), point.longitude())
+            onMapLongClickListener = { point ->
+                onMapLongClick(point)
                 true
             }
-        ) {
-            // Update the camera when external coordinates change.
-            MapEffect(latitude, longitude) { mapView ->
-                val newCoords = Pair(latitude, longitude)
-                if (prevCoordinates != newCoords) {
-                    val currentCameraState = mapView.mapboxMap.cameraState
-                    mapView.mapboxMap.setCamera(
-                        cameraOptions {
-                            center(Point.fromLngLat(longitude, latitude))
-                            zoom(currentCameraState.zoom)
-                            pitch(currentCameraState.pitch)
-                            bearing(currentCameraState.bearing)
-                        }
-                    )
-                    prevCoordinates = newCoords
-                }
-            }
-            // MapEffect for location puck and initial camera transition.
-            MapEffect(markerCoordinate, initialMarkerCoordinate) { mapView ->
-                mapView.location.updateSettings {
+        ) { // Trailing lambda: proper MapApplier is in scope.
+            // ── Configure the location puck (this runs once and does not affect user panning/zooming) ──
+            MapEffect(Unit) {
+                this.location.updateSettings {
                     locationPuck = createDefault2DPuck(withBearing = true)
                     enabled = true
                     puckBearing = PuckBearing.COURSE
                     puckBearingEnabled = true
                 }
-                if (!initialTransitionDone && initialMarkerCoordinate != null) {
-                    val currentCameraState = mapView.mapboxMap.cameraState
-                    mapView.mapboxMap.setCamera(
-                        cameraOptions {
-                            center(initialMarkerCoordinate)
-                            zoom(currentCameraState.zoom)
-                            pitch(currentCameraState.pitch)
-                            bearing(currentCameraState.bearing)
-                        }
-                    )
-                    initialTransitionDone = true
-                }
             }
-            // Draw the marker if markerCoordinate exists.
-            markerCoordinate?.let { coordinate ->
+            // ── Draw the temporary marker and its label ──
+            temporaryMarker?.let { point ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
                     painter = painterResource(id = R.drawable.red_marker)
                 )
-                PointAnnotation(point = coordinate) {
+                PointAnnotation(point = point) {
                     iconImage = markerImage
                 }
-            }
-            // Draw a view annotation for the marker.
-            markerCoordinate?.let { coordinate ->
-                ViewAnnotation(
-                    options = viewAnnotationOptions {
-                        geometry(coordinate)
-                        annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
-                        allowOverlap(true)
+                if (showAnnotations) {
+                    ViewAnnotation(
+                        options = viewAnnotationOptions {
+                            geometry(point)
+                            annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
+                            allowOverlap(true)
+                        }
+                    ) {
+                        MarkerLabel(
+                            text = "New Marker\nLat: ${"%.4f".format(point.latitude())}\nLon: ${"%.4f".format(point.longitude())}",
+                            onClick = { onMarkerAnnotationClick(point) }
+                        )
                     }
-                ) {
-                    MarkerLabel(coordinate = coordinate) {
-                        onMarkerAnnotationClick(coordinate.latitude(), coordinate.longitude())
+                }
+            }
+            // ── Draw saved launch site markers and their labels ──
+            launchSites.filter { it.name != "Last Visited" }.forEach { site ->
+                val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
+                val markerImage = rememberIconImage(
+                    key = "launchSite_${site.uid}",
+                    painter = painterResource(id = R.drawable.red_marker)
+                )
+                PointAnnotation(point = sitePoint) {
+                    iconImage = markerImage
+                }
+                if (showAnnotations) {
+                    ViewAnnotation(
+                        options = viewAnnotationOptions {
+                            geometry(sitePoint)
+                            annotationAnchor { anchor(ViewAnnotationAnchor.TOP) }
+                            allowOverlap(true)
+                        }
+                    ) {
+                        MarkerLabel(
+                            text = "${site.name}\nLat: ${"%.4f".format(site.latitude)}\nLon: ${"%.4f".format(site.longitude)}",
+                            onClick = { onLaunchSiteMarkerClick(site) }
+                        )
                     }
                 }
             }
         }
     }
-}
+}}

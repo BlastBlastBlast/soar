@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.mapbox.geojson.Point
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.CoordinateDisplay
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesButton
@@ -27,6 +26,12 @@ import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.SaveLaunchSiteDialog
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.WeatherNavigationButton
+
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
 @Composable
 fun HomeScreen(
@@ -41,16 +46,24 @@ fun HomeScreen(
     var showSaveDialog by remember { mutableStateOf(false) }
     var launchSiteName by remember { mutableStateOf("") }
     var savedMarkerCoordinates by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    // Optionally, you can add a toggle for annotation visibility if needed:
+    var showAnnotations by remember { mutableStateOf(true) }
 
     when (uiState) {
         is HomeScreenViewModel.HomeScreenUiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
         }
         is HomeScreenViewModel.HomeScreenUiState.Error -> {
             val errorMessage = (uiState as HomeScreenViewModel.HomeScreenUiState.Error).message
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(text = "Error: $errorMessage", color = MaterialTheme.colorScheme.error)
             }
         }
@@ -59,15 +72,22 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 MapContainer(
                     coordinates = coordinates,
+                    // Use, for example, the first launch site as the initial marker if available.
                     initialMarkerCoordinate = state.launchSites.firstOrNull()?.let {
                         Point.fromLngLat(it.longitude, it.latitude)
                     },
+                    launchSites = state.launchSites,
+                    showAnnotations = showAnnotations,
                     onMarkerPlaced = { lat, lon ->
                         viewModel.onMarkerPlaced(lat, lon)
                     },
                     onMarkerAnnotationClick = { lat, lon ->
                         savedMarkerCoordinates = Pair(lat, lon)
                         showSaveDialog = true
+                    },
+                    onLaunchSiteMarkerClick = { site ->
+                        // For example, update the map center when a launch site marker is tapped.
+                        viewModel.updateCoordinates(site.latitude, site.longitude)
                     }
                 )
                 CoordinateDisplay(coordinates = coordinates)
@@ -80,8 +100,10 @@ fun HomeScreen(
                 )
                 AnimatedVisibility(
                     visible = isLaunchSiteMenuExpanded,
-                    enter = expandVertically(animationSpec = tween(durationMillis = 300)) + fadeIn(animationSpec = tween(durationMillis = 300)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) + fadeOut(animationSpec = tween(durationMillis = 300)),
+                    enter = expandVertically(animationSpec = tween(durationMillis = 300)) +
+                            fadeIn(animationSpec = tween(durationMillis = 300)),
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) +
+                            fadeOut(animationSpec = tween(durationMillis = 300)),
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(start = 16.dp, bottom = 100.dp)
@@ -89,16 +111,26 @@ fun HomeScreen(
                     LaunchSitesMenu(
                         launchSites = state.launchSites.filter { it.name != "Last Visited" },
                         onSiteSelected = { site ->
-                            // When a launch site is selected, update coordinates immediately...
+                            // Update map coordinates and update the "Last Visited" temporary marker.
                             viewModel.updateCoordinates(site.latitude, site.longitude)
-                            // ...and update only the "Last Visited" record.
                             viewModel.updateLastVisited(site.latitude, site.longitude)
                             isLaunchSiteMenuExpanded = false
                         }
                     )
                 }
-
-                // Button to navigate to the Weather screen.
+                // Toggle button for annotations:
+                IconButton(
+                    onClick = { showAnnotations = !showAnnotations },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (showAnnotations) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = "Toggle marker annotations"
+                    )
+                }
                 WeatherNavigationButton(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -128,4 +160,4 @@ fun HomeScreen(
             }
         }
     }
-}
+}}
