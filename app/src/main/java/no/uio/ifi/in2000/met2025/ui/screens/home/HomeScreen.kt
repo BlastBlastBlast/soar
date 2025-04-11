@@ -183,7 +183,7 @@ fun HomeScreen(
                 IconButton(
                     onClick = { showAnnotations = !showAnnotations },
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.BottomCenter)
                         .padding(16.dp)
                         .size(36.dp)
                 ) {
