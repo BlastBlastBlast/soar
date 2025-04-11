@@ -9,13 +9,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel.AtmosphericWindUiState
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DefaultConfig
 import java.time.Instant
 import javax.inject.Inject
