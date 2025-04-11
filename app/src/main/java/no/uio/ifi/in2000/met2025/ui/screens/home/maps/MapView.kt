@@ -24,6 +24,7 @@ import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
@@ -31,6 +32,7 @@ import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.extension.compose.rememberMapState
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.PuckBearing
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.viewannotation.annotationAnchor
@@ -65,35 +67,34 @@ fun MarkerLabel(
 }
 
 
-// MapView.kt
 @Composable
 fun MapView(
     center: Pair<Double, Double>,
     temporaryMarker: Point? = null,
     launchSites: List<LaunchSite>,
+    mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
     showAnnotations: Boolean = true,
     onMapLongClick: (Point) -> Unit,
     onMarkerAnnotationClick: (Point) -> Unit,
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {}
 ) {
-    // Use MapViewportState for camera control.
-    val mapViewportState = rememberMapViewportState {
-        setCameraOptions {
+    val mapState = rememberMapState {
+        cameraOptions {
             center(Point.fromLngLat(center.second, center.first))
             zoom(12.0)
             pitch(0.0)
             bearing(0.0)
         }
     }
-    // A coroutine scope for camera animation.
     val scope = rememberCoroutineScope()
 
     Box(modifier = modifier) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
             style = { MapStyle(style = Style.STANDARD) },
-            mapViewportState = mapViewportState,
+            mapState = mapState,
+            mapViewportState = mapViewportState,  // Use the passed viewport state.
             onMapLongClickListener = { point ->
                 onMapLongClick(point)
                 true
@@ -109,7 +110,7 @@ fun MapView(
                     puckBearingEnabled = true
                 }
             }
-            // Draw the temporary marker and its label.
+            // Draw the temporary marker (if any).
             temporaryMarker?.let { point ->
                 val markerImage = rememberIconImage(
                     key = R.drawable.red_marker,
@@ -134,16 +135,14 @@ fun MapView(
                     }
                 }
             }
-            // Draw saved launch site markers and their labels.
+            // Draw saved launch site markers.
             launchSites.filter { it.name != "Last Visited" }.forEach { site ->
                 val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
                 val markerImage = rememberIconImage(
                     key = "launchSite_${site.uid}",
                     painter = painterResource(id = R.drawable.red_marker)
                 )
-                PointAnnotation(point = sitePoint) {
-                    iconImage = markerImage
-                }
+                PointAnnotation(point = sitePoint) { iconImage = markerImage }
                 if (showAnnotations) {
                     ViewAnnotation(
                         options = viewAnnotationOptions {
@@ -154,22 +153,22 @@ fun MapView(
                     ) {
                         MarkerLabel(
                             text = "${site.name}\nLat: ${"%.4f".format(site.latitude)}\nLon: ${"%.4f".format(site.longitude)}",
-                            onClick = { /* Single tap behavior if needed */ },
+                            onClick = { /* Optionally handle single tap */ },
                             onDoubleClick = {
                                 scope.launch {
-                                    // Animate the camera to this marker using MapViewportState.
+                                    // Animate the camera to the site's coordinates using the shared mapViewportState.
                                     mapViewportState.easeTo(
                                         cameraOptions {
                                             center(sitePoint)
                                             zoom(14.0)
-                                            // You can also set pitch and bearing here if desired:
-                                            pitch(45.0)
-                                            //bearing(0.0)
+                                            pitch(0.0)
+                                            bearing(0.0)
                                         },
-                                        //duration = 1000L // Duration in milliseconds.
+                                        MapAnimationOptions.mapAnimationOptions {
+                                            duration(1000L)
+                                        },
                                     )
                                 }
-                                // Invoke additional callback behavior if needed.
                                 onLaunchSiteMarkerClick(site)
                             }
                         )

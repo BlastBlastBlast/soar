@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import com.mapbox.geojson.Point
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.MapView
 import androidx.compose.runtime.Composable
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import kotlinx.coroutines.flow.Flow
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
@@ -15,6 +16,7 @@ fun MapContainer(
     coordinates: Pair<Double, Double>,
     temporaryMarker: Point? = null,
     launchSites: List<LaunchSite>,
+    mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
     showAnnotations: Boolean = true,
     onMapLongClick: (Point) -> Unit,
@@ -26,6 +28,7 @@ fun MapContainer(
             center = coordinates,
             temporaryMarker = temporaryMarker,
             launchSites = launchSites,
+            mapViewportState = mapViewportState,
             modifier = Modifier.fillMaxSize(),
             showAnnotations = showAnnotations,
             onMapLongClick = onMapLongClick,
