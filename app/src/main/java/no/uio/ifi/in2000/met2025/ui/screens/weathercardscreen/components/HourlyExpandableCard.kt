@@ -35,6 +35,7 @@ import no.uio.ifi.in2000.met2025.data.models.EvaluationIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import java.time.Instant
 
 @Composable
@@ -56,7 +57,8 @@ fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
     coordinates: Pair<Double, Double>,
     config: ConfigProfile,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel : WeatherCardViewmodel
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -137,8 +139,9 @@ fun HourlyExpandableCard(
                         }
                     }
                     AtmosphericWindTable(
+                        viewModel,
                         coordinates = coordinates,
-                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore()
+                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore(),
                     )
                 }
             }

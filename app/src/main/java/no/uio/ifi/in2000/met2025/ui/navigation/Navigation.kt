@@ -21,8 +21,6 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditViewModel
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigListScreen
-import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindScreen
-import no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.AtmosphericWindViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
@@ -68,7 +66,6 @@ fun AppNavLauncher(
     // Disable gestures on Home so the drawer is only opened by tapping the logo.
     val gesturesEnabled = currentScreenTitle != "Home"
     val configEditViewModel : ConfigEditViewModel = hiltViewModel()
-    val atmosphericWindViewModel : AtmosphericWindViewModel = hiltViewModel()
     val weatherCardViewModel : WeatherCardViewmodel = hiltViewModel()
     val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
 
@@ -196,9 +193,6 @@ fun AppNavLauncher(
                 }
                 composable(Screen.LaunchSite.route) {
                     LaunchSiteScreen()
-                }
-                composable(Screen.AtmosphericWind.route) {
-                    AtmosphericWindScreen(atmosphericWindViewModel)
                 }
                 composable(Screen.ConfigList.route) {
                     ConfigListScreen(

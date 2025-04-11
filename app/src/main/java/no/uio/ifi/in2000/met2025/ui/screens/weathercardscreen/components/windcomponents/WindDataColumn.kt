@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind.components
+package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windcomponents
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
