@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
-import no.uio.ifi.in2000.met2025.data.models.EvaluationIcon
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.EvaluationIcon
 
 fun ConfigProfile.threshold(parameter: ConfigParameter): Double
 = when (parameter) {
@@ -21,6 +21,7 @@ fun ConfigProfile.threshold(parameter: ConfigParameter): Double
     ConfigParameter.HUMIDITY -> humidityThreshold
     ConfigParameter.DEW_POINT -> dewPointThreshold
     ConfigParameter.PROBABILITY_OF_THUNDER -> probabilityOfThunderThreshold
+    ConfigParameter.ALTITUDE_UPPER_BOUND -> altitudeUpperBound
 }
 
 fun ConfigProfile.thresholdsMap()
@@ -35,7 +36,8 @@ fun ConfigProfile.thresholdsMap()
     ConfigParameter.PRECIPITATION to precipitationThreshold,
     ConfigParameter.HUMIDITY to humidityThreshold,
     ConfigParameter.DEW_POINT to dewPointThreshold,
-    ConfigParameter.PROBABILITY_OF_THUNDER to probabilityOfThunderThreshold
+    ConfigParameter.PROBABILITY_OF_THUNDER to probabilityOfThunderThreshold,
+    ConfigParameter.ALTITUDE_UPPER_BOUND to altitudeUpperBound
 )
 
 fun ConfigParameter.label(): String
@@ -52,6 +54,7 @@ fun ConfigParameter.label(): String
     ConfigParameter.HUMIDITY -> "Humidity"
     ConfigParameter.DEW_POINT -> "Dew Point"
     ConfigParameter.PROBABILITY_OF_THUNDER -> "Probability of Thunder"
+    else -> ""
 }
 
 fun ConfigParameter.unit(): String
@@ -68,6 +71,7 @@ fun ConfigParameter.unit(): String
     ConfigParameter.HUMIDITY -> "%"
     ConfigParameter.DEW_POINT -> "°C"
     ConfigParameter.PROBABILITY_OF_THUNDER -> "%"
+    else -> ""
 }
 
 fun ConfigParameter.icon(): EvaluationIcon
@@ -84,4 +88,5 @@ fun ConfigParameter.icon(): EvaluationIcon
     ConfigParameter.HUMIDITY -> EvaluationIcon.DrawableIcon(R.drawable.humidity)
     ConfigParameter.DEW_POINT -> EvaluationIcon.DrawableIcon(R.drawable.mist)
     ConfigParameter.PROBABILITY_OF_THUNDER -> EvaluationIcon.DrawableIcon(R.drawable.thunder)
+    else -> EvaluationIcon.VectorIcon(Icons.Filled.ArrowDownward)
 }

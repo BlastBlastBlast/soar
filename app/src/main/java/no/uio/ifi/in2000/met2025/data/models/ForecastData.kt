@@ -31,7 +31,6 @@ data class ForecastDataValues(
 )
 
 
-
 // ein mindre nøsta struktur enn responsdataen
 // også uten enkelte verdiar frå responsen som eg ikkje turte å ta vekk, f.eks type
 

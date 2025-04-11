@@ -12,6 +12,7 @@ enum class ConfigParameter {
     PRECIPITATION,
     HUMIDITY,
     DEW_POINT,
-    PROBABILITY_OF_THUNDER
+    PROBABILITY_OF_THUNDER,
+    ALTITUDE_UPPER_BOUND,
     // Add more parameters as needed
 }

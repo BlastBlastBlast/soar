@@ -73,7 +73,8 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_precipitation") val isEnabledPrecipitation: Boolean = true,
     @ColumnInfo(name = "probability_of_thunder_threshold") val probabilityOfThunderThreshold: Double = 0.0,
     @ColumnInfo(name = "is_enabled_probability_of_thunder") val isEnabledProbabilityOfThunder: Boolean = true,
-    @ColumnInfo(name = "is_default") val isDefault: Boolean = false
+    @ColumnInfo(name = "is_default") val isDefault: Boolean = false,
+    @ColumnInfo(name = "altitude_upper_bound") val altitudeUpperBound: Double = 0.0
 )
 
 

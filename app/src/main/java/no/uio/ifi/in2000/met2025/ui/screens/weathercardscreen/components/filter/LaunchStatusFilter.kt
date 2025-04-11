@@ -1,8 +1,8 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter
 
-import no.uio.ifi.in2000.met2025.data.models.LaunchStatus
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.evaluateLaunchConditions
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
 

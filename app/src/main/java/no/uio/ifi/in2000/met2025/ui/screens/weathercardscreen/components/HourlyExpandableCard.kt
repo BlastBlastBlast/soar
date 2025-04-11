@@ -25,13 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIcon
-import no.uio.ifi.in2000.met2025.data.models.LaunchStatusIndicator
-import no.uio.ifi.in2000.met2025.data.models.evaluateParameterConditions
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.LaunchStatusIcon
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.LaunchStatusIndicator
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.models.EvaluationIcon
+import no.uio.ifi.in2000.met2025.data.models.launchstatus.EvaluationIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore

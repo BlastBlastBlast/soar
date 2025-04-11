@@ -1,7 +1,6 @@
-package no.uio.ifi.in2000.met2025.data.models
+package no.uio.ifi.in2000.met2025.data.models.launchstatus
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -10,12 +9,16 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
+import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.icon
 import no.uio.ifi.in2000.met2025.domain.helpers.label
 import no.uio.ifi.in2000.met2025.domain.helpers.threshold
 import no.uio.ifi.in2000.met2025.domain.helpers.unit
+import no.uio.ifi.in2000.met2025.domain.helpers.toConfigMap
+import no.uio.ifi.in2000.met2025.domain.helpers.valueAt
 
 sealed class EvaluationIcon {
     data class DrawableIcon(val resId: Int) : EvaluationIcon()
@@ -30,24 +33,6 @@ enum class LaunchStatus {
     MISSING_DATA    // One or more required values are missing
 }
 
-fun ForecastDataItem.toConfigMap(config: ConfigProfile): Map<ConfigParameter, Pair<Double, Double>>
-= mapOf( //maybe use two maps, one for values and one for thresholds
-    ConfigParameter.GROUND_WIND to Pair(values.windSpeed, config.groundWindThreshold),
-    ConfigParameter.AIR_WIND to Pair(values.windSpeedOfGust, config.airWindThreshold),
-    ConfigParameter.WIND_DIRECTION to Pair(values.windFromDirection, 0.0),
-    ConfigParameter.CLOUD_COVER to Pair(values.cloudAreaFraction, config.cloudCoverThreshold),
-    ConfigParameter.CLOUD_COVER_HIGH to Pair(values.cloudAreaFractionHigh, config.cloudCoverHighThreshold),
-    ConfigParameter.CLOUD_COVER_MEDIUM to Pair(values.cloudAreaFractionMedium, config.cloudCoverMediumThreshold),
-    ConfigParameter.CLOUD_COVER_LOW to Pair(values.cloudAreaFractionLow, config.cloudCoverLowThreshold),
-    ConfigParameter.FOG to Pair(values.fogAreaFraction, config.fogThreshold),
-    ConfigParameter.PRECIPITATION to Pair(values.precipitationAmount, config.precipitationThreshold),
-    ConfigParameter.HUMIDITY to Pair(values.relativeHumidity, config.humidityThreshold),
-    ConfigParameter.DEW_POINT to Pair(values.dewPointTemperature, config.dewPointThreshold),
-    ConfigParameter.PROBABILITY_OF_THUNDER to Pair(values.probabilityOfThunder, config.probabilityOfThunderThreshold)
-)
-    .filter { (_, pair) -> pair.first != null }
-    .mapValues { it.value.first!! to it.value.second }
-
 fun evaluateLaunchConditions(forecastDataItem: ForecastDataItem, config: ConfigProfile): LaunchStatus
 = launchStatus(relativeUnsafety(forecastDataItem, config))
 
@@ -58,6 +43,18 @@ fun relativeUnsafety(valueThresholdMap: Map<ConfigParameter, Pair<Double, Double
 = valueThresholdMap
     .map{ (_, pair) -> relativeUnsafety(pair.first, pair.second)!! }
     .maxOrNull()
+
+fun evaluateLaunchConditions(isobaricData: IsobaricData, config: ConfigProfile): LaunchStatus {
+    return launchStatus(relativeUnsafety(isobaricData, config))
+}
+
+fun relativeUnsafety(isobaricData: IsobaricData, config: ConfigProfile): Double? {
+    //val valueThresholds
+    return 0.0//relativeUnsafety()
+}
+
+fun relativeUnsafety(valueThresholdList: List<Pair<Double, Double>>): Double?
+= valueThresholdList.maxOfOrNull { (value, threshold) -> relativeUnsafety(value, threshold)!! }
 
 fun relativeUnsafety(value: Double?, threshold: Double): Double? {
     if (value == null) return null
@@ -76,29 +73,11 @@ fun launchStatus(relativeUnsafety: Double?): LaunchStatus {
     }
 }
 
-fun ForecastDataItem.valueAt(parameter: ConfigParameter): Double? {
-    return when (parameter) {
-        ConfigParameter.GROUND_WIND -> values.windSpeed
-        ConfigParameter.AIR_WIND -> values.windSpeedOfGust
-        ConfigParameter.WIND_DIRECTION -> values.windFromDirection
-        ConfigParameter.CLOUD_COVER -> values.cloudAreaFraction
-        ConfigParameter.CLOUD_COVER_HIGH -> values.cloudAreaFractionHigh
-        ConfigParameter.CLOUD_COVER_MEDIUM -> values.cloudAreaFractionMedium
-        ConfigParameter.CLOUD_COVER_LOW -> values.cloudAreaFractionLow
-        ConfigParameter.FOG -> values.fogAreaFraction
-        ConfigParameter.PRECIPITATION -> values.precipitationAmount
-        ConfigParameter.HUMIDITY -> values.relativeHumidity
-        ConfigParameter.DEW_POINT -> values.dewPointTemperature
-        ConfigParameter.PROBABILITY_OF_THUNDER -> values.probabilityOfThunder
-    }
-}
-
 fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation> {
     val parameters = ConfigParameter.entries
 
     return parameters.map { parameter ->
         val value = forecast.valueAt(parameter)
-
         val status = launchStatus(relativeUnsafety(value, config.threshold(parameter)))
 
         ParameterEvaluation(
@@ -113,13 +92,6 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
         )
     }
 }
-
-data class ParameterEvaluation(
-    val label: String,
-    val value: String,
-    val status: LaunchStatus,
-    val icon: EvaluationIcon? = null
-)
 
 @Composable
 fun LaunchStatusIcon(status: LaunchStatus) {
