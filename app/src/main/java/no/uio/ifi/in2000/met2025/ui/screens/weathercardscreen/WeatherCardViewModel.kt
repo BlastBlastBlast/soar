@@ -18,7 +18,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.Default
 import java.time.Instant
 import javax.inject.Inject
 
-
+// WeatherCardViewModel.kt
 @HiltViewModel
 class WeatherCardViewmodel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
@@ -28,15 +28,15 @@ class WeatherCardViewmodel @Inject constructor(
 ) : ViewModel() {
 
     sealed class WeatherCardUiState {
-        data object Idle : WeatherCardUiState()
-        data object Loading : WeatherCardUiState()
+        object Idle : WeatherCardUiState()
+        object Loading : WeatherCardUiState()
         data class Success(val forecastItems: List<ForecastDataItem>) : WeatherCardUiState()
         data class Error(val message: String) : WeatherCardUiState()
     }
 
     sealed class AtmosphericWindUiState {
-        data object Idle : AtmosphericWindUiState()
-        data object Loading : AtmosphericWindUiState()
+        object Idle : AtmosphericWindUiState()
+        object Loading : AtmosphericWindUiState()
         data class Success(val isobaricData: IsobaricData) : AtmosphericWindUiState()
         data class Error(val message: String) : AtmosphericWindUiState()
     }
@@ -53,13 +53,19 @@ class WeatherCardViewmodel @Inject constructor(
     private val _configList = MutableStateFlow<List<ConfigProfile>>(emptyList())
     val configList: StateFlow<List<ConfigProfile>> = _configList
 
+    // Default coordinates are used if no temp site exists.
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
 
+    // Track the coordinates for which the isobaric data was last fetched.
+    private val _lastIsobaricCoordinates = MutableStateFlow<Pair<Double, Double>?>(null)
+    val lastIsobaricCoordinates: StateFlow<Pair<Double, Double>?> = _lastIsobaricCoordinates
+
     private val _isobaricData = MutableStateFlow<Map<Instant, AtmosphericWindUiState>>(emptyMap())
-    val isobaricData: StateFlow<Map<Instant,AtmosphericWindUiState>> = _isobaricData
+    val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
 
     init {
+        // Initialize configuration profiles.
         viewModelScope.launch {
             val currentConfigs = configProfileRepository.getAllConfigProfiles().first()
             if (currentConfigs.none { it.isDefault }) {
@@ -76,12 +82,24 @@ class WeatherCardViewmodel @Inject constructor(
                 _configList.value = list
             }
         }
+        // Continuously collect the current coordinates from the repository.
         viewModelScope.launch {
-            launchSitesRepository.getTempSite().collect { site ->
-                site?.let {
-                    _coordinates.value = Pair(it.latitude, it.longitude)
+            launchSitesRepository
+                .getCurrentCoordinates(tempName = "Last Visited", defaultCoordinates = Pair(59.942, 10.726))
+                .collect { newCoordinates ->
+                    _coordinates.value = newCoordinates
+                    // Optionally, if you want to automatically clear the last loaded isobaric data when a new location is set:
+                    // if (_lastIsobaricCoordinates.value != newCoordinates) {
+                    //     // Clear the isobaric data for all times or for your current time key.
+                    // }
                 }
-            }
+        }
+    }
+
+    fun clearIsobaricDataForTime(time: Instant) {
+        // Clear the isobaric data state for the given forecast time.
+        _isobaricData.value = _isobaricData.value.toMutableMap().apply {
+            put(time, AtmosphericWindUiState.Idle)
         }
     }
 
@@ -106,9 +124,8 @@ class WeatherCardViewmodel @Inject constructor(
 
     fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
         viewModelScope.launch {
-            //Mutex().withLock {
+            _lastIsobaricCoordinates.value = Pair(lat, lon)
             updateIsobaricData(lat, lon, time)
-            //}
         }
     }
 
@@ -127,7 +144,7 @@ class WeatherCardViewmodel @Inject constructor(
                                 throwable.message ?: "Ukjent feil"
                             )
                         else
-                            AtmosphericWindUiState.Success(currentItem.isobaricData) //TODO: add something on screen to show that this value is outdated
+                            AtmosphericWindUiState.Success(currentItem.isobaricData)
                     },
                     onSuccess = { data ->
                         AtmosphericWindUiState.Success(data)
