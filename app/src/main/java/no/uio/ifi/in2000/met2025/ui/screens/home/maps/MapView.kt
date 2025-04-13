@@ -140,7 +140,8 @@ fun MapView(
     Box(modifier = modifier) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
-            style = { MapStyle(style = Style.STANDARD) },
+            //style = { MapStyle(style = Style.STANDARD) },
+            style = { MapStyle ( style = "mapbox://styles/larswt/cm9ftfa5h00ix01s86li36n61") },
             mapState = mapState,
             mapViewportState = mapViewportState,
             onMapLongClickListener = { point ->
