@@ -16,7 +16,7 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
     var showNewSiteDialog by remember { mutableStateOf(false) }
 
-    // Lock "New Marker" to the top and sort other sites alphabetically.
+    // Separate "New Marker" from other launch sites as before.
     val newMarkerSite = launchSites.find { it.name == "New Marker" }
     val otherSites = launchSites.filter { it.name != "Last Visited" && it.name != "New Marker" }
         .sortedBy { it.name }
@@ -30,12 +30,14 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
                 LaunchSiteItem(
                     site = site,
                     onDelete = { viewModel.deleteLaunchSite(site) },
-                    onEdit = { updatedSite -> viewModel.updateLaunchSite(updatedSite) }
+                    onEdit = { updatedSite ->
+                        // Instead of updating in place, add a new record with the edited values.
+                        viewModel.addLaunchSite(updatedSite.latitude, updatedSite.longitude, updatedSite.name)
+                    }
                 )
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        // "+" button to open a dialog to add a new launch site.
         Button(
             onClick = { showNewSiteDialog = true },
             modifier = Modifier.fillMaxWidth()
@@ -45,6 +47,7 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
     }
 
     if (showNewSiteDialog) {
+        // This dialog can also be used to add a completely new launch site.
         NewLaunchSiteDialog(
             onDismiss = { showNewSiteDialog = false },
             onConfirm = { name, latStr, lonStr ->

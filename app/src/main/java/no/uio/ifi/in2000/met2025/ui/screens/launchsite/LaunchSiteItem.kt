@@ -52,11 +52,8 @@ fun LaunchSiteItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    // If it's the special marker, show the red marker icon and text in a row.
                     if (isSpecialMarker) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "Last Marker",
                                 style = MaterialTheme.typography.bodyLarge,
@@ -130,7 +127,15 @@ fun LaunchSiteItem(
                         val newLat = latitudeText.toDoubleOrNull()
                         val newLon = longitudeText.toDoubleOrNull()
                         if (newLat != null && newLon != null && name.isNotBlank()) {
-                            onEdit(LaunchSite(uid = site.uid, latitude = newLat, longitude = newLon, name = name))
+                            // Save the edited marker as a new launch site.
+                            onEdit(
+                                LaunchSite(
+                                    uid = 0, // or leave 0 so that the database assigns a new UID.
+                                    latitude = newLat,
+                                    longitude = newLon,
+                                    name = name
+                                )
+                            )
                             isEditing = false
                         }
                     }) {
