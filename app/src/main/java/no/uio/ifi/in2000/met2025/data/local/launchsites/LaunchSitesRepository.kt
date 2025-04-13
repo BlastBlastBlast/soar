@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.met2025.data.local.launchsites
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import javax.inject.Inject
@@ -8,6 +9,15 @@ import javax.inject.Inject
 class LaunchSitesRepository @Inject constructor(
     private val launchSiteDAO: LaunchSiteDAO
 ){
+    fun getCurrentCoordinates(
+        tempName: String = "Last Visited",
+        defaultCoordinates: Pair<Double, Double> = Pair(59.942, 10.726)
+    ): Flow<Pair<Double, Double>> {
+        return getTempSite(tempName).map { launchSite ->
+            launchSite?.let { Pair(it.latitude, it.longitude) } ?: defaultCoordinates
+        }
+    }
+
     suspend fun insertAll(vararg sites: LaunchSite) {
         launchSiteDAO.insertAll(*sites)
     }

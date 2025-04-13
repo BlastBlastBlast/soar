@@ -11,6 +11,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import javax.inject.Inject
 
+// HomeScreenViewModel.kt
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val launchSitesRepository: LaunchSitesRepository

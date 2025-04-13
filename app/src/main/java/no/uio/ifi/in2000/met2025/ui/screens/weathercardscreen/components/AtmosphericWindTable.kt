@@ -16,25 +16,37 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windcom
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import java.time.Instant
 
+// AtmosphericWindTable.kt
 @Composable
 fun AtmosphericWindTable(
     viewModel: WeatherCardViewmodel,
     coordinates: Pair<Double, Double>,
     time: Instant
 ) {
-    val onClickGetIsobaricData = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) }
-
+    // Collect both the isobaric data state and last loaded coordinates from the viewmodel.
     val isobaricTimeData by viewModel.isobaricData.collectAsState()
-    val isobaricDataUiState = isobaricTimeData[time] ?: WeatherCardViewmodel.AtmosphericWindUiState.Idle
+    val lastLoadedCoordinates by viewModel.lastIsobaricCoordinates.collectAsState()
 
-    when (isobaricDataUiState) {
+    // Determine if the current coordinates match the ones for which data was last loaded.
+    // If not, we force the UI state to Idle so that the button is shown.
+    val effectiveState = if (lastLoadedCoordinates != coordinates) {
+        WeatherCardViewmodel.AtmosphericWindUiState.Idle
+    } else {
+        isobaricTimeData[time] ?: WeatherCardViewmodel.AtmosphericWindUiState.Idle
+    }
+
+    // Render the UI based on the effective state.
+    when (effectiveState) {
         is WeatherCardViewmodel.AtmosphericWindUiState.Idle -> {
             Button(
-                onClick = { onClickGetIsobaricData() },
+                onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth()
-                    .background(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primary)
+                    .background(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
             ) {
                 Text(text = "Get Isobaric Data")
             }
@@ -47,21 +59,24 @@ fun AtmosphericWindTable(
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Error -> {
             Text(
-                text = "Error loading isobaric data: ${isobaricDataUiState.message}",
+                text = "Error loading isobaric data: ${effectiveState.message}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Button(
-                onClick = { onClickGetIsobaricData() },
+                onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth()
-                    .background(shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp), color = MaterialTheme.colorScheme.primary)
+                    .background(
+                        shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
             ) {
                 Text(text = "Retry loading isobaric data")
             }
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
-            AWTableContents(isobaricDataUiState.isobaricData)
+            AWTableContents(effectiveState.isobaricData)
         }
     }
 }

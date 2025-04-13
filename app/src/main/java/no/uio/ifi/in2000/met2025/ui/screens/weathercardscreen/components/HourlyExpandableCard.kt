@@ -38,6 +38,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import java.time.Instant
 
+//HourlyExpandableCard.kt
 @Composable
 fun WindDirectionIcon(windDirection: Double) {
     val arrowPainter = painterResource(id = R.drawable.up_arrow)
