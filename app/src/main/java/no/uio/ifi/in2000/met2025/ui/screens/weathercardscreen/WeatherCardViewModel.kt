@@ -124,9 +124,8 @@ class WeatherCardViewmodel @Inject constructor(
 
     fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
         viewModelScope.launch {
-            updateIsobaricData(lat, lon, time)
-            // Save the coordinates used for the last isobaric data fetch.
             _lastIsobaricCoordinates.value = Pair(lat, lon)
+            updateIsobaricData(lat, lon, time)
         }
     }
 
