@@ -85,7 +85,7 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 MapContainer(
                     coordinates = coordinates,
-                    temporaryMarker = null,  // For demonstration, replace this with your temporary marker if needed.
+                    temporaryMarker = null,
                     launchSites = launchSites,
                     mapViewportState = mapViewportState,
                     showAnnotations = showAnnotations,
@@ -94,27 +94,32 @@ fun HomeScreen(
                         viewModel.onMarkerPlaced(point.latitude(), point.longitude())
                     },
                     onMarkerAnnotationClick = { point ->
-                        // Optionally handle single-tap on a temporary marker.
+                        viewModel.updateCoordinates(point.latitude(), point.longitude())
+                        viewModel.updateLastVisited(point.latitude(), point.longitude())
                     },
                     onMarkerAnnotationLongPress = { point ->
-                        // Temporary marker: open the save dialog (for new marker).
+                        // For a temporary marker long press: open a dialog.
                         isEditingMarker = false
                         savedMarkerCoordinates = Pair(point.latitude(), point.longitude())
                         launchSiteName = "New Marker"
                         showSaveDialog = true
                     },
+                    // This lambda is triggered on a double tap of a launch site marker.
                     onLaunchSiteMarkerClick = { site ->
-                        // Optional extra behavior on double-tap.
+                        // Update the in-memory coordinate state and the repository record.
+                        viewModel.updateCoordinates(site.latitude, site.longitude)
+                        viewModel.updateLastVisited(site.latitude, site.longitude)
                     },
                     onSavedMarkerAnnotationLongPress = { site ->
-                        // Saved marker: open the edit dialog.
+                        // For editing an existing site.
                         isEditingMarker = true
                         editingMarkerId = site.uid
                         savedMarkerCoordinates = Pair(site.latitude, site.longitude)
-                        launchSiteName = site.name  // Pre-fill with the current name.
+                        launchSiteName = site.name
                         showSaveDialog = true
                     }
                 )
+
 
                 CoordinateDisplay(coordinates = coordinates)
 
@@ -203,6 +208,8 @@ fun HomeScreen(
                     lonInput = coordinates.second.toString(),
                     onNavigate = { lat, lon ->
                         viewModel.updateCoordinates(lat, lon)
+                        // Optionally update "Last Visited" as well if needed:
+                        // viewModel.updateLastVisited(lat, lon)
                         onNavigateToWeather(lat, lon)
                     },
                     context = context
