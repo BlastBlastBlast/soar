@@ -16,12 +16,12 @@ class BallisticsViewModel @Inject constructor(
 ) : ViewModel() {
 
     // Expose the default rocket configuration as a Flow for UI observation.
-    val defaultRocketConfig = rocketConfigRepository.getDefaultRocketParameters()
+    val defaultRocketConfig = rocketConfigRepository.getDefaultRocketConfig()
 
     init {
         viewModelScope.launch {
             // Check if a default config exists already.
-            val currentDefault = rocketConfigRepository.getDefaultRocketParameters().first()
+            val currentDefault = rocketConfigRepository.getDefaultRocketConfig().first()
             if (currentDefault == null) {
                 // No default config is present; get the default model values.
                 val defaultValues = getDefaultRocketParameterValues()
@@ -31,7 +31,7 @@ class BallisticsViewModel @Inject constructor(
                     values = defaultValues,
                     isDefault = true
                 )
-                rocketConfigRepository.insertRocketParameters(newDefault)
+                rocketConfigRepository.insertRocketConfig(newDefault)
             }
         }
     }

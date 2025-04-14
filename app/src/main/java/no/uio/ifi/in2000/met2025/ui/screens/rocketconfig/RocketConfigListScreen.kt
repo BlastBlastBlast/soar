@@ -19,9 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
 import androidx.compose.material3.Button
-import no.uio.ifi.in2000.met2025.data.models.RocketConfig
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 
 
 @Composable
@@ -36,12 +35,12 @@ fun RocketConfigListScreen(
 
     Column(modifier = Modifier.padding(16.dp)) {
         LazyColumn {
+            // Explicitly specify the parameter name to use the correct overload.
             items(rocketList) { rocket ->
                 RocketConfigItem(
                     rocketConfig = rocket,
                     onClick = { onSelectRocketConfig(rocket) },
                     onEdit = {
-                        // Only allow editing for non-default configurations.
                         if (!rocket.isDefault) onEditRocketConfig(rocket)
                     },
                     onDelete = {

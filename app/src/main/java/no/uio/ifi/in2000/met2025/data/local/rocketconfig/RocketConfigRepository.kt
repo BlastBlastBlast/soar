@@ -1,33 +1,32 @@
 package no.uio.ifi.in2000.met2025.data.local.rocketconfig
 
 import kotlinx.coroutines.flow.Flow
-import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
-import no.uio.ifi.in2000.met2025.data.local.database.RocketParametersDao
-import no.uio.ifi.in2000.met2025.data.models.RocketConfig
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfigDao
 
-class RocketConfigRepository(private val rocketParametersDAO: RocketParametersDao) {
+class RocketConfigRepository(private val rocketConfigDao: RocketConfigDao) {
 
-    suspend fun insertRocketParameters(rocketConfig: RocketConfig) {
-        rocketParametersDAO.insertRocketParameters(rocketConfig)
+    suspend fun insertRocketConfig(rocketConfig: RocketConfig) {
+        rocketConfigDao.insertRocketConfig(rocketConfig)
     }
 
-    suspend fun updateRocketParameters(rocketConfig: RocketConfig) {
-        rocketParametersDAO.updateRocketParameters(rocketConfig)
+    suspend fun updateRocketConfig(rocketConfig: RocketConfig) {
+        rocketConfigDao.updateRocketConfig(rocketConfig)
     }
 
-    suspend fun deleteRocketParameters(rocketConfig: RocketConfig) {
-        rocketParametersDAO.deleteRocketParameters(rocketConfig)
+    suspend fun deleteRocketConfig(rocketConfig: RocketConfig) {
+        rocketConfigDao.deleteRocketConfig(rocketConfig)
     }
 
-    fun getAllRocketParameters(): Flow<List<RocketConfig>> {
-        return rocketParametersDAO.getAllRocketParameters()
+    fun getAllRocketConfigs(): Flow<List<RocketConfig>> {
+        return rocketConfigDao.getAllRocketConfigs()
     }
 
-    fun getDefaultRocketParameters(): Flow<RocketConfig?> {
-        return rocketParametersDAO.getDefaultRocketParameters()
+    fun getDefaultRocketConfig(): Flow<RocketConfig?> {
+        return rocketConfigDao.getDefaultRocketConfig()
     }
 
-    fun getRocketParameters(rocketId: Int): Flow<RocketConfig?> {
-        return rocketParametersDAO.getRocketParameters(rocketId)
+    fun getRocketConfig(rocketId: Int): Flow<RocketConfig?> {
+        return rocketConfigDao.getRocketConfig(rocketId)
     }
 }

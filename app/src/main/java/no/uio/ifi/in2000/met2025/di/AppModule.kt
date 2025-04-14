@@ -21,7 +21,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
-import no.uio.ifi.in2000.met2025.data.local.database.RocketParametersDao
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfigDao
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
@@ -111,7 +111,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRocketConfigRepository(rocketParametersDao: RocketParametersDao): RocketConfigRepository =
+    fun provideRocketConfigRepository(rocketParametersDao: RocketConfigDao): RocketConfigRepository =
         RocketConfigRepository(rocketParametersDao)
 }
 
@@ -145,7 +145,7 @@ object DatabaseModule {
     fun provideConfigProfileDao(db: AppDatabase): ConfigProfileDAO = db.configProfileDao()
 
     @Provides
-    fun provideRocketSpecsDao(db: AppDatabase): RocketParametersDao = db.rocketParametersDao()
+    fun provideRocketConfigDao(db: AppDatabase): RocketConfigDao = db.rocketConfigDao()
 
 
 }

@@ -6,9 +6,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
-import no.uio.ifi.in2000.met2025.data.models.RocketConfig
+import no.uio.ifi.in2000.met2025.data.models.RocketParameterValues
+import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,17 +19,17 @@ class RocketConfigEditViewModel @Inject constructor(
 
     fun saveRocketConfig(rocketConfig: RocketConfig) {
         viewModelScope.launch {
-            rocketConfigRepository.insertRocketParameters(rocketConfig)
+            rocketConfigRepository.insertRocketConfig(rocketConfig)
         }
     }
 
     fun updateRocketConfig(rocketConfig: RocketConfig) {
         viewModelScope.launch {
-            rocketConfigRepository.updateRocketParameters(rocketConfig)
+            rocketConfigRepository.updateRocketConfig(rocketConfig)
         }
     }
 
     fun getRocketConfig(rocketId: Int): Flow<RocketConfig?> {
-        return rocketConfigRepository.getRocketParameters(rocketId)
+        return rocketConfigRepository.getRocketConfig(rocketId)
     }
 }

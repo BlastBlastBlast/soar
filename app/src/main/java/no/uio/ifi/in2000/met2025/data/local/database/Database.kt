@@ -5,10 +5,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
-import no.uio.ifi.in2000.met2025.data.models.RocketParameter
 
 @Database(
-    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketParameters::class],
+    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
     version = 4
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -16,7 +15,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun gribDataDao(): GribDataDAO
     abstract fun gribUpdatedDao(): GribUpdatedDAO
     abstract fun configProfileDao(): ConfigProfileDAO
-    abstract fun rocketParametersDao(): RocketParametersDao
+    abstract fun rocketConfigDao(): RocketConfigDao
 }
 
 @Entity
@@ -85,19 +84,20 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
 )
 
-@Entity(tableName = "rocket_parameters")
-data class RocketParameters(
+@Entity(tableName = "rocket_configurations")
+data class RocketConfig(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val name: String,
-    val apogee: Double,
-    val launchDirection: Double,
-    val launchAngle: Double,
-    val thrust: Double,
-    val burnTime: Double,
-    val dryWeight: Double,
-    val wetWeight: Double,
-    val resolution: Double,
-    val isDefault: Boolean = false
+    @ColumnInfo(name = "id") val id: Int = 0,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "apogee") val apogee: Double,
+    @ColumnInfo(name = "launch_direction") val launchDirection: Double,
+    @ColumnInfo(name = "launch_angle") val launchAngle: Double,
+    @ColumnInfo(name = "thrust") val thrust: Double,
+    @ColumnInfo(name = "burn_time") val burnTime: Double,
+    @ColumnInfo(name = "dry_weight") val dryWeight: Double,
+    @ColumnInfo(name = "wet_weight") val wetWeight: Double,
+    @ColumnInfo(name = "resolution") val resolution: Double,
+    @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
+
 
