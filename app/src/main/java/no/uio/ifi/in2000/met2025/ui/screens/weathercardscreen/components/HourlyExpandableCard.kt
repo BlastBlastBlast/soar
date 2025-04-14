@@ -25,13 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.launchstatus.LaunchStatusIcon
-import no.uio.ifi.in2000.met2025.data.models.launchstatus.LaunchStatusIndicator
-import no.uio.ifi.in2000.met2025.data.models.launchstatus.evaluateParameterConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIndicator
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.models.launchstatus.EvaluationIcon
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
@@ -135,7 +135,7 @@ fun HourlyExpandableCard(
                             if (evaluation.label == "Wind Direction") {
                                 Box(modifier = Modifier.size(24.dp)) // empty placeholder for alignment
                             } else {
-                                LaunchStatusIcon(status = evaluation.status)
+                                LaunchStatusIcon(state = evaluation.state)
                             }
                         }
                     }

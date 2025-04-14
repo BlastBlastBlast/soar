@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.met2025.data.models
 
 enum class ConfigParameter {
     GROUND_WIND,
+    WIND_SPEED_OF_GUST,
     AIR_WIND,
     WIND_DIRECTION,
     CLOUD_COVER,
@@ -14,5 +15,6 @@ enum class ConfigParameter {
     DEW_POINT,
     PROBABILITY_OF_THUNDER,
     ALTITUDE_UPPER_BOUND,
+    WIND_SHEAR_SPEED,
     // Add more parameters as needed
 }

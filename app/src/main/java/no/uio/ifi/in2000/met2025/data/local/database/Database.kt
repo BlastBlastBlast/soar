@@ -50,7 +50,7 @@ data class GribUpdated(
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
-    @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6,
+    @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
     @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
     @ColumnInfo(name = "dew_point_threshold") val dewPointThreshold: Double = 15.0,
@@ -74,7 +74,10 @@ data class ConfigProfile(
     @ColumnInfo(name = "probability_of_thunder_threshold") val probabilityOfThunderThreshold: Double = 0.0,
     @ColumnInfo(name = "is_enabled_probability_of_thunder") val isEnabledProbabilityOfThunder: Boolean = true,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false,
-    @ColumnInfo(name = "altitude_upper_bound") val altitudeUpperBound: Double = 0.0
+    @ColumnInfo(name = "altitude_upper_bound") val altitudeUpperBound: Double = 0.0,
+    @ColumnInfo(name = "is_enabled_altitude_upper_bound") val isEnabledAltitudeUpperBound: Boolean = true,
+    @ColumnInfo(name = "wind_shear_speed_threshold") val windShearSpeedThreshold: Double = 0.0,
+    @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
 )
 
 
