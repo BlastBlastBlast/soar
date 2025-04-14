@@ -35,15 +35,13 @@ class WeatherModel @Inject constructor(
     ): IsobaricDataResult {
         val gribResult = isobaricRepository.getIsobaricGribData(time)
 
+        val gribDataMap : GribDataMap
         when (gribResult) {
-            is GribDataResult.Success -> gribResult.gribDataMap.fold(
-                onSuccess = { it },
-                onFailure = { return IsobaricDataResult.GribFetchingError }
-            )
+            is GribDataResult.Success -> gribDataMap = gribResult.gribDataMap
             GribDataResult.AvailabilityError -> return IsobaricDataResult.GribAvailabilityError
             GribDataResult.FetchingError -> return IsobaricDataResult.GribFetchingError
+            GribDataResult.ParsingError -> return IsobaricDataResult.DataParsingError
         }
-        val updatedGribResult = gribResult.gribDataMap.getOrNull() ?: return IsobaricDataResult.GribFetchingError
 
         val forecastResult = locationForecastRepository.getForecastData(lat = lat, lon = lon, timeSpanInHours = 3, time = time)
         val forecastData = forecastResult.fold(
@@ -63,7 +61,7 @@ class WeatherModel @Inject constructor(
         return convertGribToIsobaricData(
             lat,
             lon,
-            updatedGribResult,
+            gribDataMap,
             forecastItem,
             groundPressure,
             forecastData.altitude,
