@@ -10,6 +10,8 @@ sealed class IsobaricDataResult {
     object GribAvailabilityError : IsobaricDataResult()
     object GribFetchingError : IsobaricDataResult()
     object LocationForecastFetchingError: IsobaricDataResult()
+    object OutOfBoundsError: IsobaricDataResult()
+    object DataParsingError: IsobaricDataResult()
 }
 
 data class IsobaricData(
