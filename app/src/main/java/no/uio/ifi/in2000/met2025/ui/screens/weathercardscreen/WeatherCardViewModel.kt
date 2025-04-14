@@ -166,6 +166,13 @@ class WeatherCardViewmodel @Inject constructor(
             IsobaricDataResult.LocationForecastFetchingError -> {
                 AtmosphericWindUiState.Error("Error while fetching location forecast data")
             }
+            IsobaricDataResult.DataParsingError -> {
+                AtmosphericWindUiState.Error("Error while parsing data")
+            }
+            IsobaricDataResult.OutOfBoundsError -> {
+                AtmosphericWindUiState.Error("Coordinates are out of bounds. GRIB bounds are 64.25N, -1.45W, 55.35S, 14.51E." +
+                        "Some rounding exceptions may apply for border limits.")
+            }
         }
 
         _isobaricData.value += (time to newState)
