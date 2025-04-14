@@ -84,20 +84,20 @@ interface ConfigProfileDAO {
 @Dao
 interface RocketParametersDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRocketSpecs(rocketSpecs: RocketParameters)
+    suspend fun insertRocketParameters(rocketSpecs: RocketParameters)
 
     @Update
-    suspend fun updateRocketSpecs(rocketSpecs: RocketParameters)
+    suspend fun updateRocketParameters(rocketSpecs: RocketParameters)
 
     @Delete
-    suspend fun deleteRocketSpecs(rocketSpecs: RocketParameters)
+    suspend fun deleteRocketParameters(rocketSpecs: RocketParameters)
 
     @Query("SELECT * FROM rocket_parameters")
-    fun getAllRocketSpecs(): Flow<List<RocketParameters>>
+    fun getAllRocketParameters(): Flow<List<RocketParameters>>
 
     @Query("SELECT * FROM rocket_parameters WHERE isDefault = 1 LIMIT 1")
-    fun getDefaultRocketSpecs(): Flow<RocketParameters?>
+    fun getDefaultRocketParameters(): Flow<RocketParameters?>
 
     @Query("SELECT * FROM rocket_parameters WHERE id = :rocketId LIMIT 1")
-    fun getRocketSpecs(rocketId: Int): Flow<RocketParameters?>
+    fun getRocketParameters(rocketId: Int): Flow<RocketParameters?>
 }

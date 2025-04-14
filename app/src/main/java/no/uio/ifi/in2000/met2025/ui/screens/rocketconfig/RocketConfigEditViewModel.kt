@@ -17,17 +17,17 @@ class RocketConfigEditViewModel @Inject constructor(
 
     fun saveRocketConfig(rocketParameters: RocketParameters) {
         viewModelScope.launch {
-            rocketConfigRepository.insertRocketSpecs(rocketParameters)
+            rocketConfigRepository.insertRocketParameters(rocketParameters)
         }
     }
 
     fun updateRocketConfig(rocketParameters: RocketParameters) {
         viewModelScope.launch {
-            rocketConfigRepository.updateRocketSpecs(rocketParameters)
+            rocketConfigRepository.updateRocketParameters(rocketParameters)
         }
     }
 
     fun getRocketConfig(rocketId: Int): Flow<RocketParameters?> {
-        return rocketConfigRepository.getRocketSpecs(rocketId)
+        return rocketConfigRepository.getRocketParameters(rocketId)
     }
 }

@@ -13,11 +13,11 @@ import javax.inject.Inject
 class RocketConfigListViewModel @Inject constructor(
     private val rocketConfigRepository: RocketConfigRepository
 ) : ViewModel() {
-    val rocketList = rocketConfigRepository.getAllRocketSpecs()
+    val rocketList = rocketConfigRepository.getAllRocketParameters()
 
     fun deleteRocketConfig(rocketParameters: RocketParameters) {
         viewModelScope.launch {
-            rocketConfigRepository.deleteRocketSpecs(rocketParameters)
+            rocketConfigRepository.deleteRocketParameters(rocketParameters)
         }
     }
 }

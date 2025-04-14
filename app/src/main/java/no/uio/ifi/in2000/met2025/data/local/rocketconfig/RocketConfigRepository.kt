@@ -6,27 +6,27 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketParametersDao
 
 class RocketConfigRepository(private val rocketParametersDAO: RocketParametersDao) {
 
-    suspend fun insertRocketSpecs(rocketParameters: RocketParameters) {
-        rocketParametersDAO.insertRocketSpecs(rocketParameters)
+    suspend fun insertRocketParameters(rocketParameters: RocketParameters) {
+        rocketParametersDAO.insertRocketParameters(rocketParameters)
     }
 
-    suspend fun updateRocketSpecs(rocketParameters: RocketParameters) {
-        rocketParametersDAO.updateRocketSpecs(rocketParameters)
+    suspend fun updateRocketParameters(rocketParameters: RocketParameters) {
+        rocketParametersDAO.updateRocketParameters(rocketParameters)
     }
 
-    suspend fun deleteRocketSpecs(rocketParameters: RocketParameters) {
-        rocketParametersDAO.deleteRocketSpecs(rocketParameters)
+    suspend fun deleteRocketParameters(rocketParameters: RocketParameters) {
+        rocketParametersDAO.deleteRocketParameters(rocketParameters)
     }
 
-    fun getAllRocketSpecs(): Flow<List<RocketParameters>> {
-        return rocketParametersDAO.getAllRocketSpecs()
+    fun getAllRocketParameters(): Flow<List<RocketParameters>> {
+        return rocketParametersDAO.getAllRocketParameters()
     }
 
-    fun getDefaultRocketSpecs(): Flow<RocketParameters?> {
-        return rocketParametersDAO.getDefaultRocketSpecs()
+    fun getDefaultRocketParameters(): Flow<RocketParameters?> {
+        return rocketParametersDAO.getDefaultRocketParameters()
     }
 
-    fun getRocketSpecs(rocketId: Int): Flow<RocketParameters?> {
-        return rocketParametersDAO.getRocketSpecs(rocketId)
+    fun getRocketParameters(rocketId: Int): Flow<RocketParameters?> {
+        return rocketParametersDAO.getRocketParameters(rocketId)
     }
 }
