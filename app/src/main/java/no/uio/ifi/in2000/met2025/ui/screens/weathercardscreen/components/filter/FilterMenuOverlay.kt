@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -32,10 +33,9 @@ fun FilterMenuOverlay(
             shrinkTowards = Alignment.Bottom,
             animationSpec = tween(durationMillis = 300)
         ) + fadeOut(animationSpec = tween(durationMillis = 300)),
-        // The parent will supply alignment/offset; here we only add a horizontal padding.
-        modifier = modifier.padding(start = 16.dp)
+        modifier = modifier.padding(horizontal = 16.dp)
     ) {
-        Column {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterToggleValid(
                 isActive = isFilterActive,
                 onClick = onToggleFilter,

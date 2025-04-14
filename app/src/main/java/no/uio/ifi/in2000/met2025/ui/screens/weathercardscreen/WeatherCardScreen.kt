@@ -57,6 +57,7 @@ fun WeatherCardScreen(
     val configList by viewModel.configList.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
 
+    // Shared state for forecast hours (controlled by filter overlay)
     var hoursToShow by remember { mutableStateOf(24f) }
     var isFilterMenuExpanded by remember { mutableStateOf(false) }
     var filterActive by remember { mutableStateOf(false) }
@@ -67,24 +68,24 @@ fun WeatherCardScreen(
     }
 
     if (activeConfig != null) {
-        // Wrap the screen's content and the bottom bar in a Box so the bar can overlay at the bottom.
         Box(modifier = Modifier.fillMaxSize()) {
+            // Pass the shared hoursToShow to the content so the filtering uses it.
             ScreenContent(
                 uiState = uiState,
                 coordinates = coordinates,
                 config = activeConfig!!,
                 filterActive = filterActive,
-                onToggleFilter = { filterActive = !filterActive },
+                hoursToShow = hoursToShow,
                 viewModel = viewModel
             )
-            // Place our new segmented bottom bar at the bottom of the screen.
+            // Bottom bar with three buttons.
             SegmentedBottomBar(
                 onConfigClick = { isConfigMenuExpanded = !isConfigMenuExpanded },
                 onFilterClick = { isFilterMenuExpanded = !isFilterMenuExpanded },
                 onLaunchClick = { /* TODO: Handle launch site click */ },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
-            // Display the config overlay only when toggled on
+            // Configuration overlay positioned above the bottom bar.
             if (isConfigMenuExpanded) {
                 ConfigMenuOverlay(
                     configList = configList,
@@ -93,13 +94,12 @@ fun WeatherCardScreen(
                     },
                     onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) },
                     onDismiss = { isConfigMenuExpanded = false },
-                    // Place the overlay at the bottom left and shift it upward.
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .offset(y = -(56.dp + 16.dp)) // Moves the overlay above the bottom bar
+                        .offset(y = -(56.dp + 16.dp))
                 )
             }
-            // Place filter overlay above the bottom bar.
+            // Filter overlay positioned above the bottom bar.
             if (isFilterMenuExpanded) {
                 FilterMenuOverlay(
                     isFilterActive = filterActive,
@@ -124,15 +124,14 @@ fun ScreenContent(
     coordinates: Pair<Double, Double>,
     config: ConfigProfile,
     filterActive: Boolean,
-    onToggleFilter: () -> Unit,
+    hoursToShow: Float,
     viewModel: WeatherCardViewmodel
 ) {
-    // State for the hour slider.
-    var hoursToShow by remember { mutableStateOf(24f) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
         val forecastItems = uiState.forecastItems
+        // Use the passed hoursToShow value for limiting forecast items.
         val filteredItems = forecastItems.let { allItems ->
             if (filterActive)
                 allItems.filter {
@@ -153,33 +152,10 @@ fun ScreenContent(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // Header section for slider and filter toggle.
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    // Filter toggle at top right.
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                        FilterToggleButton(isActive = filterActive, onClick = onToggleFilter)
-                    }
-                    Text(
-                        text = "Show forecast for ${hoursToShow.toInt()} hours",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                    Slider(
-                        value = hoursToShow,
-                        onValueChange = { hoursToShow = it },
-                        valueRange = 4f..72f,
-                        steps = (72 - 4 - 1),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = "Hourly",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
-                }
-            }
-            // Optional: Daily overview row.
+            // You can remove the header section that previously hosted the slider and toggle.
+            // Optional: Place other header or title elements here if required.
+
+            // Daily overview row.
             item {
                 DailyForecastRowSection(forecastItems = forecastItems)
             }
@@ -243,17 +219,6 @@ fun ScreenContent(
                 else -> Unit
             }
         }
-    }
-}
-
-
-@Composable
-fun FilterToggleButton(
-    isActive: Boolean,
-    onClick: () -> Unit
-) {
-    FilledTonalButton(onClick = onClick) {
-        Text(text = if (isActive) "Show all" else "Show valid")
     }
 }
 
