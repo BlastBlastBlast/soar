@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
+package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config
 
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 
