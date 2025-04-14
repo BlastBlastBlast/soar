@@ -111,8 +111,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRocketConfigRepository(rocketSpecsDao: RocketParametersDao): RocketConfigRepository =
-        RocketConfigRepository(rocketSpecsDao)
+    fun provideRocketConfigRepository(rocketParametersDao: RocketParametersDao): RocketConfigRepository =
+        RocketConfigRepository(rocketParametersDao)
 }
 
 
