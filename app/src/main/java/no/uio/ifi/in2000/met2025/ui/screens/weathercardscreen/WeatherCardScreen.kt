@@ -45,6 +45,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.ConfigMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.FilterMenuOverlay
 
 @Composable
 fun WeatherCardScreen(
@@ -56,8 +57,9 @@ fun WeatherCardScreen(
     val configList by viewModel.configList.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
 
+    var hoursToShow by remember { mutableStateOf(24f) }
+    var isFilterMenuExpanded by remember { mutableStateOf(false) }
     var filterActive by remember { mutableStateOf(false) }
-    // New state to control the config menu overlay
     var isConfigMenuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(coordinates) {
@@ -78,7 +80,7 @@ fun WeatherCardScreen(
             // Place our new segmented bottom bar at the bottom of the screen.
             SegmentedBottomBar(
                 onConfigClick = { isConfigMenuExpanded = !isConfigMenuExpanded },
-                onFilterClick = { /* TODO: Handle filter click */ },
+                onFilterClick = { isFilterMenuExpanded = !isFilterMenuExpanded },
                 onLaunchClick = { /* TODO: Handle launch site click */ },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
@@ -95,6 +97,19 @@ fun WeatherCardScreen(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .offset(y = -(56.dp + 16.dp)) // Moves the overlay above the bottom bar
+                )
+            }
+            // Place filter overlay above the bottom bar.
+            if (isFilterMenuExpanded) {
+                FilterMenuOverlay(
+                    isFilterActive = filterActive,
+                    onToggleFilter = { filterActive = !filterActive },
+                    hoursToShow = hoursToShow,
+                    onHoursChanged = { hoursToShow = it },
+                    onDismiss = { isFilterMenuExpanded = false },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = -(56.dp + 16.dp))
                 )
             }
         }
