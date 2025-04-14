@@ -98,7 +98,7 @@ fun DailyForecastCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Day: $day", style = MaterialTheme.typography.headlineSmall)
+
                 iconRes?.let {
                     Image(
                         painter = painterResource(id = it),
@@ -106,6 +106,9 @@ fun DailyForecastCard(
                         modifier = Modifier.size(64.dp)
                     )
                 }
+                Text("Day: $day",
+                    style = MaterialTheme.typography.headlineSmall
+                )
             }
 
 
