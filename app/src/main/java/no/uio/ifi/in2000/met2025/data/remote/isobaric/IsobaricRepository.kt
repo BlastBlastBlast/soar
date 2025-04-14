@@ -74,15 +74,15 @@ class IsobaricRepository @Inject constructor(
             }
             return GribDataResult.Success(res.gribDataMap)
         } else {
-            val roundedTime = roundToNearest3Hour(timeSlot)
-            if (roundedTime.toString() in gribMaps.keys) {return GribDataResult.Success(gribMaps[roundedTime.toString()]!!)}
-            val databaseCheck = gribDAO.getByTimestamp(roundedTime.toString())
+            val roundedTime = timeSlot.roundToNearest3Hour()
+            if (roundedTime in gribMaps.keys) {return GribDataResult.Success(gribMaps[roundedTime]!!)}
+            val databaseCheck = gribDAO.getByTimestamp(roundedTime)
             if (databaseCheck != null) {
                 val byteArray = databaseCheck.data
-                when (val res = parseGribData(byteArray, roundedTime.toString())){
+                when (val res = parseGribData(byteArray, roundedTime)){
                     is GribParsingResult.Error -> return GribDataResult.ParsingError
                     is GribParsingResult.Success -> {
-                        gribMaps[roundedTime.toString()] = res.gribDataMap
+                        gribMaps[roundedTime] = res.gribDataMap
                         return GribDataResult.Success(res.gribDataMap)
                     }
                 }
@@ -231,10 +231,9 @@ class IsobaricRepository @Inject constructor(
         return data
     }
 
-    private fun roundToNearest3Hour(targetTime: Instant): Instant {
-        val epochHour = targetTime.epochSecond / 3600
-        val roundedHour = (epochHour / 3) * 3
-        return Instant.ofEpochSecond(roundedHour * 3600)
+    private fun Instant.roundToNearest3Hour(): String {
+        val rounded = (epochSecond / 3600 / 3) * 3 * 3600
+        return Instant.ofEpochSecond(rounded).toString()
     }
 }
 
