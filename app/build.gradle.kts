@@ -85,8 +85,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.37.2")
 
     // Mapbox
-    implementation("com.mapbox.extension:maps-compose:11.10.3")
-    implementation("com.mapbox.maps:android:11.10.3")
+    implementation("com.mapbox.extension:maps-compose:11.11.0")
+    implementation("com.mapbox.maps:android:11.11.0")
 
     // Icons
     implementation(libs.androidx.material.icons.extended)

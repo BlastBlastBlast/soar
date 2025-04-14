@@ -9,12 +9,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DefaultConfig
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.DefaultConfig
 import java.time.Instant
 import javax.inject.Inject
 
@@ -64,6 +66,8 @@ class WeatherCardViewmodel @Inject constructor(
     private val _isobaricData = MutableStateFlow<Map<Instant, AtmosphericWindUiState>>(emptyMap())
     val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
 
+    val launchSites = launchSitesRepository.getAll()
+
     init {
         // Initialize configuration profiles.
         viewModelScope.launch {
@@ -103,6 +107,28 @@ class WeatherCardViewmodel @Inject constructor(
         }
     }
 
+    fun updateCoordinates(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            // Use the repository function to get the "Last Visited" site.
+            val lastVisitedSite = launchSitesRepository.getTempSite("Last Visited").first()
+            if (lastVisitedSite != null) {
+                // Overwrite by updating the existing record.
+                val updatedSite = lastVisitedSite.copy(latitude = lat, longitude = lon)
+                launchSitesRepository.updateSites(updatedSite)
+            } else {
+                // If not found, insert a new record.
+                launchSitesRepository.insertAll(
+                    LaunchSite(
+                        name = "Last Visited",
+                        latitude = lat,
+                        longitude = lon
+                    )
+                )
+            }
+        }
+    }
+
+
     fun setActiveConfig(config: ConfigProfile) {
         _activeConfig.value = config
     }
@@ -135,21 +161,38 @@ class WeatherCardViewmodel @Inject constructor(
         time: Instant
     ) {
         val currentItem = isobaricData.value[time]
+
         _isobaricData.value += (time to AtmosphericWindUiState.Loading)
-        _isobaricData.value += (
-                time to weatherModel.getCurrentIsobaricData(lat, lon, time).fold(
-                    onFailure = { throwable ->
-                        if (currentItem !is AtmosphericWindUiState.Success)
-                            AtmosphericWindUiState.Error(
-                                throwable.message ?: "Ukjent feil"
-                            )
-                        else
-                            AtmosphericWindUiState.Success(currentItem.isobaricData)
-                    },
-                    onSuccess = { data ->
-                        AtmosphericWindUiState.Success(data)
+
+        val result = weatherModel.getCurrentIsobaricData(lat, lon, time)
+
+        val newState: AtmosphericWindUiState = when (result) {
+            is IsobaricDataResult.Success -> {
+                result.isobaricData.fold(
+                    onSuccess = { data -> AtmosphericWindUiState.Success(data) },
+                    onFailure = { error ->
+                        if (currentItem is AtmosphericWindUiState.Success) {
+                            currentItem // preserve existing success data
+                        } else {
+                            AtmosphericWindUiState.Error(error.message ?: "Unknown error while parsing data")
+                        }
                     }
                 )
-                )
+            }
+
+            IsobaricDataResult.GribAvailabilityError -> {
+                AtmosphericWindUiState.Error("No GRIB data available for the given time")
+            }
+
+            IsobaricDataResult.GribFetchingError -> {
+                AtmosphericWindUiState.Error("Error while fetching GRIB data")
+            }
+            //TODO: Separere denne fra gribupdate kallet hvis man gidder
+            IsobaricDataResult.LocationForecastFetchingError -> {
+                AtmosphericWindUiState.Error("Error while fetching location forecast data")
+            }
+        }
+
+        _isobaricData.value += (time to newState)
     }
 }

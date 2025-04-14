@@ -7,8 +7,10 @@ import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.GribDataResult
 import no.uio.ifi.in2000.met2025.data.models.GribVectors
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
@@ -30,15 +32,22 @@ class WeatherModel @Inject constructor(
         lat: Double,
         lon: Double,
         time: Instant
-    ): Result<IsobaricData> {
-        val gribResult = isobaricRepository.getIsobaricGribData(time).fold(
-            onFailure = { return Result.failure(it) },
-            onSuccess = { it }
-        )
+    ): IsobaricDataResult {
+        val gribResult = isobaricRepository.getIsobaricGribData(time)
+
+        when (gribResult) {
+            is GribDataResult.Success -> gribResult.gribDataMap.fold(
+                onSuccess = { it },
+                onFailure = { return IsobaricDataResult.GribFetchingError }
+            )
+            GribDataResult.AvailabilityError -> return IsobaricDataResult.GribAvailabilityError
+            GribDataResult.FetchingError -> return IsobaricDataResult.GribFetchingError
+        }
+        val updatedGribResult = gribResult.gribDataMap.getOrNull() ?: return IsobaricDataResult.GribFetchingError
 
         val forecastResult = locationForecastRepository.getForecastData(lat = lat, lon = lon, timeSpanInHours = 3, time = time)
         val forecastData = forecastResult.fold(
-            onFailure = { return Result.failure(it) },
+            onFailure = { return IsobaricDataResult.LocationForecastFetchingError },
             onSuccess = { it }
         )
         val forecastItem = combinedForecastDataItems(forecastData.timeSeries)
@@ -51,14 +60,14 @@ class WeatherModel @Inject constructor(
             referenceAirTemperature = airTemperatureAtSeaLevel
         ).toInt()
 
-        return convertGribToIsobaricData(
+        return IsobaricDataResult.Success(convertGribToIsobaricData(
             lat,
             lon,
-            gribResult,
+            updatedGribResult,
             forecastItem,
             groundPressure,
             forecastData.altitude,
-            airTemperatureAtSeaLevel
+            airTemperatureAtSeaLevel)
         )
     }
 

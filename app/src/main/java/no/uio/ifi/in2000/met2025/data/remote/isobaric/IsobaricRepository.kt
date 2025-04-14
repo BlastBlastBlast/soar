@@ -10,6 +10,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.GribUpdated
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.models.AvailabilityData
 import no.uio.ifi.in2000.met2025.data.models.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.GribDataResult
 import no.uio.ifi.in2000.met2025.data.models.GribVectors
 import no.uio.ifi.in2000.met2025.data.models.IsobaricAvailabilityResponse
 import no.uio.ifi.in2000.met2025.data.models.StructuredAvailability
@@ -17,6 +18,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
+import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 
@@ -27,24 +29,24 @@ class IsobaricRepository @Inject constructor(
     private val gribDAO: GribDataDAO,
     private val updatedDAO: GribUpdatedDAO
 ) {
-    suspend fun getIsobaricGribData(timeSlot: Instant): Result<GribDataMap> {
+    suspend fun getIsobaricGribData(timeSlot: Instant): GribDataResult {
         //holds a common updated timestamp and individual time stamps and uri's for each dataset
         val availableData = getAvailabilityData()
         println("IsobaricGribDataCalled")
         if (availableData != null) {
             //returns the uri and time stamp for the dataset where timeSlot is valid
-            val data = availableData.findClosestBefore(timeSlot)
-            val time = data?.time
+            val data = availableData.findClosestBefore(timeSlot) ?: return GribDataResult.AvailabilityError
+            val time = data.time
             val byteArray: ByteArray
             if (!isGribUpToDate(availableData)) {
                 gribDAO.clearAll()
                 updatedDAO.delete()
-                time?.let { updatedDAO.insert(GribUpdated(it.toString())) }
+                time.let { updatedDAO.insert(GribUpdated(it.toString())) }
                 val isobaricData: Result<ByteArray> =
-                    isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                    isobaricDataSource.fetchIsobaricGribData(data.uri)
                 byteArray = isobaricData.fold(
                     onSuccess = { it },
-                    onFailure = { return returnErrorAndPrint("Error fetching grib data") }
+                    onFailure = { return GribDataResult.FetchingError }
                 )
             } else {
                 if (gribDAO.getByTimestamp(time.toString()) != null) {
@@ -52,10 +54,10 @@ class IsobaricRepository @Inject constructor(
                     byteArray = isobaricData.data
                 } else {
                     val isobaricData: Result<ByteArray> =
-                        isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                        isobaricDataSource.fetchIsobaricGribData(data.uri)
                     byteArray = isobaricData.fold(
                         onSuccess = { it },
-                        onFailure = { return returnErrorAndPrint("Error fetching grib data") }
+                        onFailure = { return GribDataResult.FetchingError }
                     )
                 }
             }
@@ -63,9 +65,9 @@ class IsobaricRepository @Inject constructor(
             gribDAO.insert(gribData)
             val res = parseGribData(byteArray, time.toString())
             println("IsobaricGribDataReturned")
-            return res
+            return GribDataResult.Success(res)
         } else {
-            return returnErrorAndPrint("Availability data is null")
+            return GribDataResult.FetchingError
         }
     }
 
@@ -200,6 +202,10 @@ class IsobaricRepository @Inject constructor(
         val data = this.availData
             .filter { it.time <= targetTime } //kryssa fingrane for at <= ikkje ødelegge alt
             .maxByOrNull { it.time }
+        if (data != null) {
+            if (Duration.between(targetTime, data.time).abs() > Duration.ofSeconds(10799))
+                return null
+        }
         return data
     }
 
