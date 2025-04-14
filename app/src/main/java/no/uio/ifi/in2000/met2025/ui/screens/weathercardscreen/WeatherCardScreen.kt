@@ -50,9 +50,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.Weather
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
 import androidx.compose.ui.platform.LocalConfiguration
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
 
-
-//WeatherCardScreen.kt
 @Composable
 fun WeatherCardScreen(
     viewModel: WeatherCardViewmodel = hiltViewModel(),
@@ -70,6 +69,7 @@ fun WeatherCardScreen(
     }
 
     if (activeConfig != null) {
+        // Wrap the screen's content and the bottom bar in a Box so the bar can overlay at the bottom.
         Box(modifier = Modifier.fillMaxSize()) {
             ScreenContent(
                 uiState = uiState,
@@ -77,8 +77,16 @@ fun WeatherCardScreen(
                 config = activeConfig!!,
                 filterActive = filterActive,
                 onToggleFilter = { filterActive = !filterActive },
-                viewModel
+                viewModel = viewModel
             )
+            // Place our new segmented bottom bar at the bottom of the screen.
+            SegmentedBottomBar(
+                onConfigClick = { /* TODO: Handle configuration click */ },
+                onFilterClick = { /* TODO: Handle filter click */ },
+                onLaunchClick = { /* TODO: Handle launch site click */ },
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+            // (Optional) Retain your ConfigSelectionOverlay here if needed:
             ConfigSelectionOverlay(
                 configList = configList,
                 activeConfig = activeConfig!!,
@@ -97,20 +105,17 @@ fun WeatherCardScreen(
 fun ScreenContent(
     uiState: WeatherCardViewmodel.WeatherCardUiState,
     coordinates: Pair<Double, Double>,
-    config: no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile,
+    config: ConfigProfile,
     filterActive: Boolean,
     onToggleFilter: () -> Unit,
     viewModel: WeatherCardViewmodel
 ) {
     // State for the hour slider.
     var hoursToShow by remember { mutableStateOf(24f) }
-    // Get screen height from configuration.
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
         val forecastItems = uiState.forecastItems
-
-        // Filter and limit forecast items based on the slider.
         val filteredItems = forecastItems.let { allItems ->
             if (filterActive)
                 allItems.filter {
@@ -122,24 +127,20 @@ fun ScreenContent(
                 }
             else allItems
         }.take(hoursToShow.toInt())
-
-        // Group forecast items by day (using the first 10 characters of the timestamp).
         val forecastByDay: Map<String, List<ForecastDataItem>> =
             filteredItems.groupBy { it.time.substring(0, 10) }
         val sortedDays = forecastByDay.keys.sorted()
-
-        // Create a PagerState for the number of days.
         val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // -- Header Section (Filter toggle, slider, labels) --
+            // Header section for slider and filter toggle.
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    // Filter toggle at the top right.
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.CenterEnd) {
+                    // Filter toggle at top right.
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                         FilterToggleButton(isActive = filterActive, onClick = onToggleFilter)
                     }
                     Text(
@@ -161,19 +162,17 @@ fun ScreenContent(
                     )
                 }
             }
-
             // Optional: Daily overview row.
             item {
                 DailyForecastRowSection(forecastItems = forecastItems)
             }
-
-            // -- Horizontal Pager Section --
-            // We wrap the HorizontalPager in a Box whose height is the full screen height.
+            // Horizontal Pager section.
             item {
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(screenHeight)   // Force the pager to occupy full screen height.
-                    .padding(vertical = 16.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(screenHeight)
+                        .padding(vertical = 16.dp)
                 ) {
                     HorizontalPager(
                         state = pagerState,
@@ -187,12 +186,10 @@ fun ScreenContent(
                     ) { page ->
                         val date = sortedDays[page]
                         val dailyForecastItems = forecastByDay[date] ?: emptyList()
-
-                        // The Column now fills the parent's height so that its children align at the top.
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .fillMaxHeight()    // Forces the Column to take up the full height.
+                                .fillMaxHeight()
                                 .verticalScroll(rememberScrollState())
                                 .padding(vertical = 16.dp),
                             verticalArrangement = Arrangement.Top
@@ -217,7 +214,6 @@ fun ScreenContent(
             }
         }
     } else {
-        // For Loading and Error states, use a simple LazyColumn.
         LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
             when (uiState) {
                 is WeatherCardViewmodel.WeatherCardUiState.Loading -> item { WeatherLoadingSpinner() }
