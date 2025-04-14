@@ -9,5 +9,8 @@ class Constants {
         const val GRAVITY = 9.80665 // Acceleration due to gravity in m/s²
         const val EARTH_AIR_MOLAR_MASS = 0.0289644 // kg/mol
         const val CELSIUS_TO_KELVIN = 273.15 // Conversion factor from Kelvin to Celsius
+
+        const val CAUTION_THRESHOLD = 0.9 // Threshold for caution
+        const val UNSAFE_THRESHOLD = 1.1 // Threshold for unsafe conditions
     }
 }

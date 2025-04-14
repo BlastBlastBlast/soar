@@ -30,6 +30,7 @@ fun AtmosphericWindTable(
 ) {
     val isobaricTimeData by viewModel.isobaricData.collectAsState()
     val lastLoadedCoordinates by viewModel.lastIsobaricCoordinates.collectAsState()
+    val config by viewModel.activeConfig.collectAsState()
 
     val effectiveState = if (lastLoadedCoordinates != coordinates) {
         WeatherCardViewmodel.AtmosphericWindUiState.Idle
@@ -83,7 +84,11 @@ fun AtmosphericWindTable(
             }
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
-            AWTableContents(effectiveState.isobaricData)
+            if (config == null) {
+                Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                AWTableContents(effectiveState.isobaricData, config!!)
+            }
         }
     }
 }
