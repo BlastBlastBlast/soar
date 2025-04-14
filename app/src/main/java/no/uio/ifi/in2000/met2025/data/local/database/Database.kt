@@ -80,4 +80,19 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
 )
 
+@Entity(tableName = "rocket_parameters")
+data class RocketParameters(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val name: String,
+    val apogee: Double,
+    val launchDirection: Double,
+    val launchAngle: Double,
+    val thrust: Double,
+    val burnTime: Double,
+    val dryWeight: Double,
+    val wetWeight: Double,
+    val resolution: Double,
+    val isDefault: Boolean = false
+)
 
