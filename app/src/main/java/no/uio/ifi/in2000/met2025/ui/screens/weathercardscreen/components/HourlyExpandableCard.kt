@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon.DrawableIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
@@ -66,6 +69,8 @@ fun HourlyExpandableCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val isobaricDataMap by viewModel.isobaricData.collectAsState()
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -79,10 +84,36 @@ fun HourlyExpandableCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${formatZuluTimeToLocalTime(forecastItem.time)}",
+                    text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${
+                        formatZuluTimeToLocalTime(
+                            forecastItem.time
+                        )
+                    }",
                     style = MaterialTheme.typography.headlineSmall
                 )
-                LaunchStatusIndicator(forecast = forecastItem, config = config)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    when (val isobaricData = isobaricDataMap[Instant.parse(forecastItem.time)
+                        .closestIsobaricDataWindowBefore()]) {
+                        is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
+                            Icon(painter = painterResource(R.drawable.yes_grib_real), contentDescription = "Altitude", modifier = Modifier.size(48.dp))
+                            LaunchStatusIndicator(
+                                config = config,
+                                forecast = forecastItem,
+                                isobaricData.isobaricData,
+                                modifier = Modifier.size(38.dp)
+                            )
+                        }
+
+                        else -> {
+                            // Handle other states (e.g., loading, error) if needed
+                            Icon(painter = painterResource(R.drawable.no_grib_real), contentDescription = "No Altitude", modifier = Modifier.size(48.dp))
+                            LaunchStatusIndicator(config = config, forecast = forecastItem, modifier = Modifier.size(38.dp))
+                        }
+                    }
+                }
+
             }
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
@@ -118,6 +149,7 @@ fun HourlyExpandableCard(
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
+
                                         is EvaluationIcon.VectorIcon -> {
                                             Icon(
                                                 imageVector = iconData.icon,
@@ -138,14 +170,15 @@ fun HourlyExpandableCard(
                             if (evaluation.label == "Wind Direction") {
                                 Box(modifier = Modifier.size(24.dp)) // empty placeholder for alignment
                             } else {
-                                LaunchStatusIcon(state = evaluation.state)
+                                LaunchStatusIcon(state = evaluation.state, modifier = Modifier.size(24.dp))
                             }
                         }
                     }
                     AtmosphericWindTable(
                         viewModel,
                         coordinates = coordinates,
-                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore(),
+                        time = Instant.parse(forecastItem.time)
+                            .closestIsobaricDataWindowBefore(),
                     )
                 }
             }

@@ -115,7 +115,7 @@ fun ConfigParameter.icon(): EvaluationIcon
     ConfigParameter.FOG -> EvaluationIcon.DrawableIcon(R.drawable.fog)
     ConfigParameter.PRECIPITATION -> EvaluationIcon.DrawableIcon(R.drawable.rain)
     ConfigParameter.HUMIDITY -> EvaluationIcon.DrawableIcon(R.drawable.humidity)
-    ConfigParameter.DEW_POINT -> EvaluationIcon.DrawableIcon(R.drawable.mist)
+    ConfigParameter.DEW_POINT -> EvaluationIcon.DrawableIcon(R.drawable.dewpoint)
     ConfigParameter.PROBABILITY_OF_THUNDER -> EvaluationIcon.DrawableIcon(R.drawable.thunder)
     else -> EvaluationIcon.VectorIcon(Icons.Filled.ArrowDownward)
 }
