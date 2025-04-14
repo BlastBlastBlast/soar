@@ -99,6 +99,8 @@ fun HomeScreen(
                     },
                     onMarkerAnnotationLongPress = { point ->
                         // For a temporary marker long press: open a dialog.
+                        viewModel.updateCoordinates(point.latitude(), point.longitude())
+                        viewModel.updateLastVisited(point.latitude(), point.longitude())
                         isEditingMarker = false
                         savedMarkerCoordinates = Pair(point.latitude(), point.longitude())
                         launchSiteName = "New Marker"
@@ -112,6 +114,8 @@ fun HomeScreen(
                     },
                     onSavedMarkerAnnotationLongPress = { site ->
                         // For editing an existing site.
+                        viewModel.updateCoordinates(site.latitude, site.longitude)
+                        viewModel.updateLastVisited(site.latitude, site.longitude)
                         isEditingMarker = true
                         editingMarkerId = site.uid
                         savedMarkerCoordinates = Pair(site.latitude, site.longitude)
@@ -219,15 +223,30 @@ fun HomeScreen(
                     SaveLaunchSiteDialog(
                         launchSiteName = launchSiteName,
                         onNameChange = { launchSiteName = it },
-                        onDismiss = { showSaveDialog = false },
+                        onDismiss = {
+                            showSaveDialog = false
+                            savedMarkerCoordinates = null
+                            launchSiteName = ""
+                            isEditingMarker = false
+                        },
                         onConfirm = {
                             val (lat, lon) = savedMarkerCoordinates!!
-                            viewModel.addLaunchSite(lat, lon, launchSiteName)
+                            if (isEditingMarker) {
+                                // Update the site rather than adding a new one.
+                                viewModel.updateLaunchSite(editingMarkerId, lat, lon, launchSiteName)
+                            } else {
+                                // For a new marker, add it and update the placeholder marker.
+                                viewModel.addLaunchSite(lat, lon, launchSiteName)
+                                viewModel.updateNewMarker(lat, lon)
+                            }
                             showSaveDialog = false
+                            savedMarkerCoordinates = null
                             launchSiteName = ""
+                            isEditingMarker = false  // Reset the editing flag
                         }
                     )
                 }
+
             }
         }
     }
