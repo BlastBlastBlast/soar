@@ -30,7 +30,7 @@ fun RocketConfigListScreen(
     onAddRocketConfig: () -> Unit,
     onSelectRocketConfig: (RocketParameters) -> Unit
 ) {
-    // Observe the list of rocket configs from the viewmodel
+    // Observe the list of rocket configs from the viewmodel.
     val rocketList by viewModel.rocketList.collectAsState(initial = emptyList())
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -43,12 +43,14 @@ fun RocketConfigListScreen(
                         // Only allow editing for non-default configurations.
                         if (!rocket.isDefault) onEditRocketConfig(rocket)
                     },
-                    onDelete = { if (!rocket.isDefault) viewModel.deleteRocketConfig(rocket) }
+                    onDelete = {
+                        if (!rocket.isDefault) viewModel.deleteRocketConfig(rocket)
+                    }
                 )
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        // Add button creates a fresh configuration (with defaults)
+
         Button(onClick = onAddRocketConfig, modifier = Modifier.fillMaxWidth()) {
             Text("Add New Configuration")
         }
@@ -87,7 +89,7 @@ fun RocketConfigItem(
                 }
             }
             Row {
-                // Only show edit and delete icons if the configuration is not default.
+                // Only show edit and delete icons for non-default configurations.
                 if (!rocketParameters.isDefault) {
                     IconButton(onClick = onEdit) {
                         Icon(

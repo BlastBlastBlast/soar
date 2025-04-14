@@ -23,15 +23,16 @@ fun RocketConfigEditScreen(
     // Get default values from a default function if no record is passed in.
     val defaultParameters = getDefaultRocketParameters().valueMap
 
-    var name by remember { mutableStateOf(rocketParameters?.name ?: "New Rocket Config") }
-    var apogee by remember { mutableStateOf(rocketParameters?.apogee?.toString() ?: defaultParameters["APOGEE"]?.toString() ?: "5000.0") }
-    var launchDirection by remember { mutableStateOf(rocketParameters?.launchDirection?.toString() ?: defaultParameters["LAUNCH_DIRECTION"]?.toString() ?: "90.0") }
-    var launchAngle by remember { mutableStateOf(rocketParameters?.launchAngle?.toString() ?: defaultParameters["LAUNCH_ANGLE"]?.toString() ?: "80.0") }
-    var thrust by remember { mutableStateOf(rocketParameters?.thrust?.toString() ?: defaultParameters["THRUST_NEWTONS"]?.toString() ?: "4500.0") }
-    var burnTime by remember { mutableStateOf(rocketParameters?.burnTime?.toString() ?: defaultParameters["BURN_TIME"]?.toString() ?: "12.0") }
-    var dryWeight by remember { mutableStateOf(rocketParameters?.dryWeight?.toString() ?: defaultParameters["DRY_WEIGHT"]?.toString() ?: "100.0") }
-    var wetWeight by remember { mutableStateOf(rocketParameters?.wetWeight?.toString() ?: defaultParameters["WET_WEIGHT"]?.toString() ?: "130.0") }
-    var resolution by remember { mutableStateOf(rocketParameters?.resolution?.toString() ?: defaultParameters["RESOLUTION"]?.toString() ?: "1.0") }
+    // Use the current rocketParameters as a key so that if it changes,
+    var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Rocket Config") }
+    var apogee by remember(rocketParameters) { mutableStateOf(rocketParameters?.apogee?.toString() ?: defaultParameters["APOGEE"]?.toString() ?: "5000.0") }
+    var launchDirection by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchDirection?.toString() ?: defaultParameters["LAUNCH_DIRECTION"]?.toString() ?: "90.0") }
+    var launchAngle by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchAngle?.toString() ?: defaultParameters["LAUNCH_ANGLE"]?.toString() ?: "80.0") }
+    var thrust by remember(rocketParameters) { mutableStateOf(rocketParameters?.thrust?.toString() ?: defaultParameters["THRUST_NEWTONS"]?.toString() ?: "4500.0") }
+    var burnTime by remember(rocketParameters) { mutableStateOf(rocketParameters?.burnTime?.toString() ?: defaultParameters["BURN_TIME"]?.toString() ?: "12.0") }
+    var dryWeight by remember(rocketParameters) { mutableStateOf(rocketParameters?.dryWeight?.toString() ?: defaultParameters["DRY_WEIGHT"]?.toString() ?: "100.0") }
+    var wetWeight by remember(rocketParameters) { mutableStateOf(rocketParameters?.wetWeight?.toString() ?: defaultParameters["WET_WEIGHT"]?.toString() ?: "130.0") }
+    var resolution by remember(rocketParameters) { mutableStateOf(rocketParameters?.resolution?.toString() ?: defaultParameters["RESOLUTION"]?.toString() ?: "1.0") }
 
     Column(
         modifier = Modifier
