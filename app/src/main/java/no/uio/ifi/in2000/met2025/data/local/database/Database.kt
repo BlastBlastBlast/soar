@@ -5,13 +5,18 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
+import no.uio.ifi.in2000.met2025.data.models.RocketParameter
 
-@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class], version = 3)
+@Database(
+    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketParameters::class],
+    version = 4
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
     abstract fun gribDataDao(): GribDataDAO
     abstract fun gribUpdatedDao(): GribUpdatedDAO
     abstract fun configProfileDao(): ConfigProfileDAO
+    abstract fun rocketParametersDao(): RocketParametersDao
 }
 
 @Entity

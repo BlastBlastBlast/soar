@@ -82,7 +82,7 @@ interface ConfigProfileDAO {
 }
 
 @Dao
-interface RocketSpecsDAO {
+interface RocketParametersDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRocketSpecs(rocketSpecs: RocketParameters)
 
