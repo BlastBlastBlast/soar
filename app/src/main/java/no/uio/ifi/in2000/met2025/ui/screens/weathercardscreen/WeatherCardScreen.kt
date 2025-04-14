@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigSelectionOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +50,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.Weather
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
 import androidx.compose.ui.platform.LocalConfiguration
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.ConfigMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
 
 @Composable
@@ -63,6 +64,8 @@ fun WeatherCardScreen(
     val coordinates by viewModel.coordinates.collectAsState()
 
     var filterActive by remember { mutableStateOf(false) }
+    // New state to control the config menu overlay
+    var isConfigMenuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
@@ -81,20 +84,26 @@ fun WeatherCardScreen(
             )
             // Place our new segmented bottom bar at the bottom of the screen.
             SegmentedBottomBar(
-                onConfigClick = { /* TODO: Handle configuration click */ },
+                onConfigClick = { isConfigMenuExpanded = !isConfigMenuExpanded },
                 onFilterClick = { /* TODO: Handle filter click */ },
                 onLaunchClick = { /* TODO: Handle launch site click */ },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
-            // (Optional) Retain your ConfigSelectionOverlay here if needed:
-            ConfigSelectionOverlay(
-                configList = configList,
-                activeConfig = activeConfig!!,
-                onConfigSelected = { selectedConfig ->
-                    viewModel.setActiveConfig(selectedConfig)
-                },
-                onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) }
-            )
+            // Display the config overlay only when toggled on
+            if (isConfigMenuExpanded) {
+                ConfigMenuOverlay(
+                    configList = configList,
+                    onConfigSelected = { selectedConfig ->
+                        viewModel.setActiveConfig(selectedConfig)
+                    },
+                    onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) },
+                    onDismiss = { isConfigMenuExpanded = false },
+                    // Place the overlay at the bottom left and shift it upward.
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .offset(y = -(56.dp + 16.dp)) // Moves the overlay above the bottom bar
+                )
+            }
         }
     } else {
         Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
