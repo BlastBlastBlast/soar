@@ -4,6 +4,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.rocketconfig
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
@@ -26,5 +27,7 @@ class RocketConfigEditViewModel @Inject constructor(
         }
     }
 
-    fun getRocketConfig(rocketId: Int) = rocketConfigRepository.getRocketSpecs(rocketId)
+    fun getRocketConfig(rocketId: Int): Flow<RocketParameters?> {
+        return rocketConfigRepository.getRocketSpecs(rocketId)
+    }
 }

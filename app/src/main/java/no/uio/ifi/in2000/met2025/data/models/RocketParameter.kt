@@ -11,9 +11,9 @@ enum class RocketParameter {
     RESOLUTION
 }
 
-data class RocketSpecValues(val valueMap: Map<String, Double>)
+data class RocketParameters(val valueMap: Map<String, Double>)
 
-fun getDefaultRocketSpecs(): RocketSpecValues {
+fun getDefaultRocketParameters(): RocketParameters {
     val map = hashMapOf(
         RocketParameter.APOGEE.name to 5000.0,
         RocketParameter.LAUNCH_DIRECTION.name to 90.0,
@@ -24,7 +24,7 @@ fun getDefaultRocketSpecs(): RocketSpecValues {
         RocketParameter.WET_WEIGHT.name to 130.0,
         RocketParameter.RESOLUTION.name to 1.0
     )
-    return RocketSpecValues(map)
+    return RocketParameters(map)
 }
 
 data class RocketSpecs(
@@ -43,7 +43,7 @@ data class RocketSpecs(
 
 fun mapToDatabaseObject(
     name: String,
-    values: RocketSpecValues,
+    values: RocketParameters,
     isDefault: Boolean = false
 ): RocketSpecs {
     val map = values.valueMap

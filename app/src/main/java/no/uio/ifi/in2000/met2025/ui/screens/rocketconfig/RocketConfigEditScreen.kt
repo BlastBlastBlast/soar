@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
+import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameters
 
 @Composable
 fun RocketConfigEditScreen(
@@ -19,16 +20,18 @@ fun RocketConfigEditScreen(
     viewModel: RocketConfigEditViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    // Initialize state with defaults or existing values.
-    var name by remember { mutableStateOf(rocketParameters?.name ?: "") }
-    var apogee by remember { mutableStateOf(rocketParameters?.apogee?.toString() ?: "5000.0") }
-    var launchDirection by remember { mutableStateOf(rocketParameters?.launchDirection?.toString() ?: "90.0") }
-    var launchAngle by remember { mutableStateOf(rocketParameters?.launchAngle?.toString() ?: "80.0") }
-    var thrust by remember { mutableStateOf(rocketParameters?.thrust?.toString() ?: "4500.0") }
-    var burnTime by remember { mutableStateOf(rocketParameters?.burnTime?.toString() ?: "12.0") }
-    var dryWeight by remember { mutableStateOf(rocketParameters?.dryWeight?.toString() ?: "100.0") }
-    var wetWeight by remember { mutableStateOf(rocketParameters?.wetWeight?.toString() ?: "130.0") }
-    var resolution by remember { mutableStateOf(rocketParameters?.resolution?.toString() ?: "1.0") }
+    // Get default values from a default function if no record is passed in.
+    val defaultParameters = getDefaultRocketParameters().valueMap
+
+    var name by remember { mutableStateOf(rocketParameters?.name ?: "New Rocket Config") }
+    var apogee by remember { mutableStateOf(rocketParameters?.apogee?.toString() ?: defaultParameters["APOGEE"]?.toString() ?: "5000.0") }
+    var launchDirection by remember { mutableStateOf(rocketParameters?.launchDirection?.toString() ?: defaultParameters["LAUNCH_DIRECTION"]?.toString() ?: "90.0") }
+    var launchAngle by remember { mutableStateOf(rocketParameters?.launchAngle?.toString() ?: defaultParameters["LAUNCH_ANGLE"]?.toString() ?: "80.0") }
+    var thrust by remember { mutableStateOf(rocketParameters?.thrust?.toString() ?: defaultParameters["THRUST_NEWTONS"]?.toString() ?: "4500.0") }
+    var burnTime by remember { mutableStateOf(rocketParameters?.burnTime?.toString() ?: defaultParameters["BURN_TIME"]?.toString() ?: "12.0") }
+    var dryWeight by remember { mutableStateOf(rocketParameters?.dryWeight?.toString() ?: defaultParameters["DRY_WEIGHT"]?.toString() ?: "100.0") }
+    var wetWeight by remember { mutableStateOf(rocketParameters?.wetWeight?.toString() ?: defaultParameters["WET_WEIGHT"]?.toString() ?: "130.0") }
+    var resolution by remember { mutableStateOf(rocketParameters?.resolution?.toString() ?: defaultParameters["RESOLUTION"]?.toString() ?: "1.0") }
 
     Column(
         modifier = Modifier
@@ -104,20 +107,21 @@ fun RocketConfigEditScreen(
                 val updatedRocketParameters = RocketParameters(
                     id = rocketParameters?.id ?: 0,
                     name = name,
-                    apogee = apogee.toDoubleOrNull() ?: 5000.0,
-                    launchDirection = launchDirection.toDoubleOrNull() ?: 90.0,
-                    launchAngle = launchAngle.toDoubleOrNull() ?: 80.0,
-                    thrust = thrust.toDoubleOrNull() ?: 4500.0,
-                    burnTime = burnTime.toDoubleOrNull() ?: 12.0,
-                    dryWeight = dryWeight.toDoubleOrNull() ?: 100.0,
-                    wetWeight = wetWeight.toDoubleOrNull() ?: 130.0,
-                    resolution = resolution.toDoubleOrNull() ?: 1.0,
+                    apogee = apogee.toDoubleOrNull() ?: (defaultParameters["APOGEE"] ?: 5000.0),
+                    launchDirection = launchDirection.toDoubleOrNull() ?: (defaultParameters["LAUNCH_DIRECTION"] ?: 90.0),
+                    launchAngle = launchAngle.toDoubleOrNull() ?: (defaultParameters["LAUNCH_ANGLE"] ?: 80.0),
+                    thrust = thrust.toDoubleOrNull() ?: (defaultParameters["THRUST_NEWTONS"] ?: 4500.0),
+                    burnTime = burnTime.toDoubleOrNull() ?: (defaultParameters["BURN_TIME"] ?: 12.0),
+                    dryWeight = dryWeight.toDoubleOrNull() ?: (defaultParameters["DRY_WEIGHT"] ?: 100.0),
+                    wetWeight = wetWeight.toDoubleOrNull() ?: (defaultParameters["WET_WEIGHT"] ?: 130.0),
+                    resolution = resolution.toDoubleOrNull() ?: (defaultParameters["RESOLUTION"] ?: 1.0),
                     isDefault = rocketParameters?.isDefault ?: false
                 )
-                if (rocketParameters == null)
+                if (rocketParameters == null) {
                     viewModel.saveRocketConfig(updatedRocketParameters)
-                else
+                } else {
                     viewModel.updateRocketConfig(updatedRocketParameters)
+                }
                 onNavigateBack()
             },
             modifier = Modifier.fillMaxWidth()
