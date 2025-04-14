@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -28,16 +31,17 @@ import no.uio.ifi.in2000.met2025.data.models.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.models.EvaluationIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import java.time.Instant
 
+//HourlyExpandableCard.kt
 @Composable
 fun WindDirectionIcon(windDirection: Double) {
-    // Load the custom arrow drawable from resources (ensure the name matches your resource)
     val arrowPainter = painterResource(id = R.drawable.up_arrow)
-    // Calculate rotation: add 180° so the arrow points in the wind's source direction
     val rotation = (windDirection + 180) % 360
 
     Image(
@@ -54,9 +58,11 @@ fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
     coordinates: Pair<Double, Double>,
     config: ConfigProfile,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel : WeatherCardViewmodel
 ) {
     var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -64,11 +70,10 @@ fun HourlyExpandableCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Display date, time and overall launch status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${formatZuluTimeToLocalTime(forecastItem.time)}",
@@ -76,49 +81,68 @@ fun HourlyExpandableCard(
                 )
                 LaunchStatusIndicator(forecast = forecastItem, config = config)
             }
-            // Display a quick temperature readout
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium
             )
-            // Expanded details: show all parameter evaluations in a neat three-column layout.
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    // Get evaluations based on forecast and configuration.
                     val evaluations = evaluateParameterConditions(forecastItem, config)
                     evaluations.forEach { evaluation ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Label column with weight 1 (can be given a fixed width if preferred)
+                            // 1. Parameter Name.
                             Text(
                                 text = evaluation.label,
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(0.6f)
+                                modifier = Modifier.weight(0.5f)
                             )
-                            // Value column with weight 1, right aligned
+                            // 2. Parameter Icon.
+                            if (evaluation.label == "Wind Direction") {
+                                WindDirectionIcon(forecastItem.values.windFromDirection)
+                            } else {
+                                evaluation.icon?.let { iconData ->
+                                    when (iconData) {
+                                        is EvaluationIcon.DrawableIcon -> {
+                                            Icon(
+                                                painter = painterResource(id = iconData.resId),
+                                                contentDescription = evaluation.label,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                        is EvaluationIcon.VectorIcon -> {
+                                            Icon(
+                                                imageVector = iconData.icon,
+                                                contentDescription = evaluation.label,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    }
+                                } ?: Box(modifier = Modifier.size(24.dp))
+                            }
+                            // 3. Parameter Value + Unit.
                             Text(
                                 text = evaluation.value,
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier
-                                    .weight(0.4f)
+                                modifier = Modifier.weight(0.3f)
                             )
-                            // Icon column with a small weight
+                            // 4. Launch Status Icon (if not Wind Direction; for wind direction, skip this column).
                             if (evaluation.label == "Wind Direction") {
-                                WindDirectionIcon(forecastItem.values.windFromDirection)
+                                Box(modifier = Modifier.size(24.dp)) // empty placeholder for alignment
                             } else {
                                 LaunchStatusIcon(status = evaluation.status)
                             }
                         }
                     }
-
-                    // Additional content
                     AtmosphericWindTable(
+                        viewModel,
                         coordinates = coordinates,
-                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore()
+                        time = Instant.parse(forecastItem.time).closestIsobaricDataWindowBefore(),
                     )
                 }
             }
