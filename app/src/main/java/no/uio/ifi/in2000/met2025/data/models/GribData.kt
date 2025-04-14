@@ -1,5 +1,11 @@
 package no.uio.ifi.in2000.met2025.data.models
 
+sealed class GribDataResult {
+    data class Success(val gribDataMap: Result<GribDataMap>) : GribDataResult()
+    object AvailabilityError : GribDataResult()
+    object FetchingError : GribDataResult()
+}
+
 data class GribDataMap(
     val time : String,
     val map : Map<Pair<Double, Double>, Map<Int, GribVectors>>

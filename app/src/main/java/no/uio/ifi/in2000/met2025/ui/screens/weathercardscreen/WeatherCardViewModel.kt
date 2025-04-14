@@ -12,6 +12,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DefaultConfig
@@ -135,21 +136,38 @@ class WeatherCardViewmodel @Inject constructor(
         time: Instant
     ) {
         val currentItem = isobaricData.value[time]
+
         _isobaricData.value += (time to AtmosphericWindUiState.Loading)
-        _isobaricData.value += (
-                time to weatherModel.getCurrentIsobaricData(lat, lon, time).fold(
-                    onFailure = { throwable ->
-                        if (currentItem !is AtmosphericWindUiState.Success)
-                            AtmosphericWindUiState.Error(
-                                throwable.message ?: "Ukjent feil"
-                            )
-                        else
-                            AtmosphericWindUiState.Success(currentItem.isobaricData)
-                    },
-                    onSuccess = { data ->
-                        AtmosphericWindUiState.Success(data)
+
+        val result = weatherModel.getCurrentIsobaricData(lat, lon, time)
+
+        val newState: AtmosphericWindUiState = when (result) {
+            is IsobaricDataResult.Success -> {
+                result.isobaricData.fold(
+                    onSuccess = { data -> AtmosphericWindUiState.Success(data) },
+                    onFailure = { error ->
+                        if (currentItem is AtmosphericWindUiState.Success) {
+                            currentItem // preserve existing success data
+                        } else {
+                            AtmosphericWindUiState.Error(error.message ?: "Unknown error while parsing data")
+                        }
                     }
                 )
-                )
+            }
+
+            IsobaricDataResult.GribAvailabilityError -> {
+                AtmosphericWindUiState.Error("No GRIB data available for the given time")
+            }
+
+            IsobaricDataResult.GribFetchingError -> {
+                AtmosphericWindUiState.Error("Error while fetching GRIB data")
+            }
+            //TODO: Separere denne fra gribupdate kallet hvis man gidder
+            IsobaricDataResult.LocationForecastFetchingError -> {
+                AtmosphericWindUiState.Error("Error while fetching location forecast data")
+            }
+        }
+
+        _isobaricData.value += (time to newState)
     }
 }
