@@ -58,8 +58,7 @@ fun WeatherCardScreen(
     val activeConfig by viewModel.activeConfig.collectAsState()
     val configList by viewModel.configList.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
-    // Expose launch sites via the view model. If not already exposed, add:
-    // val launchSites = launchSitesRepository.getAll()
+    // Expose launch sites via the view model.
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
 
     // Shared state for forecast hours (controlled via the filter overlay)
@@ -85,9 +84,36 @@ fun WeatherCardScreen(
             )
             // Segmented Bottom Bar with three buttons.
             SegmentedBottomBar(
-                onConfigClick = { isConfigMenuExpanded = !isConfigMenuExpanded },
-                onFilterClick = { isFilterMenuExpanded = !isFilterMenuExpanded },
-                onLaunchClick = { isLaunchMenuExpanded = !isLaunchMenuExpanded },
+                onConfigClick = {
+                    // Toggle configuration overlay and close others.
+                    if (!isConfigMenuExpanded) {
+                        isConfigMenuExpanded = true
+                        isFilterMenuExpanded = false
+                        isLaunchMenuExpanded = false
+                    } else {
+                        isConfigMenuExpanded = false
+                    }
+                },
+                onFilterClick = {
+                    // Toggle filter overlay and close others.
+                    if (!isFilterMenuExpanded) {
+                        isFilterMenuExpanded = true
+                        isConfigMenuExpanded = false
+                        isLaunchMenuExpanded = false
+                    } else {
+                        isFilterMenuExpanded = false
+                    }
+                },
+                onLaunchClick = {
+                    // Toggle launch overlay and close others.
+                    if (!isLaunchMenuExpanded) {
+                        isLaunchMenuExpanded = true
+                        isConfigMenuExpanded = false
+                        isFilterMenuExpanded = false
+                    } else {
+                        isLaunchMenuExpanded = false
+                    }
+                },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
             // Configuration Overlay.
@@ -122,18 +148,18 @@ fun WeatherCardScreen(
                 LaunchSitesMenuOverlay(
                     launchSites = launchSites.filter { it.name != "Last Visited" }, // filter out "Last Visited"
                     onSiteSelected = { selectedSite ->
-                        // Update the coordinates (using your updated helper function).
+                        // Update the coordinates using the helper function.
                         viewModel.updateCoordinates(selectedSite.latitude, selectedSite.longitude)
                         // Reload forecast data for the new coordinates.
                         viewModel.loadForecast(selectedSite.latitude, selectedSite.longitude)
-                        // Reload isobaric data – using current time (adjust as needed).
+                        // Reload isobaric data – using current time.
                         viewModel.loadIsobaricData(selectedSite.latitude, selectedSite.longitude, Instant.now())
-                        // Dismiss the launch menu.
+                        // Dismiss the launch overlay.
                         isLaunchMenuExpanded = false
                     },
                     onDismiss = { isLaunchMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomStart)  // Aligns to the bottom right.
+                        .align(Alignment.BottomEnd) // For bottom-right placement.
                         .offset(x = (-16).dp, y = -(56.dp + 16.dp))
                 )
             }
@@ -142,7 +168,6 @@ fun WeatherCardScreen(
         Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
     }
 }
-
 
 
 @Composable
