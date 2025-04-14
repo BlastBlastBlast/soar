@@ -6,12 +6,16 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 
-@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class], version = 3)
+@Database(
+    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
+    version = 4
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
     abstract fun gribDataDao(): GribDataDAO
     abstract fun gribUpdatedDao(): GribUpdatedDAO
     abstract fun configProfileDao(): ConfigProfileDAO
+    abstract fun rocketConfigDao(): RocketConfigDao
 }
 
 @Entity
@@ -78,6 +82,22 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_altitude_upper_bound") val isEnabledAltitudeUpperBound: Boolean = true,
     @ColumnInfo(name = "wind_shear_speed_threshold") val windShearSpeedThreshold: Double = 24.5,
     @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
+)
+
+@Entity(tableName = "rocket_configurations")
+data class RocketConfig(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id") val id: Int = 0,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "apogee") val apogee: Double,
+    @ColumnInfo(name = "launch_direction") val launchDirection: Double,
+    @ColumnInfo(name = "launch_angle") val launchAngle: Double,
+    @ColumnInfo(name = "thrust") val thrust: Double,
+    @ColumnInfo(name = "burn_time") val burnTime: Double,
+    @ColumnInfo(name = "dry_weight") val dryWeight: Double,
+    @ColumnInfo(name = "wet_weight") val wetWeight: Double,
+    @ColumnInfo(name = "resolution") val resolution: Double,
+    @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
 
 
