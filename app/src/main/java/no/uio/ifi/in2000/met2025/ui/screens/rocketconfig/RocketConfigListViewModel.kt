@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
+import no.uio.ifi.in2000.met2025.data.models.RocketConfig
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,9 +16,9 @@ class RocketConfigListViewModel @Inject constructor(
 ) : ViewModel() {
     val rocketList = rocketConfigRepository.getAllRocketParameters()
 
-    fun deleteRocketConfig(rocketParameters: RocketParameters) {
+    fun deleteRocketConfig(rocketConfig: RocketConfig) {
         viewModelScope.launch {
-            rocketConfigRepository.deleteRocketParameters(rocketParameters)
+            rocketConfigRepository.deleteRocketParameters(rocketConfig)
         }
     }
 }

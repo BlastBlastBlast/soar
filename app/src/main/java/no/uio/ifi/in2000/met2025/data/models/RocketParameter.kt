@@ -11,9 +11,10 @@ enum class RocketParameter {
     RESOLUTION
 }
 
-data class RocketParameters(val valueMap: Map<String, Double>)
+// This model holds the default (or custom) parameter values as a map.
+data class RocketParameterValues(val valueMap: Map<String, Double>)
 
-fun getDefaultRocketParameters(): RocketParameters {
+fun getDefaultRocketParameterValues(): RocketParameterValues {
     val map = hashMapOf(
         RocketParameter.APOGEE.name to 5000.0,
         RocketParameter.LAUNCH_DIRECTION.name to 90.0,
@@ -24,10 +25,11 @@ fun getDefaultRocketParameters(): RocketParameters {
         RocketParameter.WET_WEIGHT.name to 130.0,
         RocketParameter.RESOLUTION.name to 1.0
     )
-    return RocketParameters(map)
+    return RocketParameterValues(map)
 }
 
-data class RocketSpecs(
+// This is the database entity version of a rocket configuration.
+data class RocketConfig(
     val id: Int = 0,
     val name: String,
     val apogee: Double,
@@ -41,13 +43,14 @@ data class RocketSpecs(
     val isDefault: Boolean = false
 )
 
-fun mapToDatabaseObject(
+// Mapping function: converts the model (RocketParameterValues) to a database object (RocketConfig)
+fun mapToRocketConfig(
     name: String,
-    values: RocketParameters,
+    values: RocketParameterValues,
     isDefault: Boolean = false
-): RocketSpecs {
+): RocketConfig {
     val map = values.valueMap
-    return RocketSpecs(
+    return RocketConfig(
         name = name,
         apogee = map[RocketParameter.APOGEE.name] ?: 0.0,
         launchDirection = map[RocketParameter.LAUNCH_DIRECTION.name] ?: 0.0,

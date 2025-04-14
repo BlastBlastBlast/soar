@@ -21,23 +21,24 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
 import androidx.compose.material3.Button
+import no.uio.ifi.in2000.met2025.data.models.RocketConfig
 
 
 @Composable
 fun RocketConfigListScreen(
     viewModel: RocketConfigListViewModel = hiltViewModel(),
-    onEditRocketConfig: (RocketParameters) -> Unit,
+    onEditRocketConfig: (RocketConfig) -> Unit,
     onAddRocketConfig: () -> Unit,
-    onSelectRocketConfig: (RocketParameters) -> Unit
+    onSelectRocketConfig: (RocketConfig) -> Unit
 ) {
-    // Observe the list of rocket configs from the viewmodel.
+    // Observe the list of rocket configurations from the viewmodel.
     val rocketList by viewModel.rocketList.collectAsState(initial = emptyList())
 
     Column(modifier = Modifier.padding(16.dp)) {
         LazyColumn {
             items(rocketList) { rocket ->
                 RocketConfigItem(
-                    rocketParameters = rocket,
+                    rocketConfig = rocket,
                     onClick = { onSelectRocketConfig(rocket) },
                     onEdit = {
                         // Only allow editing for non-default configurations.
@@ -50,7 +51,6 @@ fun RocketConfigListScreen(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(onClick = onAddRocketConfig, modifier = Modifier.fillMaxWidth()) {
             Text("Add New Configuration")
         }
@@ -59,7 +59,7 @@ fun RocketConfigListScreen(
 
 @Composable
 fun RocketConfigItem(
-    rocketParameters: RocketParameters,
+    rocketConfig: RocketConfig,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -78,10 +78,10 @@ fun RocketConfigItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = rocketParameters.name,
+                    text = rocketConfig.name,
                     style = MaterialTheme.typography.bodyLarge
                 )
-                if (rocketParameters.isDefault) {
+                if (rocketConfig.isDefault) {
                     Text(
                         text = "Default Configuration",
                         style = MaterialTheme.typography.bodySmall
@@ -90,7 +90,7 @@ fun RocketConfigItem(
             }
             Row {
                 // Only show edit and delete icons for non-default configurations.
-                if (!rocketParameters.isDefault) {
+                if (!rocketConfig.isDefault) {
                     IconButton(onClick = onEdit) {
                         Icon(
                             imageVector = Icons.Default.Edit,
