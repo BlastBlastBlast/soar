@@ -36,12 +36,12 @@ fun SegmentedBottomBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Config Box
+        // Launch Box
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { onConfigClick() },
+                .clickable { onLaunchClick() },
             contentAlignment = Alignment.Center
         ) {
             Box(
@@ -51,13 +51,12 @@ fun SegmentedBottomBar(
                     .border(1.dp, Color.White.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "CONFIG",
+                Text(text = "LAUNCH",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
         }
-
         // Filter Box
         Box(
             modifier = Modifier
@@ -79,13 +78,12 @@ fun SegmentedBottomBar(
                 )
             }
         }
-
-        // Launch Box
+        // Config Box
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { onLaunchClick() },
+                .clickable { onConfigClick() },
             contentAlignment = Alignment.Center
         ) {
             Box(
@@ -95,7 +93,7 @@ fun SegmentedBottomBar(
                     .border(1.dp, Color.White.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "LAUNCH",
+                Text(text = "CONFIG",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )

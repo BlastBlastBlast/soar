@@ -100,7 +100,7 @@ fun WeatherCardScreen(
                     onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) },
                     onDismiss = { isConfigMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                        .align(Alignment.BottomEnd)
                         .offset(y = -(56.dp + 16.dp))
                 )
             }
@@ -120,9 +120,9 @@ fun WeatherCardScreen(
             // Launch Sites Overlay.
             if (isLaunchMenuExpanded) {
                 LaunchSitesMenuOverlay(
-                    launchSites = launchSites,
+                    launchSites = launchSites.filter { it.name != "Last Visited" }, // filter out "Last Visited"
                     onSiteSelected = { selectedSite ->
-                        // Update the coordinates (via the updated helper function).
+                        // Update the coordinates (using your updated helper function).
                         viewModel.updateCoordinates(selectedSite.latitude, selectedSite.longitude)
                         // Reload forecast data for the new coordinates.
                         viewModel.loadForecast(selectedSite.latitude, selectedSite.longitude)
@@ -133,8 +133,8 @@ fun WeatherCardScreen(
                     },
                     onDismiss = { isLaunchMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)  // Changed alignment to bottomEnd.
-                        .offset(y = -(56.dp + 16.dp))
+                        .align(Alignment.BottomStart)  // Aligns to the bottom right.
+                        .offset(x = (-16).dp, y = -(56.dp + 16.dp))
                 )
             }
         }
