@@ -21,9 +21,12 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditViewModel
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.rocketconfig.RocketConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
+import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigEditViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 
@@ -42,7 +45,11 @@ sealed class Screen(val route: String) {
     data object AtmosphericWind: Screen("atmosphericwind")
     data object ConfigList : Screen("config_list")
     data object ConfigEdit : Screen("config_edit")
-
+    // New rocket configuration screens:
+    data object RocketConfigList : Screen("rocket_config_list")
+    data object RocketConfigEdit : Screen("rocket_config_edit/{rocketName}/{rocketId}") {
+        fun createRoute(rocketName: String, rocketId: Int) = "rocket_config_edit/$rocketName/$rocketId"
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,13 +68,16 @@ fun AppNavLauncher(
         Screen.Home.route -> "Home"
         Screen.LaunchSite.route -> "Launch Sites"
         Screen.AtmosphericWind.route -> "Atmospheric Wind"
+        Screen.RocketConfigList.route -> "Rocket Configurations"
         else -> if (currentBackStackEntry?.destination?.route?.startsWith("weather") == true) "Weather" else "Unknown"
     }
-    // Disable gestures on Home so the drawer is only opened by tapping the logo.
+    // Disable drawer gestures on Home so the drawer is only opened by tapping the logo.
     val gesturesEnabled = currentScreenTitle != "Home"
-    val configEditViewModel : ConfigEditViewModel = hiltViewModel()
-    val weatherCardViewModel : WeatherCardViewmodel = hiltViewModel()
-    val homeScreenViewModel : HomeScreenViewModel = hiltViewModel()
+
+    // ViewModels used in navigation.
+    val configEditViewModel: ConfigEditViewModel = hiltViewModel()
+    val weatherCardViewModel: WeatherCardViewmodel = hiltViewModel()
+    val homeScreenViewModel: HomeScreenViewModel = hiltViewModel()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -115,6 +125,19 @@ fun AppNavLauncher(
                     selected = currentScreenTitle == "Atmospheric Wind",
                     onClick = {
                         navController.navigate(Screen.AtmosphericWind.route) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
+                        }
+                        scope.launch { drawerState.close() }
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                // New Drawer Item for Rocket Configurations.
+                NavigationDrawerItem(
+                    label = { Text("Rocket Configurations") },
+                    selected = currentScreenTitle == "Rocket Configurations",
+                    onClick = {
+                        navController.navigate(Screen.RocketConfigList.route) {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }
@@ -197,14 +220,11 @@ fun AppNavLauncher(
                 composable(Screen.ConfigList.route) {
                     ConfigListScreen(
                         onEditConfig = { config ->
-                            // Navigate with the config id as part of the route.
                             navController.navigate("config_edit/${config.id}")
                         },
-                        onAddConfig = {
-                            // Using -1 to indicate a new configuration.
-                            navController.navigate("config_edit/-1")
-                        },
+                        onAddConfig = { navController.navigate("config_edit/-1") },
                         onSelectConfig = { config ->
+                            // For example, set active config then pop back.
                             weatherCardViewModel.setActiveConfig(config)
                             navController.popBackStack()
                         }
@@ -215,22 +235,56 @@ fun AppNavLauncher(
                     arguments = listOf(
                         navArgument("configId") {
                             type = NavType.IntType
-                            defaultValue = -1 // -1 indicates a new config.
+                            defaultValue = -1
                         }
                     )
                 ) { backStackEntry ->
                     val configId = backStackEntry.arguments?.getInt("configId") ?: -1
-                    // Load the config if editing (configId != -1), else pass null
-                    val config by configEditViewModel.getConfigProfile(configId).collectAsState(initial = null)
-
+                    val config by configEditViewModel.getConfigProfile(configId)
+                        .collectAsState(initial = null)
                     ConfigEditScreen(
                         config = config,
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }
-
+                // New Rocket Config List screen.
+                composable(Screen.RocketConfigList.route) {
+                    RocketConfigListScreen(
+                        onEditRocketConfig = { rocket ->
+                            // Navigate using both name and id.
+                            navController.navigate(Screen.RocketConfigEdit.createRoute(rocket.name, rocket.id))
+                        },
+                        onAddRocketConfig = {
+                            // Use a placeholder name ("new") and -1 id for a new configuration.
+                            navController.navigate(Screen.RocketConfigEdit.createRoute("new", -1))
+                        },
+                        onSelectRocketConfig = { rocket ->
+                            // You may handle selection here.
+                        }
+                    )
+                }
+                // New Rocket Config Edit screen.
+                composable(
+                    route = Screen.RocketConfigEdit.route,
+                    arguments = listOf(
+                        navArgument("rocketName") { type = NavType.StringType },
+                        navArgument("rocketId") {
+                            type = NavType.IntType
+                            defaultValue = -1
+                        }
+                    )
+                ) { backStackEntry ->
+                    val rocketId = backStackEntry.arguments?.getInt("rocketId") ?: -1
+                    val rocketName = backStackEntry.arguments?.getString("rocketName") ?: ""
+                    val rocketConfig by hiltViewModel<RocketConfigEditViewModel>()
+                        .getRocketConfig(rocketId)
+                        .collectAsState(initial = null)
+                    RocketConfigEditScreen(
+                        rocketParameters = rocketConfig,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
 }
-
