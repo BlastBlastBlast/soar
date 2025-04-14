@@ -18,7 +18,7 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditViewModel
 import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigListScreen
-import no.uio.ifi.in2000.met2025.ui.rocketconfig.RocketConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreen
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen

@@ -1,5 +1,5 @@
 // File: RocketConfigEditScreen.kt
-package no.uio.ifi.in2000.met2025.ui.rocketconfig
+package no.uio.ifi.in2000.met2025.ui.screens.rocketconfig
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.RocketParameters
-import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigEditViewModel
 
 @Composable
 fun RocketConfigEditScreen(
