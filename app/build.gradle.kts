@@ -91,6 +91,9 @@ dependencies {
     // Icons
     implementation(libs.androidx.material.icons.extended)
 
+    //kotlin reflection
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+
     // Removed logback dependency:
     // implementation(libs.logback.classic)
 

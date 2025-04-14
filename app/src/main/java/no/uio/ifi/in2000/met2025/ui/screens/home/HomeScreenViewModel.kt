@@ -107,6 +107,22 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
+    fun updateLaunchSite(siteId: Int, lat: Double, lon: Double, name: String) {
+        viewModelScope.launch {
+            // Create an updated LaunchSite instance.
+            // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
+            val updatedSite = LaunchSite(
+                uid = siteId,
+                name = name,
+                latitude = lat,
+                longitude = lon
+            )
+            // Use your repository's update function.
+            launchSitesRepository.updateSites(updatedSite)
+        }
+    }
+
+
     fun onMarkerPlaced(lat: Double, lon: Double) {
         // When a marker is placed, update both temporary records via the repository.
         updateCoordinates(lat, lon)

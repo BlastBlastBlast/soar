@@ -11,14 +11,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
+import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 
 @Composable
 fun WindShearRow(
+    config: ConfigProfile,
     backgroundColor: Color,
-    speedText: String,
-    directionText: String,
+    windSpeed: Double?,
+    windDirection: Double?,
     style: androidx.compose.ui.text.TextStyle
 ) {
+    val windSpeedText = (windSpeed
+        ?.roundToDecimals(1) ?: "--")
+        .toString()
+    val windDirectionText = (windDirection
+        ?.floorModDouble(360)
+        ?.roundToDecimals(1) ?: "--")
+        .toString()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -32,13 +44,13 @@ fun WindShearRow(
         Box(modifier = Modifier.weight(1f))
 
         Text(
-            text = speedText,
+            text = windSpeedText,
             style = style,
             modifier = Modifier.weight(1f)
         )
 
         Text(
-            text = directionText,
+            text = windDirectionText,
             style = style,
             modifier = Modifier.weight(1f)
         )

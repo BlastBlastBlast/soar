@@ -9,13 +9,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DefaultConfig
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.DefaultConfig
 import java.time.Instant
 import javax.inject.Inject
 
@@ -65,6 +66,8 @@ class WeatherCardViewmodel @Inject constructor(
     private val _isobaricData = MutableStateFlow<Map<Instant, AtmosphericWindUiState>>(emptyMap())
     val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
 
+    val launchSites = launchSitesRepository.getAll()
+
     init {
         // Initialize configuration profiles.
         viewModelScope.launch {
@@ -103,6 +106,28 @@ class WeatherCardViewmodel @Inject constructor(
             put(time, AtmosphericWindUiState.Idle)
         }
     }
+
+    fun updateCoordinates(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            // Use the repository function to get the "Last Visited" site.
+            val lastVisitedSite = launchSitesRepository.getTempSite("Last Visited").first()
+            if (lastVisitedSite != null) {
+                // Overwrite by updating the existing record.
+                val updatedSite = lastVisitedSite.copy(latitude = lat, longitude = lon)
+                launchSitesRepository.updateSites(updatedSite)
+            } else {
+                // If not found, insert a new record.
+                launchSitesRepository.insertAll(
+                    LaunchSite(
+                        name = "Last Visited",
+                        latitude = lat,
+                        longitude = lon
+                    )
+                )
+            }
+        }
+    }
+
 
     fun setActiveConfig(config: ConfigProfile) {
         _activeConfig.value = config
