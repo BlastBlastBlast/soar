@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -50,7 +51,10 @@ fun SegmentedBottomBar(
                     .border(1.dp, Color.White.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "Config", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                Text(text = "CONFIG",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
             }
         }
 
@@ -69,7 +73,10 @@ fun SegmentedBottomBar(
                     .border(1.dp, Color.White.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "Filter", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                Text(text = "FILTER",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
             }
         }
 
@@ -88,7 +95,10 @@ fun SegmentedBottomBar(
                     .border(1.dp, Color.White.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "Launch", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                Text(text = "LAUNCH",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
             }
         }
     }
