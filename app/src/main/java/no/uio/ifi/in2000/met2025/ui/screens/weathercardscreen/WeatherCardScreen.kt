@@ -46,6 +46,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.ConfigMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.FilterMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.site.LaunchSitesMenuOverlay
+import java.time.Instant
 
 @Composable
 fun WeatherCardScreen(
@@ -56,12 +58,16 @@ fun WeatherCardScreen(
     val activeConfig by viewModel.activeConfig.collectAsState()
     val configList by viewModel.configList.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
+    // Expose launch sites via the view model. If not already exposed, add:
+    // val launchSites = launchSitesRepository.getAll()
+    val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
 
-    // Shared state for forecast hours (controlled by filter overlay)
+    // Shared state for forecast hours (controlled via the filter overlay)
     var hoursToShow by remember { mutableStateOf(24f) }
-    var isFilterMenuExpanded by remember { mutableStateOf(false) }
     var filterActive by remember { mutableStateOf(false) }
     var isConfigMenuExpanded by remember { mutableStateOf(false) }
+    var isFilterMenuExpanded by remember { mutableStateOf(false) }
+    var isLaunchMenuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
@@ -69,7 +75,6 @@ fun WeatherCardScreen(
 
     if (activeConfig != null) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Pass the shared hoursToShow to the content so the filtering uses it.
             ScreenContent(
                 uiState = uiState,
                 coordinates = coordinates,
@@ -78,14 +83,14 @@ fun WeatherCardScreen(
                 hoursToShow = hoursToShow,
                 viewModel = viewModel
             )
-            // Bottom bar with three buttons.
+            // Segmented Bottom Bar with three buttons.
             SegmentedBottomBar(
                 onConfigClick = { isConfigMenuExpanded = !isConfigMenuExpanded },
                 onFilterClick = { isFilterMenuExpanded = !isFilterMenuExpanded },
-                onLaunchClick = { /* TODO: Handle launch site click */ },
+                onLaunchClick = { isLaunchMenuExpanded = !isLaunchMenuExpanded },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
-            // Configuration overlay positioned above the bottom bar.
+            // Configuration Overlay.
             if (isConfigMenuExpanded) {
                 ConfigMenuOverlay(
                     configList = configList,
@@ -95,11 +100,11 @@ fun WeatherCardScreen(
                     onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) },
                     onDismiss = { isConfigMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(Alignment.BottomCenter)
                         .offset(y = -(56.dp + 16.dp))
                 )
             }
-            // Filter overlay positioned above the bottom bar.
+            // Filter Overlay.
             if (isFilterMenuExpanded) {
                 FilterMenuOverlay(
                     isFilterActive = filterActive,
@@ -112,11 +117,33 @@ fun WeatherCardScreen(
                         .offset(y = -(56.dp + 16.dp))
                 )
             }
+            // Launch Sites Overlay.
+            if (isLaunchMenuExpanded) {
+                LaunchSitesMenuOverlay(
+                    launchSites = launchSites,
+                    onSiteSelected = { selectedSite ->
+                        // Update the coordinates (via the updated helper function).
+                        viewModel.updateCoordinates(selectedSite.latitude, selectedSite.longitude)
+                        // Reload forecast data for the new coordinates.
+                        viewModel.loadForecast(selectedSite.latitude, selectedSite.longitude)
+                        // Reload isobaric data – using current time (adjust as needed).
+                        viewModel.loadIsobaricData(selectedSite.latitude, selectedSite.longitude, Instant.now())
+                        // Dismiss the launch menu.
+                        isLaunchMenuExpanded = false
+                    },
+                    onDismiss = { isLaunchMenuExpanded = false },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)  // Changed alignment to bottomEnd.
+                        .offset(y = -(56.dp + 16.dp))
+                )
+            }
         }
     } else {
         Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
     }
 }
+
+
 
 @Composable
 fun ScreenContent(

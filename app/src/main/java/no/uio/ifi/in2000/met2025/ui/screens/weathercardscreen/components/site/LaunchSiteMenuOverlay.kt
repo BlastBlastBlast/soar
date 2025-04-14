@@ -33,12 +33,10 @@ fun LaunchSitesMenuOverlay(
         ) + fadeOut(animationSpec = tween(durationMillis = 300)),
         modifier = modifier.padding(horizontal = 16.dp)
     ) {
-        // Reuse the LaunchSitesMenu from your home screen
+        // Your existing LaunchSitesMenu implementation from the home screen.
         LaunchSitesMenu(
             launchSites = launchSites,
-            onSiteSelected = { selectedSite ->
-                onSiteSelected(selectedSite)
-            },
+            onSiteSelected = onSiteSelected,
             modifier = Modifier
         )
     }
