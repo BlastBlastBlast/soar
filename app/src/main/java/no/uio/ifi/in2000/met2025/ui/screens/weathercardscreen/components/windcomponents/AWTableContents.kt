@@ -1,8 +1,10 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windcomponents
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,13 +25,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterCondition
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
+import java.time.Instant
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 
 @Composable
 fun AWTableContents(
     item: IsobaricData,
+    config: ConfigProfile,
     showTime: Boolean = true,
 ) {
     val cardBackgroundColor = Color(0xFFE3F2FD)
@@ -49,12 +60,16 @@ fun AWTableContents(
         CompositionLocalProvider(LocalContentColor provides Color.DarkGray) {
             Column(modifier = Modifier.padding(16.dp)) {
 
-                AnimatedVisibility(visible = showTime) {
-                    AWTimeDisplay(
-                        formatZuluTimeToLocal(item.time),
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                Row {
+                    AnimatedVisibility(visible = showTime, modifier = Modifier.weight(1f)) {
+                        AWTimeDisplay(
+                            time = formatZuluTimeToLocal(item.time) + " - " + formatZuluTimeToLocal(Instant.parse(item.time).plus(2, ChronoUnit.HOURS).plus(59, ChronoUnit.MINUTES).toString()),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                    LaunchStatusIcon(evaluateLaunchConditions(item, config))
                 }
+
 
                 AnimatedVisibility(visible = expanded) {
 
@@ -62,24 +77,35 @@ fun AWTableContents(
                         HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
                         // Static header row to label columns
-                        WindLayerRow(
+                        WindLayerHeader(
                             altitudeText = "Altitude",
                             windSpeedText = "Wind Speed",
                             windDirectionText = "Wind Direction",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
                             style = MaterialTheme.typography.titleSmall
                         )
 
                         // Static header row to label columns
-                        WindShearRow(
-                            backgroundColor = windShearColor,
-                            speedText = "Wind Shear Speed",
-                            directionText = "Wind Shear Direction",
+                        WindLayerHeader(
+                            altitudeText = "",
+                            windSpeedText = "Wind Shear Speed",
+                            windDirectionText = "Wind Shear Direction",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = windShearColor,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(top = 4.dp, bottom = 4.dp), // Add border and padding for visual offset
                             style = MaterialTheme.typography.titleSmall
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        WindDataColumn(item, windShearColor)
+                        WindDataColumn(item, config, windShearColor)
                     }
                 }
             }

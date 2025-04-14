@@ -98,7 +98,9 @@ fun ConfigParameter.unit(): String
     ConfigParameter.HUMIDITY -> "%"
     ConfigParameter.DEW_POINT -> "°C"
     ConfigParameter.PROBABILITY_OF_THUNDER -> "%"
-    else -> ""
+    ConfigParameter.ALTITUDE_UPPER_BOUND -> "m"
+    ConfigParameter.WIND_SHEAR_SPEED -> "m/s"
+    //else -> ""
 }
 
 fun ConfigParameter.icon(): EvaluationIcon

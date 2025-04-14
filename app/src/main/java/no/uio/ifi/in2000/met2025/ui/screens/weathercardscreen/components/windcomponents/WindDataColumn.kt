@@ -1,11 +1,13 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windcomponents
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Icon
@@ -19,14 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
+import no.uio.ifi.in2000.met2025.domain.helpers.unit
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 
 @Composable
-fun WindDataColumn(isobaricData: IsobaricData, windShearColor: Color) {
+fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearColor: Color) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
@@ -53,14 +58,14 @@ fun WindDataColumn(isobaricData: IsobaricData, windShearColor: Color) {
                 val altitude = isobaricData.valuesAtLayer[layer]?.altitude?.toInt() ?: "--"
                 val windSpeed = isobaricData.valuesAtLayer[layer]?.windSpeed
                     ?.roundToDecimals(1) ?: "--"
-                val windDirection = isobaricData.valuesAtLayer[layer]?.windFromDirection
-                    ?.floorModDouble(360)
-                    ?.roundToDecimals(1) ?: "--"
 
                 WindLayerRow(
-                    altitudeText = "$altitude m",
-                    windSpeedText = "$windSpeed m/s",
-                    windDirectionText = "$windDirection°",
+                    config = config,
+                    configParameter = ConfigParameter.AIR_WIND,
+                    altitude = isobaricData.valuesAtLayer[layer]?.altitude,
+                    windSpeed = isobaricData.valuesAtLayer[layer]?.windSpeed,
+                    windDirection = isobaricData.valuesAtLayer[layer]?.windFromDirection,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -81,10 +86,20 @@ fun WindDataColumn(isobaricData: IsobaricData, windShearColor: Color) {
                         )
                             .floorModDouble(360).roundToDecimals(1)
 
-                        WindShearRow(
-                            backgroundColor = windShearColor,
-                            speedText = "$windShearValue m/s",
-                            directionText = "$windShearDirection°",
+                        WindLayerRow(
+                            config = config,
+                            configParameter = ConfigParameter.WIND_SHEAR_SPEED,
+                            altitude = null,
+                            windSpeed = windShearValue,
+                            windDirection = windShearDirection,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = windShearColor,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(top = 4.dp, bottom = 4.dp), // Add border and padding for visual offset
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

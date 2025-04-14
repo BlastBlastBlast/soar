@@ -74,9 +74,9 @@ data class ConfigProfile(
     @ColumnInfo(name = "probability_of_thunder_threshold") val probabilityOfThunderThreshold: Double = 0.0,
     @ColumnInfo(name = "is_enabled_probability_of_thunder") val isEnabledProbabilityOfThunder: Boolean = true,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false,
-    @ColumnInfo(name = "altitude_upper_bound") val altitudeUpperBound: Double = 0.0,
+    @ColumnInfo(name = "altitude_upper_bound") val altitudeUpperBound: Double = 5000.0,
     @ColumnInfo(name = "is_enabled_altitude_upper_bound") val isEnabledAltitudeUpperBound: Boolean = true,
-    @ColumnInfo(name = "wind_shear_speed_threshold") val windShearSpeedThreshold: Double = 0.0,
+    @ColumnInfo(name = "wind_shear_speed_threshold") val windShearSpeedThreshold: Double = 24.5,
     @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
 )
 

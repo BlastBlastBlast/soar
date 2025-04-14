@@ -40,7 +40,10 @@ import java.time.Instant
 
 //HourlyExpandableCard.kt
 @Composable
-fun WindDirectionIcon(windDirection: Double) {
+fun WindDirectionIcon(windDirection: Double?) {
+    if (windDirection == null) {
+        return
+    }
     val arrowPainter = painterResource(id = R.drawable.up_arrow)
     val rotation = (windDirection + 180) % 360
 

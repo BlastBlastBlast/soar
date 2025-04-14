@@ -52,19 +52,28 @@ fun evaluateLaunchConditions(isobaricData: IsobaricData, config: ConfigProfile):
     )
 }
 
-fun evaluateParameterCondition(value: Double?, config: ConfigProfile, parameter: ConfigParameter): ParameterState {
-    if (value == null) {
-        return ParameterState.Missing
-    }
-
-    if (!config.isEnabled(parameter)) {
-        return ParameterState.Disabled
-    }
-
-    return ParameterState.Available(
+fun evaluateParameterCondition(value: Double?, config: ConfigProfile, parameter: ConfigParameter): ParameterState
+        = when {
+    value == null -> ParameterState.Missing
+    !config.isEnabled(parameter) -> ParameterState.Disabled
+    else -> ParameterState.Available(
         relativeUnsafety(value, config.threshold(parameter))!!
     )
 }
+
+//    return ParameterEvaluation(
+//        label = parameter.label(),
+//        value = when (state) {
+//            is ParameterState.Missing -> "Not available"
+//            is ParameterState.Disabled -> "Turned Off"
+//            is ParameterState.Available -> {
+//                "$value ${parameter.unit()}"
+//            }
+//        },
+//        state = state,
+//        icon = parameter.icon()
+//    )
+//}
 
 fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation> {
     return ForecastDataValues::class.memberProperties
@@ -75,13 +84,13 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
             val value = forecast.valueAt(configParameter)
             val state = when {
                 value == null -> ParameterState.Missing
-                config.isEnabled(configParameter) -> ParameterState.Available(
+                !config.isEnabled(configParameter) -> ParameterState.Disabled
+                else -> ParameterState.Available(
                     relativeUnsafety(
                         value,
                         config.threshold(configParameter)
                     )!!
                 )
-                else -> ParameterState.Disabled
             }
 
             ParameterEvaluation(
