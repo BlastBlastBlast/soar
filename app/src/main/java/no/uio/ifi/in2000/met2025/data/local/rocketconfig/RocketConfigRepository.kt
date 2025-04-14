@@ -6,16 +6,16 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketParametersDao
 
 class RocketConfigRepository(private val rocketParametersDAO: RocketParametersDao) {
 
-    suspend fun insertRocketSpecs(rocketSpecs: RocketParameters) {
-        rocketParametersDAO.insertRocketSpecs(rocketSpecs)
+    suspend fun insertRocketSpecs(rocketParameters: RocketParameters) {
+        rocketParametersDAO.insertRocketSpecs(rocketParameters)
     }
 
-    suspend fun updateRocketSpecs(rocketSpecs: RocketParameters) {
-        rocketParametersDAO.updateRocketSpecs(rocketSpecs)
+    suspend fun updateRocketSpecs(rocketParameters: RocketParameters) {
+        rocketParametersDAO.updateRocketSpecs(rocketParameters)
     }
 
-    suspend fun deleteRocketSpecs(rocketSpecs: RocketParameters) {
-        rocketParametersDAO.deleteRocketSpecs(rocketSpecs)
+    suspend fun deleteRocketSpecs(rocketParameters: RocketParameters) {
+        rocketParametersDAO.deleteRocketSpecs(rocketParameters)
     }
 
     fun getAllRocketSpecs(): Flow<List<RocketParameters>> {
