@@ -1,13 +1,16 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.*
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
@@ -32,6 +35,32 @@ fun evaluateDailyLaunchStatus(items: List<ForecastDataItem>): LaunchStatus {
     }
 }
 */
+
+val weatherPriority = listOf(
+    "heavyrain", "heavyrainandthunder", "rainandthunder", "rain",
+    "sleet", "snow",
+    "cloudy", "partlycloudy_day", "fair_day", "clearsky_day"
+)
+
+fun getDominantSymbolCode(items: List<ForecastDataItem>): String? {
+    val allCodes = items.mapNotNull { it.values.symbolCode }
+
+    // Return the first symbolCode that appears in priority order
+    for (prioritySymbol in weatherPriority) {
+        if (allCodes.any { it.contains(prioritySymbol) }) {
+            return allCodes.first { it.contains(prioritySymbol) }
+        }
+    }
+
+    // Fallback
+    return allCodes
+        .groupingBy { it }
+        .eachCount()
+        .maxByOrNull { it.value }
+        ?.key
+}
+
+
 @Composable
 fun DailyForecastCard(
     forecastItems: List<ForecastDataItem>,
@@ -54,14 +83,31 @@ fun DailyForecastCard(
 
     var expanded by remember { mutableStateOf(false) }
 
+    val dominantSymbol = getDominantSymbolCode(forecastItems)
+    val iconRes = getWeatherIconRes(dominantSymbol)
+
     Card(
         modifier = modifier
             .clickable { expanded = !expanded },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Day: $day", style = MaterialTheme.typography.headlineSmall)
-            //LaunchStatusIcon(status = overallStatus)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Day: $day", style = MaterialTheme.typography.headlineSmall)
+                iconRes?.let {
+                    Image(
+                        painter = painterResource(id = it),
+                        contentDescription = dominantSymbol,
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
+            }
+
 
             Spacer(modifier = Modifier.height(8.dp))
 
