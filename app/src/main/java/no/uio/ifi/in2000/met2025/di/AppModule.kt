@@ -108,13 +108,13 @@ object AppModule {
     ): WeatherModel {
         return WeatherModel(locationForecastRepository, isobaricRepository)
     }
+
+    @Provides
+    @Singleton
+    fun provideRocketConfigRepository(rocketSpecsDao: RocketParametersDao): RocketConfigRepository =
+        RocketConfigRepository(rocketSpecsDao)
 }
 
-// NEW: Provide repository for rocket configuration
-@Provides
-@Singleton
-fun provideRocketConfigRepository(rocketSpecsDao: RocketParametersDao): RocketConfigRepository =
-    RocketConfigRepository(rocketSpecsDao)
 
 @Module
 @InstallIn(SingletonComponent::class)
