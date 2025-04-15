@@ -38,26 +38,31 @@ fun ConfigEditScreen(
     var groundWindThreshold by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
     var airWindThreshold by remember(config) { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
     var cloudCoverThreshold by remember(config) { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCover by remember(config) { mutableStateOf(config?.isEnabledCloudCover ?: true) }
+    var isEnabledCloudCover by remember(config) { mutableStateOf(config?.isEnabledCloudCover != false) }
     var cloudCoverHighThreshold by remember(config) { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverHigh by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
+    var isEnabledCloudCoverHigh by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh != false) }
     var cloudCoverMediumThreshold by remember(config) { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverMedium by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
+    var isEnabledCloudCoverMedium by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium != false) }
     var cloudCoverLowThreshold by remember(config) { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverLow by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
+    var isEnabledCloudCoverLow by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow != false) }
     var humidityThreshold by remember(config) { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
     var dewPointThreshold by remember(config) { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
-    var isEnabledGroundWind by remember(config) { mutableStateOf(config?.isEnabledGroundWind ?: true) }
-    var isEnabledAirWind by remember(config) { mutableStateOf(config?.isEnabledAirWind ?: true) }
-    var isEnabledHumidity by remember(config) { mutableStateOf(config?.isEnabledHumidity ?: true) }
-    var isEnabledDewPoint by remember(config) { mutableStateOf(config?.isEnabledDewPoint ?: true) }
-    var isEnabledWindDirection by remember(config) { mutableStateOf(config?.isEnabledWindDirection ?: true) }
-    var isEnabledFog by remember(config) { mutableStateOf(config?.isEnabledFog ?: true) }
-    var isEnabledPrecipitation by remember(config) { mutableStateOf(config?.isEnabledPrecipitation ?: true) }
-    var isEnabledProbabilityOfThunder by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder ?: true) }
+    var isEnabledGroundWind by remember(config) { mutableStateOf(config?.isEnabledGroundWind != false) }
+    var isEnabledAirWind by remember(config) { mutableStateOf(config?.isEnabledAirWind != false) }
+    var isEnabledHumidity by remember(config) { mutableStateOf(config?.isEnabledHumidity != false) }
+    var isEnabledDewPoint by remember(config) { mutableStateOf(config?.isEnabledDewPoint != false) }
+    var isEnabledWindDirection by remember(config) { mutableStateOf(config?.isEnabledWindDirection != false) }
+    var isEnabledFog by remember(config) { mutableStateOf(config?.isEnabledFog != false) }
+    var isEnabledPrecipitation by remember(config) { mutableStateOf(config?.isEnabledPrecipitation != false) }
+    var isEnabledProbabilityOfThunder by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder != false) }
     var fogThreshold by remember(config) { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
     var precipitationThreshold by remember(config) { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
     var probabilityOfThunderThreshold by remember(config) { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
+    var altitudeUpperBound by remember(config) { mutableStateOf(config?.altitudeUpperBound?.toString() ?: "5000.0") }
+    var isEnabledAltitudeUpperBound by remember(config) { mutableStateOf(config?.isEnabledAltitudeUpperBound != false) }
+    var shearWindSpeedThreshold by remember(config) { mutableStateOf(config?.windShearSpeedThreshold?.toString() ?: "24.5") }
+    var isEnabledWindShear by remember(config) { mutableStateOf(config?.isEnabledWindShear != false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,6 +108,16 @@ fun ConfigEditScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Switch(checked = isEnabledAirWind, onCheckedChange = { isEnabledAirWind = it })
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = shearWindSpeedThreshold,
+                        onValueChange = { shearWindSpeedThreshold = it },
+                        label = { Text("Wind Shear Threshold") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(checked = isEnabledWindShear, onCheckedChange = { isEnabledWindShear = it })
                 }
             }
         }
@@ -190,6 +205,25 @@ fun ConfigEditScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Altitude Settings", style = MaterialTheme.typography.titleMedium)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = altitudeUpperBound,
+                        onValueChange = { altitudeUpperBound = it },
+                        label = { Text("Altitude Upper Bound") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(checked = isEnabledAltitudeUpperBound, onCheckedChange = { isEnabledAltitudeUpperBound = it })
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = {
             val updatedConfig = ConfigProfile(
                 id = config?.id ?: 0,
@@ -217,7 +251,11 @@ fun ConfigEditScreen(
                 precipitationThreshold = precipitationThreshold.toDoubleOrNull() ?: 0.0,
                 isEnabledProbabilityOfThunder = isEnabledProbabilityOfThunder,
                 probabilityOfThunderThreshold = probabilityOfThunderThreshold.toDoubleOrNull() ?: 0.0,
-                isDefault = config?.isDefault ?: false
+                isEnabledAltitudeUpperBound = isEnabledAltitudeUpperBound,
+                altitudeUpperBound = altitudeUpperBound.toDoubleOrNull() ?: 5000.0,
+                isEnabledWindShear = isEnabledWindShear,
+                windShearSpeedThreshold = shearWindSpeedThreshold.toDoubleOrNull() ?: 24.5,
+                isDefault = config?.isDefault == true
             )
             if (config == null) viewModel.saveConfig(updatedConfig)
             else viewModel.updateConfig(updatedConfig)
