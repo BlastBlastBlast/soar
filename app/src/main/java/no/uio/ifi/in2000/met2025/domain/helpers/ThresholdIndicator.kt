@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.atmosphericwind
+package no.uio.ifi.in2000.met2025.domain.helpers
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
