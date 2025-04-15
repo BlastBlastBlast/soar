@@ -26,14 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterCondition
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import java.time.Instant
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 

@@ -6,9 +6,9 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureVa
 import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
-import no.uio.ifi.in2000.met2025.data.models.GribDataMap
-import no.uio.ifi.in2000.met2025.data.models.GribDataResult
-import no.uio.ifi.in2000.met2025.data.models.GribVectors
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
+import no.uio.ifi.in2000.met2025.data.models.grib.GribVectors
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.models.IsobaricDataValues
