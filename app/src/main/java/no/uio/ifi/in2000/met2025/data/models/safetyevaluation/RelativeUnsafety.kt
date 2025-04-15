@@ -14,43 +14,17 @@ fun relativeUnsafety(value: Double?, threshold: Double): Double? {
     return value / threshold
 }
 
-fun relativeUnsafety(forecastDataItem: ForecastDataItem, config: ConfigProfile): Double? {
-    val valueThresholdList = forecastDataItem.toConfigList(config)
-    return relativeUnsafety(valueThresholdList)
-}
-
-fun relativeUnsafety(isobaricData: IsobaricData, config: ConfigProfile): Double? {
-    val valuesAtLayer = isobaricData.valuesAtLayer
-
-    val relevantLayers = valuesAtLayer.keys.reversed()
-        .takeLastWhile {
-            valuesAtLayer[it]!!.altitude <= config.altitudeUpperBound
-        }
-        .map { valuesAtLayer[it]!! }
-
-    val windThresholdsList = relevantLayers.map {
-        Pair(it.windSpeed, config.airWindThreshold)
-    }
-
-    val shearThresholdsList = relevantLayers.zipWithNext { currentValues, nextValues ->
-        Pair(windShearSpeed(currentValues, nextValues), config.windShearSpeedThreshold)
-    }
-
-    val valueThresholdList = (1..<(windThresholdsList.size + shearThresholdsList.size))
-        .map { index ->
-            if (index % 2 == 0) {
-                windThresholdsList[index / 2]
-            } else {
-                shearThresholdsList[index / 2]
-            }
-        }
-
+fun relativeUnsafety(config: ConfigProfile, forecastDataItem: ForecastDataItem? = null, isobaricData: IsobaricData? = null): Double? {
+    val forecastList = forecastDataItem?.toConfigList(config) ?: emptyList()
+    val isobaricList = isobaricData?.toConfigList(config) ?: emptyList()
+    val valueThresholdList = forecastList + isobaricList
     return relativeUnsafety(valueThresholdList)
 }
 
 fun relativeUnsafety(valueThresholdList: List<Pair<Double, Double>>): Double?
-        = valueThresholdList
-    .mapNotNull { (value, threshold) ->
-        println("Value: $value, Threshold: $threshold")
-        relativeUnsafety(value, threshold) }
-    .maxOrNull()
+=
+    valueThresholdList
+        .mapNotNull { (value, threshold) ->
+            println("Value: $value, Threshold: $threshold")
+            relativeUnsafety(value, threshold) }
+        .maxOrNull()

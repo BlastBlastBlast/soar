@@ -35,6 +35,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import androidx.compose.foundation.layout.size
 
 
 @Composable
@@ -67,7 +68,7 @@ fun AWTableContents(
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
-                    LaunchStatusIcon(evaluateLaunchConditions(item, config))
+                    LaunchStatusIcon(evaluateLaunchConditions(item, config), modifier = Modifier.size(24.dp))
                 }
 
 
