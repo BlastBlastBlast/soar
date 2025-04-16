@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CAUTION_THRESHOLD
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNSAFE_THRESHOLD
@@ -43,13 +44,12 @@ fun LaunchStatusIcon(state: ParameterState, modifier: Modifier) {
         is ParameterState.Missing ->
             Triple(IconPurple, Icons.Filled.CloudOff, "Data missing")
         is ParameterState.Disabled ->
-            Triple(IconGrey, Icons.Filled.Close, "Turned Off")
+            Triple(Color.DarkGray, Icons.Filled.Close, "Turned Off")
         is ParameterState.Available ->
             when (launchStatus(state.relativeUnsafety)) {
-                LaunchStatus.SAFE -> Triple(
-                    MaterialTheme.colorScheme.onPrimary, Icons.Filled.CheckCircle, "Safe")
-                LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.onPrimary, Icons.Filled.Warning, "Caution")
-                LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.onPrimary, Icons.Filled.Cancel, "Unsafe")
+                LaunchStatus.SAFE -> Triple(Color.Black, Icons.Filled.CheckCircle, "Safe")
+                LaunchStatus.CAUTION -> Triple(Color.Black, Icons.Filled.Warning, "Caution")
+                LaunchStatus.UNSAFE -> Triple(Color.Black, Icons.Filled.Cancel, "Unsafe")
             }
     }
     Icon(imageVector = icon, contentDescription = description, tint = color, modifier = modifier)

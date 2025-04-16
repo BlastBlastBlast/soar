@@ -32,6 +32,7 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIndicator
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
@@ -68,7 +69,7 @@ fun WindDirectionIcon(windDirection: Double?) {
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
     coordinates: Pair<Double, Double>,
-    config: no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile,
+    config: ConfigProfile,
     modifier: Modifier = Modifier,
     viewModel: WeatherCardViewmodel
 ) {
@@ -81,7 +82,7 @@ fun HourlyExpandableCard(
             .clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
             containerColor = WarmOrange,   // Card background is warm orange.
-            contentColor = Color.Black       // Default content color inside the card.
+            contentColor = Color.Black  // Default content color inside the card.
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -93,7 +94,7 @@ fun HourlyExpandableCard(
             ) {
                 Text(
                     text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${formatZuluTimeToLocalTime(forecastItem.time)}",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineLarge,
                     color = Color.Black
                 )
                 Row(
@@ -105,7 +106,7 @@ fun HourlyExpandableCard(
                     ]) {
                         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
                             Icon(
-                                painter = painterResource(id = no.uio.ifi.in2000.met2025.R.drawable.yes_grib_real),
+                                painter = painterResource(id = R.drawable.yes_grib_real),
                                 contentDescription = "Altitude",
                                 modifier = Modifier.size(48.dp),
                                 tint = Color.Black
@@ -119,7 +120,7 @@ fun HourlyExpandableCard(
                         }
                         else -> {
                             Icon(
-                                painter = painterResource(id = no.uio.ifi.in2000.met2025.R.drawable.no_grib_real),
+                                painter = painterResource(id = R.drawable.no_grib_real),
                                 contentDescription = "No Altitude",
                                 modifier = Modifier.size(48.dp),
                                 tint = Color.Black
@@ -135,15 +136,12 @@ fun HourlyExpandableCard(
             }
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
             )
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     val evaluations = evaluateParameterConditions(forecastItem, config)
                     evaluations.forEach { evaluation ->
-                        // Determine a complementary tint based on a property of the evaluation.
-                        // You can change the mapping logic based on your evaluation state or label.
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -154,9 +152,8 @@ fun HourlyExpandableCard(
                             // 1. Parameter Name.
                             Text(
                                 text = evaluation.label,
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.weight(0.5f),
-                                color = Color.Black
                             )
                             // 2. Parameter Icon.
                             if (evaluation.label == "Wind Direction") {
@@ -184,9 +181,8 @@ fun HourlyExpandableCard(
                             // 3. Parameter Value + Unit.
                             Text(
                                 text = evaluation.value,
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.weight(0.3f),
-                                color = Color.Black
                             )
                             // 4. Launch Status Icon (if not Wind Direction; for wind direction, skip this column).
                             if (evaluation.label == "Wind Direction") {
