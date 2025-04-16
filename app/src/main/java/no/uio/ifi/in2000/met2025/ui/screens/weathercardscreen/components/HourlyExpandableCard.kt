@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
@@ -39,17 +40,21 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
+import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
+import no.uio.ifi.in2000.met2025.ui.theme.IconRed
+import no.uio.ifi.in2000.met2025.ui.theme.IconYellow
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import java.time.Instant
 
-//HourlyExpandableCard.kt
 @Composable
 fun WindDirectionIcon(windDirection: Double?) {
     if (windDirection == null) {
         return
     }
-    val arrowPainter = painterResource(id = R.drawable.up_arrow)
+    val arrowPainter = painterResource(id = no.uio.ifi.in2000.met2025.R.drawable.up_arrow)
     val rotation = (windDirection + 180) % 360
 
+    // If needed, you can also set a tint on the image if it's a vector asset:
     Image(
         painter = arrowPainter,
         contentDescription = "Wind Direction",
@@ -63,18 +68,21 @@ fun WindDirectionIcon(windDirection: Double?) {
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
     coordinates: Pair<Double, Double>,
-    config: ConfigProfile,
+    config: no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile,
     modifier: Modifier = Modifier,
-    viewModel : WeatherCardViewmodel
+    viewModel: WeatherCardViewmodel
 ) {
     var expanded by remember { mutableStateOf(false) }
-
     val isobaricDataMap by viewModel.isobaricData.collectAsState()
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(
+            containerColor = WarmOrange,   // Card background is warm orange.
+            contentColor = Color.Black       // Default content color inside the card.
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -84,20 +92,24 @@ fun HourlyExpandableCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${
-                        formatZuluTimeToLocalTime(
-                            forecastItem.time
-                        )
-                    }",
-                    style = MaterialTheme.typography.headlineSmall
+                    text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${formatZuluTimeToLocalTime(forecastItem.time)}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.Black
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    when (val isobaricData = isobaricDataMap[Instant.parse(forecastItem.time)
-                        .closestIsobaricDataWindowBefore()]) {
+                    when (val isobaricData = isobaricDataMap[
+                        Instant.parse(forecastItem.time)
+                            .closestIsobaricDataWindowBefore()
+                    ]) {
                         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
-                            Icon(painter = painterResource(R.drawable.yes_grib_real), contentDescription = "Altitude", modifier = Modifier.size(48.dp))
+                            Icon(
+                                painter = painterResource(id = no.uio.ifi.in2000.met2025.R.drawable.yes_grib_real),
+                                contentDescription = "Altitude",
+                                modifier = Modifier.size(48.dp),
+                                tint = Color.Black
+                            )
                             LaunchStatusIndicator(
                                 config = config,
                                 forecast = forecastItem,
@@ -105,24 +117,33 @@ fun HourlyExpandableCard(
                                 modifier = Modifier.size(38.dp)
                             )
                         }
-
                         else -> {
-                            // Handle other states (e.g., loading, error) if needed
-                            Icon(painter = painterResource(R.drawable.no_grib_real), contentDescription = "No Altitude", modifier = Modifier.size(48.dp))
-                            LaunchStatusIndicator(config = config, forecast = forecastItem, modifier = Modifier.size(38.dp))
+                            Icon(
+                                painter = painterResource(id = no.uio.ifi.in2000.met2025.R.drawable.no_grib_real),
+                                contentDescription = "No Altitude",
+                                modifier = Modifier.size(48.dp),
+                                tint = Color.Black
+                            )
+                            LaunchStatusIndicator(
+                                config = config,
+                                forecast = forecastItem,
+                                modifier = Modifier.size(38.dp)
+                            )
                         }
                     }
                 }
-
             }
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black
             )
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     val evaluations = evaluateParameterConditions(forecastItem, config)
                     evaluations.forEach { evaluation ->
+                        // Determine a complementary tint based on a property of the evaluation.
+                        // You can change the mapping logic based on your evaluation state or label.
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -134,7 +155,8 @@ fun HourlyExpandableCard(
                             Text(
                                 text = evaluation.label,
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(0.5f)
+                                modifier = Modifier.weight(0.5f),
+                                color = Color.Black
                             )
                             // 2. Parameter Icon.
                             if (evaluation.label == "Wind Direction") {
@@ -142,19 +164,18 @@ fun HourlyExpandableCard(
                             } else {
                                 evaluation.icon?.let { iconData ->
                                     when (iconData) {
-                                        is EvaluationIcon.DrawableIcon -> {
+                                        is DrawableIcon -> {
                                             Icon(
                                                 painter = painterResource(id = iconData.resId),
                                                 contentDescription = evaluation.label,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(24.dp),
                                             )
                                         }
-
                                         is EvaluationIcon.VectorIcon -> {
                                             Icon(
                                                 imageVector = iconData.icon,
                                                 contentDescription = evaluation.label,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(24.dp),
                                             )
                                         }
                                     }
@@ -164,13 +185,17 @@ fun HourlyExpandableCard(
                             Text(
                                 text = evaluation.value,
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(0.3f)
+                                modifier = Modifier.weight(0.3f),
+                                color = Color.Black
                             )
                             // 4. Launch Status Icon (if not Wind Direction; for wind direction, skip this column).
                             if (evaluation.label == "Wind Direction") {
                                 Box(modifier = Modifier.size(24.dp)) // empty placeholder for alignment
                             } else {
-                                LaunchStatusIcon(state = evaluation.state, modifier = Modifier.size(24.dp))
+                                LaunchStatusIcon(
+                                    state = evaluation.state,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         }
                     }
@@ -178,7 +203,7 @@ fun HourlyExpandableCard(
                         viewModel,
                         coordinates = coordinates,
                         time = Instant.parse(forecastItem.time)
-                            .closestIsobaricDataWindowBefore(),
+                            .closestIsobaricDataWindowBefore()
                     )
                 }
             }
