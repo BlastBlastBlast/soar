@@ -3,6 +3,8 @@ package no.uio.ifi.in2000.met2025.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val WarmOrange = Color(0xFFFF5722)
+val DarkerPrimary = Color(0xFFC43306)
+
 val Black = Color.Black
 val White = Color.White
 

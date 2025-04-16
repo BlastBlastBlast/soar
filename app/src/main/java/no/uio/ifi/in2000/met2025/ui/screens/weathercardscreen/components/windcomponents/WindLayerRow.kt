@@ -54,7 +54,7 @@ fun WindLayerRow(
 
         Row(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             WindDirectionIcon(windDirection = windDirection)
 
@@ -66,7 +66,7 @@ fun WindLayerRow(
         }
         Row(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             Text(
                 text = windSpeedText + " " + configParameter.unit(),

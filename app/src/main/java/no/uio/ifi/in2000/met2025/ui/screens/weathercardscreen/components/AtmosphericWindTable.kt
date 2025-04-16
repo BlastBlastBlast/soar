@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,8 +92,13 @@ fun AtmosphericWindTable(
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
             if (config == null) {
-                Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
+                Text("Loading configuration...", color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.bodyMedium)
             } else {
+                HorizontalDivider(thickness = 1.dp, color = Color.Black)
+                Text("Atmospheric Wind Data", color = Color.Black,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                HorizontalDivider(thickness = 1.dp, color = Color.Black)
                 AWTableContents(effectiveState.isobaricData, config!!)
             }
         }

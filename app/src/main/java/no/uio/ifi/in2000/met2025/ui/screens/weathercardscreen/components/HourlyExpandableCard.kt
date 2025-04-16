@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +34,7 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIndica
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import com.mapbox.maps.extension.style.expressions.dsl.generated.color
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
@@ -82,7 +84,7 @@ fun HourlyExpandableCard(
             .clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
             containerColor = WarmOrange,   // Card background is warm orange.
-            contentColor = Color.Black  // Default content color inside the card.
+            contentColor = Color.Black // Default content color inside the card.
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -95,8 +97,8 @@ fun HourlyExpandableCard(
                 Text(
                     text = "${formatZuluTimeToLocalDate(forecastItem.time)}: ${formatZuluTimeToLocalTime(forecastItem.time)}",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = Color.Black
                 )
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -128,16 +130,21 @@ fun HourlyExpandableCard(
                             LaunchStatusIndicator(
                                 config = config,
                                 forecast = forecastItem,
-                                modifier = Modifier.size(38.dp)
+                                modifier = Modifier.size(38.dp),
                             )
                         }
                     }
                 }
+
             }
+            HorizontalDivider(thickness = 1.dp, color = Color.Black)
+
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
             )
+            HorizontalDivider(thickness = 1.dp, color = Color.Black)
+
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     val evaluations = evaluateParameterConditions(forecastItem, config)
@@ -194,6 +201,7 @@ fun HourlyExpandableCard(
                                 )
                             }
                         }
+                        HorizontalDivider(thickness = 1.dp, color = Color.Black)
                     }
                     AtmosphericWindTable(
                         viewModel,
