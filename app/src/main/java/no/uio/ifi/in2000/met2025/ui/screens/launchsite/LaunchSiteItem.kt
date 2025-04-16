@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,67 +30,70 @@ fun LaunchSiteItem(
     onDelete: () -> Unit,
     onEdit: (LaunchSite) -> Unit
 ) {
-    var isEditing by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf(site.name) }
-    var latitudeText by remember { mutableStateOf(site.latitude.toString()) }
-    var longitudeText by remember { mutableStateOf(site.longitude.toString()) }
-
-    // Check if this is the special "New Marker" item.
+    var isEditing      by remember { mutableStateOf(false) }
+    var name           by remember { mutableStateOf(site.name) }
+    var latitudeText   by remember { mutableStateOf(site.latitude.toString()) }
+    var longitudeText  by remember { mutableStateOf(site.longitude.toString()) }
     val isSpecialMarker = site.name == "New Marker"
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape     = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor   = MaterialTheme.colorScheme.onPrimary
+        )
     ) {
         if (!isEditing) {
             Row(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier            = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment   = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // TEXT COLUMN
                 Column(modifier = Modifier.weight(1f)) {
                     if (isSpecialMarker) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "Last Marker",
-                                style = MaterialTheme.typography.bodyLarge,
-                                maxLines = 1
+                                "Last Marker",
+                                style = MaterialTheme.typography.bodyLarge
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(Modifier.width(4.dp))
                             Image(
-                                painter = painterResource(id = R.drawable.red_marker),
+                                painter            = painterResource(R.drawable.red_marker),
                                 contentDescription = "Launch Site Icon",
-                                modifier = Modifier.size(24.dp)
+                                modifier           = Modifier.size(24.dp)
                             )
                         }
                     } else {
                         Text(
-                            text = site.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1
+                            text  = site.name,
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
                     Text(
-                        text = "Lat: ${"%.4f".format(site.latitude)}  Lon: ${"%.4f".format(site.longitude)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1
+                        text  = "Lat: %.4f   Lon: %.4f".format(site.latitude, site.longitude),
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
+
+                // ACTION ICONS
                 Row {
                     IconButton(onClick = { isEditing = true }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Launch Site"
+                            contentDescription = "Edit Launch Site",
+                            tint         = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     IconButton(onClick = onDelete) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Launch Site"
+                            contentDescription = "Delete Launch Site",
+                            tint         = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -100,21 +104,33 @@ fun LaunchSiteItem(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor   = MaterialTheme.colorScheme.onPrimary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                    )
                 )
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = latitudeText,
                         onValueChange = { latitudeText = it },
                         label = { Text("Lat") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                        )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     OutlinedTextField(
                         value = longitudeText,
                         onValueChange = { longitudeText = it },
                         label = { Text("Lon") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = MaterialTheme.colorScheme.onPrimary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                        )
                     )
                 }
                 Row(
