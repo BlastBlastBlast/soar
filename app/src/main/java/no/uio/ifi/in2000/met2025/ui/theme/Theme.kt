@@ -9,8 +9,8 @@ import no.uio.ifi.in2000.met2025.R
 
 // Dark mode
 private val DarkColorScheme = darkColorScheme(
-    primary = WarmOrange,      // Accent color remains the warm orange.
-    onPrimary = Black,         // Text on a warm orange background is black.
+    primary = Black,      // Accent color remains the warm orange.
+    onPrimary = WarmOrange,         // Text on a warm orange background is black.
     secondary = White,         // Use white for secondary elements.
     onSecondary = Black,
     background = Black,        // Dark background.
@@ -22,7 +22,7 @@ private val DarkColorScheme = darkColorScheme(
 // Light mode
 private val LightColorScheme = lightColorScheme(
     primary = WarmOrange,      // Accent color remains warm orange.
-    onPrimary = White,         // White text on warm orange.
+    onPrimary = Black,         // White text on warm orange.
     secondary = Black,         // Black used for secondary elements.
     onSecondary = White,
     background = White,        // Light background.
@@ -43,8 +43,8 @@ fun In2000_met2025_team21Theme(
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) {
                 dynamicDarkColorScheme(context).copy(
-                    primary = WarmOrange,
-                    onPrimary = Black,
+                    primary = Black,
+                    onPrimary = WarmOrange,
                     background = Black,
                     onBackground = White,
                     surface = Black,
@@ -53,7 +53,7 @@ fun In2000_met2025_team21Theme(
             } else {
                 dynamicLightColorScheme(context).copy(
                     primary = WarmOrange,
-                    onPrimary = White,
+                    onPrimary = Black,
                     background = White,
                     onBackground = Black,
                     surface = White,

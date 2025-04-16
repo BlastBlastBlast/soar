@@ -3,6 +3,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.home.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,23 +26,23 @@ fun CoordinateDisplay(coordinates: Pair<Double, Double>) {
         ) {
             Box(
                 modifier = Modifier
-                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Lat: ${"%.4f".format(coordinates.first)}",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 18.sp
                 )
             }
             Box(
                 modifier = Modifier
-                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Lon: ${"%.4f".format(coordinates.second)}",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 18.sp
                 )
             }
