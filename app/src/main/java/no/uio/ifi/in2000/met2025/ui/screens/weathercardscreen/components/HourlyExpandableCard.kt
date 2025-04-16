@@ -17,6 +17,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -49,23 +50,26 @@ import no.uio.ifi.in2000.met2025.ui.theme.IconYellow
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import java.time.Instant
 
+import androidx.compose.ui.graphics.ColorFilter
+
 @Composable
 fun WindDirectionIcon(windDirection: Double?) {
     if (windDirection == null) {
         return
     }
-    val arrowPainter = painterResource(id = no.uio.ifi.in2000.met2025.R.drawable.up_arrow)
+    val arrowPainter = painterResource(id = R.drawable.up_arrow)
     val rotation = (windDirection + 180) % 360
 
-    // If needed, you can also set a tint on the image if it's a vector asset:
     Image(
         painter = arrowPainter,
         contentDescription = "Wind Direction",
         modifier = Modifier
             .size(24.dp)
-            .graphicsLayer(rotationZ = rotation.toFloat())
+            .graphicsLayer(rotationZ = rotation.toFloat()),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
     )
 }
+
 
 @Composable
 fun HourlyExpandableCard(
@@ -83,8 +87,8 @@ fun HourlyExpandableCard(
             .fillMaxWidth()
             .clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
-            containerColor = WarmOrange,   // Card background is warm orange.
-            contentColor = Color.Black // Default content color inside the card.
+            containerColor = MaterialTheme.colorScheme.primary,   // Card background is warm orange.
+            contentColor = MaterialTheme.colorScheme.onPrimary // Default content color inside the card.
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -111,7 +115,7 @@ fun HourlyExpandableCard(
                                 painter = painterResource(id = R.drawable.yes_grib_real),
                                 contentDescription = "Altitude",
                                 modifier = Modifier.size(48.dp),
-                                tint = Color.Black
+                                //tint = MaterialTheme.colorScheme.onPrimary
                             )
                             LaunchStatusIndicator(
                                 config = config,
@@ -125,7 +129,7 @@ fun HourlyExpandableCard(
                                 painter = painterResource(id = R.drawable.no_grib_real),
                                 contentDescription = "No Altitude",
                                 modifier = Modifier.size(48.dp),
-                                tint = Color.Black
+                                //tint = MaterialTheme.colorScheme.onPrimary
                             )
                             LaunchStatusIndicator(
                                 config = config,
@@ -142,7 +146,7 @@ fun HourlyExpandableCard(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
             )
-            HorizontalDivider(thickness = 1.dp, color = Color.Black)
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
@@ -200,7 +204,7 @@ fun HourlyExpandableCard(
                                 )
                             }
                         }
-                        HorizontalDivider(thickness = 1.dp, color = Color.Black)
+                        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
                     }
                     AtmosphericWindTable(
                         viewModel,

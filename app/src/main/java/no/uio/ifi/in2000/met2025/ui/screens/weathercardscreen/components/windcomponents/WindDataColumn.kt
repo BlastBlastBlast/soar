@@ -42,7 +42,7 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
             Icon(
                 imageVector = Icons.Default.ExpandMore,
                 contentDescription = "Expand",
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer(rotationZ = if (expanded) 0f else 180f)
@@ -54,7 +54,7 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color.Black)
+                        .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                         .padding(4.dp)
                 ) {
                     WindLayerRow(
@@ -87,7 +87,7 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
-                                .border(1.dp, Color.Black)
+                                .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .padding(horizontal = 4.dp, vertical = 4.dp)
                         ) {
                             WindLayerRow(

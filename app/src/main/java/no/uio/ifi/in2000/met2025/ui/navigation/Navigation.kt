@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -148,7 +149,7 @@ fun AppNavLauncher(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = currentScreenTitle, color = Color.White) },
+                    title = { Text(text = currentScreenTitle, color = MaterialTheme.colorScheme.primary) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Image(
@@ -165,7 +166,7 @@ fun AppNavLauncher(
                             Icon(
                                 painter = painterResource(id = iconRes),
                                 contentDescription = "Toggle Theme",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                         // Launch Sites navigation button.
@@ -173,7 +174,7 @@ fun AppNavLauncher(
                             Icon(
                                 painter = painterResource(id = R.drawable.fav_launchsites),
                                 contentDescription = "Launch Sites",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     },

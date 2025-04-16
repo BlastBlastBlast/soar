@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.data.models.safetyevaluation
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -17,6 +18,8 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNSAFE_THRESHOL
 import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.IsobaricData
 import no.uio.ifi.in2000.met2025.ui.theme.*
+import androidx.compose.foundation.isSystemInDarkTheme
+
 
 // Definition for EvaluationIcon remains unchanged.
 sealed class EvaluationIcon {
@@ -38,22 +41,43 @@ fun launchStatus(relativeUnsafety: Double): LaunchStatus {
     }
 }
 
+
+
+
 @Composable
 fun LaunchStatusIcon(state: ParameterState, modifier: Modifier) {
+    // detect light vs dark
+    val isDark = LocalIsDarkTheme.current
+
     val (color, icon, description) = when (state) {
         is ParameterState.Missing ->
-            Triple(IconPurple, Icons.Filled.CloudOff, "Data missing")
+            Triple(IconPurple,        Icons.Filled.CloudOff,   "Data missing")
+
         is ParameterState.Disabled ->
-            Triple(Color.DarkGray, Icons.Filled.Close, "Turned Off")
-        is ParameterState.Available ->
+            Triple(IconGrey,          Icons.Filled.Close,      "Turned Off")
+
+        is ParameterState.Available -> {
             when (launchStatus(state.relativeUnsafety)) {
-                LaunchStatus.SAFE -> Triple(Color.Black, Icons.Filled.CheckCircle, "Safe")
-                LaunchStatus.CAUTION -> Triple(Color.Black, Icons.Filled.Warning, "Caution")
-                LaunchStatus.UNSAFE -> Triple(Color.Black, Icons.Filled.Cancel, "Unsafe")
+                LaunchStatus.SAFE   -> Triple(if (isDark) IconSafeDark    else IconSafeLight,
+                    Icons.Filled.CheckCircle,   "Safe")
+
+                LaunchStatus.CAUTION-> Triple(if (isDark) IconCautionDark else IconCautionLight,
+                    Icons.Filled.Warning,       "Caution")
+
+                LaunchStatus.UNSAFE -> Triple(if (isDark) IconUnsafeDark  else IconUnsafeLight,
+                    Icons.Filled.Cancel,        "Unsafe")
             }
+        }
     }
-    Icon(imageVector = icon, contentDescription = description, tint = color, modifier = modifier)
+
+    Icon(
+        imageVector     = icon,
+        contentDescription = description,
+        tint            = color,
+        modifier        = modifier
+    )
 }
+
 
 @Composable
 fun LaunchStatusIndicator(

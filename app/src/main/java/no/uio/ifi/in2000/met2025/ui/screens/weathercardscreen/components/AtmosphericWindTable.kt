@@ -50,7 +50,7 @@ fun AtmosphericWindTable(
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(6.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
                 Text(
                     text = "Get Isobaric Data",
@@ -81,7 +81,7 @@ fun AtmosphericWindTable(
                         .padding(top = 8.dp)
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
                 ) {
                     Text(text = "Retry loading isobaric data",
                         color = MaterialTheme.colorScheme.primary,
@@ -95,10 +95,10 @@ fun AtmosphericWindTable(
                 Text("Loading configuration...", color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodyMedium)
             } else {
-                HorizontalDivider(thickness = 1.dp, color = Color.Black)
-                Text("Atmospheric Wind Data", color = Color.Black,
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
+                Text("Atmospheric Wind Data", color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-                HorizontalDivider(thickness = 1.dp, color = Color.Black)
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.primary)
                 AWTableContents(effectiveState.isobaricData, config!!)
             }
         }

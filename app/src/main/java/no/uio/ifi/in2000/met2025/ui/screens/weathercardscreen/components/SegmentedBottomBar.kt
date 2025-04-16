@@ -32,7 +32,7 @@ fun SegmentedBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(Color.Black),
+            .background(MaterialTheme.colorScheme.onPrimary),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -42,18 +42,19 @@ fun SegmentedBottomBar(
                 .weight(1f)
                 .fillMaxHeight()
                 .clickable { onLaunchClick() },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .border(1.dp, MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "LAUNCH",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+
                 )
             }
         }
@@ -69,11 +70,11 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .border(1.dp, MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "FILTER",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -90,11 +91,11 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .border(1.dp, MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "CONFIG",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }

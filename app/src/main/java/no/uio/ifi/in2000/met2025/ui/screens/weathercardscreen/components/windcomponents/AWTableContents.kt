@@ -61,7 +61,7 @@ fun AWTableContents(
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
-        CompositionLocalProvider(LocalContentColor provides Color.Black) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
             Column(modifier = Modifier.padding(0.dp)) {
 
                 Row {
@@ -77,7 +77,7 @@ fun AWTableContents(
                 AnimatedVisibility(visible = expanded) {
 
                     Column {
-                        HorizontalDivider(thickness = 1.dp, color = Color.Black)
+                        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
 
                         // Static header row to label columns
                         WindLayerHeader(
@@ -86,7 +86,7 @@ fun AWTableContents(
                             windDirectionText = "Wind Direction",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, Color.Black)
+                                .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .padding(vertical = 4.dp),
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         )
@@ -99,7 +99,7 @@ fun AWTableContents(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
-                                .border(1.dp, Color.Black)
+                                .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .background(
                                     color = windShearColor,
                                     shape = RoundedCornerShape(0.dp)

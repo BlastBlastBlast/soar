@@ -16,6 +16,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.unit
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WindDirectionIcon
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.TextStyle
 
 @Composable
 fun WindLayerRow(
@@ -25,7 +26,7 @@ fun WindLayerRow(
     windSpeed: Double?,
     windDirection: Double?,
     modifier: Modifier,
-    style: androidx.compose.ui.text.TextStyle
+    style: TextStyle
 ) {
     val altitudeText = (altitude
         ?.roundToDecimals(-2)
