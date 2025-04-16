@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windco
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -85,6 +86,7 @@ fun AWTableContents(
                             windDirectionText = "Wind Direction",
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .border(1.dp, Color.Black)
                                 .padding(vertical = 4.dp),
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         )
@@ -97,6 +99,7 @@ fun AWTableContents(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
+                                .border(1.dp, Color.Black)
                                 .background(
                                     color = windShearColor,
                                     shape = RoundedCornerShape(0.dp)

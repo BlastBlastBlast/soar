@@ -137,7 +137,6 @@ fun HourlyExpandableCard(
                 }
 
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Black)
 
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
