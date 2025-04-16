@@ -65,7 +65,7 @@ fun AtmosphericWindTable(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
             }
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Error -> {
@@ -78,13 +78,14 @@ fun AtmosphericWindTable(
                     onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
                     modifier = Modifier
                         .padding(top = 8.dp)
-                        .fillMaxWidth()
-                        .background(
-                            shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp),
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                 ) {
-                    Text(text = "Retry loading isobaric data")
+                    Text(text = "Retry loading isobaric data",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
         }
