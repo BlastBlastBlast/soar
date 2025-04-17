@@ -21,7 +21,7 @@ class LaunchSiteViewModel @Inject constructor(
     val launchSites: Flow<List<LaunchSite>> = launchSitesRepository.getAll()
 
     // Flow for "Last Visited" temporary site.
-    val tempLaunchSite: Flow<LaunchSite?> = launchSitesRepository.getTempSite()
+    val tempLaunchSite: Flow<LaunchSite?> = launchSitesRepository.getLastVisitedTempSite()
 
     // Flow for "New Marker" temporary site.
     val newMarkerTempSite: Flow<LaunchSite?> = launchSitesRepository.getNewMarkerTempSite()
@@ -31,11 +31,11 @@ class LaunchSiteViewModel @Inject constructor(
         viewModelScope.launch {
             val currentTempSite = tempLaunchSite.firstOrNull()
             if (currentTempSite == null) {
-                launchSitesRepository.insertAll(
+                launchSitesRepository.insert(
                     LaunchSite(latitude = latitude, longitude = longitude, name = "Last Visited")
                 )
             } else {
-                launchSitesRepository.updateSites(
+                launchSitesRepository.update(
                     currentTempSite.copy(latitude = latitude, longitude = longitude)
                 )
             }
@@ -47,11 +47,11 @@ class LaunchSiteViewModel @Inject constructor(
         viewModelScope.launch {
             val currentNewMarker = newMarkerTempSite.firstOrNull()
             if (currentNewMarker == null) {
-                launchSitesRepository.insertAll(
+                launchSitesRepository.insert(
                     LaunchSite(latitude = latitude, longitude = longitude, name = "New Marker")
                 )
             } else {
-                launchSitesRepository.updateSites(
+                launchSitesRepository.update(
                     currentNewMarker.copy(latitude = latitude, longitude = longitude)
                 )
             }
@@ -61,7 +61,7 @@ class LaunchSiteViewModel @Inject constructor(
     // Permanently add a launch site.
     fun addLaunchSite(latitude: Double, longitude: Double, name: String) {
         viewModelScope.launch {
-            launchSitesRepository.insertAll(LaunchSite(latitude = latitude, longitude = longitude, name = name))
+            launchSitesRepository.insert(LaunchSite(latitude = latitude, longitude = longitude, name = name))
         }
     }
 
@@ -73,7 +73,7 @@ class LaunchSiteViewModel @Inject constructor(
 
     fun updateLaunchSite(site: LaunchSite) {
         viewModelScope.launch {
-            launchSitesRepository.updateSites(site)
+            launchSitesRepository.update(site)
         }
     }
 }

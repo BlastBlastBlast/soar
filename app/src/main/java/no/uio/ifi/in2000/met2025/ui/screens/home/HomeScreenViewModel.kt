@@ -44,7 +44,7 @@ class HomeScreenViewModel @Inject constructor(
                 _launchSites.value = sites
 
                 // Optionally update coordinates based on a temporary "Last Visited" record.
-                val tempSite = launchSitesRepository.getTempSite("Last Visited").firstOrNull()
+                val tempSite = launchSitesRepository.getLastVisitedTempSite().firstOrNull()
                 val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
                 updateCoordinates(newCoords.first, newCoords.second)
 
@@ -64,9 +64,9 @@ class HomeScreenViewModel @Inject constructor(
     fun updateLastVisited(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val currentVisited = launchSitesRepository.getTempSite("Last Visited").firstOrNull()
-                if (currentVisited == null) {
-                    launchSitesRepository.insertAll(
+                val exists = launchSitesRepository.checkIfSiteExists("Last Visited")
+                if (exists) {
+                    launchSitesRepository.update(
                         LaunchSite(
                             latitude = lat,
                             longitude = lon,
@@ -74,8 +74,12 @@ class HomeScreenViewModel @Inject constructor(
                         )
                     )
                 } else {
-                    launchSitesRepository.updateSites(
-                        currentVisited.copy(latitude = lat, longitude = lon)
+                    launchSitesRepository.insert(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            name = "Last Visited"
+                        )
                     )
                 }
             } catch (e: Exception) {
@@ -87,9 +91,9 @@ class HomeScreenViewModel @Inject constructor(
     fun updateNewMarker(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val currentMarker = launchSitesRepository.getNewMarkerTempSite("New Marker").firstOrNull()
-                if (currentMarker == null) {
-                    launchSitesRepository.insertAll(
+                val exists = launchSitesRepository.checkIfSiteExists("New Marker")
+                if (exists) {
+                    launchSitesRepository.update(
                         LaunchSite(
                             latitude = lat,
                             longitude = lon,
@@ -97,8 +101,12 @@ class HomeScreenViewModel @Inject constructor(
                         )
                     )
                 } else {
-                    launchSitesRepository.updateSites(
-                        currentMarker.copy(latitude = lat, longitude = lon)
+                    launchSitesRepository.insert(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            name = "New Marker"
+                        )
                     )
                 }
             } catch (e: Exception) {
@@ -118,7 +126,7 @@ class HomeScreenViewModel @Inject constructor(
                 longitude = lon
             )
             // Use your repository's update function.
-            launchSitesRepository.updateSites(updatedSite)
+            launchSitesRepository.update(updatedSite)
         }
     }
 
@@ -133,7 +141,7 @@ class HomeScreenViewModel @Inject constructor(
     fun addLaunchSite(lat: Double, lon: Double, name: String) {
         viewModelScope.launch {
             try {
-                launchSitesRepository.insertAll(
+                launchSitesRepository.insert(
                     LaunchSite(
                         latitude = lat,
                         longitude = lon,

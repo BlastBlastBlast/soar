@@ -89,7 +89,7 @@ class WeatherCardViewmodel @Inject constructor(
         // Continuously collect the current coordinates from the repository.
         viewModelScope.launch {
             launchSitesRepository
-                .getCurrentCoordinates(tempName = "Last Visited", defaultCoordinates = Pair(59.942, 10.726))
+                .getCurrentCoordinates(defaultCoordinates = Pair(59.942, 10.726))
                 .collect { newCoordinates ->
                     _coordinates.value = newCoordinates
                     // Optionally, if you want to automatically clear the last loaded isobaric data when a new location is set:
@@ -110,14 +110,14 @@ class WeatherCardViewmodel @Inject constructor(
     fun updateCoordinates(lat: Double, lon: Double) {
         viewModelScope.launch {
             // Use the repository function to get the "Last Visited" site.
-            val lastVisitedSite = launchSitesRepository.getTempSite("Last Visited").first()
+            val lastVisitedSite = launchSitesRepository.getLastVisitedTempSite().first()
             if (lastVisitedSite != null) {
                 // Overwrite by updating the existing record.
                 val updatedSite = lastVisitedSite.copy(latitude = lat, longitude = lon)
-                launchSitesRepository.updateSites(updatedSite)
+                launchSitesRepository.update(updatedSite)
             } else {
                 // If not found, insert a new record.
-                launchSitesRepository.insertAll(
+                launchSitesRepository.insert(
                     LaunchSite(
                         name = "Last Visited",
                         latitude = lat,
