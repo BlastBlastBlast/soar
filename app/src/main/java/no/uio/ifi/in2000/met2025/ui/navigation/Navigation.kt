@@ -149,7 +149,7 @@ fun AppNavLauncher(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = currentScreenTitle, color = MaterialTheme.colorScheme.onPrimary) },
+                    title = { Text(text = currentScreenTitle, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Image(
@@ -166,7 +166,7 @@ fun AppNavLauncher(
                             Icon(
                                 painter = painterResource(id = iconRes),
                                 contentDescription = "Toggle Theme",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = Color.White
                             )
                         }
                         // Launch Sites navigation button.
@@ -174,11 +174,11 @@ fun AppNavLauncher(
                             Icon(
                                 painter = painterResource(id = R.drawable.fav_launchsites),
                                 contentDescription = "Launch Sites",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = Color.White
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
                 )
             }
         ) { innerPadding ->

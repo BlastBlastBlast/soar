@@ -32,7 +32,7 @@ fun SegmentedBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(MaterialTheme.colorScheme.onPrimary),
+            .background(Color.Black),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -48,11 +48,11 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary),
+                    .border(1.dp, Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "LAUNCH",
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
 
                 )
@@ -70,11 +70,11 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary),
+                    .border(1.dp, Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "FILTER",
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -91,11 +91,11 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary),
+                    .border(1.dp, Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "CONFIG",
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
