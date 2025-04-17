@@ -4,7 +4,6 @@ import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.toConfigList
-import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 
 fun relativeUnsafety(value: Double?, threshold: Double): Double? {
     if (value == null) return null
