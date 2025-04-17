@@ -40,6 +40,8 @@ fun LaunchSiteItem(
     // Check if this is the special "New Marker" item.
     val isSpecialMarker = site.name == "New Marker"
 
+    //TODO: Fix keyboard overlapping cards while editing. Add onDone to keyboard.
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
