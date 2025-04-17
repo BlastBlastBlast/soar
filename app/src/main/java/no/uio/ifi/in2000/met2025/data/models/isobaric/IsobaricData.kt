@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.data.models
+package no.uio.ifi.in2000.met2025.data.models.isobaric
 
 //data class IsobaricData(
 //    val updatedAt: String = "",

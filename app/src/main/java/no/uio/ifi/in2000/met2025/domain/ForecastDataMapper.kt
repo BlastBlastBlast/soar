@@ -1,8 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain
 
-import no.uio.ifi.in2000.met2025.data.models.ForecastData
-import javax.inject.Inject
-
 //// TODO: Put this business logic in Repo
 //
 //class ForecastDataMapper @Inject constructor() {

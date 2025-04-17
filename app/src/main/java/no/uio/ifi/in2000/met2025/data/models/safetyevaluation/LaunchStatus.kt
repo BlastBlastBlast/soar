@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CAUTION_THRESHOLD
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNSAFE_THRESHOLD
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 
 sealed class EvaluationIcon {
     data class DrawableIcon(val resId: Int) : EvaluationIcon()

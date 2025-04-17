@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.data.models
+package no.uio.ifi.in2000.met2025.data.models.isobaric
 
 sealed class IsobaricDataResult {
     data class Success(val isobaricData: Result<IsobaricData>) : IsobaricDataResult()

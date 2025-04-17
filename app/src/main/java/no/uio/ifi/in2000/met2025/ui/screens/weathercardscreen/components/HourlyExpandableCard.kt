@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIndicator
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterConditions

@@ -11,9 +11,9 @@ import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileReposito
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
-import no.uio.ifi.in2000.met2025.data.models.IsobaricDataResult
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.DefaultConfig
