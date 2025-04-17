@@ -9,11 +9,14 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CAUTION_THRESHOLD
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNSAFE_THRESHOLD
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
+import androidx.compose.foundation.layout.size
 
 sealed class EvaluationIcon {
     data class DrawableIcon(val resId: Int) : EvaluationIcon()
@@ -35,7 +38,7 @@ fun launchStatus(relativeUnsafety: Double): LaunchStatus {
 }
 
 @Composable
-fun LaunchStatusIcon(state: ParameterState) {
+fun LaunchStatusIcon(state: ParameterState, modifier: Modifier) {
     val (color, icon, description) = when (state) {
         is ParameterState.Missing -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.CloudOff, "Data missing")
         is ParameterState.Disabled -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
@@ -45,35 +48,11 @@ fun LaunchStatusIcon(state: ParameterState) {
             LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Cancel, "Unsafe")
         }
     }
-    Icon(imageVector = icon, contentDescription = description, tint = color)
+    Icon(imageVector = icon, contentDescription = description, tint = color, modifier = modifier)
 }
 
 @Composable
-fun LaunchStatusIndicator(forecast: ForecastDataItem, config: ConfigProfile) {
-    val state = evaluateLaunchConditions(forecast, config)
-    val (color, icon, description) = when (state) {
-        is ParameterState.Missing -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.CloudOff, "Data missing")
-        is ParameterState.Disabled -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
-        is ParameterState.Available -> when (launchStatus(state.relativeUnsafety)) {
-            LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Filled.CheckCircle, "Safe to launch")
-            LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Filled.Warning, "Caution: Check conditions")
-            LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Cancel, "Unsafe to launch")
-        }
-    }
-    Icon(imageVector = icon, contentDescription = description, tint = color)
-}
-
-@Composable
-fun LaunchStatusIndicator(isobaricData: IsobaricData, config: ConfigProfile) {
-    val state = evaluateLaunchConditions(isobaricData, config)
-    val (color, icon, description) = when (state) {
-        is ParameterState.Missing -> Triple(MaterialTheme.colorScheme.tertiary, Icons.Filled.CloudOff, "Data missing")
-        is ParameterState.Disabled -> Triple(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), Icons.Filled.Close, "Turned Off")
-        is ParameterState.Available -> when (launchStatus(state.relativeUnsafety)) {
-            LaunchStatus.SAFE -> Triple(MaterialTheme.colorScheme.primary, Icons.Filled.CheckCircle, "Safe to launch")
-            LaunchStatus.CAUTION -> Triple(MaterialTheme.colorScheme.secondary, Icons.Filled.Warning, "Caution: Check conditions")
-            LaunchStatus.UNSAFE -> Triple(MaterialTheme.colorScheme.error, Icons.Filled.Cancel, "Unsafe to launch")
-        }
-    }
-    Icon(imageVector = icon, contentDescription = description, tint = color)
+fun LaunchStatusIndicator(config: ConfigProfile, forecast: ForecastDataItem? = null, isobaric: IsobaricData? = null, modifier: Modifier) {
+    val state = evaluateLaunchConditions(config, forecast, isobaric)
+    LaunchStatusIcon(state, modifier)
 }

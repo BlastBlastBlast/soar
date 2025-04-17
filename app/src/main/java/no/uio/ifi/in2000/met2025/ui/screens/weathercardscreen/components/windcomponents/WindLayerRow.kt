@@ -15,6 +15,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.unit
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WindDirectionIcon
+import androidx.compose.foundation.layout.size
 
 @Composable
 fun WindLayerRow(
@@ -72,7 +73,7 @@ fun WindLayerRow(
                 style = style,
                 modifier = Modifier.weight(1f)
             )
-            LaunchStatusIcon(evaluateParameterCondition(windSpeed, config, ConfigParameter.AIR_WIND))
+            LaunchStatusIcon(evaluateParameterCondition(windSpeed, config, ConfigParameter.AIR_WIND), modifier = Modifier.size(24.dp))
         }
     }
 }
