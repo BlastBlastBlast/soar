@@ -9,12 +9,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
@@ -32,6 +35,8 @@ fun ConfigEditScreen(
     viewModel: ConfigEditViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
+    val updateStatus by viewModel.updateStatus.collectAsState()
+
     // 1) UI state
     var configName               by remember(config) { mutableStateOf(config?.name ?: "") }
     var groundWind               by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
@@ -92,14 +97,23 @@ fun ConfigEditScreen(
 
     // 3) Render
     ScreenContainer(title = if (config==null) "New Configuration" else "Edit Configuration") {
+        val isNameError = updateStatus is ConfigEditViewModel.UpdateStatus.Error &&
+                configName != config?.name
         // Name
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
             AppOutlinedTextField(
                 value         = configName,
-                onValueChange = { configName = it },
+                onValueChange = { configName = it; viewModel.checkNameAvailability(it) },
                 label         = { Text("Name") },
                 modifier      = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(2.dp))
+            if (isNameError) {
+                Text(
+                    (updateStatus as ConfigEditViewModel.UpdateStatus.Error).message,
+                    color = Color.Red
+                )
+            }
         }
         Spacer(Modifier.height(16.dp))
 
@@ -207,8 +221,15 @@ fun ConfigEditScreen(
                     windShearSpeedThreshold        = windShear.toDoubleOrNull()                ?: 24.5,
                     isDefault                      = config?.isDefault == true
                 )
-                if (config == null) viewModel.saveConfig(updated) else viewModel.updateConfig(updated)
-                onNavigateBack()
+                if (config == null) {
+                    viewModel.saveConfig(updated)
+                    onNavigateBack()
+                } else {
+                    if (!isNameError) {
+                        viewModel.updateConfig(updated)
+                        onNavigateBack()
+                    }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             colors   = ButtonDefaults.buttonColors(
@@ -217,6 +238,18 @@ fun ConfigEditScreen(
             )
         ) {
             Text("Save Configuration")
+        }
+        if (isNameError) {
+            Text(
+                (updateStatus as ConfigEditViewModel.UpdateStatus.Error).message,
+                color = Color.Red
+            )
+        }
+    }
+    LaunchedEffect(updateStatus) {
+        if (updateStatus is ConfigEditViewModel.UpdateStatus.Success) {
+            // Clear the status after a successful update.
+            viewModel.setUpdateStatusToIdle()
         }
     }
 }

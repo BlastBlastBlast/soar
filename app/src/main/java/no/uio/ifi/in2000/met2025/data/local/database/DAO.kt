@@ -65,7 +65,7 @@ interface GribUpdatedDAO {
 @Dao
 interface ConfigProfileDAO {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertConfigProfile(configProfile: ConfigProfile)
 
     @Update
@@ -82,6 +82,9 @@ interface ConfigProfileDAO {
 
     @Query("SELECT * FROM config_profiles WHERE id = :configId LIMIT 1")
     fun getConfigProfile(configId: Int): Flow<ConfigProfile?>
+
+    @Query("SELECT name FROM config_profiles")
+    fun getAllConfigProfileNames(): Flow<List<String>>
 }
 
 @Dao
