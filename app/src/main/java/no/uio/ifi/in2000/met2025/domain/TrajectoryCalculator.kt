@@ -17,7 +17,7 @@ import kotlin.math.sin
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
 ) {
-    fun calcutaleTrajectory(
+    fun calculateTrajectory(
         initialPosition: D1Array<Double>,
         launchDirection: Angle,
         launchAngle: Angle, //upwards is 90 degrees
