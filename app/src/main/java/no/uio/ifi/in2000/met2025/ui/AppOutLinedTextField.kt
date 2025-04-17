@@ -1,10 +1,8 @@
 package no.uio.ifi.in2000.met2025.ui
 
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import no.uio.ifi.in2000.met2025.ui.theme.LocalAppCursorColor

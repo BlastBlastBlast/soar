@@ -7,8 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,6 +24,7 @@ fun LaunchSiteScreen(
     viewModel: LaunchSiteViewModel = hiltViewModel()
 ) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
+    val updateStatus by viewModel.updateStatus.collectAsState()
     var showNewSiteDialog by remember { mutableStateOf(false) }
 
     val newMarkerSite = launchSites.find { it.name == "New Marker" }
@@ -82,7 +81,10 @@ fun LaunchSiteScreen(
                         LaunchSiteItem(
                             site     = site,
                             onDelete = { viewModel.deleteLaunchSite(site) },
-                            onEdit   = { viewModel.addLaunchSite(it.latitude, it.longitude, it.name) }
+                            onEdit   = { updatedSite ->
+                                viewModel.updateLaunchSite(updatedSite)
+                            },
+                            updateStatus = updateStatus
                         )
                     }
                 }
@@ -116,6 +118,12 @@ fun LaunchSiteScreen(
                     }
                 }
             )
+        }
+    }
+    LaunchedEffect(updateStatus) {
+        if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
+            // Clear the status after a successful update.
+            viewModel.setUpdateStatusToIdle()
         }
     }
 }

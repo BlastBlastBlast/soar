@@ -1,4 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn

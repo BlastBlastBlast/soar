@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.data.models
+package no.uio.ifi.in2000.met2025.data.models.locationforecast
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

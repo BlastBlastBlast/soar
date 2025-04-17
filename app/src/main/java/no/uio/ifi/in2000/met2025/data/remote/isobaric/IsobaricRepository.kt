@@ -8,13 +8,13 @@ import no.uio.ifi.in2000.met2025.data.local.database.GribData
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdated
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
-import no.uio.ifi.in2000.met2025.data.models.AvailabilityData
-import no.uio.ifi.in2000.met2025.data.models.GribDataMap
-import no.uio.ifi.in2000.met2025.data.models.GribDataResult
-import no.uio.ifi.in2000.met2025.data.models.GribParsingResult
-import no.uio.ifi.in2000.met2025.data.models.GribVectors
-import no.uio.ifi.in2000.met2025.data.models.IsobaricAvailabilityResponse
-import no.uio.ifi.in2000.met2025.data.models.StructuredAvailability
+import no.uio.ifi.in2000.met2025.data.models.grib.AvailabilityData
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
+import no.uio.ifi.in2000.met2025.data.models.grib.GribParsingResult
+import no.uio.ifi.in2000.met2025.data.models.grib.GribVectors
+import no.uio.ifi.in2000.met2025.data.models.grib.GribAvailabilityResponse
+import no.uio.ifi.in2000.met2025.data.models.grib.StructuredAvailability
 import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
@@ -209,7 +209,7 @@ class IsobaricRepository @Inject constructor(
     }
 
     private fun restructureAvailabilityResponse(
-        availResponse: IsobaricAvailabilityResponse
+        availResponse: GribAvailabilityResponse
     ): StructuredAvailability {
         val updatedInstant = Instant.parse(availResponse.entries.first().updated)
 

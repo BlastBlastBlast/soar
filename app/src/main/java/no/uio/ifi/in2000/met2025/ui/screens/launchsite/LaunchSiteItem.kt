@@ -4,14 +4,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
@@ -20,12 +16,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -40,7 +34,8 @@ import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 fun LaunchSiteItem(
     site: LaunchSite,
     onDelete: () -> Unit,
-    onEdit: (LaunchSite) -> Unit
+    onEdit: (LaunchSite) -> Unit,
+    updateStatus: LaunchSiteViewModel.UpdateStatus
 ) {
     var isEditing     by remember { mutableStateOf(false) }
     var name          by remember { mutableStateOf(site.name) }
@@ -49,6 +44,8 @@ fun LaunchSiteItem(
     val isSpecialMarker = site.name == "New Marker"
     val orangeStripHeight = 16.dp
     val cornerShape = RoundedCornerShape(8.dp)
+
+    //TODO: Fix keyboard overlapping cards while editing. Add onDone to keyboard.
 
     ElevatedCard(
         modifier  = Modifier
@@ -146,13 +143,18 @@ fun LaunchSiteItem(
                             horizontalArrangement = Arrangement.End
                         ) {
                             IconButton(onClick = {
-                                latitudeText.toDoubleOrNull()?.let { lat ->
-                                    longitudeText.toDoubleOrNull()?.let { lon ->
-                                        if (name.isNotBlank()) {
-                                            onEdit(LaunchSite(0, lat, lon, name))
-                                            isEditing = false
-                                        }
-                                    }
+                                val newLat = latitudeText.toDoubleOrNull()
+                                val newLon = longitudeText.toDoubleOrNull()
+                                if (newLat != null && newLon != null && name.isNotBlank()) {
+                                    // Save the edited marker as a new launch site.
+                                    onEdit(
+                                        LaunchSite(
+                                            uid = site.uid, // or leave 0 so that the database assigns a new UID.
+                                            latitude = newLat,
+                                            longitude = newLon,
+                                            name = name
+                                        )
+                                    )
                                 }
                             }) {
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
@@ -166,7 +168,17 @@ fun LaunchSiteItem(
                                 Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
                             }
                         }
+
                     }
+                }
+                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error) {
+                    Text(
+                        text = updateStatus.message,
+                        color = Color.Red
+                    )
+                }
+                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
+                    isEditing = false
                 }
             }
         }

@@ -1,7 +1,8 @@
 package no.uio.ifi.in2000.met2025.domain.helpers
 
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
+
 
 fun IsobaricData.toConfigList(config: ConfigProfile): List<Pair<Double, Double>> {
     val relevantLayers = valuesAtLayer.keys.reversed()

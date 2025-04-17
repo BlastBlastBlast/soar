@@ -10,7 +10,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import no.uio.ifi.in2000.met2025.R
 
 val LocalIsDarkTheme = staticCompositionLocalOf { false }
 val LocalAppCursorColor = staticCompositionLocalOf { Color.Black }

@@ -1,6 +1,4 @@
-package no.uio.ifi.in2000.met2025.data.models
-
-import kotlinx.serialization.SerialName
+package no.uio.ifi.in2000.met2025.data.models.locationforecast
 
 data class ForecastData(
     val updatedAt: String,

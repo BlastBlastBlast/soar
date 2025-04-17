@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
-import no.uio.ifi.in2000.met2025.data.models.RocketParameterValues
-import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
 import javax.inject.Inject
 
 @HiltViewModel

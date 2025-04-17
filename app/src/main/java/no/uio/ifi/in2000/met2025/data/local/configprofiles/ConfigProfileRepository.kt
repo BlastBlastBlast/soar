@@ -32,4 +32,8 @@ class ConfigProfileRepository @Inject constructor(
     fun getConfigProfile(configId: Int): Flow<ConfigProfile?> {
         return configProfileDAO.getConfigProfile(configId)
     }
+
+    fun getAllConfigProfileNames(): Flow<List<String>> {
+        return configProfileDAO.getAllConfigProfileNames()
+    }
 }

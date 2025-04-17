@@ -4,9 +4,10 @@ package no.uio.ifi.in2000.met2025.ui.screens.home.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
@@ -20,7 +21,8 @@ fun SaveLaunchSiteDialog(
     launchSiteName: String,
     onNameChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    updateStatus: HomeScreenViewModel.UpdateStatus
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -50,6 +52,12 @@ fun SaveLaunchSiteDialog(
                         label         = { Text("Site Name") },
                         modifier      = Modifier.fillMaxWidth()
                     )
+                    if (updateStatus is HomeScreenViewModel.UpdateStatus.Error) {
+                        Text(
+                            text = updateStatus.message,
+                            color = Color.Red
+                        )
+                    }
                 }
             }
         },
