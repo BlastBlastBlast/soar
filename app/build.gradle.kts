@@ -94,6 +94,10 @@ dependencies {
     //kotlin reflection
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    //multik - multidimensional arrays
+    implementation(libs.multik.core)
+    implementation(libs.multik.default)
+
     // Removed logback dependency:
     // implementation(libs.logback.classic)
 

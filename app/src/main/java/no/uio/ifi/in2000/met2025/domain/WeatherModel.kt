@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -18,6 +19,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
+import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2
