@@ -37,6 +37,15 @@ class HomeScreenViewModel @Inject constructor(
     private val _launchSites = MutableStateFlow<List<LaunchSite>>(emptyList())
     val launchSites: StateFlow<List<LaunchSite>> = _launchSites
 
+    sealed class UpdateStatus {
+        object Idle : UpdateStatus()
+        object Success : UpdateStatus()
+        data class Error(val message: String) : UpdateStatus()
+    }
+
+    private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
+    val updateStatus: StateFlow<UpdateStatus> = _updateStatus
+
     init {
         viewModelScope.launch {
             launchSitesRepository.getAll().collect { sites ->
@@ -119,17 +128,22 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             // Create an updated LaunchSite instance.
             // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
-            val updatedSite = LaunchSite(
-                uid = siteId,
-                name = name,
-                latitude = lat,
-                longitude = lon
-            )
-            // Use your repository's update function.
-            launchSitesRepository.update(updatedSite)
+            val exists = launchSitesRepository.checkIfSiteExists(name)
+            if (exists) {
+                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+            } else {
+                val updatedSite = LaunchSite(
+                    uid = siteId,
+                    name = name,
+                    latitude = lat,
+                    longitude = lon
+                )
+                // Use your repository's update function.
+                launchSitesRepository.update(updatedSite)
+                _updateStatus.value = UpdateStatus.Success
+            }
         }
     }
-
 
     fun onMarkerPlaced(lat: Double, lon: Double) {
         // When a marker is placed, update both temporary records via the repository.
@@ -152,6 +166,10 @@ class HomeScreenViewModel @Inject constructor(
                 _uiState.value = HomeScreenUiState.Error(e.message ?: "Failed to add launch site")
             }
         }
+    }
+
+    fun setUpdateStatusIdle() {
+        _updateStatus.value = UpdateStatus.Idle
     }
 
     fun geocodeAddress(address: String): Pair<Double, Double>? {

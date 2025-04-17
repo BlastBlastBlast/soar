@@ -7,13 +7,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 
 @Composable
 fun SaveLaunchSiteDialog(
     launchSiteName: String,
     onNameChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    updateStatus: HomeScreenViewModel.UpdateStatus
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -26,6 +28,12 @@ fun SaveLaunchSiteDialog(
                     onValueChange = onNameChange,
                     label = { Text("Site Name") }
                 )
+                if (updateStatus is HomeScreenViewModel.UpdateStatus.Error) {
+                    Text(
+                        text = updateStatus.message,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {
