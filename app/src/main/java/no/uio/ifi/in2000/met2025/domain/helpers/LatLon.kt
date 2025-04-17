@@ -1,11 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain.helpers
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
 // Simple data holder
 data class LatLon(val lat: Double, val lon: Double)
 

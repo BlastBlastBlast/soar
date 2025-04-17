@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

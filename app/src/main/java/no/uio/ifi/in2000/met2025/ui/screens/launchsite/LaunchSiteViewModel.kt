@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
-import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel.UpdateStatus
 import javax.inject.Inject
 
 @HiltViewModel

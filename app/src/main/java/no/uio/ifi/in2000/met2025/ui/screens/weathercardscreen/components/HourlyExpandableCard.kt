@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
@@ -35,7 +32,6 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIndica
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import com.mapbox.maps.extension.style.expressions.dsl.generated.color
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
@@ -44,10 +40,6 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
-import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
-import no.uio.ifi.in2000.met2025.ui.theme.IconRed
-import no.uio.ifi.in2000.met2025.ui.theme.IconYellow
-import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import java.time.Instant
 
 import androidx.compose.ui.graphics.ColorFilter
