@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,55 +42,60 @@ fun LaunchSiteItem(
     onDelete: () -> Unit,
     onEdit: (LaunchSite) -> Unit
 ) {
-    var isEditing      by remember { mutableStateOf(false) }
-    var name           by remember { mutableStateOf(site.name) }
-    var latitudeText   by remember { mutableStateOf(site.latitude.toString()) }
-    var longitudeText  by remember { mutableStateOf(site.longitude.toString()) }
+    var isEditing     by remember { mutableStateOf(false) }
+    var name          by remember { mutableStateOf(site.name) }
+    var latitudeText  by remember { mutableStateOf(site.latitude.toString()) }
+    var longitudeText by remember { mutableStateOf(site.longitude.toString()) }
     val isSpecialMarker = site.name == "New Marker"
     val orangeStripHeight = 16.dp
+    val cornerShape = RoundedCornerShape(8.dp)
 
-    Card(
+    ElevatedCard(
         modifier  = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .animateContentSize(),
-        shape     = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(2.dp),
+        shape     = cornerShape,
+        elevation = CardDefaults.elevatedCardElevation(2.dp),      // small tonal+shadow on white
+        colors    = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primary,      // pure white
+            contentColor   = MaterialTheme.colorScheme.onPrimary
+        )
     ) {
-        Column(Modifier.clip(RoundedCornerShape(8.dp))) {
+        Column(Modifier.clip(cornerShape)) {
+            // orange strip at top
             Box(
-                modifier = Modifier
+                Modifier
                     .fillMaxWidth()
                     .height(orangeStripHeight)
-                    .background(
-                        color = WarmOrange,
-                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-                    )
+                    .background(WarmOrange, shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
             )
+
+            // white/dark surface body
             Box(
-                modifier = Modifier
+                Modifier
                     .fillMaxWidth()
                     .background(
-                        color = MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
                     )
                     .padding(horizontal = 8.dp, vertical = 12.dp)
             ) {
                 if (!isEditing) {
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        verticalAlignment     = Alignment.CenterVertically,
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(Modifier.weight(1f)) {
                             if (isSpecialMarker) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("Last Marker", style = MaterialTheme.typography.bodyLarge)
                                     Spacer(Modifier.width(4.dp))
                                     Image(
-                                        painter            = painterResource(R.drawable.red_marker),
-                                        contentDescription = "Launch Site Icon",
-                                        modifier           = Modifier.size(24.dp)
+                                        painter = painterResource(R.drawable.red_marker),
+                                        contentDescription = "New Marker",
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             } else {
@@ -102,15 +108,15 @@ fun LaunchSiteItem(
                         }
                         Row {
                             IconButton(onClick = { isEditing = true }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = IconGreen)
                             }
                             IconButton(onClick = onDelete) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = IconRed)
                             }
                         }
                     }
                 } else {
-                    // EDIT MODE
+                    // edit mode…
                     Column {
                         AppOutlinedTextField(
                             value = name,
@@ -119,32 +125,34 @@ fun LaunchSiteItem(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(8.dp))
-                        Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth()) {
                             AppOutlinedTextField(
                                 value = latitudeText,
                                 onValueChange = { latitudeText = it },
                                 label = { Text("Lat") },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f)
                             )
                             Spacer(Modifier.width(8.dp))
                             AppOutlinedTextField(
                                 value = longitudeText,
                                 onValueChange = { longitudeText = it },
                                 label = { Text("Lon") },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f)
                             )
                         }
                         Spacer(Modifier.height(8.dp))
                         Row(
-                            modifier            = Modifier.fillMaxWidth(),
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
                             IconButton(onClick = {
-                                val newLat = latitudeText.toDoubleOrNull()
-                                val newLon = longitudeText.toDoubleOrNull()
-                                if (newLat != null && newLon != null && name.isNotBlank()) {
-                                    onEdit(LaunchSite(0, newLat, newLon, name))
-                                    isEditing = false
+                                latitudeText.toDoubleOrNull()?.let { lat ->
+                                    longitudeText.toDoubleOrNull()?.let { lon ->
+                                        if (name.isNotBlank()) {
+                                            onEdit(LaunchSite(0, lat, lon, name))
+                                            isEditing = false
+                                        }
+                                    }
                                 }
                             }) {
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)

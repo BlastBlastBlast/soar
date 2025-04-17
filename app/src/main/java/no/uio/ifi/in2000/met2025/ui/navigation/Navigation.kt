@@ -28,6 +28,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 
+//TODO: FIKSE NAVIGATION KALL TIL Å IKKE LAUNCHE MANGE GANGER PÅ SAMME SKJERM!
+
 object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
     override fun get(bundle: Bundle, key: String): Double? = bundle.getDouble(key)
     override fun parseValue(value: String): Double = value.toDouble()

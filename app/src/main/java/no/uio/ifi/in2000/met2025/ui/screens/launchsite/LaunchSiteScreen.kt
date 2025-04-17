@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,46 +22,49 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
-fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
-    val launchSites    by viewModel.launchSites.collectAsState(initial = emptyList())
+fun LaunchSiteScreen(
+    viewModel: LaunchSiteViewModel = hiltViewModel()
+) {
+    val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
     var showNewSiteDialog by remember { mutableStateOf(false) }
 
     val newMarkerSite = launchSites.find { it.name == "New Marker" }
-    val otherSites    = launchSites
+    val otherSites = launchSites
         .filter { it.name != "Last Visited" && it.name != "New Marker" }
         .sortedBy { it.name }
     val displaySites = listOfNotNull(newMarkerSite) + otherSites
 
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background)  // the system “window” background
     ) {
         Surface(
-            modifier = Modifier
+            modifier        = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            color          = MaterialTheme.colorScheme.surface,
-            tonalElevation = 4.dp,
-            shape          = RoundedCornerShape(12.dp)
+            color           = MaterialTheme.colorScheme.surface,   // your CONFIG‐style slightly off‑white
+            tonalElevation  = 4.dp,                                // blends a touch of primary into surface
+            shadowElevation = 8.dp,                                // big enough shadow to see the lift
+            shape           = RoundedCornerShape(12.dp)
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize()) {
                 // — HEADER IN ORANGE BAND —
                 Box(
-                    modifier = Modifier
+                    Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                         .background(
-                            color = WarmOrange,
+                            WarmOrange,
                             shape = RoundedCornerShape(4.dp)
                         )
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text      = "LAUNCH SITES",
-                        style     = MaterialTheme.typography.titleLarge,
-                        fontWeight= FontWeight.ExtraBold,
-                        color     = MaterialTheme.colorScheme.onPrimary,
+                        "LAUNCH SITES",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                        color = MaterialTheme.colorScheme.onPrimary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -69,29 +74,20 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
                 LazyColumn(
                     modifier            = Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight(),
-                    contentPadding      = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical   = 8.dp
-                    ),
+                        .weight(1f),
+                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(displaySites) { site ->
                         LaunchSiteItem(
                             site     = site,
                             onDelete = { viewModel.deleteLaunchSite(site) },
-                            onEdit   = { updatedSite ->
-                                viewModel.addLaunchSite(
-                                    updatedSite.latitude,
-                                    updatedSite.longitude,
-                                    updatedSite.name
-                                )
-                            }
+                            onEdit   = { viewModel.addLaunchSite(it.latitude, it.longitude, it.name) }
                         )
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(8.dp))
 
                 Button(
                     onClick    = { showNewSiteDialog = true },
