@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
+    val updateStatus by viewModel.updateStatus.collectAsState()
     var showNewSiteDialog by remember { mutableStateOf(false) }
 
     // Separate "New Marker" from other launch sites as before.
@@ -32,8 +33,9 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
                     onDelete = { viewModel.deleteLaunchSite(site) },
                     onEdit = { updatedSite ->
                         // Instead of updating in place, add a new record with the edited values.
-                        viewModel.addLaunchSite(updatedSite.latitude, updatedSite.longitude, updatedSite.name)
-                    }
+                        viewModel.updateLaunchSite(updatedSite)
+                    },
+                    updateStatus = updateStatus
                 )
             }
         }
@@ -59,5 +61,11 @@ fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
                 }
             }
         )
+    }
+    LaunchedEffect(updateStatus) {
+        if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
+            // Clear the status after a successful update.
+            viewModel.setUpdateStatusToIdle()
+        }
     }
 }

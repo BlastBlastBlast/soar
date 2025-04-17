@@ -18,16 +18,19 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
+import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 
 @Composable
 fun LaunchSiteItem(
     site: LaunchSite,
     onDelete: () -> Unit,
-    onEdit: (LaunchSite) -> Unit
+    onEdit: (LaunchSite) -> Unit,
+    updateStatus: LaunchSiteViewModel.UpdateStatus
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf(site.name) }
@@ -130,13 +133,12 @@ fun LaunchSiteItem(
                             // Save the edited marker as a new launch site.
                             onEdit(
                                 LaunchSite(
-                                    uid = 0, // or leave 0 so that the database assigns a new UID.
+                                    uid = site.uid, // or leave 0 so that the database assigns a new UID.
                                     latitude = newLat,
                                     longitude = newLon,
                                     name = name
                                 )
                             )
-                            isEditing = false
                         }
                     }) {
                         Icon(
@@ -156,6 +158,15 @@ fun LaunchSiteItem(
                             contentDescription = "Cancel"
                         )
                     }
+                }
+                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error) {
+                    Text(
+                        text = updateStatus.message,
+                        color = Color.Red
+                    )
+                }
+                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
+                    isEditing = false
                 }
             }
         }

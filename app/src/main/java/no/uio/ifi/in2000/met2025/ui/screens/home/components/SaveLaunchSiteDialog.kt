@@ -7,6 +7,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 
 @Composable
@@ -31,7 +32,7 @@ fun SaveLaunchSiteDialog(
                 if (updateStatus is HomeScreenViewModel.UpdateStatus.Error) {
                     Text(
                         text = updateStatus.message,
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                        color = Color.Red
                     )
                 }
             }

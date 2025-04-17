@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
+import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel.UpdateStatus
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +28,15 @@ class LaunchSiteViewModel @Inject constructor(
 
     // Flow for "New Marker" temporary site.
     val newMarkerTempSite: Flow<LaunchSite?> = launchSitesRepository.getNewMarkerTempSite()
+
+    sealed class UpdateStatus {
+        object Idle : UpdateStatus()
+        object Success : UpdateStatus()
+        data class Error(val message: String) : UpdateStatus()
+    }
+
+    private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
+    val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
     // Update "Last Visited" temporary site.
     fun updateTemporaryLaunchSite(latitude: Double, longitude: Double) {
@@ -71,9 +83,22 @@ class LaunchSiteViewModel @Inject constructor(
         }
     }
 
-    fun updateLaunchSite(site: LaunchSite) {
+    fun updateLaunchSite(launchSite: LaunchSite) {
         viewModelScope.launch {
-            launchSitesRepository.update(site)
+            // Create an updated LaunchSite instance.
+            // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
+            val exists = launchSitesRepository.checkIfSiteExists(launchSite.name)
+            if (exists) {
+                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+            } else {
+                // Use your repository's update function.
+                launchSitesRepository.update(launchSite)
+                _updateStatus.value = UpdateStatus.Success
+            }
         }
+    }
+
+    fun setUpdateStatusToIdle() {
+        _updateStatus.value = UpdateStatus.Idle
     }
 }
