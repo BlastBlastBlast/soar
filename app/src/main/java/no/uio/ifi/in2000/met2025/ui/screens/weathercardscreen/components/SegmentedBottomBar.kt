@@ -42,18 +42,19 @@ fun SegmentedBottomBar(
                 .weight(1f)
                 .fillMaxHeight()
                 .clickable { onLaunchClick() },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .border(1.dp, Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "LAUNCH",
                     color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+
                 )
             }
         }
@@ -69,7 +70,7 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .border(1.dp, Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "FILTER",
@@ -90,7 +91,7 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .border(1.dp, Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "CONFIG",
