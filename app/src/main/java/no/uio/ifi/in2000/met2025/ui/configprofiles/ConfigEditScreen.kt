@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.ui.AppOutlinedTextField
 
 @Composable
 fun ConfigEditScreen(
@@ -72,7 +73,7 @@ fun ConfigEditScreen(
         Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Configuration Name", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = configName,
                     onValueChange = { configName = it },
                     label = { Text("Name") },
@@ -90,7 +91,7 @@ fun ConfigEditScreen(
                     Switch(checked = isEnabledWindDirection, onCheckedChange = { isEnabledWindDirection = it })
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
+                    AppOutlinedTextField(
                         value = groundWindThreshold,
                         onValueChange = { groundWindThreshold = it },
                         label = { Text("Ground Wind Threshold") },
@@ -100,7 +101,7 @@ fun ConfigEditScreen(
                     Switch(checked = isEnabledGroundWind, onCheckedChange = { isEnabledGroundWind = it })
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
+                    AppOutlinedTextField(
                         value = airWindThreshold,
                         onValueChange = { airWindThreshold = it },
                         label = { Text("Air Wind Threshold") },
@@ -110,7 +111,7 @@ fun ConfigEditScreen(
                     Switch(checked = isEnabledAirWind, onCheckedChange = { isEnabledAirWind = it })
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
+                    AppOutlinedTextField(
                         value = shearWindSpeedThreshold,
                         onValueChange = { shearWindSpeedThreshold = it },
                         label = { Text("Wind Shear Threshold") },
@@ -134,7 +135,7 @@ fun ConfigEditScreen(
                     Triple("Cloud Cover Low", cloudCoverLowThreshold, isEnabledCloudCoverLow)
                 ).forEachIndexed { index, (label, threshold, enabled) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
+                        AppOutlinedTextField(
                             value = threshold,
                             onValueChange = {
                                 when (index) {
@@ -174,7 +175,7 @@ fun ConfigEditScreen(
                     Triple("% Thunder Threshold", probabilityOfThunderThreshold, isEnabledProbabilityOfThunder)
                 ).forEachIndexed { index, (label, threshold, enabled) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
+                        AppOutlinedTextField(
                             value = threshold,
                             onValueChange = {
                                 when (index) {
@@ -210,7 +211,7 @@ fun ConfigEditScreen(
                 Text("Altitude Settings", style = MaterialTheme.typography.titleMedium)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
+                    AppOutlinedTextField(
                         value = altitudeUpperBound,
                         onValueChange = { altitudeUpperBound = it },
                         label = { Text("Altitude Upper Bound") },

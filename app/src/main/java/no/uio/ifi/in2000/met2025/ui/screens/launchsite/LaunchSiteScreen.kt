@@ -1,63 +1,125 @@
 package no.uio.ifi.in2000.met2025.ui.screens.launchsite
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun LaunchSiteScreen(viewModel: LaunchSiteViewModel = hiltViewModel()) {
-    val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
+    val launchSites    by viewModel.launchSites.collectAsState(initial = emptyList())
     var showNewSiteDialog by remember { mutableStateOf(false) }
 
-    // Separate "New Marker" from other launch sites as before.
     val newMarkerSite = launchSites.find { it.name == "New Marker" }
-    val otherSites = launchSites.filter { it.name != "Last Visited" && it.name != "New Marker" }
+    val otherSites    = launchSites
+        .filter { it.name != "Last Visited" && it.name != "New Marker" }
         .sortedBy { it.name }
     val displaySites = listOfNotNull(newMarkerSite) + otherSites
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Saved Launch Sites", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn {
-            items(displaySites) { site ->
-                LaunchSiteItem(
-                    site = site,
-                    onDelete = { viewModel.deleteLaunchSite(site) },
-                    onEdit = { updatedSite ->
-                        // Instead of updating in place, add a new record with the edited values.
-                        viewModel.addLaunchSite(updatedSite.latitude, updatedSite.longitude, updatedSite.name)
-                    }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = { showNewSiteDialog = true },
-            modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            color          = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp,
+            shape          = RoundedCornerShape(12.dp)
         ) {
-            Text("+")
-        }
-    }
+            Column(modifier = Modifier.fillMaxSize()) {
+                // — HEADER IN ORANGE BAND —
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                        .background(
+                            color = WarmOrange,
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text      = "LAUNCH SITES",
+                        style     = MaterialTheme.typography.titleLarge,
+                        fontWeight= FontWeight.ExtraBold,
+                        color     = MaterialTheme.colorScheme.onPrimary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
 
-    if (showNewSiteDialog) {
-        // This dialog can also be used to add a completely new launch site.
-        NewLaunchSiteDialog(
-            onDismiss = { showNewSiteDialog = false },
-            onConfirm = { name, latStr, lonStr ->
-                val lat = latStr.toDoubleOrNull()
-                val lon = lonStr.toDoubleOrNull()
-                if (lat != null && lon != null && name.isNotBlank()) {
-                    viewModel.addLaunchSite(lat, lon, name)
-                    showNewSiteDialog = false
+                LazyColumn(
+                    modifier            = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    contentPadding      = PaddingValues(
+                        horizontal = 16.dp,
+                        vertical   = 8.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(displaySites) { site ->
+                        LaunchSiteItem(
+                            site     = site,
+                            onDelete = { viewModel.deleteLaunchSite(site) },
+                            onEdit   = { updatedSite ->
+                                viewModel.addLaunchSite(
+                                    updatedSite.latitude,
+                                    updatedSite.longitude,
+                                    updatedSite.name
+                                )
+                            }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Button(
+                    onClick    = { showNewSiteDialog = true },
+                    modifier   = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors     = ButtonDefaults.buttonColors(
+                        containerColor = WarmOrange,
+                        contentColor   = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("+")
                 }
             }
-        )
+        }
+
+        if (showNewSiteDialog) {
+            NewLaunchSiteDialog(
+                onDismiss = { showNewSiteDialog = false },
+                onConfirm = { name, latStr, lonStr ->
+                    val lat = latStr.toDoubleOrNull()
+                    val lon = lonStr.toDoubleOrNull()
+                    if (lat != null && lon != null && name.isNotBlank()) {
+                        viewModel.addLaunchSite(lat, lon, name)
+                        showNewSiteDialog = false
+                    }
+                }
+            )
+        }
     }
 }

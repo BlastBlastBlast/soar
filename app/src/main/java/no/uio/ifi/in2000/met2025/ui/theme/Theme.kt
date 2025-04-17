@@ -2,6 +2,8 @@ package no.uio.ifi.in2000.met2025.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -11,6 +13,8 @@ import androidx.compose.ui.platform.LocalContext
 import no.uio.ifi.in2000.met2025.R
 
 val LocalIsDarkTheme = staticCompositionLocalOf { false }
+val LocalAppCursorColor = staticCompositionLocalOf { Color.Black }
+
 
 // Dark mode
 private val DarkColorScheme = darkColorScheme(
@@ -32,7 +36,7 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = White,
     background = White,        // Light background.
     onBackground = Black,
-    surface = WarmOrange,           // Cards and surfaces are light.
+    surface = Color(0xFFD9D9D9),           // Cards and surfaces are light.
     onSurface = Black
 )
 
@@ -71,7 +75,11 @@ fun In2000_met2025_team21Theme(
     }
 
     CompositionLocalProvider(
-        LocalIsDarkTheme provides darkTheme
+        LocalTextSelectionColors provides TextSelectionColors(
+            handleColor     = WarmOrange,
+            backgroundColor = WarmOrange.copy(alpha = 0.4f)
+        ),
+        LocalAppCursorColor provides WarmOrange
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

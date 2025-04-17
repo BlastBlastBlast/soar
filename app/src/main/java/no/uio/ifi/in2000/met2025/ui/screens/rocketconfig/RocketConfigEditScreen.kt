@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.RocketParameterValues
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.ui.AppOutlinedTextField
 
 @Composable
 fun RocketConfigEditScreen(
@@ -40,63 +41,63 @@ fun RocketConfigEditScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = name,
             onValueChange = { name = it },
             label = { Text("Configuration Name") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = apogee,
             onValueChange = { apogee = it },
             label = { Text("Apogee (m)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = launchDirection,
             onValueChange = { launchDirection = it },
             label = { Text("Launch Direction (°)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = launchAngle,
             onValueChange = { launchAngle = it },
             label = { Text("Launch Angle (°)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = thrust,
             onValueChange = { thrust = it },
             label = { Text("Thrust (Newtons)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = burnTime,
             onValueChange = { burnTime = it },
             label = { Text("Burn Time (s)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = dryWeight,
             onValueChange = { dryWeight = it },
             label = { Text("Dry Weight (kg)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = wetWeight,
             onValueChange = { wetWeight = it },
             label = { Text("Wet Weight (kg)") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        AppOutlinedTextField(
             value = resolution,
             onValueChange = { resolution = it },
             label = { Text("Resolution") },

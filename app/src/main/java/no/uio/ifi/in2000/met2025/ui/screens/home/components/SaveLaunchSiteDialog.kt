@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.met2025.ui.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.theme.AppTypography
 
 @Composable
@@ -43,15 +44,11 @@ fun SaveLaunchSiteDialog(
                         style = AppTypography.bodyMedium
                     )
                     Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
+                    AppOutlinedTextField(
                         value         = launchSiteName,
                         onValueChange = onNameChange,
                         label         = { Text("Site Name") },
-                        modifier      = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor   = MaterialTheme.colorScheme.onPrimary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
-                        )
+                        modifier      = Modifier.fillMaxWidth()
                     )
                 }
             }
