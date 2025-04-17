@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun WeatherLoadingSpinner(modifier: Modifier = Modifier) {
@@ -44,7 +45,7 @@ fun WeatherLoadingSpinner(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(64.dp)
                 .rotate(rotation),
-            tint = MaterialTheme.colorScheme.primary
+            tint = WarmOrange
         )
     }
 }
