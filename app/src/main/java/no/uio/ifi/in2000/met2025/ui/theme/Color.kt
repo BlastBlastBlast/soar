@@ -16,9 +16,9 @@ val IconGrey = Color(0xFF9E9E9E)
 val IconBlue = Color(0xFF03A9F4)
 
 // new light‑mode icon colors
-val IconSafeLight    = Color(0xFF3F51B5)
+val IconSafeLight    = Color(0xFF2196F3)
 val IconCautionLight = Color(0xFFFFEB3B)  // yellow
-val IconUnsafeLight  = Color(0xFF520000)  // red
+val IconUnsafeLight  = Color(0xFFF44336)  // red
 
 // new dark‑mode icon colors
 val IconSafeDark    = Color(0xFF2196F3)  // blue

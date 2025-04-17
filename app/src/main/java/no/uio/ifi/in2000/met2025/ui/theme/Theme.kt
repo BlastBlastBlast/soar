@@ -26,13 +26,13 @@ private val DarkColorScheme = darkColorScheme(
 
 // Light mode
 private val LightColorScheme = lightColorScheme(
-    primary = WarmOrange,      // Accent color remains warm orange.
+    primary = White,      // Accent color remains warm orange.
     onPrimary = Black,         // White text on warm orange.
     secondary = Black,         // Black used for secondary elements.
     onSecondary = White,
     background = White,        // Light background.
     onBackground = Black,
-    surface = White,           // Cards and surfaces are light.
+    surface = WarmOrange,           // Cards and surfaces are light.
     onSurface = Black
 )
 
@@ -57,7 +57,7 @@ fun In2000_met2025_team21Theme(
                 )
             } else {
                 dynamicLightColorScheme(context).copy(
-                    primary = WarmOrange,
+                    primary = White,
                     onPrimary = Black,
                     background = White,
                     onBackground = Black,
