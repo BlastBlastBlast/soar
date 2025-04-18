@@ -25,6 +25,19 @@ class SimpleLinkedList<T>(
         }
     }
 
+    operator fun plusAssign(value: T) {
+        add(value)
+    }
+
+    fun add(list: SimpleLinkedList<T>) {
+        tail?.next = list.head
+        tail = list.tail
+    }
+
+    operator fun plusAssign(list: SimpleLinkedList<T>) {
+        add(list)
+    }
+
     fun head(): T? = head?.value
 
     fun tail(): T? = tail?.value
