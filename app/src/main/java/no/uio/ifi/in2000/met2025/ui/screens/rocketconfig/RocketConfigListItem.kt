@@ -10,14 +10,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
@@ -33,6 +32,7 @@ fun RocketConfigItem(
 ) {
     val shape = RoundedCornerShape(8.dp)
 
+    // Each item on pure white primary
     Surface(
         modifier        = Modifier
             .fillMaxWidth()
@@ -47,7 +47,8 @@ fun RocketConfigItem(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
                 Text(

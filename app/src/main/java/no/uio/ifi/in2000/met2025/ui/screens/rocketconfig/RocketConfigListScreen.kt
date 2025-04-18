@@ -54,7 +54,7 @@ fun RocketConfigListScreen(
             shape           = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
-                // — HEADER BAND —
+                // Orange header band
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -78,7 +78,8 @@ fun RocketConfigListScreen(
                     Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     items(rockets) { rocket ->
                         RocketConfigItem(
@@ -110,4 +111,3 @@ fun RocketConfigListScreen(
         }
     }
 }
-

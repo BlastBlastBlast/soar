@@ -45,6 +45,7 @@ fun RocketConfigEditScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // Wrapper on "surface" with tonal+shadow
         Surface(
             modifier        = Modifier
                 .fillMaxSize()
@@ -59,7 +60,7 @@ fun RocketConfigEditScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                // — HEADER
+                // Orange header band
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -79,77 +80,77 @@ fun RocketConfigEditScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                // — FIELDS
+                // Form fields
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     AppOutlinedTextField(
-                        value = name,
+                        value         = name,
                         onValueChange = { name = it },
-                        label = { Text("Configuration Name") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Configuration Name") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = apogee,
+                        value         = apogee,
                         onValueChange = { apogee = it },
-                        label = { Text("Apogee (m)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Apogee (m)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = launchDirection,
+                        value         = launchDirection,
                         onValueChange = { launchDirection = it },
-                        label = { Text("Launch Direction (°)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Launch Direction (°)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = launchAngle,
+                        value         = launchAngle,
                         onValueChange = { launchAngle = it },
-                        label = { Text("Launch Angle (°)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Launch Angle (°)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = thrust,
+                        value         = thrust,
                         onValueChange = { thrust = it },
-                        label = { Text("Thrust (N)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Thrust (N)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = burnTime,
+                        value         = burnTime,
                         onValueChange = { burnTime = it },
-                        label = { Text("Burn Time (s)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Burn Time (s)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = dryWeight,
+                        value         = dryWeight,
                         onValueChange = { dryWeight = it },
-                        label = { Text("Dry Weight (kg)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Dry Weight (kg)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = wetWeight,
+                        value         = wetWeight,
                         onValueChange = { wetWeight = it },
-                        label = { Text("Wet Weight (kg)") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Wet Weight (kg)") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
-                        value = resolution,
+                        value         = resolution,
                         onValueChange = { resolution = it },
-                        label = { Text("Resolution") },
-                        modifier = Modifier.fillMaxWidth()
+                        label         = { Text("Resolution") },
+                        modifier      = Modifier.fillMaxWidth()
                     )
                 }
 
                 Spacer(Modifier.height(16.dp))
 
-                // — SAVE BUTTON
+                // Save button
                 Button(
-                    onClick = {
+                    onClick  = {
                         val updated = RocketConfig(
                             id              = rocketParameters?.id ?: 0,
                             name            = name,
@@ -170,7 +171,7 @@ fun RocketConfigEditScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
+                    colors   = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
