@@ -16,8 +16,8 @@ fun ColoredSwitch(
         checked = checked,
         onCheckedChange = onCheckedChange,
         colors = SwitchDefaults.colors(
-            checkedThumbColor   = MaterialTheme.colorScheme.primary,
-            uncheckedThumbColor = MaterialTheme.colorScheme.onPrimary,
+            checkedThumbColor   = Color.White,
+            uncheckedThumbColor = Color.LightGray,
             checkedTrackColor   = WarmOrange,
             uncheckedTrackColor = Color.Black,
         )
