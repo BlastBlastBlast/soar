@@ -1,18 +1,16 @@
 package no.uio.ifi.in2000.met2025.data.remote.forecast
 
-import androidx.compose.animation.core.rememberTransition
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import no.uio.ifi.in2000.met2025.data.models.ForecastData
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataResponse
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
-import no.uio.ifi.in2000.met2025.data.models.TimeSeries
-import java.sql.Time
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastData
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataResponse
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.TimeSeries
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
-import javax.inject.Named
+
 // LocationForecastRepository.kt
 class LocationForecastRepository @Inject constructor(
     private val locationForecastDataSource: LocationForecastDataSource

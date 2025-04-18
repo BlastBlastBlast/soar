@@ -2,9 +2,9 @@ package no.uio.ifi.in2000.met2025.data.models.safetyevaluation
 
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.icon
 import no.uio.ifi.in2000.met2025.domain.helpers.isEnabled
 import no.uio.ifi.in2000.met2025.domain.helpers.isEnabledAt
@@ -28,6 +28,24 @@ data class ParameterEvaluation(
     val icon: EvaluationIcon? = null
 )
 
+fun evaluateLaunchConditions(config: ConfigProfile, forecastDataItem: ForecastDataItem? = null, isobaricData: IsobaricData? = null): ParameterState
+=
+    when {
+        forecastDataItem == null && isobaricData == null -> ParameterState.Missing
+        isobaricData == null -> evaluateLaunchConditions(forecastDataItem!!, config)
+        forecastDataItem == null -> evaluateLaunchConditions(isobaricData, config)
+
+        ConfigParameter.entries.all { !forecastDataItem.isEnabledAt(it, config) }
+                && ((!config.isEnabledAirWind && !config.isEnabledWindShear)
+                || (config.isEnabledAltitudeUpperBound && config.altitudeUpperBound <= 0)) -> ParameterState.Disabled
+
+        ForecastDataValues::class.memberProperties.any { it.get(forecastDataItem.values) == null } -> ParameterState.Missing
+
+        else -> ParameterState.Available(
+            relativeUnsafety(config = config, forecastDataItem = forecastDataItem, isobaricData = isobaricData)!!
+        )
+    }
+
 fun evaluateLaunchConditions(forecastDataItem: ForecastDataItem, config: ConfigProfile): ParameterState {
     if (ConfigParameter.entries.all { !forecastDataItem.isEnabledAt(it, config) }) {
         return ParameterState.Disabled
@@ -38,49 +56,36 @@ fun evaluateLaunchConditions(forecastDataItem: ForecastDataItem, config: ConfigP
     }
 
     return ParameterState.Available(
-        relativeUnsafety(forecastDataItem, config)!!
+        relativeUnsafety(config = config, forecastDataItem = forecastDataItem, )!!
     )
 }
 
 fun evaluateLaunchConditions(isobaricData: IsobaricData, config: ConfigProfile): ParameterState {
-    if (!config.isEnabledAirWind && !config.isEnabledWindShear) {
+    if ((!config.isEnabledAirWind && !config.isEnabledWindShear) || (config.isEnabledAltitudeUpperBound && config.altitudeUpperBound <= 0)) {
         return ParameterState.Disabled
     }
 
     return ParameterState.Available(
-        relativeUnsafety(isobaricData, config)!!
+        relativeUnsafety(config = config, isobaricData = isobaricData)!!
     )
 }
 
 fun evaluateParameterCondition(value: Double?, config: ConfigProfile, parameter: ConfigParameter): ParameterState
-        = when {
-    value == null -> ParameterState.Missing
-    !config.isEnabled(parameter) -> ParameterState.Disabled
-    else -> ParameterState.Available(
-        relativeUnsafety(value, config.threshold(parameter))!!
-    )
-}
+=
+    when {
+        value == null -> ParameterState.Missing
+        !config.isEnabled(parameter) -> ParameterState.Disabled
+        else -> ParameterState.Available(
+            relativeUnsafety(value, config.threshold(parameter))!!
+        )
+    }
 
-//    return ParameterEvaluation(
-//        label = parameter.label(),
-//        value = when (state) {
-//            is ParameterState.Missing -> "Not available"
-//            is ParameterState.Disabled -> "Turned Off"
-//            is ParameterState.Available -> {
-//                "$value ${parameter.unit()}"
-//            }
-//        },
-//        state = state,
-//        icon = parameter.icon()
-//    )
-//}
-
-fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation> {
-    return ForecastDataValues::class.memberProperties
+fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfile): List<ParameterEvaluation>
+=
+    ForecastDataValues::class.memberProperties
         .mapNotNull { it.toConfigParameter() }
         .sortedWith(compareBy { ConfigParameter.entries.indexOf(it) })
         .map { configParameter ->
-
             val value = forecast.valueAt(configParameter)
             val state = when {
                 value == null -> ParameterState.Missing
@@ -106,4 +111,3 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
                 icon = configParameter.icon()
             )
         }
-}

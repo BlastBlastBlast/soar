@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,29 +26,32 @@ fun FilterToggleValid(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Styled similarly to the other overlay items.
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val minWidth = screenWidth * 0.4f
-    val maxWidth = screenWidth * 0.8f
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val minW = screenWidth * 0.4f
+    val maxW = screenWidth * 0.8f
 
-    Row(
+    ElevatedCard(
         modifier = modifier
-            .clickable { onClick() }
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
-            .background(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .padding(8.dp)
-            .widthIn(min = minWidth, max = maxWidth),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = if (isActive) "Show all" else "Show valid",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyMedium,
-            fontSize = 14.sp
+            .widthIn(min = minW, max = maxW)
+            .clickable(onClick = onClick),
+        shape     = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp),
+        colors    = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+            contentColor   = MaterialTheme.colorScheme.onSurface
         )
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text       = if (isActive) "Show all" else "Show valid",
+                fontWeight = FontWeight.Bold,
+                style      = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }

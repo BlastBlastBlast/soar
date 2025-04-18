@@ -1,9 +1,9 @@
-package no.uio.ifi.in2000.met2025.data.models
+package no.uio.ifi.in2000.met2025.data.models.grib
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class IsobaricAvailabilityResponse (
+data class GribAvailabilityResponse (
     val entries: List<DataEntry>
 )
 

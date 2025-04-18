@@ -5,7 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.url
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataResponse
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataResponse
 import java.math.RoundingMode
 import javax.inject.Inject
 

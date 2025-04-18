@@ -10,16 +10,15 @@ class LaunchSitesRepository @Inject constructor(
     private val launchSiteDAO: LaunchSiteDAO
 ){
     fun getCurrentCoordinates(
-        tempName: String = "Last Visited",
         defaultCoordinates: Pair<Double, Double> = Pair(59.942, 10.726)
     ): Flow<Pair<Double, Double>> {
-        return getTempSite(tempName).map { launchSite ->
+        return getLastVisitedTempSite().map { launchSite ->
             launchSite?.let { Pair(it.latitude, it.longitude) } ?: defaultCoordinates
         }
     }
 
-    suspend fun insertAll(vararg sites: LaunchSite) {
-        launchSiteDAO.insertAll(*sites)
+    suspend fun insert(sites: LaunchSite) {
+        launchSiteDAO.insert(sites)
     }
 
     suspend fun deleteSite(site: LaunchSite) {
@@ -30,17 +29,21 @@ class LaunchSitesRepository @Inject constructor(
         return launchSiteDAO.getAll()
     }
 
-    suspend fun updateSites(vararg sites: LaunchSite) {
-        launchSiteDAO.updateSites(*sites)
+    suspend fun update(sites: LaunchSite) {
+        launchSiteDAO.update(sites)
     }
 
 
-    fun getTempSite(tempName: String = "Last Visited"): Flow<LaunchSite?> {
-        return launchSiteDAO.getTempSite(tempName)
+    fun getLastVisitedTempSite(): Flow<LaunchSite?> {
+        return launchSiteDAO.getLastVisitedTempSite()
     }
 
 
     fun getNewMarkerTempSite(tempName: String = "New Marker"): Flow<LaunchSite?> {
-        return launchSiteDAO.getNewMarkerTempSite(tempName)
+        return launchSiteDAO.getNewMarkerTempSite()
+    }
+
+    suspend fun checkIfSiteExists(name : String) : Boolean {
+        return launchSiteDAO.checkIfSiteExists(name) != null
     }
 }

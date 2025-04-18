@@ -23,7 +23,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.CoordinateDisplay
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesButton
@@ -47,6 +46,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
     val launchSites by viewModel.launchSites.collectAsState()
+    val updateStatus by viewModel.updateStatus.collectAsState()
     val context = LocalContext.current
     var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
     var showSaveDialog by remember { mutableStateOf(false) }
@@ -222,31 +222,41 @@ fun HomeScreen(
                 if (showSaveDialog && savedMarkerCoordinates != null) {
                     SaveLaunchSiteDialog(
                         launchSiteName = launchSiteName,
-                        onNameChange = { launchSiteName = it },
+                        onNameChange = {
+                            launchSiteName = it;
+                            viewModel.setUpdateStatusIdle()},
                         onDismiss = {
                             showSaveDialog = false
                             savedMarkerCoordinates = null
                             launchSiteName = ""
                             isEditingMarker = false
+                            viewModel.setUpdateStatusIdle()
                         },
                         onConfirm = {
                             val (lat, lon) = savedMarkerCoordinates!!
                             if (isEditingMarker) {
-                                // Update the site rather than adding a new one.
                                 viewModel.updateLaunchSite(editingMarkerId, lat, lon, launchSiteName)
                             } else {
-                                // For a new marker, add it and update the placeholder marker.
                                 viewModel.addLaunchSite(lat, lon, launchSiteName)
                                 viewModel.updateNewMarker(lat, lon)
                             }
+                            // DO NOT close the dialog here – wait for Success via LaunchedEffect
+                        },
+                        updateStatus = updateStatus
+                    )
+
+                    // React to successful save (not on confirm click)
+                    LaunchedEffect(updateStatus) {
+                        if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
+                            // Close and reset all state
                             showSaveDialog = false
                             savedMarkerCoordinates = null
                             launchSiteName = ""
-                            isEditingMarker = false  // Reset the editing flag
+                            isEditingMarker = false
+                            viewModel.setUpdateStatusIdle()
                         }
-                    )
+                    }
                 }
-
             }
         }
     }

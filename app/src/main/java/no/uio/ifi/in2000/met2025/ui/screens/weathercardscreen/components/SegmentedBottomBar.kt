@@ -1,6 +1,7 @@
 // SegmentedBottomBar.kt
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,18 +45,20 @@ fun SegmentedBottomBar(
                 .weight(1f)
                 .fillMaxHeight()
                 .clickable { onLaunchClick() },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(BorderStroke(1.dp, Color.White), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "LAUNCH",
                     color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+
                 )
             }
         }
@@ -69,7 +74,8 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(BorderStroke(1.dp, Color.White), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "FILTER",
@@ -90,7 +96,8 @@ fun SegmentedBottomBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(2.dp)
-                    .border(1.dp, Color.White.copy(alpha = 0.5f)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(BorderStroke(1.dp, Color.White), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "CONFIG",
