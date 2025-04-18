@@ -1,7 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
 import no.uio.ifi.in2000.met2025.data.models.Angle
-import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.GRAVITY
 import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.sin
@@ -36,11 +35,7 @@ class TrajectoryCalculator(
         dragCoefficient: Double,
         parachuteCrossSectionalArea: Double,
         parachuteDragCoefficient: Double,
-    ): Pair<List<Pair<D1Array<Double>, Double>>, List<Pair<D1Array<Double>, Double>>> {
-
-        val initialAirValues: CartesianIsobaricValues = isobaricInterpolator.getCartesianIsobaricValues(
-            position = initialPosition
-        )
+    ): List<Pair<D1Array<Double>, Double>> {
 
         val launchDirectionUnitVector = mk.ndarray(mk[
             sin(launchAzimuth) * cos(launchPitch),
@@ -49,20 +44,19 @@ class TrajectoryCalculator(
         )
 
         val accelerationFromGravity = -mk.ndarray(mk[0.0, 0.0, GRAVITY])
-
         val accelerationFromGravityOnLaunchRail = -launchDirectionUnitVector * cos(Angle(90.0) - launchPitch) * GRAVITY
         val zeroVector = mk.zeros<Double>(3)
 
-        fun calculateTrajectoryRecursive(
+        tailrec fun calculateTrajectoryRecursive(
             currentPosition: D1Array<Double>,
             currentVelocity: D1Array<Double>,
             timeAfterLaunch: Double,
             coefficientOfDrag: Double,
             areaOfCrossSection: Double,
-            result: Pair<SimpleLinkedList<Pair<D1Array<Double>, Double>>, SimpleLinkedList<Pair<D1Array<Double>, Double>>>
-        ): Pair<SimpleLinkedList<Pair<D1Array<Double>, Double>>, SimpleLinkedList<Pair<D1Array<Double>, Double>>> {
+            result: SimpleLinkedList<Pair<D1Array<Double>, Double>>
+        ): SimpleLinkedList<Pair<D1Array<Double>, Double>> {
 
-            val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition/*, velocity*/)
+            val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition)
             val windVector = mk.ndarray(mk[
                 airValues.windXComponent,
                 airValues.windYComponent,
@@ -80,10 +74,10 @@ class TrajectoryCalculator(
                 derivative = { incrementedTime, incrementedVelocity ->
                     // wind contributes to drag if it is in the opposite direction of the velocity
                     // the velocity is not affected by wind when the rocket is on the launch rail
-                    val velocityWithWind = incrementedVelocity - if (isOnLaunchRail(currentPosition)) {
-                        zeroVector
+                    val velocityWithWind = if (isOnLaunchRail(currentPosition)) {
+                        incrementedVelocity
                     } else {
-                        windVector
+                        incrementedVelocity - windVector
                     }
 
                     val dragForce = -0.5 * crossSectionalArea * dragCoefficient * airValues.pressure * velocityWithWind * velocityWithWind
@@ -95,10 +89,10 @@ class TrajectoryCalculator(
                     }
 
                     // linear interpolation of mass wrt time
-                    val massAtIncrementedTime = wetMass * (1 - burnProgress) + dryMass * burnProgress
+                    val massAtIncrement = wetMass * (1 - burnProgress) + dryMass * burnProgress
 
                     // acceleration from thrust, drag and gravity
-                    (thrustForce + dragForce) / massAtIncrementedTime + if (isOnLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
+                    (thrustForce + dragForce) / massAtIncrement + if (isOnLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
                 }
             )
 
@@ -122,28 +116,29 @@ class TrajectoryCalculator(
             } else {
                 // add new position and speed to result
                 val newPositionWithSpeed = Pair(newPosition, newVelocity.norm())
-                result.first += newPositionWithSpeed
+                result += newPositionWithSpeed
 
                 if (currentVelocity[2] >= 0 && newVelocity[2] <= 0) {
                     // if highest point is reached, deploy parachute and calculate new trajectory
-                    result.second += calculateTrajectoryRecursive(
+                    calculateTrajectoryRecursive(
                         currentPosition = newPosition,
                         currentVelocity = newVelocity,
                         timeAfterLaunch = timeAfterLaunch + stepSize,
                         coefficientOfDrag = parachuteDragCoefficient,
                         areaOfCrossSection = parachuteCrossSectionalArea,
-                        result = Pair(SimpleLinkedList(newPositionWithSpeed), SimpleLinkedList())
-                    ).first
+                        result = result
+                    )
+                } else {
+                    // recursive call with new position and velocity
+                    calculateTrajectoryRecursive(
+                        currentPosition = newPosition,
+                        currentVelocity = newVelocity,
+                        timeAfterLaunch = timeAfterLaunch + stepSize,
+                        coefficientOfDrag = coefficientOfDrag,
+                        areaOfCrossSection = areaOfCrossSection,
+                        result = result
+                    )
                 }
-                // recursive call with new position and velocity
-                calculateTrajectoryRecursive(
-                    currentPosition = newPosition,
-                    currentVelocity = newVelocity,
-                    timeAfterLaunch = timeAfterLaunch + stepSize,
-                    coefficientOfDrag = coefficientOfDrag,
-                    areaOfCrossSection = areaOfCrossSection,
-                    result = result
-                )
             }
         }
 
@@ -153,10 +148,10 @@ class TrajectoryCalculator(
             timeAfterLaunch = 0.0,
             coefficientOfDrag = dragCoefficient,
             areaOfCrossSection = crossSectionalArea,
-            result = Pair(SimpleLinkedList(Pair(initialPosition, 0.0)), SimpleLinkedList())
+            result = SimpleLinkedList(Pair(initialPosition, 0.0))
         )
 
-        return Pair(result.first.toList(), result.second.toList())
+        return result.toList()
     }
 }
 
