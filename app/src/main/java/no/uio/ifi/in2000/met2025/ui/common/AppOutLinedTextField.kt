@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui
+package no.uio.ifi.in2000.met2025.ui.common
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField

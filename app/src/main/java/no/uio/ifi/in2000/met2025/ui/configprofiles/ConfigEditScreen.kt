@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.ui.AppOutlinedTextField
+import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSwitch
 import no.uio.ifi.in2000.met2025.ui.configprofiles.common.ScreenContainer
 import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SectionCard

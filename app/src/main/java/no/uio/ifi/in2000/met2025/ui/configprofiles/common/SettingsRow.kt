@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.ui.AppOutlinedTextField
+import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSwitch
 
 @Composable
