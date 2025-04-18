@@ -24,9 +24,9 @@ class TrajectoryCalculator(
 ) {
     fun calculateTrajectory(
         initialPosition: D1Array<Double>,
-        launchDirection: Angle,
-        launchAngle: Angle, //upwards is 90 degrees
-        initialSpeed: Double,
+        launchAzimuth: Angle, //clockwise from north
+        launchPitch: Angle, //upwards is 90 degrees
+        launchRailLength: Double,
         wetMass: Double,
         dryMass: Double,
         burnTime: Double,
@@ -41,16 +41,10 @@ class TrajectoryCalculator(
             position = initialPosition
         )
 
-        val initialWindVector = mk.ndarray(mk[
-            initialAirValues.windXComponent,
-            initialAirValues.windYComponent,
-            0.0]
-        )
-
-        val initialSpatialDirection = mk.ndarray(mk[
-            cos(launchDirection.radians) * cos(launchAngle.radians),
-            sin(launchDirection.radians) * cos(launchAngle.radians),
-            sin(launchAngle.radians)]
+        val launchDirectionUnitVector = mk.ndarray(mk[
+            sin(launchAzimuth.radians) * cos(launchPitch.radians),
+            cos(launchAzimuth.radians) * cos(launchPitch.radians),
+            sin(launchPitch.radians)]
         )
 
         val accelerationFromGravity = -mk.ndarray(mk[0.0, 0.0, GRAVITY])
@@ -79,34 +73,52 @@ class TrajectoryCalculator(
                 0.0]
             )
 
-            val acceleration: (Double, D1Array<Double>) -> D1Array<Double> = { incrementedTime, incrementedVelocity ->
-                val velocityWithWind = incrementedVelocity - windVector
+            val accelerationAfterIncrementedTime: (Double, D1Array<Double>) -> D1Array<Double> = { incrementedTime, incrementedVelocity ->
+                // wind contributes to drag if it is in the opposite direction of the velocity
+                // the velocity is not affected by wind when the rocket is on the launch rail
+                val velocityWithWind = incrementedVelocity - if ((position - initialPosition).norm() < launchRailLength) {
+                    zeroVector
+                } else {
+                    windVector
+                }
+
                 val dragForce = -0.5 * estimatedCrossSectionalArea * dragCoefficient * airValues.pressure * velocityWithWind * velocityWithWind
 
                 val (thrustForce, burnProgress) = if (incrementedTime >= burnTime) {
                     Pair(zeroVector, 1.0)
                 } else {
-                    Pair(thrust * initialSpatialDirection, incrementedTime / burnTime)
+                    Pair(thrust * launchDirectionUnitVector, incrementedTime / burnTime)
                 }
 
+                // linear interpolation of mass wrt time
                 val massAtIncrementedTime = wetMass * (1 - burnProgress) + dryMass * burnProgress
 
+                // acceleration from thrust, drag and gravity
                 (thrustForce + dragForce) / massAtIncrementedTime + accelerationFromGravity
             }
 
             // Runge-Kutta 4th order method for velocity
-            val kv1 = acceleration(timeAfterLaunch, velocity)
-            val kv2 = acceleration(timeAfterLaunch + stepSize / 2, velocity + kv1 * (stepSize / 2))
-            val kv3 = acceleration(timeAfterLaunch + stepSize / 2, velocity + kv2 * (stepSize / 2))
-            val kv4 = acceleration(timeAfterLaunch + stepSize, velocity + kv3 * stepSize)
+            val kv1 = accelerationAfterIncrementedTime(timeAfterLaunch, velocity)
+            val kv2 = accelerationAfterIncrementedTime(timeAfterLaunch + stepSize / 2, velocity + kv1 * (stepSize / 2))
+            val kv3 = accelerationAfterIncrementedTime(timeAfterLaunch + stepSize / 2, velocity + kv2 * (stepSize / 2))
+            val kv4 = accelerationAfterIncrementedTime(timeAfterLaunch + stepSize, velocity + kv3 * stepSize)
 
             val newVelocity = velocity + (kv1 + 2.0 * kv2 + 2.0 * kv3 + kv4) * (stepSize / 6)
 
+            val velocityAfterIncrementedTime: (/*Double, */D1Array<Double>) -> D1Array<Double> = {/* incrementedTime, */incrementedPosition ->
+                // the velocity is not affected by wind when the rocket is on the launch rail
+                velocity - if ((incrementedPosition - initialPosition).norm() < launchRailLength) {
+                    zeroVector
+                } else {
+                    windVector
+                }
+            }
+
             // Runge-Kutta 4th order method for position
-            // val ks1 = velocity
-            val ks2 = velocity + kv1 * (stepSize / 2)
-            val ks3 = velocity + kv2 * (stepSize / 2)
-            val ks4 = velocity + kv3 * stepSize
+            val ks1 = velocityAfterIncrementedTime(position)
+            val ks2 = velocityAfterIncrementedTime(position + ks1 * (stepSize / 2))
+            val ks3 = velocityAfterIncrementedTime(position + ks2 * (stepSize / 2))
+            val ks4 = velocityAfterIncrementedTime(position + ks3 * stepSize)
 
             val newPosition = position + (velocity + 2.0 * ks2 + 2.0 * ks3 + ks4) * (stepSize / 6)
 
@@ -139,9 +151,9 @@ class TrajectoryCalculator(
 
         val result = calculateTrajectoryRecursive(
             position = initialPosition,
-            velocity = initialSpeed * initialSpatialDirection + initialWindVector,
+            velocity = zeroVector,
             timeAfterLaunch = 0.0,
-            result = Pair(SimpleLinkedList(Pair(initialPosition, initialSpeed)), SimpleLinkedList())
+            result = Pair(SimpleLinkedList(Pair(initialPosition, 0.0)), SimpleLinkedList())
         )
 
         return Pair(result.first.toList(), result.second.toList())
