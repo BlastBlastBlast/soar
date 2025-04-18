@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui
+package no.uio.ifi.in2000.met2025.ui.common
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
