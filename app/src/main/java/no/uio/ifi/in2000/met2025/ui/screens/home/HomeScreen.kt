@@ -85,7 +85,7 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 MapContainer(
                     coordinates = coordinates,
-                    temporaryMarker = null,
+                    //temporaryMarker = null,
                     launchSites = launchSites,
                     mapViewportState = mapViewportState,
                     showAnnotations = showAnnotations,
@@ -235,7 +235,7 @@ fun HomeScreen(
                         onConfirm = {
                             val (lat, lon) = savedMarkerCoordinates!!
                             if (isEditingMarker) {
-                                viewModel.updateLaunchSite(editingMarkerId, lat, lon, launchSiteName)
+                                viewModel.editLaunchSite(editingMarkerId, lat, lon, launchSiteName)
                             } else {
                                 viewModel.addLaunchSite(lat, lon, launchSiteName)
                                 viewModel.updateNewMarker(lat, lon)

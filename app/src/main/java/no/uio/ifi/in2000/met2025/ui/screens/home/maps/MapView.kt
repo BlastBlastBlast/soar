@@ -30,7 +30,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 @Composable
 fun MapView(
     center: Pair<Double, Double>,
-    temporaryMarker: Point? = null,
+    //temporaryMarker: Point? = null,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
@@ -50,6 +50,7 @@ fun MapView(
         }
     }
     val scope = rememberCoroutineScope()
+    var temporaryMarker : Point? by remember { mutableStateOf(null) }
 
     Box(modifier = modifier) {
         MapboxMap(
@@ -60,6 +61,7 @@ fun MapView(
             mapViewportState = mapViewportState,
             onMapLongClickListener = { point ->
                 onMapLongClick(point)
+                temporaryMarker = point
                 true
             }
         ) {
@@ -97,7 +99,7 @@ fun MapView(
                     }
                 }
             }
-            launchSites.filter { it.name != "Last Visited" }.forEach { site ->
+            launchSites.filter { it.name != "Last Visited" && it.name != "New Marker"}.forEach { site ->
                 val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
                 val markerImage = rememberIconImage(
                     key = "launchSite_${site.uid}",

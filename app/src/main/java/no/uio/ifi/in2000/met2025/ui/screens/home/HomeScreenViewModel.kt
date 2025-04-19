@@ -124,7 +124,7 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    fun updateLaunchSite(siteId: Int, lat: Double, lon: Double, name: String) {
+    fun editLaunchSite(siteId: Int, lat: Double, lon: Double, name: String) {
         viewModelScope.launch {
             // Create an updated LaunchSite instance.
             // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
