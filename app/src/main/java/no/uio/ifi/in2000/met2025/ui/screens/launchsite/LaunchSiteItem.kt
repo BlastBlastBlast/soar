@@ -160,25 +160,23 @@ fun LaunchSiteItem(
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
                             }
                             IconButton(onClick = {
-                                isEditing = false
                                 name = site.name
                                 latitudeText = site.latitude.toString()
                                 longitudeText = site.longitude.toString()
+                                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
+                                    isEditing = false
+                                }
                             }) {
                                 Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
                             }
+                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing) {
+                                Text(
+                                    text = updateStatus.message,
+                                    color = Color.Red
+                                )
+                            }
                         }
-
                     }
-                }
-                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error) {
-                    Text(
-                        text = updateStatus.message,
-                        color = Color.Red
-                    )
-                }
-                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
-                    isEditing = false
                 }
             }
         }
