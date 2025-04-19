@@ -19,7 +19,6 @@ import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
-import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
 import java.time.Instant
 import javax.inject.Inject
 import kotlin.math.atan2

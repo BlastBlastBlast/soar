@@ -4,25 +4,15 @@ import no.uio.ifi.in2000.met2025.data.models.Angle
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.GRAVITY
 import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.sin
+import no.uio.ifi.in2000.met2025.data.models.Vector3D
+import no.uio.ifi.in2000.met2025.data.models.times
 import no.uio.ifi.in2000.met2025.domain.helperclasses.SimpleLinkedList
-import org.jetbrains.kotlinx.multik.api.mk
-import org.jetbrains.kotlinx.multik.api.ndarray
-import org.jetbrains.kotlinx.multik.api.zeros
-import org.jetbrains.kotlinx.multik.default.math.DefaultMath.sum
-import org.jetbrains.kotlinx.multik.ndarray.data.D1Array
-import org.jetbrains.kotlinx.multik.ndarray.operations.times
-import org.jetbrains.kotlinx.multik.ndarray.operations.div
-import org.jetbrains.kotlinx.multik.ndarray.operations.plus
-import org.jetbrains.kotlinx.multik.ndarray.operations.unaryMinus
-import org.jetbrains.kotlinx.multik.ndarray.data.get
-import org.jetbrains.kotlinx.multik.ndarray.operations.minus
-import kotlin.math.sqrt
 
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
 ) {
     fun calculateTrajectory(
-        initialPosition: D1Array<Double>,
+        initialPosition: Vector3D,
         launchAzimuth: Angle, //clockwise from north
         launchPitch: Angle, //upwards is 90 degrees
         launchRailLength: Double,
@@ -35,35 +25,35 @@ class TrajectoryCalculator(
         dragCoefficient: Double,
         parachuteCrossSectionalArea: Double,
         parachuteDragCoefficient: Double,
-    ): List<Pair<D1Array<Double>, Double>> {
+    ): List<Pair<Vector3D, Double>> {
 
-        val launchDirectionUnitVector = mk.ndarray(mk[
-            sin(launchAzimuth) * cos(launchPitch),
-            cos(launchAzimuth) * cos(launchPitch),
-            sin(launchPitch)]
+        val launchDirectionUnitVector = Vector3D(
+            x = sin(launchAzimuth) * cos(launchPitch),
+            y = cos(launchAzimuth) * cos(launchPitch),
+            z = sin(launchPitch)
         )
 
-        val accelerationFromGravity = -mk.ndarray(mk[0.0, 0.0, GRAVITY])
-        val accelerationFromGravityOnLaunchRail = -launchDirectionUnitVector * cos(Angle(90.0) - launchPitch) * GRAVITY
-        val zeroVector = mk.zeros<Double>(3)
+        val accelerationFromGravity = Vector3D(0.0, 0.0, -GRAVITY)
+        val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
+        val zeroVector = Vector3D(0.0, 0.0, 0.0)
 
         tailrec fun calculateTrajectoryRecursive(
-            currentPosition: D1Array<Double>,
-            currentVelocity: D1Array<Double>,
+            currentPosition: Vector3D,
+            currentVelocity: Vector3D,
             timeAfterLaunch: Double,
             coefficientOfDrag: Double,
             areaOfCrossSection: Double,
-            result: SimpleLinkedList<Pair<D1Array<Double>, Double>>
-        ): SimpleLinkedList<Pair<D1Array<Double>, Double>> {
+            result: SimpleLinkedList<Pair<Vector3D, Double>>
+        ): SimpleLinkedList<Pair<Vector3D, Double>> {
 
             val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition)
-            val windVector = mk.ndarray(mk[
-                airValues.windXComponent,
-                airValues.windYComponent,
-                0.0]
+            val windVector = Vector3D(
+                x = airValues.windXComponent,
+                y = airValues.windYComponent,
+                z = 0.0
             )
 
-            val isOnLaunchRail: (D1Array<Double>) -> Boolean = { position ->
+            val isOnLaunchRail: (Vector3D) -> Boolean = { position ->
                 (position - initialPosition).norm() <= launchRailLength
             }
 
@@ -85,7 +75,7 @@ class TrajectoryCalculator(
                     val (thrustForce, burnProgress) = if (incrementedTime >= burnTime) {
                         Pair(zeroVector, 1.0)
                     } else {
-                        Pair(thrust * launchDirectionUnitVector, incrementedTime / burnTime)
+                        Pair(thrust * launchDirectionUnitVector , incrementedTime / burnTime)
                     }
 
                     // linear interpolation of mass wrt time
@@ -110,7 +100,7 @@ class TrajectoryCalculator(
                 }
             )
 
-            return if (newPosition[2] < initialPosition[2]) { // FIXME: This is a placeholder for the ground check
+            return if (newPosition.z < initialPosition.z) { // FIXME: This is a placeholder for the ground check
                 // if new altitude is below ground, return result
                 result
             } else {
@@ -118,7 +108,7 @@ class TrajectoryCalculator(
                 val newPositionWithSpeed = Pair(newPosition, newVelocity.norm())
                 result += newPositionWithSpeed
 
-                if (currentVelocity[2] >= 0 && newVelocity[2] <= 0) {
+                if (currentVelocity.z >= 0 && newVelocity.z <= 0) {
                     // if highest point is reached, deploy parachute and calculate new trajectory
                     calculateTrajectoryRecursive(
                         currentPosition = newPosition,
@@ -155,19 +145,17 @@ class TrajectoryCalculator(
     }
 }
 
-private fun D1Array<Double>.norm(): Double = sqrt(sum(this * this))
-
 // Runge-Kutta 4th order method for a single step
 fun rungeKutta4(
-    initialVector: D1Array<Double>,
+    initialVector: Vector3D,
     time: Double,
     stepSize: Double,
-    derivative: (Double, D1Array<Double>) -> D1Array<Double>,
-): D1Array<Double> {
+    derivative: (Double, Vector3D) -> Vector3D,
+): Vector3D {
     val k1 = derivative(time, initialVector)
     val k2 = derivative(time + stepSize / 2, initialVector + k1 * (stepSize / 2))
     val k3 = derivative(time + stepSize / 2, initialVector + k2 * (stepSize / 2))
     val k4 = derivative(time + stepSize, initialVector + k3 * stepSize)
 
-    return initialVector + (k1 + 2.0 * k2 + 2.0 * k3 + k4) * (stepSize / 6)
+    return initialVector + (k1 + k2 * 2.0 + k3 * 2.0 + k4) * (stepSize / 6)
 }

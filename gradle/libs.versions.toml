@@ -2,7 +2,7 @@
 agp = "8.9.1"
 cdmCore = "5.7.0"
 gradle = "8.9.1"
-guavaVersion = "31.1-android"
+guavaVersion = "31.0.1-android"
 hiltAndroid = "2.55"
 kotlin = "2.1.0"
 coreKtx = "1.15.0"
@@ -26,6 +26,7 @@ listenablefuture = "31.1-android"
 materialIconsExtended = "1.7.8"
 multikCore = "0.2.3"
 multikDefault = "0.2.3"
+nd4jNativePlatform = "1.0.0-M2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +61,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 listenablefuture = { module = "com.google.guava:listenablefuture", version.ref = "listenablefuture" }
 multik-core = { module = "org.jetbrains.kotlinx:multik-core", version.ref = "multikCore" }
 multik-default = { module = "org.jetbrains.kotlinx:multik-default", version.ref = "multikDefault" }
+nd4j-native-platform = { module = "org.nd4j:nd4j-native-platform", version.ref = "nd4jNativePlatform" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
