@@ -8,12 +8,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import javax.inject.Inject
 
+// HomeScreenViewModel.kt
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val launchSiteDao: LaunchSiteDAO
+    private val launchSitesRepository: LaunchSitesRepository
 ) : ViewModel() {
 
     sealed class HomeScreenUiState {
@@ -32,14 +33,30 @@ class HomeScreenViewModel @Inject constructor(
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
 
+    // StateFlow that holds the list of UI launch sites.
+    private val _launchSites = MutableStateFlow<List<LaunchSite>>(emptyList())
+    val launchSites: StateFlow<List<LaunchSite>> = _launchSites
+
+    sealed class UpdateStatus {
+        object Idle : UpdateStatus()
+        object Success : UpdateStatus()
+        data class Error(val message: String) : UpdateStatus()
+    }
+
+    private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
+    val updateStatus: StateFlow<UpdateStatus> = _updateStatus
+
     init {
-        // Continuously collect the launch sites list so that any update is emitted.
         viewModelScope.launch {
-            launchSiteDao.getAll().collect { sites ->
-                // Get the "Last Visited" record continuously.
-                val tempSite = launchSiteDao.getTempSite("Last Visited").firstOrNull()
+            launchSitesRepository.getAll().collect { sites ->
+                // Use the received list of LaunchSite objects directly.
+                _launchSites.value = sites
+
+                // Optionally update coordinates based on a temporary "Last Visited" record.
+                val tempSite = launchSitesRepository.getLastVisitedTempSite().firstOrNull()
                 val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
                 updateCoordinates(newCoords.first, newCoords.second)
+
                 _uiState.value = HomeScreenUiState.Success(
                     launchSites = sites,
                     apiKeyAvailable = true,
@@ -56,13 +73,23 @@ class HomeScreenViewModel @Inject constructor(
     fun updateLastVisited(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val currentVisited = launchSiteDao.getTempSite("Last Visited").firstOrNull()
-                if (currentVisited == null) {
-                    launchSiteDao.insertAll(
-                        LaunchSite(latitude = lat, longitude = lon, name = "Last Visited")
+                val exists = launchSitesRepository.checkIfSiteExists("Last Visited")
+                if (exists) {
+                    launchSitesRepository.update(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            name = "Last Visited"
+                        )
                     )
                 } else {
-                    launchSiteDao.updateSites(currentVisited.copy(latitude = lat, longitude = lon))
+                    launchSitesRepository.insert(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            name = "Last Visited"
+                        )
+                    )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -73,13 +100,23 @@ class HomeScreenViewModel @Inject constructor(
     fun updateNewMarker(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val currentMarker = launchSiteDao.getTempSite("New Marker").firstOrNull()
-                if (currentMarker == null) {
-                    launchSiteDao.insertAll(
-                        LaunchSite(latitude = lat, longitude = lon, name = "New Marker")
+                val exists = launchSitesRepository.checkIfSiteExists("New Marker")
+                if (exists) {
+                    launchSitesRepository.update(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            name = "New Marker"
+                        )
                     )
                 } else {
-                    launchSiteDao.updateSites(currentMarker.copy(latitude = lat, longitude = lon))
+                    launchSitesRepository.insert(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            name = "New Marker"
+                        )
+                    )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -87,8 +124,29 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
+    fun updateLaunchSite(siteId: Int, lat: Double, lon: Double, name: String) {
+        viewModelScope.launch {
+            // Create an updated LaunchSite instance.
+            // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
+            val exists = launchSitesRepository.checkIfSiteExists(name)
+            if (exists) {
+                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+            } else {
+                val updatedSite = LaunchSite(
+                    uid = siteId,
+                    name = name,
+                    latitude = lat,
+                    longitude = lon
+                )
+                // Use your repository's update function.
+                launchSitesRepository.update(updatedSite)
+                _updateStatus.value = UpdateStatus.Success
+            }
+        }
+    }
+
     fun onMarkerPlaced(lat: Double, lon: Double) {
-        // When placing a marker, update both temporary records.
+        // When a marker is placed, update both temporary records via the repository.
         updateCoordinates(lat, lon)
         updateLastVisited(lat, lon)
         updateNewMarker(lat, lon)
@@ -97,11 +155,21 @@ class HomeScreenViewModel @Inject constructor(
     fun addLaunchSite(lat: Double, lon: Double, name: String) {
         viewModelScope.launch {
             try {
-                launchSiteDao.insertAll(LaunchSite(latitude = lat, longitude = lon, name = name))
+                launchSitesRepository.insert(
+                    LaunchSite(
+                        latitude = lat,
+                        longitude = lon,
+                        name = name
+                    )
+                )
             } catch (e: Exception) {
                 _uiState.value = HomeScreenUiState.Error(e.message ?: "Failed to add launch site")
             }
         }
+    }
+
+    fun setUpdateStatusIdle() {
+        _updateStatus.value = UpdateStatus.Idle
     }
 
     fun geocodeAddress(address: String): Pair<Double, Double>? {

@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -11,12 +13,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,106 +49,80 @@ fun LaunchSitesMenu(
     onSiteSelected: (LaunchSite) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Get screen width from configuration.
     val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    // Set a minimum width (e.g. 40% of the screen) and a maximum width (e.g. 80%).
-    val minWidth = screenWidth * 0.4f
-    val maxWidth = screenWidth * 0.8f
+    val screenWidth   = configuration.screenWidthDp.dp
+    val screenHeight  = configuration.screenHeightDp.dp
+    val minWidth      = screenWidth * 0.3f
+    val maxWidth      = screenWidth * 0.8f
+    val maxHeight     = screenHeight * 0.5f
 
-    // Separate the pinned marker ("New Marker") from the rest.
-    val pinnedMarker = launchSites.find { it.name == "New Marker" }
-    val otherSites = launchSites.filter { it.name != "New Marker" }
+    // build list with "New Marker" first
+    val items = buildList<LaunchSite> {
+        launchSites.find { it.name == "New Marker" }?.let(::add)
+        addAll(launchSites.filter { it.name != "New Marker" })
+    }
 
-    Column(modifier = modifier.padding(8.dp)) {
-        // Pinned marker element at the top.
-        pinnedMarker?.let { site ->
+    Column(
+        modifier = modifier
+            .padding(8.dp)
+            .heightIn(max = maxHeight)
+            .verticalScroll(rememberScrollState()), // scroll if too tall
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items.forEachIndexed { idx, site ->
             AnimatedVisibility(
                 visible = true,
-                enter = slideInVertically(
+                enter   = slideInVertically(
                     initialOffsetY = { it / 2 },
-                    animationSpec = tween(durationMillis = 150)
-                ) + fadeIn(animationSpec = tween(durationMillis = 150))
+                    animationSpec  = tween(durationMillis = 150, delayMillis = idx * 30)
+                ) + fadeIn(animationSpec = tween(150, idx * 30)),
+                exit    = shrinkVertically(
+                    shrinkTowards = Alignment.Bottom,
+                    animationSpec = tween(150)
+                ) + fadeOut(tween(150))
             ) {
-                Row(
-                    modifier = Modifier
-                        .clickable { onSiteSelected(site) }
-                        .animateContentSize()
-                        .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
-                        // Use the theme's surface color for background.
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
-                        .padding(4.dp)
+                ElevatedCard(
+                    modifier  = Modifier
                         .widthIn(min = minWidth, max = maxWidth)
-                        .wrapContentWidth(Alignment.Start),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Column for text (title and coordinates)
-                    Column(modifier = Modifier.wrapContentWidth(Alignment.Start)) {
-                        Text(
-                            text = "Last Marker",
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "${"%.4f".format(site.latitude)}, ${"%.4f".format(site.longitude)}",
-                            fontSize = 7.sp,
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                    Image(
-                        painter = painterResource(id = R.drawable.red_marker),
-                        contentDescription = "New Marker",
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .size(20.dp)
+                        .animateContentSize(tween(200))
+                        .clickable { onSiteSelected(site) },
+                    shape     = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.elevatedCardElevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 4.dp
+                    ),
+                    colors    = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                        contentColor   = MaterialTheme.colorScheme.onSurface
                     )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        // Other (unpinned) site elements.
-        otherSites.forEachIndexed { index, site ->
-            AnimatedVisibility(
-                visible = true,
-                enter = slideInVertically(
-                    initialOffsetY = { it / 2 },
-                    animationSpec = tween(durationMillis = 150, delayMillis = index * 50)
-                ) + fadeIn(animationSpec = tween(durationMillis = 150, delayMillis = index * 50))
-            ) {
-                Column {
+                ) {
                     Row(
-                        modifier = Modifier
-                            .clickable { onSiteSelected(site) }
-                            .animateContentSize()
-                            .shadow(elevation = 8.dp, shape = RoundedCornerShape(8.dp))
-                            // Use the theme's surface color so it adapts to dark/light mode.
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), shape = RoundedCornerShape(8.dp))
-                            .padding(4.dp)
-                            .widthIn(min = minWidth, max = maxWidth)
-                            .wrapContentWidth(Alignment.Start),
+                        Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.wrapContentWidth(Alignment.Start)) {
+                        Column(Modifier.weight(1f)) {
                             Text(
-                                text = site.name,
+                                text       = if (site.name == "New Marker") "Last Marker" else site.name,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${"%.4f".format(site.latitude)}, ${"%.4f".format(site.longitude)}",
-                                fontSize = 7.sp,
-                                textAlign = TextAlign.Start
+                                text     = "%.4f, %.4f".format(site.latitude, site.longitude),
+                                fontSize = 7.sp
+                            )
+                        }
+                        if (site.name == "New Marker") {
+                            Image(
+                                painter            = painterResource(R.drawable.red_marker),
+                                contentDescription = "New Marker",
+                                modifier           = Modifier.size(20.dp)
                             )
                         }
                     }
-                    if (index < otherSites.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                            thickness = 1.dp,
-                            color = Color.LightGray
-                        )
-                    }
                 }
             }
+
+            // add 8.dp space after every card
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

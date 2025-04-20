@@ -1,67 +1,105 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windcomponents.AWTableContents
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 import java.time.Instant
 
+// AtmosphericWindTable.kt
 @Composable
 fun AtmosphericWindTable(
     viewModel: WeatherCardViewmodel,
     coordinates: Pair<Double, Double>,
     time: Instant
 ) {
-    val onClickGetIsobaricData = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) }
-
     val isobaricTimeData by viewModel.isobaricData.collectAsState()
-    val isobaricDataUiState = isobaricTimeData[time] ?: WeatherCardViewmodel.AtmosphericWindUiState.Idle
+    val lastLoadedCoordinates by viewModel.lastIsobaricCoordinates.collectAsState()
+    val config by viewModel.activeConfig.collectAsState()
 
-    when (isobaricDataUiState) {
+    val effectiveState = if (lastLoadedCoordinates != coordinates) {
+        WeatherCardViewmodel.AtmosphericWindUiState.Idle
+    } else {
+        isobaricTimeData[time] ?: WeatherCardViewmodel.AtmosphericWindUiState.Idle
+    }
+
+    when (effectiveState) {
         is WeatherCardViewmodel.AtmosphericWindUiState.Idle -> {
             Button(
-                onClick = { onClickGetIsobaricData() },
+                onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .fillMaxWidth()
-                    .background(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primary)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(6.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
-                Text(text = "Get Isobaric Data")
+                Text(
+                    text = "Get Isobaric Data",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                )
             }
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Loading -> {
-            Text(
-                text = "Loading isobaric data...",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        is WeatherCardViewmodel.AtmosphericWindUiState.Error -> {
-            Text(
-                text = "Error loading isobaric data: ${isobaricDataUiState.message}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Button(
-                onClick = { onClickGetIsobaricData() },
+            Box(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .fillMaxWidth()
-                    .background(shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp), color = MaterialTheme.colorScheme.primary)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = "Retry loading isobaric data")
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
+            }
+        }
+        is WeatherCardViewmodel.AtmosphericWindUiState.Error -> {
+            Column {
+                Text(
+                    text = "Error loading isobaric data: ${effectiveState.message}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Button(
+                    onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
+                ) {
+                    Text(text = "Retry loading isobaric data",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
             }
         }
         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
-            AWTableContents(isobaricDataUiState.isobaricData)
+            if (config == null) {
+                Text("Loading configuration...", color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.bodyMedium)
+            } else {
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
+                Text("Atmospheric Wind Data", color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.primary)
+                AWTableContents(effectiveState.isobaricData, config!!)
+            }
         }
     }
 }

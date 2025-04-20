@@ -6,12 +6,16 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 
-@Database(entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class], version = 3)
+@Database(
+    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
+    version = 4
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
     abstract fun gribDataDao(): GribDataDAO
     abstract fun gribUpdatedDao(): GribUpdatedDAO
     abstract fun configProfileDao(): ConfigProfileDAO
+    abstract fun rocketConfigDao(): RocketConfigDao
 }
 
 @Entity
@@ -49,8 +53,9 @@ data class GribUpdated(
 
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
-    @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String,
+    @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
     @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
     @ColumnInfo(name = "dew_point_threshold") val dewPointThreshold: Double = 15.0,
@@ -73,6 +78,26 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_precipitation") val isEnabledPrecipitation: Boolean = true,
     @ColumnInfo(name = "probability_of_thunder_threshold") val probabilityOfThunderThreshold: Double = 0.0,
     @ColumnInfo(name = "is_enabled_probability_of_thunder") val isEnabledProbabilityOfThunder: Boolean = true,
+    @ColumnInfo(name = "is_default") val isDefault: Boolean = false,
+    @ColumnInfo(name = "altitude_upper_bound") val altitudeUpperBound: Double = 5000.0,
+    @ColumnInfo(name = "is_enabled_altitude_upper_bound") val isEnabledAltitudeUpperBound: Boolean = true,
+    @ColumnInfo(name = "wind_shear_speed_threshold") val windShearSpeedThreshold: Double = 24.5,
+    @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
+)
+
+@Entity(tableName = "rocket_configurations")
+data class RocketConfig(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id") val id: Int = 0,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "apogee") val apogee: Double,
+    @ColumnInfo(name = "launch_direction") val launchDirection: Double,
+    @ColumnInfo(name = "launch_angle") val launchAngle: Double,
+    @ColumnInfo(name = "thrust") val thrust: Double,
+    @ColumnInfo(name = "burn_time") val burnTime: Double,
+    @ColumnInfo(name = "dry_weight") val dryWeight: Double,
+    @ColumnInfo(name = "wet_weight") val wetWeight: Double,
+    @ColumnInfo(name = "resolution") val resolution: Double,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
 

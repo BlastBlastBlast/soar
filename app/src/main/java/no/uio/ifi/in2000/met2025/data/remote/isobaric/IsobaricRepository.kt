@@ -8,15 +8,18 @@ import no.uio.ifi.in2000.met2025.data.local.database.GribData
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdated
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
-import no.uio.ifi.in2000.met2025.data.models.AvailabilityData
-import no.uio.ifi.in2000.met2025.data.models.GribDataMap
-import no.uio.ifi.in2000.met2025.data.models.GribVectors
-import no.uio.ifi.in2000.met2025.data.models.IsobaricAvailabilityResponse
-import no.uio.ifi.in2000.met2025.data.models.StructuredAvailability
+import no.uio.ifi.in2000.met2025.data.models.grib.AvailabilityData
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
+import no.uio.ifi.in2000.met2025.data.models.grib.GribParsingResult
+import no.uio.ifi.in2000.met2025.data.models.grib.GribVectors
+import no.uio.ifi.in2000.met2025.data.models.grib.GribAvailabilityResponse
+import no.uio.ifi.in2000.met2025.data.models.grib.StructuredAvailability
 import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
+import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 
@@ -27,24 +30,27 @@ class IsobaricRepository @Inject constructor(
     private val gribDAO: GribDataDAO,
     private val updatedDAO: GribUpdatedDAO
 ) {
-    suspend fun getIsobaricGribData(timeSlot: Instant): Result<GribDataMap> {
+    private val gribMaps: MutableMap<String, GribDataMap> = mutableMapOf()
+
+    suspend fun getIsobaricGribData(timeSlot: Instant): GribDataResult {
         //holds a common updated timestamp and individual time stamps and uri's for each dataset
         val availableData = getAvailabilityData()
         println("IsobaricGribDataCalled")
         if (availableData != null) {
             //returns the uri and time stamp for the dataset where timeSlot is valid
-            val data = availableData.findClosestBefore(timeSlot)
-            val time = data?.time
+            val data = availableData.findClosestBefore(timeSlot) ?: return GribDataResult.AvailabilityError
+            val time = data.time
+            if (time.toString() in gribMaps.keys) {return GribDataResult.Success(gribMaps[time.toString()]!!)}
             val byteArray: ByteArray
             if (!isGribUpToDate(availableData)) {
                 gribDAO.clearAll()
                 updatedDAO.delete()
-                time?.let { updatedDAO.insert(GribUpdated(it.toString())) }
+                time.let { updatedDAO.insert(GribUpdated(it.toString())) }
                 val isobaricData: Result<ByteArray> =
-                    isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                    isobaricDataSource.fetchIsobaricGribData(data.uri)
                 byteArray = isobaricData.fold(
                     onSuccess = { it },
-                    onFailure = { return returnErrorAndPrint("Error fetching grib data") }
+                    onFailure = { return GribDataResult.FetchingError }
                 )
             } else {
                 if (gribDAO.getByTimestamp(time.toString()) != null) {
@@ -52,24 +58,40 @@ class IsobaricRepository @Inject constructor(
                     byteArray = isobaricData.data
                 } else {
                     val isobaricData: Result<ByteArray> =
-                        isobaricDataSource.fetchIsobaricGribData(data!!.uri)
+                        isobaricDataSource.fetchIsobaricGribData(data.uri)
                     byteArray = isobaricData.fold(
                         onSuccess = { it },
-                        onFailure = { return returnErrorAndPrint("Error fetching grib data") }
+                        onFailure = { return GribDataResult.FetchingError }
                     )
                 }
             }
             val gribData = GribData(time.toString(), byteArray)
             gribDAO.insert(gribData)
             val res = parseGribData(byteArray, time.toString())
-            println("IsobaricGribDataReturned")
-            return res
+            when (res){
+                is GribParsingResult.Error -> return GribDataResult.FetchingError
+                is GribParsingResult.Success -> gribMaps[time.toString()] = res.gribDataMap
+            }
+            return GribDataResult.Success(res.gribDataMap)
         } else {
-            return returnErrorAndPrint("Availability data is null")
+            val roundedTime = timeSlot.roundToNearest3Hour()
+            if (roundedTime in gribMaps.keys) {return GribDataResult.Success(gribMaps[roundedTime]!!)}
+            val databaseCheck = gribDAO.getByTimestamp(roundedTime)
+            if (databaseCheck != null) {
+                val byteArray = databaseCheck.data
+                when (val res = parseGribData(byteArray, roundedTime)){
+                    is GribParsingResult.Error -> return GribDataResult.ParsingError
+                    is GribParsingResult.Success -> {
+                        gribMaps[roundedTime] = res.gribDataMap
+                        return GribDataResult.Success(res.gribDataMap)
+                    }
+                }
+            }
+            return GribDataResult.FetchingError
         }
     }
 
-    private suspend fun parseGribData(byteArray: ByteArray, time: String): Result<GribDataMap> {
+    private suspend fun parseGribData(byteArray: ByteArray, time: String): GribParsingResult {
         Mutex().withLock {
             val dataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
 
@@ -104,7 +126,7 @@ class IsobaricRepository @Inject constructor(
                     if (latitudes == null || longitudes == null || isobaricLevels == null) {
                         val errorMsg = "Missing lat/lon/isobaric data"
                         println(errorMsg)
-                        return Result.failure((Exception(errorMsg)))
+                        return GribParsingResult.Error
                     }
                     println("lat/lon/isobaric data found")
 
@@ -116,7 +138,7 @@ class IsobaricRepository @Inject constructor(
                         ?.read() as? ArrayFloat.D4
 
                     if (uWindVar == null || vWindVar == null || temperatureVar == null) { //
-                        return returnErrorAndPrint("Missing temperature or wind data")
+                        return GribParsingResult.Error
                     }
                     println("temperature/wind data found")
 
@@ -148,6 +170,7 @@ class IsobaricRepository @Inject constructor(
                                     isobaricMap[level.toInt()] = GribVectors(temperature, uWind, vWind)
                                 } catch (e: IndexOutOfBoundsException) {
                                     println("Index error: levelIdx=$levelIdx, latIdx=$latIdx, lonIdx=$lonIdx")
+                                    return GribParsingResult.Error
                                 }
                             }
 
@@ -162,9 +185,10 @@ class IsobaricRepository @Inject constructor(
                 tempFile.delete()
             } catch (e: Exception) {
                 println("Error processing GRIB file: ${e.message}")
+                return GribParsingResult.Error
             }
             val gribDataMap = GribDataMap(time, dataMap)
-            return Result.success(gribDataMap)
+            return GribParsingResult.Success(gribDataMap)
         }
     }
 
@@ -185,7 +209,7 @@ class IsobaricRepository @Inject constructor(
     }
 
     private fun restructureAvailabilityResponse(
-        availResponse: IsobaricAvailabilityResponse
+        availResponse: GribAvailabilityResponse
     ): StructuredAvailability {
         val updatedInstant = Instant.parse(availResponse.entries.first().updated)
 
@@ -200,12 +224,16 @@ class IsobaricRepository @Inject constructor(
         val data = this.availData
             .filter { it.time <= targetTime } //kryssa fingrane for at <= ikkje ødelegge alt
             .maxByOrNull { it.time }
+        if (data != null) {
+            if (Duration.between(targetTime, data.time).abs() > Duration.ofSeconds(10799))
+                return null
+        }
         return data
     }
 
-    private fun <T> returnErrorAndPrint(message: String): Result<T> {
-        println(message)
-        return Result.failure(Exception(message))
+    private fun Instant.roundToNearest3Hour(): String {
+        val rounded = (epochSecond / 3600 / 3) * 3 * 3600
+        return Instant.ofEpochSecond(rounded).toString()
     }
 }
 

@@ -1,37 +1,44 @@
 package no.uio.ifi.in2000.met2025.data.remote.forecast
 
-import androidx.compose.animation.core.rememberTransition
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import no.uio.ifi.in2000.met2025.data.models.ForecastData
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataResponse
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
-import no.uio.ifi.in2000.met2025.data.models.TimeSeries
-import java.sql.Time
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastData
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataResponse
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.TimeSeries
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
-import javax.inject.Named
 
+// LocationForecastRepository.kt
 class LocationForecastRepository @Inject constructor(
     private val locationForecastDataSource: LocationForecastDataSource
 ) {
+    // Cache both the forecast response and the coordinates used to fetch it.
     private var cachedForecastDataResponse: ForecastDataResponse? = null
+    private var cachedCoordinates: Pair<Double, Double>? = null
 
     private suspend fun fetchForecastDataResponse(
         lat: Double,
         lon: Double,
     ): Result<ForecastDataResponse> {
         Mutex().withLock {
-            return if (
-                cachedForecastDataResponse != null
-                && Instant.parse(cachedForecastDataResponse!!.properties.meta.updatedAt) <= Instant.now() - Duration.ofHours(1)
-                ) {
+            // Invalidate the cache if the coordinates have changed.
+            if (cachedCoordinates == null || cachedCoordinates != Pair(lat, lon)) {
+                cachedForecastDataResponse = null
+                cachedCoordinates = Pair(lat, lon)
+            }
+            // If we have a cached result and it was updated within the last hour, use it.
+            return if (cachedForecastDataResponse != null &&
+                Instant.parse(cachedForecastDataResponse!!.properties.meta.updatedAt) > Instant.now() - Duration.ofHours(1)
+            ) {
                 Result.success(cachedForecastDataResponse!!)
             } else {
                 locationForecastDataSource.fetchForecastDataResponse(lat, lon).also { result ->
-                    result.onSuccess { cachedForecastDataResponse = it }
+                    result.onSuccess { response ->
+                        cachedForecastDataResponse = response
+                    }
                 }
             }
         }
@@ -48,6 +55,7 @@ class LocationForecastRepository @Inject constructor(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
         )
+        // (The rest of your filtering logic remains the same.)
         val responseItems = response.properties.timeSeries
         val filteredItems = if (time != null) {
             responseItems.filter { Instant.parse(it.time) >= time.minus(Duration.ofHours(1)) }

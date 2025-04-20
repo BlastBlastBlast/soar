@@ -1,6 +1,4 @@
-package no.uio.ifi.in2000.met2025.data.models
-
-import kotlinx.serialization.SerialName
+package no.uio.ifi.in2000.met2025.data.models.locationforecast
 
 data class ForecastData(
     val updatedAt: String,
@@ -30,7 +28,6 @@ data class ForecastDataValues(
     val probabilityOfThunder: Double?,
     val symbolCode: String? = null
 )
-
 
 
 // ein mindre nøsta struktur enn responsdataen
