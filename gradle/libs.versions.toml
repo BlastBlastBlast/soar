@@ -1,6 +1,7 @@
 [versions]
 agp = "8.9.1"
 cdmCore = "5.7.0"
+commonsMath3 = "3.6.1"
 gradle = "8.9.1"
 guavaVersion = "31.0.1-android"
 hiltAndroid = "2.55"
@@ -32,6 +33,7 @@ nd4jNativePlatform = "1.0.0-M2.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 cdm-core = { module = "edu.ucar:cdm-core", version.ref = "cdmCore" }
+commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commonsMath3" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 grib = { module = "edu.ucar:grib", version.ref = "cdmCore" }
 guava-v3100android = { module = "com.google.guava:guava", version.ref = "guavaVersion" }
