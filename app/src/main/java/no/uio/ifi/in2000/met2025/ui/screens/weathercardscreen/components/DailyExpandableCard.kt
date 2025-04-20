@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,80 +62,89 @@ fun getDominantSymbolCode(items: List<ForecastDataItem>): String? {
 }
 
 
+
+
 @Composable
 fun DailyForecastCard(
     forecastItems: List<ForecastDataItem>,
     modifier: Modifier = Modifier
 ) {
     val day = formatZuluTimeToLocalDate(forecastItems.first().time)
-    //val overallStatus = evaluateDailyLaunchStatus(forecastItems)
-
     val avgTemperature = forecastItems.map { it.values.airTemperature }.average()
-    val avgFog = forecastItems.map { it.values.fogAreaFraction ?: 0.0}.average()
-    val totalPrecipitation = forecastItems.sumOf { it.values.precipitationAmount ?: 0.0}
-    val maxDewPoint = forecastItems.maxOf { it.values.dewPointTemperature ?: 0.0}
+    val avgFog = forecastItems.map { it.values.fogAreaFraction ?: 0.0 }.average()
+    val totalPrecipitation = forecastItems.sumOf { it.values.precipitationAmount ?: 0.0 }
+    val maxDewPoint = forecastItems.maxOf { it.values.dewPointTemperature ?: 0.0 }
     val maxHumidity = forecastItems.maxOf { it.values.relativeHumidity }
-    val maxAirWind = forecastItems.maxOf { it.values.windSpeedOfGust ?: 0.0}
-    val minAirWind = forecastItems.minOf { it.values.windSpeedOfGust ?: 0.0}
+    val maxAirWind = forecastItems.maxOf { it.values.windSpeedOfGust ?: 0.0 }
+    val minAirWind = forecastItems.minOf { it.values.windSpeedOfGust ?: 0.0 }
     val maxGroundWind = forecastItems.maxOf { it.values.windSpeed }
     val minGroundWind = forecastItems.minOf { it.values.windSpeed }
     val avgWindDirection = forecastItems.map { it.values.windFromDirection }.average()
     val avgCloudCover = forecastItems.map { it.values.cloudAreaFraction }.average()
 
-    var expanded by remember { mutableStateOf(false) }
-
     val dominantSymbol = getDominantSymbolCode(forecastItems)
     val iconRes = getWeatherIconRes(dominantSymbol)
 
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
+            .width(250.dp)
             .clickable { expanded = !expanded },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(6.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                iconRes?.let {
-                    Image(
-                        painter = painterResource(id = it),
-                        contentDescription = dominantSymbol,
-                        modifier = Modifier.size(64.dp)
-                    )
-                }
-                Text("Day: $day",
-                    style = MaterialTheme.typography.headlineSmall
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Dag i hjørnet
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = day,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.align(Alignment.TopStart)
                 )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+
+            iconRes?.let {
+                Image(
+                    painter = painterResource(id = it),
+                    contentDescription = dominantSymbol,
+                    modifier = Modifier.size(72.dp)
+                )
+            }
+
+            Text(
+                text = "${avgTemperature.toInt()}°C",
+                style = MaterialTheme.typography.headlineLarge
+            )
 
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                "🌡️ Avg. Temperature: ${"%.1f".format(avgTemperature)}°C",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
+            // Expandable section
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    Text("☁️ Avg. Cloud Cover: ${"%.1f".format(avgCloudCover)}%", style = MaterialTheme.typography.bodyMedium)
-                    Text("🌧️ Total Precipitation: ${"%.1f".format(totalPrecipitation)} mm", style = MaterialTheme.typography.bodyMedium)
-                    Text("🌫️ Avg. Fog: ${"%.1f".format(avgFog)}%", style = MaterialTheme.typography.bodyMedium)
-                    Text("💧 Max Humidity: ${"%.1f".format(maxHumidity)}%", style = MaterialTheme.typography.bodyMedium)
-                    Text("🌡️ Max Dew Point: ${"%.1f".format(maxDewPoint)}°C", style = MaterialTheme.typography.bodyMedium)
-                    Text("💨 Air Wind Gust: ${"%.1f".format(minAirWind)} - ${"%.1f".format(maxAirWind)} m/s", style = MaterialTheme.typography.bodyMedium)
-                    Text("🌬️ Ground Wind: ${"%.1f".format(minGroundWind)} - ${"%.1f".format(maxGroundWind)} m/s", style = MaterialTheme.typography.bodyMedium)
-                    Text("🧭 Avg. Wind Direction: ${"%.1f".format(avgWindDirection)}°", style = MaterialTheme.typography.bodyMedium)
-
+                    Text("☁️ Avg. Cloud Cover: ${"%.1f".format(avgCloudCover)}%", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    Text("🌧️ Total Precipitation: ${"%.1f".format(totalPrecipitation)} mm", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
+                    Text("🌫️ Avg. Fog: ${"%.1f".format(avgFog)}%", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
+                    Text("💧 Max Humidity: ${"%.1f".format(maxHumidity)}%", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
+                    Text("🌡️ Max Dew Point: ${"%.1f".format(maxDewPoint)}°C", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
+                    Text("💨 Air Wind Gust: ${"%.1f".format(minAirWind)} - ${"%.1f".format(maxAirWind)} m/s", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
+                    Text("🌬️ Ground Wind: ${"%.1f".format(minGroundWind)} - ${"%.1f".format(maxGroundWind)} m/s", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
+                    Text("🧭 Avg. Wind Direction: ${"%.1f".format(avgWindDirection)}°", style = MaterialTheme.typography.labelSmall, maxLines = 1)
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun DailyLazyRow(allForecastItems: List<ForecastDataItem>) {
