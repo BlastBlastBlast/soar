@@ -15,6 +15,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
+import no.uio.ifi.in2000.met2025.data.models.getWeatherIconRes
+
 
 /*
 fun evaluateDailyLaunchStatus(items: List<ForecastDataItem>): LaunchStatus {
@@ -131,14 +133,14 @@ fun DailyForecastCard(
             // Expandable section
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    Text("☁️ Avg. Cloud Cover: ${"%.1f".format(avgCloudCover)}%", style = MaterialTheme.typography.labelSmall, maxLines = 1)
-                    Text("🌧️ Total Precipitation: ${"%.1f".format(totalPrecipitation)} mm", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
-                    Text("🌫️ Avg. Fog: ${"%.1f".format(avgFog)}%", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
-                    Text("💧 Max Humidity: ${"%.1f".format(maxHumidity)}%", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
-                    Text("🌡️ Max Dew Point: ${"%.1f".format(maxDewPoint)}°C", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
-                    Text("💨 Air Wind Gust: ${"%.1f".format(minAirWind)} - ${"%.1f".format(maxAirWind)} m/s", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
-                    Text("🌬️ Ground Wind: ${"%.1f".format(minGroundWind)} - ${"%.1f".format(maxGroundWind)} m/s", style = MaterialTheme.typography.labelSmall,  maxLines = 1)
-                    Text("🧭 Avg. Wind Direction: ${"%.1f".format(avgWindDirection)}°", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    Text("☁️ Avg. Cloud Cover: ${"%.1f".format(avgCloudCover)}%", style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                    Text("🌧️ Total Precipitation: ${"%.1f".format(totalPrecipitation)} mm", style = MaterialTheme.typography.bodySmall,  maxLines = 1)
+                    Text("🌫️ Avg. Fog: ${"%.1f".format(avgFog)}%", style = MaterialTheme.typography.bodySmall,  maxLines = 1)
+                    Text("💧 Max Humidity: ${"%.1f".format(maxHumidity)}%", style = MaterialTheme.typography.bodySmall,  maxLines = 1)
+                    Text("🌡️ Max Dew Point: ${"%.1f".format(maxDewPoint)}°C", style = MaterialTheme.typography.bodySmall,  maxLines = 1)
+                    Text("💨 Air Wind Gust: ${"%.1f".format(minAirWind)} - ${"%.1f".format(maxAirWind)} m/s", style = MaterialTheme.typography.bodySmall,  maxLines = 1)
+                    Text("🌬️ Ground Wind: ${"%.1f".format(minGroundWind)} - ${"%.1f".format(maxGroundWind)} m/s", style = MaterialTheme.typography.bodySmall,  maxLines = 1)
+                    Text("🧭 Avg. Wind Direction: ${"%.1f".format(avgWindDirection)}°", style = MaterialTheme.typography.bodySmall, maxLines = 1)
                 }
             }
         }
