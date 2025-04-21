@@ -17,8 +17,8 @@ class LaunchSitesRepository @Inject constructor(
         }
     }
 
-    suspend fun insert(sites: LaunchSite) {
-        launchSiteDAO.insert(sites)
+    suspend fun insert(sites: LaunchSite) : Int {
+        return launchSiteDAO.insert(sites)
     }
 
     suspend fun deleteSite(site: LaunchSite) {

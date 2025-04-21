@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LaunchSiteDAO {
-    @Insert
-    suspend fun insert(sites: LaunchSite)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(sites: LaunchSite) : Int
 
     @Delete
     suspend fun delete(site: LaunchSite)
