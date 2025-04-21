@@ -47,6 +47,8 @@ fun HomeScreen(
     val coordinates by viewModel.coordinates.collectAsState()
     val launchSites by viewModel.launchSites.collectAsState()
     val updateStatus by viewModel.updateStatus.collectAsState()
+    val newMarker by viewModel.newMarker.collectAsState()
+    val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
     val context = LocalContext.current
     var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
     var showSaveDialog by remember { mutableStateOf(false) }
@@ -85,6 +87,8 @@ fun HomeScreen(
             Box(modifier = Modifier.fillMaxSize()) {
                 MapContainer(
                     coordinates = coordinates,
+                    newMarker = newMarker,
+                    newMarkerStatus = newMarkerStatus,
                     //temporaryMarker = null,
                     launchSites = launchSites,
                     mapViewportState = mapViewportState,
@@ -239,6 +243,9 @@ fun HomeScreen(
                             } else {
                                 viewModel.addLaunchSite(lat, lon, launchSiteName)
                                 viewModel.updateNewMarker(lat, lon)
+                                if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
+                                    viewModel.setNewMarkerStatusFalse()
+                                }
                             }
                             // DO NOT close the dialog here – wait for Success via LaunchedEffect
                         },
@@ -254,6 +261,7 @@ fun HomeScreen(
                             launchSiteName = ""
                             isEditingMarker = false
                             viewModel.setUpdateStatusIdle()
+                            viewModel.setNewMarkerStatusFalse()
                         }
                     }
                 }

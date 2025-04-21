@@ -12,13 +12,16 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LaunchSiteDAO {
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insert(sites: LaunchSite) : Int
+    suspend fun insert(sites: LaunchSite)
 
     @Delete
     suspend fun delete(site: LaunchSite)
 
     @Query("SELECT * FROM LaunchSite")
     fun getAll(): Flow<List<LaunchSite>>
+
+    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
+    suspend fun getSiteByName(name: String): LaunchSite?
 
     @Update
     suspend fun update(sites: LaunchSite)

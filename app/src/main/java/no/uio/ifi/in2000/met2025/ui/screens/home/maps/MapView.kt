@@ -31,6 +31,8 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 fun MapView(
     center: Pair<Double, Double>,
     //temporaryMarker: Point? = null,
+    newMarker: LaunchSite?,
+    newMarkerStatus: Boolean,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
@@ -74,28 +76,30 @@ fun MapView(
                     puckBearingEnabled = true
                 }
             }
-            temporaryMarker?.let { point ->
-                val markerImage = rememberIconImage(
-                    key = R.drawable.red_marker,
-                    painter = painterResource(id = R.drawable.red_marker)
-                )
-                PointAnnotation(point = point) { iconImage = markerImage }
-                if (showAnnotations) {
-                    ViewAnnotation(
-                        options = viewAnnotationOptions {
-                            geometry(point)
-                            annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
-                            allowOverlap(true)
+            if (newMarkerStatus) {
+                temporaryMarker?.let { point ->
+                    val markerImage = rememberIconImage(
+                        key = R.drawable.red_marker,
+                        painter = painterResource(id = R.drawable.red_marker)
+                    )
+                    PointAnnotation(point = point) { iconImage = markerImage }
+                    if (showAnnotations) {
+                        ViewAnnotation(
+                            options = viewAnnotationOptions {
+                                geometry(point)
+                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
+                                allowOverlap(true)
+                            }
+                        ) {
+                            MarkerLabel(
+                                name = "New Marker",
+                                lat = "%.4f".format(point.latitude()),
+                                lon = "%.4f".format(point.longitude()),
+                                onClick = { onMarkerAnnotationClick(point) },
+                                onDoubleClick = { },
+                                onLongPress = { onMarkerAnnotationLongPress(point) }
+                            )
                         }
-                    ) {
-                        MarkerLabel(
-                            name = "New Marker",
-                            lat = "%.4f".format(point.latitude()),
-                            lon = "%.4f".format(point.longitude()),
-                            onClick = { onMarkerAnnotationClick(point) },
-                            onDoubleClick = {  },
-                            onLongPress = { onMarkerAnnotationLongPress(point) }
-                        )
                     }
                 }
             }

@@ -14,6 +14,8 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 fun MapContainer(
     coordinates: Pair<Double, Double>,
     //temporaryMarker: Point? = null,
+    newMarker: LaunchSite?,
+    newMarkerStatus: Boolean,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
@@ -28,6 +30,8 @@ fun MapContainer(
         MapView(
             center = coordinates,
             //temporaryMarker = temporaryMarker,
+            newMarker = newMarker,
+            newMarkerStatus = newMarkerStatus,
             launchSites = launchSites,
             mapViewportState = mapViewportState,
             modifier = Modifier.fillMaxSize(),

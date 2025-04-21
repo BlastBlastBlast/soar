@@ -17,12 +17,16 @@ class LaunchSitesRepository @Inject constructor(
         }
     }
 
-    suspend fun insert(sites: LaunchSite) : Int {
-        return launchSiteDAO.insert(sites)
+    suspend fun insert(sites: LaunchSite) {
+        launchSiteDAO.insert(sites)
     }
 
     suspend fun deleteSite(site: LaunchSite) {
         launchSiteDAO.delete(site)
+    }
+
+    suspend fun getSiteByName(name: String): LaunchSite? {
+        return launchSiteDAO.getSiteByName(name)
     }
 
     fun getAll(): Flow<List<LaunchSite>> {
@@ -33,13 +37,11 @@ class LaunchSitesRepository @Inject constructor(
         launchSiteDAO.update(sites)
     }
 
-
     fun getLastVisitedTempSite(): Flow<LaunchSite?> {
         return launchSiteDAO.getLastVisitedTempSite()
     }
 
-
-    fun getNewMarkerTempSite(tempName: String = "New Marker"): Flow<LaunchSite?> {
+    fun getNewMarkerTempSite(): Flow<LaunchSite?> {
         return launchSiteDAO.getNewMarkerTempSite()
     }
 

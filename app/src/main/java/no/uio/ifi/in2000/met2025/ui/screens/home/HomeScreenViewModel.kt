@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +38,12 @@ class HomeScreenViewModel @Inject constructor(
     private val _launchSites = MutableStateFlow<List<LaunchSite>>(emptyList())
     val launchSites: StateFlow<List<LaunchSite>> = _launchSites
 
+    private val _newMarker = MutableStateFlow<LaunchSite?>(null)
+    val newMarker: StateFlow<LaunchSite?> = _newMarker
+
+    private val _newMarkerStatus = MutableStateFlow(false)
+    val newMarkerStatus: StateFlow<Boolean> = _newMarkerStatus
+
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         object Success : UpdateStatus()
@@ -62,6 +69,9 @@ class HomeScreenViewModel @Inject constructor(
                     apiKeyAvailable = true,
                     isOnline = true
                 )
+            }
+            launchSitesRepository.getNewMarkerTempSite().collect { sites ->
+                _newMarker.value = sites
             }
         }
     }
@@ -150,6 +160,11 @@ class HomeScreenViewModel @Inject constructor(
         updateCoordinates(lat, lon)
         updateLastVisited(lat, lon)
         updateNewMarker(lat, lon)
+        _newMarkerStatus.value = true
+    }
+
+    fun setNewMarkerStatusFalse() {
+        _newMarkerStatus.value = false
     }
 
     fun addLaunchSite(lat: Double, lon: Double, name: String) {
@@ -162,8 +177,9 @@ class HomeScreenViewModel @Inject constructor(
                         name = name
                     )
                 )
-            } catch (e: Exception) {
-                _uiState.value = HomeScreenUiState.Error(e.message ?: "Failed to add launch site")
+                _updateStatus.value = UpdateStatus.Success
+            } catch (e: SQLiteConstraintException) {
+                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
             }
         }
     }
