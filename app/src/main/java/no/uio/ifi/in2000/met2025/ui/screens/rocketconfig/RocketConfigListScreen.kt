@@ -2,10 +2,12 @@ package no.uio.ifi.in2000.met2025.ui.screens.rocketconfig
 
 // File: RocketConfigListScreen.kt
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -20,8 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
-
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun RocketConfigListScreen(
@@ -30,79 +37,76 @@ fun RocketConfigListScreen(
     onAddRocketConfig: () -> Unit,
     onSelectRocketConfig: (RocketConfig) -> Unit
 ) {
-    // Observe the list of rocket configurations from the viewmodel.
-    val rocketList by viewModel.rocketList.collectAsState(initial = emptyList())
+    val rockets by viewModel.rocketList.collectAsState(initial = emptyList())
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        LazyColumn {
-            // Explicitly specify the parameter name to use the correct overload.
-            items(rocketList) { rocket ->
-                RocketConfigItem(
-                    rocketConfig = rocket,
-                    onClick = { onSelectRocketConfig(rocket) },
-                    onEdit = {
-                        if (!rocket.isDefault) onEditRocketConfig(rocket)
-                    },
-                    onDelete = {
-                        if (!rocket.isDefault) viewModel.deleteRocketConfig(rocket)
-                    }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onAddRocketConfig, modifier = Modifier.fillMaxWidth()) {
-            Text("Add New Configuration")
-        }
-    }
-}
-
-@Composable
-fun RocketConfigItem(
-    rocketConfig: RocketConfig,
-    onClick: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clickable { onClick() },
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(4.dp)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+        Surface(
+            modifier        = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            color           = MaterialTheme.colorScheme.surface,
+            tonalElevation  = 4.dp,
+            shadowElevation = 8.dp,
+            shape           = RoundedCornerShape(12.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = rocketConfig.name,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                if (rocketConfig.isDefault) {
+            Column(Modifier.fillMaxSize()) {
+                // Orange header band
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .background(WarmOrange, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = "Default Configuration",
-                        style = MaterialTheme.typography.bodySmall
+                        "ROCKET CONFIGURATIONS",
+                        style     = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                        color     = MaterialTheme.colorScheme.onPrimary,
+                        textAlign = TextAlign.Center,
+                        modifier  = Modifier.fillMaxWidth()
                     )
                 }
-            }
-            Row {
-                // Only show edit and delete icons for non-default configurations.
-                if (!rocketConfig.isDefault) {
-                    IconButton(onClick = onEdit) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit"
-                        )
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete"
+
+                Spacer(Modifier.height(8.dp))
+
+                LazyColumn(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    items(rockets) { rocket ->
+                        RocketConfigItem(
+                            rocketConfig = rocket,
+                            onClick      = { onSelectRocketConfig(rocket) },
+                            onEdit       = { if (!rocket.isDefault) onEditRocketConfig(rocket) },
+                            onDelete     = { if (!rocket.isDefault) viewModel.deleteRocketConfig(rocket) }
                         )
                     }
                 }
+
+                Spacer(Modifier.height(8.dp))
+
+                Button(
+                    onClick    = onAddRocketConfig,
+                    modifier   = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors     = ButtonDefaults.buttonColors(
+                        containerColor = WarmOrange,
+                        contentColor   = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("+")
+                }
+
+                Spacer(Modifier.height(16.dp))
             }
         }
     }

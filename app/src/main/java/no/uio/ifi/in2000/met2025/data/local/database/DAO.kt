@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LaunchSiteDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg sites: LaunchSite)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(sites: LaunchSite)
 
     @Delete
     suspend fun delete(site: LaunchSite)
@@ -20,16 +20,25 @@ interface LaunchSiteDAO {
     @Query("SELECT * FROM LaunchSite")
     fun getAll(): Flow<List<LaunchSite>>
 
+    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
+    suspend fun getSiteByName(name: String): LaunchSite?
+
     @Update
-    suspend fun updateSites(vararg sites: LaunchSite)
+    suspend fun update(sites: LaunchSite)
 
     // Existing temporary site (Last Visited)
     @Query("SELECT * FROM LaunchSite WHERE name = :tempName LIMIT 1")
-    fun getTempSite(tempName: String = "Last Visited"): Flow<LaunchSite?>
+    fun getLastVisitedTempSite(tempName: String = "Last Visited"): Flow<LaunchSite?>
 
     // New temporary site (New Marker)
     @Query("SELECT * FROM LaunchSite WHERE name = :tempName LIMIT 1")
     fun getNewMarkerTempSite(tempName: String = "New Marker"): Flow<LaunchSite?>
+
+    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
+    suspend fun checkIfSiteExists(name: String): LaunchSite?
+
+    @Query("SELECT name FROM LaunchSite")
+    fun getAllLaunchSiteNames() : Flow<List<String>>
 }
 
 
@@ -62,7 +71,7 @@ interface GribUpdatedDAO {
 @Dao
 interface ConfigProfileDAO {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertConfigProfile(configProfile: ConfigProfile)
 
     @Update
@@ -79,6 +88,9 @@ interface ConfigProfileDAO {
 
     @Query("SELECT * FROM config_profiles WHERE id = :configId LIMIT 1")
     fun getConfigProfile(configId: Int): Flow<ConfigProfile?>
+
+    @Query("SELECT name FROM config_profiles")
+    fun getAllConfigProfileNames(): Flow<List<String>>
 }
 
 @Dao

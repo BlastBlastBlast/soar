@@ -5,10 +5,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
+import androidx.room.Index
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
@@ -18,7 +19,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rocketConfigDao(): RocketConfigDao
 }
 
-@Entity
+@Entity(tableName = "LaunchSite", indices = [Index(value = ["name"], unique = true)])
 data class LaunchSite(
     @PrimaryKey(autoGenerate = true) val uid: Int = 0 ,
     @ColumnInfo(name = "latitude") val latitude: Double,
@@ -53,7 +54,8 @@ data class GribUpdated(
 
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String,
     @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
     @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
@@ -97,7 +99,10 @@ data class RocketConfig(
     @ColumnInfo(name = "dry_weight") val dryWeight: Double,
     @ColumnInfo(name = "wet_weight") val wetWeight: Double,
     @ColumnInfo(name = "resolution") val resolution: Double,
+    @ColumnInfo(name = "body_diameter") val bodyDiameter: Double,
+    @ColumnInfo(name = "drag_coefficient") val dragCoefficient: Double,
+    @ColumnInfo(name = "parachute_area") val parachuteArea: Double,
+    @ColumnInfo(name = "parachute_drag_coefficient") val parachuteDragCoefficient: Double,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
-
 

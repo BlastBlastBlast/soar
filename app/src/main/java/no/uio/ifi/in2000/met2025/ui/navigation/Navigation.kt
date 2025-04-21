@@ -27,6 +27,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 
+//TODO: FIKSE NAVIGATION KALL TIL Å IKKE LAUNCHE MANGE GANGER PÅ SAMME SKJERM!
+
 object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
     override fun get(bundle: Bundle, key: String): Double? = bundle.getDouble(key)
     override fun parseValue(value: String): Double = value.toDouble()
@@ -39,7 +41,6 @@ sealed class Screen(val route: String) {
         fun createRoute(lat: Double, lon: Double) = "weather?lat=$lat&lon=$lon"
     }
     data object LaunchSite : Screen("launchsite")
-    data object AtmosphericWind: Screen("atmosphericwind")
     data object ConfigList : Screen("config_list")
     data object ConfigEdit : Screen("config_edit")
     // New rocket configuration screens:
@@ -64,7 +65,6 @@ fun AppNavLauncher(
     val currentScreenTitle = when (currentBackStackEntry?.destination?.route) {
         Screen.Home.route -> "Home"
         Screen.LaunchSite.route -> "Launch Sites"
-        Screen.AtmosphericWind.route -> "Atmospheric Wind"
         Screen.RocketConfigList.route -> "Rocket Configurations"
         else -> if (currentBackStackEntry?.destination?.route?.startsWith("weather") == true) "Weather" else "Unknown"
     }
@@ -110,18 +110,6 @@ fun AppNavLauncher(
                     selected = currentScreenTitle == "Launch Sites",
                     onClick = {
                         navController.navigate(Screen.LaunchSite.route) {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
-                        }
-                        scope.launch { drawerState.close() }
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-                NavigationDrawerItem(
-                    label = { Text("Atmospheric Wind") },
-                    selected = currentScreenTitle == "Atmospheric Wind",
-                    onClick = {
-                        navController.navigate(Screen.AtmosphericWind.route) {
                             popUpTo(navController.graph.startDestinationId)
                             launchSingleTop = true
                         }

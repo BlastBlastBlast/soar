@@ -2,8 +2,8 @@ package no.uio.ifi.in2000.met2025.domain.helpers
 
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
 import kotlin.reflect.KProperty1
 
 fun ForecastDataItem.toConfigMap(config: ConfigProfile): Map<ConfigParameter, Pair<Double, Double>>

@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,8 +36,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.models.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
@@ -45,6 +47,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.FilterMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.site.LaunchSitesMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import java.time.Instant
 
 @Composable
@@ -237,11 +240,18 @@ fun ScreenContent(
                                 .padding(vertical = 16.dp),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            Text(
-                                text = date,
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .background(WarmOrange)
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    text     = date,
+                                    color    = MaterialTheme.colorScheme.onPrimary,
+                                    style    = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                            }
                             dailyForecastItems.forEach { forecastItem ->
                                 HourlyExpandableCard(
                                     forecastItem = forecastItem,

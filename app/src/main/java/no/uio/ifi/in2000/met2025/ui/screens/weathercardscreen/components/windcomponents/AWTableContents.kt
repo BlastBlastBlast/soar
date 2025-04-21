@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windco
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,15 +27,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
-import no.uio.ifi.in2000.met2025.data.models.IsobaricData
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterCondition
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import java.time.Instant
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.font.FontWeight
+import no.uio.ifi.in2000.met2025.ui.theme.DarkerPrimary
+import no.uio.ifi.in2000.met2025.ui.theme.IconGrey
 
 
 @Composable
@@ -43,8 +45,8 @@ fun AWTableContents(
     config: ConfigProfile,
     showTime: Boolean = true,
 ) {
-    val cardBackgroundColor = Color(0xFFE3F2FD)
-    val windShearColor = Color(0xFFe2e0ff)
+    val cardBackgroundColor = MaterialTheme.colorScheme.primary
+    val windShearColor = MaterialTheme.colorScheme.primary
 
     var expanded by remember { mutableStateOf(true) }
 
@@ -56,25 +58,23 @@ fun AWTableContents(
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
-        //FIXME: Add global darkmode support later
-        CompositionLocalProvider(LocalContentColor provides Color.DarkGray) {
-            Column(modifier = Modifier.padding(16.dp)) {
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
+            Column(modifier = Modifier.padding(0.dp)) {
 
                 Row {
                     AnimatedVisibility(visible = showTime, modifier = Modifier.weight(1f)) {
                         AWTimeDisplay(
                             time = formatZuluTimeToLocal(item.time) + " - " + formatZuluTimeToLocal(Instant.parse(item.time).plus(2, ChronoUnit.HOURS).plus(59, ChronoUnit.MINUTES).toString()),
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         )
                     }
-                    LaunchStatusIcon(evaluateLaunchConditions(item, config))
+                    LaunchStatusIcon(evaluateLaunchConditions(item, config), modifier = Modifier.size(24.dp))
                 }
-
 
                 AnimatedVisibility(visible = expanded) {
 
                     Column {
-                        HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+                        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
 
                         // Static header row to label columns
                         WindLayerHeader(
@@ -83,8 +83,9 @@ fun AWTableContents(
                             windDirectionText = "Wind Direction",
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .padding(vertical = 4.dp),
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         )
 
                         // Static header row to label columns
@@ -95,12 +96,13 @@ fun AWTableContents(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .background(
                                     color = windShearColor,
-                                    shape = RoundedCornerShape(4.dp)
+                                    shape = RoundedCornerShape(0.dp)
                                 )
                                 .padding(top = 4.dp, bottom = 4.dp), // Add border and padding for visual offset
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
