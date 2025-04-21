@@ -35,7 +35,8 @@ fun LaunchSiteItem(
     site: LaunchSite,
     onDelete: () -> Unit,
     onEdit: (LaunchSite) -> Unit,
-    updateStatus: LaunchSiteViewModel.UpdateStatus
+    updateStatus: LaunchSiteViewModel.UpdateStatus,
+    viewModel : LaunchSiteViewModel
 ) {
     var isEditing     by remember { mutableStateOf(false) }
     var name          by remember { mutableStateOf(site.name) }
@@ -117,7 +118,7 @@ fun LaunchSiteItem(
                     Column {
                         AppOutlinedTextField(
                             value = name,
-                            onValueChange = { name = it },
+                            onValueChange = { name = it; viewModel.checkNameAvailability(it) },
                             label = { Text("Name") },
                             modifier = Modifier.fillMaxWidth()
                         )

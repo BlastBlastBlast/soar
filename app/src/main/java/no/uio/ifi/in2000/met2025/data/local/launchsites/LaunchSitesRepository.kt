@@ -46,4 +46,8 @@ class LaunchSitesRepository @Inject constructor(
     suspend fun checkIfSiteExists(name : String) : Boolean {
         return launchSiteDAO.checkIfSiteExists(name) != null
     }
+
+    fun getAllLaunchSiteNames() : Flow<List<String>> {
+        return launchSiteDAO.getAllLaunchSiteNames()
+    }
 }

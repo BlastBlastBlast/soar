@@ -33,6 +33,9 @@ interface LaunchSiteDAO {
 
     @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
     suspend fun checkIfSiteExists(name: String): LaunchSite?
+
+    @Query("SELECT name FROM LaunchSite")
+    fun getAllLaunchSiteNames() : Flow<List<String>>
 }
 
 
