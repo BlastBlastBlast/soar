@@ -36,6 +36,16 @@ class LaunchSiteViewModel @Inject constructor(
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
+    private val _launchSiteNames = MutableStateFlow<List<String>>(emptyList())
+
+    init {
+        viewModelScope.launch {
+            launchSitesRepository.getAllLaunchSiteNames().collect { names ->
+                _launchSiteNames.value = names
+            }
+        }
+    }
+
     // Update "Last Visited" temporary site.
     fun updateTemporaryLaunchSite(latitude: Double, longitude: Double) {
         viewModelScope.launch {
@@ -98,5 +108,17 @@ class LaunchSiteViewModel @Inject constructor(
 
     fun setUpdateStatusToIdle() {
         _updateStatus.value = UpdateStatus.Idle
+    }
+
+    fun checkNameAvailability(name: String) {
+        viewModelScope.launch {
+            for (existingName in _launchSiteNames.value) {
+                if (existingName == name) {
+                    _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+                    return@launch
+                }
+                _updateStatus.value = UpdateStatus.Idle
+            }
+        }
     }
 }

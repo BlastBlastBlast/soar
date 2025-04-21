@@ -13,7 +13,9 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 @Composable
 fun MapContainer(
     coordinates: Pair<Double, Double>,
-    temporaryMarker: Point? = null,
+    //temporaryMarker: Point? = null,
+    newMarker: LaunchSite?,
+    newMarkerStatus: Boolean,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
@@ -27,7 +29,9 @@ fun MapContainer(
     Box(modifier = modifier.fillMaxSize()) {
         MapView(
             center = coordinates,
-            temporaryMarker = temporaryMarker,
+            //temporaryMarker = temporaryMarker,
+            newMarker = newMarker,
+            newMarkerStatus = newMarkerStatus,
             launchSites = launchSites,
             mapViewportState = mapViewportState,
             modifier = Modifier.fillMaxSize(),

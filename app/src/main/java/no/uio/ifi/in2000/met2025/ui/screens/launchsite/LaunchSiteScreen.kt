@@ -84,7 +84,8 @@ fun LaunchSiteScreen(
                             onEdit   = { updatedSite ->
                                 viewModel.updateLaunchSite(updatedSite)
                             },
-                            updateStatus = updateStatus
+                            updateStatus = updateStatus,
+                            viewModel = viewModel
                         )
                     }
                 }

@@ -30,7 +30,9 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 @Composable
 fun MapView(
     center: Pair<Double, Double>,
-    temporaryMarker: Point? = null,
+    //temporaryMarker: Point? = null,
+    newMarker: LaunchSite?,
+    newMarkerStatus: Boolean,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
@@ -50,6 +52,7 @@ fun MapView(
         }
     }
     val scope = rememberCoroutineScope()
+    var temporaryMarker : Point? by remember { mutableStateOf(null) }
 
     Box(modifier = modifier) {
         MapboxMap(
@@ -60,6 +63,7 @@ fun MapView(
             mapViewportState = mapViewportState,
             onMapLongClickListener = { point ->
                 onMapLongClick(point)
+                temporaryMarker = point
                 true
             }
         ) {
@@ -72,32 +76,34 @@ fun MapView(
                     puckBearingEnabled = true
                 }
             }
-            temporaryMarker?.let { point ->
-                val markerImage = rememberIconImage(
-                    key = R.drawable.red_marker,
-                    painter = painterResource(id = R.drawable.red_marker)
-                )
-                PointAnnotation(point = point) { iconImage = markerImage }
-                if (showAnnotations) {
-                    ViewAnnotation(
-                        options = viewAnnotationOptions {
-                            geometry(point)
-                            annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
-                            allowOverlap(true)
+            if (newMarkerStatus) {
+                temporaryMarker?.let { point ->
+                    val markerImage = rememberIconImage(
+                        key = R.drawable.red_marker,
+                        painter = painterResource(id = R.drawable.red_marker)
+                    )
+                    PointAnnotation(point = point) { iconImage = markerImage }
+                    if (showAnnotations) {
+                        ViewAnnotation(
+                            options = viewAnnotationOptions {
+                                geometry(point)
+                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
+                                allowOverlap(true)
+                            }
+                        ) {
+                            MarkerLabel(
+                                name = "New Marker",
+                                lat = "%.4f".format(point.latitude()),
+                                lon = "%.4f".format(point.longitude()),
+                                onClick = { onMarkerAnnotationClick(point) },
+                                onDoubleClick = { },
+                                onLongPress = { onMarkerAnnotationLongPress(point) }
+                            )
                         }
-                    ) {
-                        MarkerLabel(
-                            name = "New Marker",
-                            lat = "%.4f".format(point.latitude()),
-                            lon = "%.4f".format(point.longitude()),
-                            onClick = { onMarkerAnnotationClick(point) },
-                            onDoubleClick = {  },
-                            onLongPress = { onMarkerAnnotationLongPress(point) }
-                        )
                     }
                 }
             }
-            launchSites.filter { it.name != "Last Visited" }.forEach { site ->
+            launchSites.filter { it.name != "Last Visited" && it.name != "New Marker"}.forEach { site ->
                 val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
                 val markerImage = rememberIconImage(
                     key = "launchSite_${site.uid}",

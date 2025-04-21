@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
+import androidx.room.Index
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
@@ -18,7 +19,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rocketConfigDao(): RocketConfigDao
 }
 
-@Entity
+@Entity(tableName = "LaunchSite", indices = [Index(value = ["name"], unique = true)])
 data class LaunchSite(
     @PrimaryKey(autoGenerate = true) val uid: Int = 0 ,
     @ColumnInfo(name = "latitude") val latitude: Double,
