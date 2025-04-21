@@ -8,7 +8,7 @@ import androidx.room.Database
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
@@ -98,7 +98,10 @@ data class RocketConfig(
     @ColumnInfo(name = "dry_weight") val dryWeight: Double,
     @ColumnInfo(name = "wet_weight") val wetWeight: Double,
     @ColumnInfo(name = "resolution") val resolution: Double,
+    @ColumnInfo(name = "body_diameter") val bodyDiameter: Double,
+    @ColumnInfo(name = "drag_coefficient") val dragCoefficient: Double,
+    @ColumnInfo(name = "parachute_area") val parachuteArea: Double,
+    @ColumnInfo(name = "parachute_drag_coefficient") val parachuteDragCoefficient: Double,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
-
 
