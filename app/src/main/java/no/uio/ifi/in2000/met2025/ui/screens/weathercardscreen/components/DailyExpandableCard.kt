@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -12,12 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.getWeatherIconRes
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextOverflow
+
 
 val weatherPriority = listOf(
     "heavyrain", "heavyrainandthunder", "rainandthunder", "rain",
@@ -50,30 +52,53 @@ fun getSymbolDescription(symbolCode: String?): String {
         ?.trim() ?: ""
 }
 
-fun getBackgroundColorForSymbol(symbolCode: String?): Color {
+
+fun getGradientForSymbol(symbolCode: String?): Brush {
     return when {
-        symbolCode == null -> Color(0xFF2D2D40)
+        symbolCode == null -> Brush.verticalGradient(
+            colors = listOf(Color(0xFF2D2D40), Color(0xFF121212))
+        )
+
         symbolCode.contains("clearsky") || symbolCode.contains("fair") ->
-            Color(0xFFfdd835)
+            Brush.verticalGradient(
+                colors = listOf(Color(0xFFFFF59D), Color(0xFFFFB300), Color(0xFFFF8F00))
+            )
+
         symbolCode.contains("partlycloudy") || symbolCode.contains("cloudy") ->
-            Color(0xFF90A4AE)
+            Brush.verticalGradient(
+                colors = listOf(Color(0xFFCFD8DC), Color(0xFF90A4AE), Color(0xFF455A64))
+            )
+
         symbolCode.contains("rain") || symbolCode.contains("showers") ->
-            Color(0xFF4FC3F7)
+            Brush.verticalGradient(
+                colors = listOf(Color(0xFF81D4FA), Color(0xFF4FC3F7), Color(0xFF0288D1))
+            )
+
         symbolCode.contains("snow") || symbolCode.contains("sleet") ->
-            Color(0xFFB3E5FC)
+            Brush.verticalGradient(
+                colors = listOf(Color(0xFFE1F5FE), Color(0xFFB3E5FC), Color(0xFF81D4FA))
+            )
+
         symbolCode.contains("fog") ->
-            Color(0xFFB0BEC5)
+            Brush.verticalGradient(
+                colors = listOf(Color(0xFFECEFF1), Color(0xFFB0BEC5), Color(0xFF607D8B))
+            )
+
         symbolCode.contains("thunder") ->
-            Color(0xFF9575CD)
-        else -> Color(0xFF2D2D40)
+            Brush.verticalGradient(
+                colors = listOf(Color(0xFFD1C4E9), Color(0xFF9575CD), Color(0xFF512DA8))
+            )
+
+        else -> Brush.verticalGradient(
+            colors = listOf(Color(0xFF424242), Color(0xFF1C1C1C))
+        )
     }
 }
+
 data class WeatherInfoItem(
     val label: String,
-    val value: String,
-    val icon: @Composable () -> Unit
+    val value: String
 )
-
 
 @Composable
 fun DailyForecastCard(
@@ -87,7 +112,6 @@ fun DailyForecastCard(
     val dayLabel = formatZuluTimeToLocalDate(forecastItems.first().time)
     val description = getSymbolDescription(symbolCode)
     val iconRes = getWeatherIconRes(symbolCode)
-    val backgroundColor = getBackgroundColorForSymbol(symbolCode)
 
     val avgCloudCover = forecastItems.mapNotNull { it.values.cloudAreaFraction }.average()
     val totalPrecipitation = forecastItems.mapNotNull { it.values.precipitationAmount }.sum()
@@ -101,82 +125,93 @@ fun DailyForecastCard(
     val avgWindDirection = forecastItems.mapNotNull { it.values.windFromDirection }.average()
 
     val infoItems = listOf(
-        WeatherInfoItem("Clouds", "${"%.1f".format(avgCloudCover)}%", {
-            Icon(Icons.Default.Cloud, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Percip", "${"%.1f".format(totalPrecipitation)} mm", {
-            Icon(Icons.Default.WaterDrop, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Fog", "${"%.1f".format(avgFog)}%", {
-            Icon(Icons.Default.VisibilityOff, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Humidity", "${"%.1f".format(maxHumidity)}%", {
-            Icon(Icons.Default.InvertColors, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Dew Point", "${"%.1f".format(maxDewPoint)}°C", {
-            Icon(Icons.Default.Thermostat, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Air Wind", "Min ${"%.1f".format(minAirWind)} / Max ${"%.1f".format(maxAirWind)} m/s", {
-            Icon(Icons.Default.Air, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Ground Wind", "Min ${"%.1f".format(minGroundWind)}  / Max ${"%.1f".format(maxGroundWind)} m/s", {
-            Icon(Icons.Default.Air, contentDescription = null, tint = Color.White)
-        }),
-        WeatherInfoItem("Wind Direc.", "${"%.1f".format(avgWindDirection)}°", {
-            Icon(Icons.Default.Explore, contentDescription = null, tint = Color.White)
-        })
+        WeatherInfoItem("☁️ Cloud cover", "${"%.1f".format(avgCloudCover)}%"),
+        WeatherInfoItem("🌧️ Percipitation", "${"%.1f".format(totalPrecipitation)} mm"),
+        WeatherInfoItem("🌫️ Fog", "${"%.1f".format(avgFog)}%"),
+        WeatherInfoItem("💧 Humidity ", "${"%.1f".format(maxHumidity)}%"),
+        WeatherInfoItem("🌡️ Dewpoint", "${"%.1f".format(maxDewPoint)}°C"),
+        WeatherInfoItem("💨 Air wind", "Min ${"%.1f".format(minAirWind)} / Max ${"%.1f".format(maxAirWind)} m/s"),
+        WeatherInfoItem("🌬️ Ground wind", "Min ${"%.1f".format(minGroundWind)} / Max ${"%.1f".format(maxGroundWind)} m/s"),
+        WeatherInfoItem("🧭 Wind direction", "${"%.1f".format(avgWindDirection)}°")
     )
-
 
     Card(
         modifier = modifier
             .padding(16.dp)
             .width(260.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(dayLabel, style = MaterialTheme.typography.titleLarge, color = Color.White)
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .background(getGradientForSymbol(symbolCode)) // 🎨 ny og bedre gradient
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column {
-                    Text(
-                        text = "${avgTemp.toInt()}°",
-                        style = MaterialTheme.typography.displayMedium,
-                        color = Color.White
-                    )
-                    Text(text = description, color = Color.White)
-                }
+                // Øverst: dato og værbeskrivelse
+                Text(dayLabel, style = MaterialTheme.typography.titleLarge, color = Color.White)
 
-                iconRes?.let {
-                    Image(
-                        painter = painterResource(id = it),
-                        contentDescription = null,
-                        modifier = Modifier.size(72.dp)
-                    )
-                }
-            }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "${avgTemp.toInt()}°",
+                            style = MaterialTheme.typography.displayMedium,
+                            color = Color.White
+                        )
+                        Text(text = description, color = Color.White)
+                    }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                items(infoItems) { item ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        item.icon()
-                        Text(item.label, color = Color.LightGray, style = MaterialTheme.typography.labelSmall)
-                        Text(item.value, color = Color.White, style = MaterialTheme.typography.bodySmall)
+                    iconRes?.let {
+                        Image(
+                            painter = painterResource(id = it),
+                            contentDescription = null,
+                            modifier = Modifier.size(130.dp)
+                        )
                     }
                 }
+
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    infoItems.forEach { item ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = item.label,
+                                modifier = Modifier.weight(0.9f),
+                                color = Color.LightGray,
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
+                            )
+                            Text(
+                                text = item.value,
+                                modifier = Modifier
+                                    .weight(1.1f) // Mer plass her!
+                                    .padding(start = 4.dp),
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
+
+                            )
+                        }
+                    }
+                }
+
             }
         }
     }
@@ -211,7 +246,3 @@ fun DailyForecastRowSection(forecastItems: List<ForecastDataItem>) {
         DailyLazyRow(allForecastItems = forecastItems)
     }
 }
-
-
-
-
