@@ -43,11 +43,11 @@ fun MapView(
     onMapLongClick: (Point, Double?) -> Unit,
     onMarkerAnnotationClick: (Point, Double?) -> Unit,
     onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
-
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {},
     onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {},
     onSiteElevation: (Int, Double) -> Unit
 ) {
+    // underlying Mapbox state
     val mapState = rememberMapState {
         cameraOptions {
             center(Point.fromLngLat(center.second, center.first))
@@ -57,31 +57,42 @@ fun MapView(
         }
     }
     val scope = rememberCoroutineScope()
+
+    // this holds our “pin” until the VM’s newMarker flows in
     var temporaryMarker: Point? by rememberSaveable { mutableStateOf(null) }
     var mapViewRef by remember { mutableStateOf<MapView?>(null) }
     var markerElevation: Double? by rememberSaveable { mutableStateOf(null) }
 
+    // sync any VM‑driven “New Marker” into our local temp state
+    LaunchedEffect(newMarker, newMarkerStatus) {
+        if (newMarkerStatus && newMarker != null) {
+            temporaryMarker = Point.fromLngLat(
+                newMarker.longitude,
+                newMarker.latitude
+            )
+        }
+    }
+
     Box(modifier = modifier) {
         MapboxMap(
             modifier             = Modifier.fillMaxSize(),
-            style                = { MapStyle(style = "mapbox://styles/larswt/cm9ftfa5h00ix01s86li36n61") },
+            style                = { MapStyle("mapbox://styles/larswt/cm9ftfa5h00ix01s86li36n61") },
             mapState             = mapState,
             mapViewportState     = mapViewportState,
             onMapLongClickListener = { point ->
-                // 1) fetch DEM elevation
-                val elev = mapViewRef
-                    ?.mapboxMap
-                    ?.getElevation(point)
+                // 1) grab DEM elevation
+                val elev = mapViewRef?.mapboxMap?.getElevation(point)
                 markerElevation = elev
 
-                // 2) invoke your callback with both point + elev
+                // 2) call back into your VM
                 onMapLongClick(point, elev)
 
-                // 3) store the pin in state
+                // 3) update local pin immediately
                 temporaryMarker = point
                 true
             }
         ) {
+            // capture the MapView for elevation calls + puck
             MapEffect(Unit) { mapView ->
                 mapViewRef = mapView
                 (mapView.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
@@ -92,58 +103,78 @@ fun MapView(
                 }
             }
 
-            // — NEW TEMPORARY MARKER —
-            if (newMarkerStatus && temporaryMarker != null) {
-                val pt = temporaryMarker!!
-                val icon = rememberIconImage(
+            // — DRAW THE “NEW” PIN (either just‑pressed or just‑saved) —
+            if (newMarkerStatus) {
+                val markerImage = rememberIconImage(
                     key     = R.drawable.red_marker,
                     painter = painterResource(R.drawable.red_marker)
                 )
-                PointAnnotation(point = pt) { iconImage = icon }
 
-                if (showAnnotations) {
-                    ViewAnnotation(
-                        options = viewAnnotationOptions {
-                            geometry(pt)
-                            annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
-                            allowOverlap(true)
+                when {
+                    temporaryMarker != null -> {
+                        // A) the fresh temp pin
+                        val pt = temporaryMarker!!
+                        PointAnnotation(point = pt) { iconImage = markerImage }
+                        if (showAnnotations) {
+                            ViewAnnotation(
+                                options = viewAnnotationOptions {
+                                    geometry(pt)
+                                    annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
+                                    allowOverlap(true)
+                                }
+                            ) {
+                                MarkerLabel(
+                                    name      = "New Marker",
+                                    lat       = "%.4f".format(pt.latitude()),
+                                    lon       = "%.4f".format(pt.longitude()),
+                                    elevation = markerElevation?.let { "%.1f m".format(it) },
+                                    onClick   = { onMarkerAnnotationClick(pt, markerElevation) },
+                                    onDoubleClick = { /* noop */ },
+                                    onLongPress   = { onMarkerAnnotationLongPress(pt, markerElevation) }
+                                )
+                            }
                         }
-                    ) {
-                        MarkerLabel(
-                            name      = "New Marker",
-                            lat       = "%.4f".format(pt.latitude()),
-                            lon       = "%.4f".format(pt.longitude()),
-                            elevation = markerElevation?.let { "%.1f m".format(it) },
-                            onClick   = { onMarkerAnnotationClick(pt, markerElevation) },
-                            onDoubleClick = { /* no-op */ },
-                            onLongPress   = { onMarkerAnnotationLongPress(pt, markerElevation) }
-                        )
+                    }
+                    newMarker != null         -> {
+                        // B) fallback to the saved record
+                        val p = Point.fromLngLat(newMarker.longitude, newMarker.latitude)
+                        PointAnnotation(point = p) { iconImage = markerImage }
+                        if (showAnnotations) {
+                            ViewAnnotation(
+                                options = viewAnnotationOptions {
+                                    geometry(p)
+                                    annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
+                                    allowOverlap(true)
+                                }
+                            ) {
+                                MarkerLabel(
+                                    name      = newMarker.name,
+                                    lat       = "%.4f".format(newMarker.latitude),
+                                    lon       = "%.4f".format(newMarker.longitude),
+                                    elevation = "%.1f m".format(newMarker.elevation),
+                                    onClick   = { onMarkerAnnotationClick(p, newMarker.elevation) },
+                                    onDoubleClick = { /* noop */ },
+                                    onLongPress   = { onMarkerAnnotationLongPress(p, newMarker.elevation) }
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            // — SAVED LAUNCH SITES —
+            // — DRAW ALL OTHER LAUNCH SITES —
             launchSites
                 .filter { it.name !in listOf("Last Visited", "New Marker") }
                 .forEach { site ->
                     val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
-                    val icon = rememberIconImage(
+                    val siteImage = rememberIconImage(
                         key     = "launchSite_${site.uid}",
                         painter = painterResource(R.drawable.red_marker)
                     )
 
-                    // back‑fill elevation once if still zero
-                    LaunchedEffect(site.uid, site.elevation) {
-                        if (site.elevation == 0.0) {
-                            mapViewRef
-                                ?.mapboxMap
-                                ?.getElevation(sitePoint)
-                                ?.let { elev -> onSiteElevation(site.uid, elev) }
-                        }
+                    PointAnnotation(point = sitePoint) {
+                        iconImage = siteImage
                     }
-
-                    PointAnnotation(point = sitePoint) { iconImage = icon }
-
                     if (showAnnotations) {
                         ViewAnnotation(
                             options = viewAnnotationOptions {
@@ -157,7 +188,7 @@ fun MapView(
                                 lat       = "%.4f".format(site.latitude),
                                 lon       = "%.4f".format(site.longitude),
                                 elevation = "%.1f m".format(site.elevation),
-                                onClick   = { /* no-op: use onDoubleClick */ },
+                                onClick   = { /* tap‐noop */ },
                                 onDoubleClick = {
                                     scope.launch {
                                         mapViewportState.easeTo(
@@ -174,6 +205,16 @@ fun MapView(
                                 },
                                 onLongPress   = { onSavedMarkerAnnotationLongPress(site) }
                             )
+                        }
+                    }
+
+                    // back‐fill any zero elevation once
+                    LaunchedEffect(site.uid, site.elevation) {
+                        if (site.elevation == 0.0) {
+                            mapViewRef
+                                ?.mapboxMap
+                                ?.getElevation(sitePoint)
+                                ?.let { elev -> onSiteElevation(site.uid, elev) }
                         }
                     }
                 }
