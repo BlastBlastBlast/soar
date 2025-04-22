@@ -1,17 +1,49 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import com.mapbox.maps.extension.style.expressions.dsl.generated.length
 import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
-import no.uio.ifi.in2000.met2025.data.models.Vector3D
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.domain.helpers.get
 import org.apache.commons.math3.linear.RealVector
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.isWithinBounds
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.MIN_LATITUDE
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.MIN_LONGITUDE
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.RESOLUTION
+import no.uio.ifi.in2000.met2025.domain.helpers.div
+import no.uio.ifi.in2000.met2025.domain.helpers.times
+import no.uio.ifi.in2000.met2025.domain.helpers.plus
+import org.apache.commons.math3.linear.ArrayRealVector
+import no.uio.ifi.in2000.met2025.data.models.Constants
+
 
 class IsobaricInterpolator(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
 ) {
+    // key is [lat, lon, pressure]
+    var pointCache: MutableMap<RealVector, RealVector> = mutableMapOf()
+
+    // key is [lat, lon, pressure]
+    var surfaceCache: MutableMap<RealVector, (RealVector) -> CartesianIsobaricValues> = mutableMapOf()
+
+    var lastVisitedGridIndex: RealVector? = null
+
     // FIXME: This function is a placeholder and should be implemented to return actual values.
     fun getCartesianIsobaricValues(position: RealVector/*, velocity: D1Array<Double>*/): CartesianIsobaricValues {
+        val lat = position[0]
+        val lon = position[1]
+
+        assert(isWithinBounds(lat, lon)) { "Coordinates are outside the permitted bounds" }
+
+        if (lastVisitedGridIndex == null) {
+
+        } else if (!position.isInLastVisitedArea()) {
+            val pressureValues = (Constants.layerPressureValues).reversed()
+            val pressure = pressureValues[lastVisitedGridIndex!![2].toInt()]
+
+        }
+
         //strategy:
         //check cache for spline solid containing position
             // if found, return interpolated values
@@ -56,4 +88,94 @@ class IsobaricInterpolator(
             windYComponent = 0.0,
         )
     }
+
+    fun interpolate(coordinates: RealVector, surfaces: List<(RealVector) -> CartesianIsobaricValues>): CartesianIsobaricValues {
+        assert(coordinates.dimension == 3) { "Not a coordinate vector of dimension 3" }
+        assert(surfaces.size == 4) { "Need four surfaces to interpolate over" }
+
+        val horizontalVector = coordinates.getSubVector(0, 2)
+        val fractionalParts = horizontalVector.toGridFractionalParts()
+
+        val splinePoints = surfaces.map{ it(fractionalParts).toRealVector() }
+        val altitude = coordinates[2]
+        val interpolatedVector = catmullRomInterpolation(altitude, splinePoints)
+
+        return CartesianIsobaricValues(
+            altitude = altitude,
+            pressure = interpolatedVector[1],
+            temperature = interpolatedVector[2],
+            windXComponent = interpolatedVector[3],
+            windYComponent = interpolatedVector[4]
+        )
+    }
+
+    private fun RealVector.isInLastVisitedArea(): Boolean = (toGridIndices() == lastVisitedGridIndex?.getSubVector(0,2))
+
+    private fun RealVector.toGridIndices(): RealVector {
+        val lat = this[0]
+        val lon = this[1]
+
+        assert(dimension == 2) { "Not a coordinate vector of dimension 2" }
+        assert(isWithinBounds(lat, lon)) { "Coordinates out of bounds" }
+
+        val latIndex = lat.toGridIndex(MIN_LATITUDE)
+        val lonIndex = lon.toGridIndex(MIN_LONGITUDE)
+
+        return ArrayRealVector(doubleArrayOf(latIndex, lonIndex))
+    }
+
+    private fun RealVector.toGridFractionalParts(): RealVector {
+        val lat = this[0]
+        val lon = this[1]
+
+        assert(dimension == 2) { "Not a coordinate vector of dimension 2" }
+        assert(isWithinBounds(lat, lon)) { "Coordinates out of bounds" }
+
+        val latFractional = lat.toGridValue(MIN_LATITUDE) - lat.toGridIndex(MIN_LATITUDE)
+        val lonFractional = lon.toGridValue(MIN_LONGITUDE) - lon.toGridIndex(MIN_LONGITUDE)
+
+        return ArrayRealVector(doubleArrayOf(latFractional, lonFractional))
+    }
+
+    private fun Double.toGridValue(lowerBound: Double) = (this - lowerBound) * RESOLUTION
+
+    private fun Double.toGridIndex(lowerBound: Double) = toGridValue(lowerBound).toInt().toDouble()
 }
+
+/**
+ * Computes Catmull-Rom interpolation at a value t given 4 control points
+ * v0 = (t0, p0),
+ * v1 = (t1, p1),
+ * v2 = (t2, p2),
+ * v3 = (t3, p3),
+ * with the constraint that t0 < t1 < t < t2 < t3.
+ *
+ * The ti's need not be equidistant.
+ *
+ * The pi's must have the same dimension; the dimension is also arbitrary.
+ * The interpolation approximates a function f where f(ti) = pi for each i.
+ *
+ * The function returns a vector with the same dimension as the pi's.
+ **/
+fun catmullRomInterpolation(t: Double, points: List<RealVector>): RealVector {
+    assert(points.size == 4) { "Need four points to execute hermite spline interpolation" }
+
+    val (t0, t1, t2, t3) = points.map { it[0] }
+    val (p0, p1, p2, p3) = points.map { it.getSubVector(1,it.dimension - 1) }
+
+    assert(t in t1..t2) { "Value t must be in range" }
+
+    val t21 = 1 / (t2 - t1)
+
+    val a1 = ((t1 - t) * p0 + (t - t0) * p1) / (t1 - t0)
+    val a2 = ((t2 - t) * p1 + (t - t1) * p2) * t21
+    val a3 = ((t3 - t) * p2 + (t - t2) * p3) / (t3 - t2)
+
+    val b1 = ((t2 - t) * a1 + (t - t0) * a2) / (t2 - t0)
+    val b2 = ((t3 - t) * a2 + (t - t1) * a3) / (t3 - t1)
+
+    val c = ((t2 - t) * b1 + (t - t1) * b2) * t21
+
+    return c
+}
+
