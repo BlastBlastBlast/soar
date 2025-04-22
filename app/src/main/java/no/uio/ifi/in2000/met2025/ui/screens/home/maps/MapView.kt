@@ -88,7 +88,7 @@ fun MapView(
                         ViewAnnotation(
                             options = viewAnnotationOptions {
                                 geometry(point)
-                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM) }
+                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
                                 allowOverlap(true)
                             }
                         ) {
