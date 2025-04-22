@@ -38,6 +38,9 @@ class HomeScreenViewModel @Inject constructor(
     private val _launchSites = MutableStateFlow<List<LaunchSite>>(emptyList())
     val launchSites: StateFlow<List<LaunchSite>> = _launchSites
 
+    private val _lastVisited = MutableStateFlow<LaunchSite?>(null)
+    val lastVisited: StateFlow<LaunchSite?> = _lastVisited
+
     private val _newMarker = MutableStateFlow<LaunchSite?>(null)
     val newMarker: StateFlow<LaunchSite?> = _newMarker
 
@@ -59,20 +62,30 @@ class HomeScreenViewModel @Inject constructor(
                 // Use the received list of LaunchSite objects directly.
                 _launchSites.value = sites
 
-                // Optionally update coordinates based on a temporary "Last Visited" record.
-                val tempSite = launchSitesRepository.getLastVisitedTempSite().firstOrNull()
-                val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
-                updateCoordinates(newCoords.first, newCoords.second)
-
                 _uiState.value = HomeScreenUiState.Success(
                     launchSites = sites,
                     apiKeyAvailable = true,
                     isOnline = true
                 )
             }
+        }
+        viewModelScope.launch {
+            val tempSite = launchSitesRepository.getNewMarkerTempSite().firstOrNull()
+            val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
+            updateCoordinates(newCoords.first, newCoords.second)
+        }
+        viewModelScope.launch {
             launchSitesRepository.getNewMarkerTempSite().collect { sites ->
                 _newMarker.value = sites
             }
+        }
+        viewModelScope.launch {
+            launchSitesRepository.getLastVisitedTempSite().collect { sites ->
+                _lastVisited.value = sites
+            }
+        }
+        viewModelScope.launch {
+        if (launchSitesRepository.checkIfSiteExists("New Marker")) {_newMarkerStatus.value = true}
         }
     }
 
@@ -84,12 +97,13 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val exists = launchSitesRepository.checkIfSiteExists("Last Visited")
-                if (exists) {
+                if (exists && lastVisited.value != null) {
                     launchSitesRepository.update(
                         LaunchSite(
                             latitude = lat,
                             longitude = lon,
-                            name = "Last Visited"
+                            name = "Last Visited",
+                            uid = lastVisited.value!!.uid
                         )
                     )
                 } else {
@@ -101,8 +115,9 @@ class HomeScreenViewModel @Inject constructor(
                         )
                     )
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteConstraintException) {
                 e.printStackTrace()
+                _uiState.value = HomeScreenUiState.Error("${e.message ?: "Unknown error"} for Last Visited")
             }
         }
     }
@@ -111,12 +126,13 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val exists = launchSitesRepository.checkIfSiteExists("New Marker")
-                if (exists) {
+                if (exists && newMarker.value != null) {
                     launchSitesRepository.update(
                         LaunchSite(
                             latitude = lat,
                             longitude = lon,
-                            name = "New Marker"
+                            name = "New Marker",
+                            uid = newMarker.value!!.uid
                         )
                     )
                 } else {
@@ -128,8 +144,9 @@ class HomeScreenViewModel @Inject constructor(
                         )
                     )
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteConstraintException) {
                 e.printStackTrace()
+                _uiState.value = HomeScreenUiState.Error("${e.message ?: "Unknown error"} for New Marker")
             }
         }
     }

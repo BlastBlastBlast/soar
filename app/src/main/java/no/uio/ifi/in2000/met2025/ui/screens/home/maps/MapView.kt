@@ -77,7 +77,8 @@ fun MapView(
                 }
             }
             if (newMarkerStatus) {
-                temporaryMarker?.let { point ->
+                if (temporaryMarker != null) {
+                    val point = temporaryMarker!!
                     val markerImage = rememberIconImage(
                         key = R.drawable.red_marker,
                         painter = painterResource(id = R.drawable.red_marker)
@@ -98,6 +99,46 @@ fun MapView(
                                 onClick = { onMarkerAnnotationClick(point) },
                                 onDoubleClick = { },
                                 onLongPress = { onMarkerAnnotationLongPress(point) }
+                            )
+                        }
+                    }
+                } else {
+                    val sitePoint = Point.fromLngLat(newMarker!!.longitude, newMarker.latitude)
+                    val markerImage = rememberIconImage(
+                        key = "launchSite_${newMarker.uid}",
+                        painter = painterResource(id = R.drawable.red_marker)
+                    )
+                    PointAnnotation(point = sitePoint) { iconImage = markerImage }
+                    if (showAnnotations) {
+                        ViewAnnotation(
+                            options = viewAnnotationOptions {
+                                geometry(sitePoint)
+                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
+                                allowOverlap(true)
+                            }
+                        ) {
+                            MarkerLabel(
+                                name = newMarker.name,
+                                lat = "%.4f".format(newMarker.latitude),
+                                lon = "%.4f".format(newMarker.longitude),
+                                onClick = { /* Optionally handle single tap on saved marker */ },
+                                onDoubleClick = {
+                                    scope.launch {
+                                        mapViewportState.easeTo(
+                                            cameraOptions {
+                                                center(sitePoint)
+                                                zoom(14.0)
+                                                pitch(0.0)
+                                                bearing(0.0)
+                                            },
+                                            MapAnimationOptions.mapAnimationOptions { duration(1000L) }
+                                        )
+                                    }
+                                    onLaunchSiteMarkerClick(newMarker)
+                                },
+                                onLongPress = {
+                                    onSavedMarkerAnnotationLongPress(newMarker)
+                                }
                             )
                         }
                     }
