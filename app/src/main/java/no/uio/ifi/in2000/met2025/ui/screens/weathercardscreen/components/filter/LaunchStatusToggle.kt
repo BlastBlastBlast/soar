@@ -45,7 +45,7 @@ fun LaunchStatusToggleRow(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LaunchStatus.values().forEach { status ->
+            LaunchStatus.entries.forEach { status ->
                 val isSelected = selectedStatuses.contains(status)
                 FilterChip(
                     selected = isSelected,

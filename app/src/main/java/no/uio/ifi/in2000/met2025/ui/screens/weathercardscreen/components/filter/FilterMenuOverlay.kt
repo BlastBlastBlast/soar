@@ -65,7 +65,6 @@ fun FilterMenuOverlay(
                         isActive = isFilterActive,
                         onClick  = {
                             onToggleFilter()
-                            onDismiss()
                         },
                         modifier = Modifier
                             .padding(horizontal = 16.dp)

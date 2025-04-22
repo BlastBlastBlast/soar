@@ -200,13 +200,25 @@ fun ScreenContent(
         // Use the passed hoursToShow value for limiting forecast items.
         val filteredItems = forecastItems.filter { item ->
             val state = evaluateLaunchConditions(item, config)
-            val launchStatusMatch = state is ParameterState.Available &&
-                    launchStatus(state.relativeUnsafety) in selectedStatuses
 
-            val validityMatch = !filterActive || state is ParameterState.Available
+            // if filter not active show all
+            if (!filterActive) {
+                if (state !is ParameterState.Available) return@filter true
+                val status = launchStatus(state.relativeUnsafety)
+                return@filter status in selectedStatuses
+            }
 
-            launchStatusMatch && validityMatch
+            // if filter active remove UNSAFE
+            if (state !is ParameterState.Available) return@filter false
+            val status = launchStatus(state.relativeUnsafety)
+
+            // UNSAFE filtered regardless of what's chosen
+            if (status == LaunchStatus.UNSAFE) return@filter false
+
+            // selectedStatuses is used for further filtering
+            return@filter status in selectedStatuses
         }.take(hoursToShow.toInt())
+
         val forecastByDay: Map<String, List<ForecastDataItem>> =
             filteredItems.groupBy { it.time.substring(0, 10) }
         val sortedDays = forecastByDay.keys.sorted()
