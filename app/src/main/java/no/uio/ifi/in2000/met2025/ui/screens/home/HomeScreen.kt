@@ -1,6 +1,7 @@
 // HomeScreen.kt
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
+import android.provider.ContactsContract.CommonDataKinds.Note.NOTE
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -274,10 +275,22 @@ fun HomeScreen(
                                     viewModel.setNewMarkerStatusFalse()
                                 }
                             }
-                            showSaveDialog = false
+                            // NOTE: DO NOT CLOSE DIALOG HERE!
                         },
                         updateStatus = updateStatus
                     )
+                }
+                // React to successful save (not on confirm click)
+                LaunchedEffect(updateStatus) {
+                    if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
+                        // Close and reset all state
+                        showSaveDialog = false
+                        savedMarkerCoordinates = null
+                        launchSiteName = ""
+                        isEditingMarker = false
+                        viewModel.setUpdateStatusIdle()
+                        viewModel.setNewMarkerStatusFalse()
+                    }
                 }
             }
         }
