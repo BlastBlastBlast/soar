@@ -39,6 +39,9 @@ interface LaunchSiteDAO {
 
     @Query("SELECT name FROM LaunchSite")
     fun getAllLaunchSiteNames() : Flow<List<String>>
+
+    @Query("UPDATE LaunchSite SET elevation = :elevation WHERE uid = :uid")
+    suspend fun updateElevation(uid: Int, elevation: Double)
 }
 
 

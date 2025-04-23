@@ -25,30 +25,25 @@ fun LaunchSiteScreen(
 ) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
     val updateStatus by viewModel.updateStatus.collectAsState()
-    var showNewSiteDialog by remember { mutableStateOf(false) }
 
-    val newMarkerSite = launchSites.find { it.name == "New Marker" }
-    val otherSites = launchSites
-        .filter { it.name != "Last Visited" && it.name != "New Marker" }
-        .sortedBy { it.name }
-    val displaySites = listOfNotNull(newMarkerSite) + otherSites
+    // Filter out temporary markers
+    val displaySites = launchSites.filter { it.name != "New Marker" && it.name != "Last Visited" }
 
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)  // the system “window” background
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Surface(
-            modifier        = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            color           = MaterialTheme.colorScheme.surface,   // your CONFIG‐style slightly off‑white
-            tonalElevation  = 4.dp,                                // blends a touch of primary into surface
-            shadowElevation = 8.dp,                                // big enough shadow to see the lift
-            shape           = RoundedCornerShape(12.dp)
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp,
+            shadowElevation = 8.dp,
+            shape = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
-                // — HEADER IN ORANGE BAND —
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -62,68 +57,35 @@ fun LaunchSiteScreen(
                 ) {
                     Text(
                         "LAUNCH SITES",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
                     )
                 }
                 Spacer(Modifier.height(8.dp))
-
                 LazyColumn(
-                    modifier            = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(displaySites) { site ->
                         LaunchSiteItem(
-                            site     = site,
+                            site = site,
                             onDelete = { viewModel.deleteLaunchSite(site) },
-                            onEdit   = { updatedSite ->
-                                viewModel.updateLaunchSite(updatedSite)
-                            },
+                            onEdit = { updatedSite -> viewModel.updateLaunchSite(updatedSite) },
                             updateStatus = updateStatus,
                             viewModel = viewModel
                         )
                     }
                 }
-
-                Spacer(Modifier.height(8.dp))
-
-                Button(
-                    onClick    = { showNewSiteDialog = true },
-                    modifier   = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors     = ButtonDefaults.buttonColors(
-                        containerColor = WarmOrange,
-                        contentColor   = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text("+")
-                }
             }
-        }
-
-        if (showNewSiteDialog) {
-            NewLaunchSiteDialog(
-                onDismiss = { showNewSiteDialog = false },
-                onConfirm = { name, latStr, lonStr ->
-                    val lat = latStr.toDoubleOrNull()
-                    val lon = lonStr.toDoubleOrNull()
-                    if (lat != null && lon != null && name.isNotBlank()) {
-                        viewModel.addLaunchSite(lat, lon, name)
-                        showNewSiteDialog = false
-                    }
-                }
-            )
         }
     }
     LaunchedEffect(updateStatus) {
         if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
-            // Clear the status after a successful update.
             viewModel.setUpdateStatusToIdle()
         }
     }

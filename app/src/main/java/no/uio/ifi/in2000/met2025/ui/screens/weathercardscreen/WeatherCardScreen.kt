@@ -33,6 +33,8 @@ import androidx.navigation.NavHostController
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
@@ -40,6 +42,9 @@ import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
@@ -66,12 +71,12 @@ fun WeatherCardScreen(
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
 
     // Shared state for forecast hours (controlled via the filter overlay)
-    var hoursToShow by remember { mutableStateOf(24f) }
-    var filterActive by remember { mutableStateOf(false) }
+    var hoursToShow by rememberSaveable { mutableStateOf(24f) }
+    var filterActive by rememberSaveable { mutableStateOf(false) }
     var selectedStatuses by remember { mutableStateOf(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION, LaunchStatus.UNSAFE)) }
-    var isConfigMenuExpanded by remember { mutableStateOf(false) }
-    var isFilterMenuExpanded by remember { mutableStateOf(false) }
-    var isLaunchMenuExpanded by remember { mutableStateOf(false) }
+    var isConfigMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var isFilterMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var isLaunchMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)

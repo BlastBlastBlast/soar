@@ -21,10 +21,11 @@ abstract class AppDatabase : RoomDatabase() {
 
 @Entity(tableName = "LaunchSite", indices = [Index(value = ["name"], unique = true)])
 data class LaunchSite(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0 ,
+    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
-    @ColumnInfo(name = "name") val name: String
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "elevation") val elevation: Double = 0.0
 )
 
 @Entity(tableName = "grib_files")

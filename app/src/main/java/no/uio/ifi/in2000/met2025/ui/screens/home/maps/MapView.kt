@@ -1,11 +1,14 @@
 package no.uio.ifi.in2000.met2025.ui.screens.home.maps
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import com.mapbox.geojson.Point
+import com.mapbox.maps.MapView
 import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
@@ -30,19 +33,21 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 @Composable
 fun MapView(
     center: Pair<Double, Double>,
-    //temporaryMarker: Point? = null,
     newMarker: LaunchSite?,
     newMarkerStatus: Boolean,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
     showAnnotations: Boolean = true,
-    onMapLongClick: (Point) -> Unit,
-    onMarkerAnnotationClick: (Point) -> Unit,
-    onMarkerAnnotationLongPress: (Point) -> Unit,
+
+    onMapLongClick: (Point, Double?) -> Unit,
+    onMarkerAnnotationClick: (Point, Double?) -> Unit,
+    onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {},
-    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {}
+    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {},
+    onSiteElevation: (Int, Double) -> Unit
 ) {
+    // underlying Mapbox state
     val mapState = rememberMapState {
         cameraOptions {
             center(Point.fromLngLat(center.second, center.first))
@@ -52,63 +57,124 @@ fun MapView(
         }
     }
     val scope = rememberCoroutineScope()
-    var temporaryMarker : Point? by remember { mutableStateOf(null) }
+
+    // this holds our “pin” until the VM’s newMarker flows in
+    var temporaryMarker: Point? by rememberSaveable { mutableStateOf(null) }
+    var mapViewRef by remember { mutableStateOf<MapView?>(null) }
+    var markerElevation: Double? by rememberSaveable { mutableStateOf(null) }
+
+    // sync any VM‑driven “New Marker” into our local temp state
+    LaunchedEffect(newMarker, newMarkerStatus) {
+        if (newMarkerStatus && newMarker != null) {
+            temporaryMarker = Point.fromLngLat(
+                newMarker.longitude,
+                newMarker.latitude
+            )
+        }
+    }
 
     Box(modifier = modifier) {
         MapboxMap(
-            modifier = Modifier.fillMaxSize(),
-            //style = { MapStyle(style = Style.STANDARD) },
-            style = { MapStyle ( style = "mapbox://styles/larswt/cm9ftfa5h00ix01s86li36n61") },
-            mapState = mapState,
-            mapViewportState = mapViewportState,
+            modifier             = Modifier.fillMaxSize(),
+            style                = { MapStyle("mapbox://styles/larswt/cm9ftfa5h00ix01s86li36n61") },
+            mapState             = mapState,
+            mapViewportState     = mapViewportState,
             onMapLongClickListener = { point ->
-                onMapLongClick(point)
+                // 1) grab DEM elevation
+                val elev = mapViewRef?.mapboxMap?.getElevation(point)
+                markerElevation = elev
+
+                // 2) call back into your VM
+                onMapLongClick(point, elev)
+
+                // 3) update local pin immediately
                 temporaryMarker = point
                 true
             }
         ) {
+            // capture the MapView for elevation calls + puck
             MapEffect(Unit) { mapView ->
-                val locationPlugin = mapView.getPlugin("location") as? LocationComponentPlugin
-                locationPlugin?.updateSettings {
-                    locationPuck = createDefault2DPuck(withBearing = true)
-                    enabled = true
-                    puckBearing = PuckBearing.COURSE
-                    puckBearingEnabled = true
+                mapViewRef = mapView
+                (mapView.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
+                    locationPuck        = createDefault2DPuck(withBearing = true)
+                    enabled             = true
+                    puckBearing         = PuckBearing.COURSE
+                    puckBearingEnabled  = true
                 }
             }
+
+            // — DRAW THE “NEW” PIN (either just‑pressed or just‑saved) —
             if (newMarkerStatus) {
-                if (temporaryMarker != null) {
-                    val point = temporaryMarker!!
-                    val markerImage = rememberIconImage(
-                        key = R.drawable.red_marker,
-                        painter = painterResource(id = R.drawable.red_marker)
-                    )
-                    PointAnnotation(point = point) { iconImage = markerImage }
-                    if (showAnnotations) {
-                        ViewAnnotation(
-                            options = viewAnnotationOptions {
-                                geometry(point)
-                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
-                                allowOverlap(true)
+                val markerImage = rememberIconImage(
+                    key     = R.drawable.red_marker,
+                    painter = painterResource(R.drawable.red_marker)
+                )
+
+                when {
+                    temporaryMarker != null -> {
+                        // A) the fresh temp pin
+                        val pt = temporaryMarker!!
+                        PointAnnotation(point = pt) { iconImage = markerImage }
+                        if (showAnnotations) {
+                            ViewAnnotation(
+                                options = viewAnnotationOptions {
+                                    geometry(pt)
+                                    annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
+                                    allowOverlap(true)
+                                }
+                            ) {
+                                MarkerLabel(
+                                    name      = "New Marker",
+                                    lat       = "%.4f".format(pt.latitude()),
+                                    lon       = "%.4f".format(pt.longitude()),
+                                    elevation = markerElevation?.let { "%.1f m".format(it) },
+                                    onClick   = { onMarkerAnnotationClick(pt, markerElevation) },
+                                    onDoubleClick = { /* noop */ },
+                                    onLongPress   = { onMarkerAnnotationLongPress(pt, markerElevation) }
+                                )
                             }
-                        ) {
-                            MarkerLabel(
-                                name = "New Marker",
-                                lat = "%.4f".format(point.latitude()),
-                                lon = "%.4f".format(point.longitude()),
-                                onClick = { onMarkerAnnotationClick(point) },
-                                onDoubleClick = { },
-                                onLongPress = { onMarkerAnnotationLongPress(point) }
-                            )
                         }
                     }
-                } else {
-                    val sitePoint = Point.fromLngLat(newMarker!!.longitude, newMarker.latitude)
-                    val markerImage = rememberIconImage(
-                        key = "launchSite_${newMarker.uid}",
-                        painter = painterResource(id = R.drawable.red_marker)
+                    newMarker != null         -> {
+                        // B) fallback to the saved record
+                        val p = Point.fromLngLat(newMarker.longitude, newMarker.latitude)
+                        PointAnnotation(point = p) { iconImage = markerImage }
+                        if (showAnnotations) {
+                            ViewAnnotation(
+                                options = viewAnnotationOptions {
+                                    geometry(p)
+                                    annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
+                                    allowOverlap(true)
+                                }
+                            ) {
+                                MarkerLabel(
+                                    name      = newMarker.name,
+                                    lat       = "%.4f".format(newMarker.latitude),
+                                    lon       = "%.4f".format(newMarker.longitude),
+                                    elevation = "%.1f m".format(newMarker.elevation),
+                                    onClick   = { onMarkerAnnotationClick(p, newMarker.elevation) },
+                                    onDoubleClick = { /* noop */ },
+                                    onLongPress   = { onMarkerAnnotationLongPress(p, newMarker.elevation) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // — DRAW ALL OTHER LAUNCH SITES —
+            launchSites
+                .filter { it.name !in listOf("Last Visited", "New Marker") }
+                .forEach { site ->
+                    val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
+                    val siteImage = rememberIconImage(
+                        key     = "launchSite_${site.uid}",
+                        painter = painterResource(R.drawable.red_marker)
                     )
-                    PointAnnotation(point = sitePoint) { iconImage = markerImage }
+
+                    PointAnnotation(point = sitePoint) {
+                        iconImage = siteImage
+                    }
                     if (showAnnotations) {
                         ViewAnnotation(
                             options = viewAnnotationOptions {
@@ -118,10 +184,11 @@ fun MapView(
                             }
                         ) {
                             MarkerLabel(
-                                name = newMarker.name,
-                                lat = "%.4f".format(newMarker.latitude),
-                                lon = "%.4f".format(newMarker.longitude),
-                                onClick = { /* Optionally handle single tap on saved marker */ },
+                                name      = site.name,
+                                lat       = "%.4f".format(site.latitude),
+                                lon       = "%.4f".format(site.longitude),
+                                elevation = "%.1f m".format(site.elevation),
+                                onClick   = { /* tap‐noop */ },
                                 onDoubleClick = {
                                     scope.launch {
                                         mapViewportState.easeTo(
@@ -134,57 +201,23 @@ fun MapView(
                                             MapAnimationOptions.mapAnimationOptions { duration(1000L) }
                                         )
                                     }
-                                    onLaunchSiteMarkerClick(newMarker)
+                                    onLaunchSiteMarkerClick(site)
                                 },
-                                onLongPress = {
-                                    onSavedMarkerAnnotationLongPress(newMarker)
-                                }
+                                onLongPress   = { onSavedMarkerAnnotationLongPress(site) }
                             )
                         }
                     }
-                }
-            }
-            launchSites.filter { it.name != "Last Visited" && it.name != "New Marker"}.forEach { site ->
-                val sitePoint = Point.fromLngLat(site.longitude, site.latitude)
-                val markerImage = rememberIconImage(
-                    key = "launchSite_${site.uid}",
-                    painter = painterResource(id = R.drawable.red_marker)
-                )
-                PointAnnotation(point = sitePoint) { iconImage = markerImage }
-                if (showAnnotations) {
-                    ViewAnnotation(
-                        options = viewAnnotationOptions {
-                            geometry(sitePoint)
-                            annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
-                            allowOverlap(true)
+
+                    // back‐fill any zero elevation once
+                    LaunchedEffect(site.uid, site.elevation) {
+                        if (site.elevation == 0.0) {
+                            mapViewRef
+                                ?.mapboxMap
+                                ?.getElevation(sitePoint)
+                                ?.let { elev -> onSiteElevation(site.uid, elev) }
                         }
-                    ) {
-                        MarkerLabel(
-                            name = site.name,
-                            lat = "%.4f".format(site.latitude),
-                            lon = "%.4f".format(site.longitude),
-                            onClick = { /* Optionally handle single tap on saved marker */ },
-                            onDoubleClick = {
-                                scope.launch {
-                                    mapViewportState.easeTo(
-                                        cameraOptions {
-                                            center(sitePoint)
-                                            zoom(14.0)
-                                            pitch(0.0)
-                                            bearing(0.0)
-                                        },
-                                        MapAnimationOptions.mapAnimationOptions { duration(1000L) }
-                                    )
-                                }
-                                onLaunchSiteMarkerClick(site)
-                            },
-                            onLongPress = {
-                                onSavedMarkerAnnotationLongPress(site)
-                            }
-                        )
                     }
                 }
-            }
         }
     }
 }

@@ -10,37 +10,46 @@ import androidx.compose.runtime.Composable
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
+// MapContainer.kt
+
 @Composable
 fun MapContainer(
     coordinates: Pair<Double, Double>,
-    //temporaryMarker: Point? = null,
     newMarker: LaunchSite?,
     newMarkerStatus: Boolean,
     launchSites: List<LaunchSite>,
     mapViewportState: MapViewportState,
     modifier: Modifier = Modifier,
     showAnnotations: Boolean = true,
-    onMapLongClick: (Point) -> Unit,
-    onMarkerAnnotationClick: (Point) -> Unit,
-    onMarkerAnnotationLongPress: (Point) -> Unit,
+
+    // ↑ changed these three to take an optional elevation
+    onMapLongClick: (Point, Double?) -> Unit,
+    onMarkerAnnotationClick: (Point, Double?) -> Unit,
+    onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
+
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {},
-    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit  // NEW parameter
+    onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {},
+    onSiteElevation: (Int, Double) -> Unit
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         MapView(
-            center = coordinates,
-            //temporaryMarker = temporaryMarker,
-            newMarker = newMarker,
-            newMarkerStatus = newMarkerStatus,
-            launchSites = launchSites,
-            mapViewportState = mapViewportState,
-            modifier = Modifier.fillMaxSize(),
-            showAnnotations = showAnnotations,
-            onMapLongClick = onMapLongClick,
-            onMarkerAnnotationClick = onMarkerAnnotationClick,
-            onMarkerAnnotationLongPress = onMarkerAnnotationLongPress,
-            onLaunchSiteMarkerClick = onLaunchSiteMarkerClick,
-            onSavedMarkerAnnotationLongPress = onSavedMarkerAnnotationLongPress
+            center                           = coordinates,
+            newMarker                        = newMarker,
+            newMarkerStatus                  = newMarkerStatus,
+            launchSites                      = launchSites,
+            mapViewportState                 = mapViewportState,
+            modifier                         = Modifier.fillMaxSize(),
+            showAnnotations                  = showAnnotations,
+
+            // now passing through the two-arg lambdas
+            onMapLongClick                   = onMapLongClick,
+            onMarkerAnnotationClick          = onMarkerAnnotationClick,
+            onMarkerAnnotationLongPress      = onMarkerAnnotationLongPress,
+
+            onLaunchSiteMarkerClick          = onLaunchSiteMarkerClick,
+            onSavedMarkerAnnotationLongPress = onSavedMarkerAnnotationLongPress,
+            onSiteElevation                  = onSiteElevation
         )
     }
 }
+

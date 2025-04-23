@@ -1,6 +1,7 @@
 // HomeScreen.kt
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
+import android.provider.ContactsContract.CommonDataKinds.Note.NOTE
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -8,7 +9,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,32 +38,51 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
+import no.uio.ifi.in2000.met2025.ui.common.LatLonDisplay
 
-//HomeScreen.kt
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
     onNavigateToWeather: (Double, Double) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val coordinates by viewModel.coordinates.collectAsState()
-    val launchSites by viewModel.launchSites.collectAsState()
-    val updateStatus by viewModel.updateStatus.collectAsState()
-    val newMarker by viewModel.newMarker.collectAsState()
+    val uiState         by viewModel.uiState.collectAsState()
+    val coordinates     by viewModel.coordinates.collectAsState()
+    val launchSites     by viewModel.launchSites.collectAsState()
+    val updateStatus    by viewModel.updateStatus.collectAsState()
+    val newMarker       by viewModel.newMarker.collectAsState()
     val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
-    val context = LocalContext.current
-    var isLaunchSiteMenuExpanded by remember { mutableStateOf(false) }
-    var showSaveDialog by remember { mutableStateOf(false) }
-    // We'll use these states for both adding new markers and editing saved markers.
-    var savedMarkerCoordinates by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    var launchSiteName by remember { mutableStateOf("") }
-    var isEditingMarker by remember { mutableStateOf(false) } // false: new marker; true: editing existing marker
-    var editingMarkerId by remember { mutableStateOf(0) }
-    var showAnnotations by remember { mutableStateOf(true) }
-    val coroutineScope = rememberCoroutineScope()
+    val context         = LocalContext.current
+    val coroutineScope  = rememberCoroutineScope()
 
-    // Shared MapViewportState.
+    // Single coordinate input box state & error
+    var coordsString by rememberSaveable { mutableStateOf("") }
+    var parseError  by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Sync when map center changes
+    LaunchedEffect(coordinates) {
+        coordsString = "%.4f, %.4f".format(
+            coordinates.first,
+            coordinates.second
+        )
+        parseError = null
+    }
+
+    // UI flags
+    var isMenuExpanded         by rememberSaveable { mutableStateOf(false) }
+    var showSaveDialog         by rememberSaveable { mutableStateOf(false) }
+    var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
+    var launchSiteName         by rememberSaveable { mutableStateOf("") }
+    var isEditingMarker        by rememberSaveable { mutableStateOf(false) }
+    var editingMarkerId        by rememberSaveable { mutableStateOf(0) }
+    var showAnnotations        by rememberSaveable { mutableStateOf(true) }
+    val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
+        // this is the same lambda you pass into MapContainer
+        viewModel.onMarkerPlaced(pt.latitude(), pt.longitude(), elev ?: 0.0)
+    }
+    // Map viewport
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
             center(Point.fromLngLat(coordinates.second, coordinates.first))
@@ -72,197 +94,202 @@ fun HomeScreen(
 
     when (uiState) {
         is HomeScreenViewModel.HomeScreenUiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
         is HomeScreenViewModel.HomeScreenUiState.Error -> {
-            val errorMessage = (uiState as HomeScreenViewModel.HomeScreenUiState.Error).message
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "Error: $errorMessage", color = MaterialTheme.colorScheme.error)
+            val msg = (uiState as HomeScreenViewModel.HomeScreenUiState.Error).message
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Error: $msg", color = MaterialTheme.colorScheme.error)
             }
         }
         is HomeScreenViewModel.HomeScreenUiState.Success -> {
             val state = uiState as HomeScreenViewModel.HomeScreenUiState.Success
-            Box(modifier = Modifier.fillMaxSize()) {
+
+            Box(Modifier.fillMaxSize()) {
+                // 1) Fullscreen map
                 MapContainer(
-                    coordinates = coordinates,
-                    newMarker = newMarker,
-                    newMarkerStatus = newMarkerStatus,
-                    //temporaryMarker = null,
-                    launchSites = launchSites,
-                    mapViewportState = mapViewportState,
-                    showAnnotations = showAnnotations,
-                    onMapLongClick = { point ->
-                        // When the user long presses the map, place a temporary marker.
-                        viewModel.onMarkerPlaced(point.latitude(), point.longitude())
+                    coordinates                    = coordinates,
+                    newMarker                      = newMarker,
+                    newMarkerStatus                = newMarkerStatus,
+                    launchSites                    = launchSites,
+                    mapViewportState               = mapViewportState,
+                    showAnnotations                = showAnnotations,
+                    onMapLongClick                 = fakeLongClick,
+
+                    onMarkerAnnotationClick        = { pt, elev ->
+                        viewModel.updateCoordinates(pt.latitude(), pt.longitude())
+                        viewModel.updateLastVisited(pt.latitude(), pt.longitude(), elev ?: 0.0)
                     },
-                    onMarkerAnnotationClick = { point ->
-                        viewModel.updateCoordinates(point.latitude(), point.longitude())
-                        viewModel.updateLastVisited(point.latitude(), point.longitude())
+                    onMarkerAnnotationLongPress    = { pt, elev ->
+                        viewModel.updateCoordinates(pt.latitude(), pt.longitude())
+                        viewModel.updateLastVisited(pt.latitude(), pt.longitude(), elev ?: 0.0)
+                        isEditingMarker        = false
+                        savedMarkerCoordinates = pt.latitude() to pt.longitude()
+                        launchSiteName         = "New Marker"
+                        showSaveDialog         = true
                     },
-                    onMarkerAnnotationLongPress = { point ->
-                        // For a temporary marker long press: open a dialog.
-                        viewModel.updateCoordinates(point.latitude(), point.longitude())
-                        viewModel.updateLastVisited(point.latitude(), point.longitude())
-                        isEditingMarker = false
-                        savedMarkerCoordinates = Pair(point.latitude(), point.longitude())
-                        launchSiteName = "New Marker"
-                        showSaveDialog = true
-                    },
-                    // This lambda is triggered on a double tap of a launch site marker.
-                    onLaunchSiteMarkerClick = { site ->
-                        // Update the in-memory coordinate state and the repository record.
+                    onLaunchSiteMarkerClick       = { site ->
                         viewModel.updateCoordinates(site.latitude, site.longitude)
-                        viewModel.updateLastVisited(site.latitude, site.longitude)
+                        viewModel.updateLastVisited(site.latitude, site.longitude, site.elevation)
                     },
                     onSavedMarkerAnnotationLongPress = { site ->
-                        // For editing an existing site.
                         viewModel.updateCoordinates(site.latitude, site.longitude)
-                        viewModel.updateLastVisited(site.latitude, site.longitude)
-                        isEditingMarker = true
-                        editingMarkerId = site.uid
-                        savedMarkerCoordinates = Pair(site.latitude, site.longitude)
-                        launchSiteName = site.name
-                        showSaveDialog = true
-                    }
+                        viewModel.updateLastVisited(site.latitude, site.longitude, site.elevation)
+                        isEditingMarker        = true
+                        editingMarkerId        = site.uid
+                        savedMarkerCoordinates = site.latitude to site.longitude
+                        launchSiteName         = site.name
+                        showSaveDialog         = true
+                    },
+                    onSiteElevation                = { uid, elev ->
+                        viewModel.updateSiteElevation(uid, elev)
+                    },
+                    modifier                       = Modifier.matchParentSize()
                 )
 
+                // 2) Floating LatLonDisplay with Done icon
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    LatLonDisplay(
+                        coordinates         = coordsString,
+                        onCoordinatesChange = { coordsString = it },
+                        onDone              = {
+                            parseLatLon(coordsString)?.let { (lat, lon) ->
+                                // exactly same as long‑press handler:
+                                viewModel.onMarkerPlaced(lat, lon, 0.0)
+                                coroutineScope.launch {
+                                    mapViewportState.easeTo(
+                                        cameraOptions {
+                                            center(Point.fromLngLat(lon, lat))
+                                            zoom(mapViewportState.cameraState?.zoom ?: 12.0)
+                                        },
+                                        MapAnimationOptions.mapAnimationOptions { duration(500L) }
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.CenterHorizontally
+                        )
+                    )
+                    parseError?.let { err ->
+                        Text(
+                            text = err,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                        )
+                    }
+                }
 
-                CoordinateDisplay(coordinates = coordinates)
-
+                // 3) Menu toggle
                 LaunchSitesButton(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(16.dp)
                         .size(90.dp),
-                    onClick = { isLaunchSiteMenuExpanded = !isLaunchSiteMenuExpanded }
+                    onClick = { isMenuExpanded = !isMenuExpanded }
                 )
 
+                // 4) Animated menu
                 AnimatedVisibility(
-                    visible = isLaunchSiteMenuExpanded,
-                    enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
-                    exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300)),
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(start = 16.dp, bottom = 100.dp)
+                    visible  = isMenuExpanded,
+                    enter    = expandVertically(tween(300)) + fadeIn(tween(300)),
+                    exit     = shrinkVertically(tween(300)) + fadeOut(tween(300)),
+                    modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 100.dp)
                 ) {
                     LaunchSitesMenu(
-                        launchSites = state.launchSites.filter { it.name != "Last Visited" },
+                        launchSites    = state.launchSites.filter { it.name != "Last Visited" },
                         onSiteSelected = { site ->
                             coroutineScope.launch {
                                 mapViewportState.easeTo(
                                     cameraOptions {
                                         center(Point.fromLngLat(site.longitude, site.latitude))
-                                        zoom(14.0)
-                                        pitch(0.0)
-                                        bearing(0.0)
+                                        zoom(14.0); pitch(0.0); bearing(0.0)
                                     },
-                                    MapAnimationOptions.mapAnimationOptions { duration(1000L) }
+                                    MapAnimationOptions.mapAnimationOptions { duration(500L) }
                                 )
-                                viewModel.updateLastVisited(site.latitude, site.longitude)
+                                viewModel.updateLastVisited(site.latitude, site.longitude, site.elevation)
                             }
-                            isLaunchSiteMenuExpanded = false
+                            isMenuExpanded = false
                         }
                     )
                 }
 
-               /* // Show the save/edit dialog.
-                if (showSaveDialog && savedMarkerCoordinates != null) {
-                    SaveLaunchSiteDialog(
-                        launchSiteName = launchSiteName,
-                        onNameChange = { launchSiteName = it },
-                        onDismiss = {
-                            showSaveDialog = false
-                            savedMarkerCoordinates = null
-                            launchSiteName = ""
-                        },
-                        onConfirm = {
-                            val (lat, lon) = savedMarkerCoordinates!!
-                            if (isEditingMarker) {
-                                // For editing, add a new marker with the edited values.
-                                viewModel.addLaunchSite(lat, lon, launchSiteName)
-                            } else {
-                                // For a new marker.
-                                viewModel.addLaunchSite(lat, lon, launchSiteName)
-                                // Update the new marker placeholder so that next time it is fresh.
-                                viewModel.updateNewMarker(lat, lon)
-                            }
-                            showSaveDialog = false
-                            savedMarkerCoordinates = null
-                            launchSiteName = ""
-                        }
-                    )
-                } */
+                // 5) Toggle annotations
                 IconButton(
-                    onClick = { showAnnotations = !showAnnotations },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp)
-                        .size(36.dp)
+                    onClick  = { showAnnotations = !showAnnotations },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
                 ) {
                     Icon(
-                        imageVector = if (showAnnotations) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = "Toggle marker annotations"
+                        imageVector     = if (showAnnotations) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = "Toggle annotations"
                     )
                 }
 
+                // 6) Weather button
                 WeatherNavigationButton(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                        .size(90.dp),
-                    latInput = coordinates.first.toString(),
-                    lonInput = coordinates.second.toString(),
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
+                    latInput   = coordinates.first.toString(),
+                    lonInput   = coordinates.second.toString(),
                     onNavigate = { lat, lon ->
                         viewModel.updateCoordinates(lat, lon)
-                        // Optionally update "Last Visited" as well if needed:
-                        // viewModel.updateLastVisited(lat, lon)
                         onNavigateToWeather(lat, lon)
                     },
                     context = context
                 )
 
+                // 7) Save/Edit dialog
                 if (showSaveDialog && savedMarkerCoordinates != null) {
                     SaveLaunchSiteDialog(
                         launchSiteName = launchSiteName,
-                        onNameChange = {
-                            launchSiteName = it;
-                            viewModel.setUpdateStatusIdle()},
+                        onNameChange   = {
+                            launchSiteName = it
+                            viewModel.setUpdateStatusIdle()
+                        },
                         onDismiss = {
-                            showSaveDialog = false
+                            showSaveDialog         = false
                             savedMarkerCoordinates = null
-                            launchSiteName = ""
-                            isEditingMarker = false
+                            launchSiteName         = ""
+                            isEditingMarker        = false
                             viewModel.setUpdateStatusIdle()
                         },
                         onConfirm = {
                             val (lat, lon) = savedMarkerCoordinates!!
                             if (isEditingMarker) {
-                                viewModel.editLaunchSite(editingMarkerId, lat, lon, launchSiteName)
+                                viewModel.editLaunchSite(
+                                    editingMarkerId,
+                                    lat, lon,
+                                    viewModel.launchSites.value.first { it.uid == editingMarkerId }.elevation,
+                                    launchSiteName
+                                )
                             } else {
-                                viewModel.addLaunchSite(lat, lon, launchSiteName)
-                                viewModel.updateNewMarker(lat, lon)
+                                val elev = viewModel.lastVisited.value?.elevation ?: 0.0
+                                viewModel.addLaunchSite(lat, lon, elev, launchSiteName)
+                                viewModel.updateNewMarker(lat, lon, elev)
                                 if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
                                     viewModel.setNewMarkerStatusFalse()
                                 }
                             }
-                            // DO NOT close the dialog here – wait for Success via LaunchedEffect
+                            // NOTE: DO NOT CLOSE DIALOG HERE!
                         },
                         updateStatus = updateStatus
                     )
-
-                    // React to successful save (not on confirm click)
-                    LaunchedEffect(updateStatus) {
-                        if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
-                            // Close and reset all state
-                            showSaveDialog = false
-                            savedMarkerCoordinates = null
-                            launchSiteName = ""
-                            isEditingMarker = false
-                            viewModel.setUpdateStatusIdle()
-                            viewModel.setNewMarkerStatusFalse()
-                        }
+                }
+                // React to successful save (not on confirm click)
+                LaunchedEffect(updateStatus) {
+                    if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
+                        // Close and reset all state
+                        showSaveDialog = false
+                        savedMarkerCoordinates = null
+                        launchSiteName = ""
+                        isEditingMarker = false
+                        viewModel.setUpdateStatusIdle()
+                        viewModel.setNewMarkerStatusFalse()
                     }
                 }
             }
