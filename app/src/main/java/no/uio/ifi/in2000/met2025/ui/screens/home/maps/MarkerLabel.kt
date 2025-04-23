@@ -28,6 +28,7 @@ fun MarkerLabel(
     name: String,
     lat: String,
     lon: String,
+    elevation: String? = null,       // ← new parameter
     onClick: () -> Unit,
     onDoubleClick: () -> Unit,
     onLongPress: () -> Unit,
@@ -39,61 +40,80 @@ fun MarkerLabel(
         modifier = Modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { onClick() },
+                    onTap       = { onClick() },
                     onDoubleTap = { onDoubleClick() },
                     onLongPress = { onLongPress() }
                 )
             }
     ) {
         Column {
-            // — Title row with WarmOrange bg —
+            // — Title row —
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(WarmOrange, shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                    .background(
+                        WarmOrange,
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                    )
                     .padding(horizontal = 6.dp, vertical = 2.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = name,
-                    fontSize = fontSize,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    text           = name,
+                    fontSize       = fontSize,
+                    color          = MaterialTheme.colorScheme.onPrimary,
                     textDecoration = TextDecoration.Underline
                 )
             }
 
-            // — Coordinates rows on the black background —
+            // — Body rows: lat, lon, (optional) elev —
             Column(
-                modifier = Modifier
+                modifier           = Modifier
                     .padding(horizontal = 6.dp, vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row {
                     Text(
-                        text = "Lat: ",
+                        text     = "Lat: ",
                         fontSize = fontSize,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color    = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = lat,
-                        fontSize = fontSize,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        text        = lat,
+                        fontSize    = fontSize,
+                        fontWeight  = FontWeight.Bold,
+                        color       = MaterialTheme.colorScheme.onPrimary
                     )
                 }
                 Row {
                     Text(
-                        text = "Lon: ",
+                        text     = "Lon: ",
                         fontSize = fontSize,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color    = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = lon,
-                        fontSize = fontSize,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        text        = lon,
+                        fontSize    = fontSize,
+                        fontWeight  = FontWeight.Bold,
+                        color       = MaterialTheme.colorScheme.onPrimary
                     )
+                }
+                // only show elevation if non-null
+                elevation?.let { elevText ->
+                    Row {
+                        Text(
+                            text     = "Elev: ",
+                            fontSize = fontSize,
+                            color    = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text        = elevText,
+                            fontSize    = fontSize,
+                            fontWeight  = FontWeight.Bold,
+                            color       = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
             }
         }

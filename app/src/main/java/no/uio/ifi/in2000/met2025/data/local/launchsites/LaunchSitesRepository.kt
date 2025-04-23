@@ -52,4 +52,7 @@ class LaunchSitesRepository @Inject constructor(
     fun getAllLaunchSiteNames() : Flow<List<String>> {
         return launchSiteDAO.getAllLaunchSiteNames()
     }
+
+    suspend fun updateElevation(uid: Int, elevation: Double) =
+        launchSiteDAO.updateElevation(uid, elevation)
 }
