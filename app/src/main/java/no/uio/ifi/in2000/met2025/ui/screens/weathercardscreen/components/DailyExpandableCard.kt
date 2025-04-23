@@ -144,7 +144,7 @@ fun DailyForecastCard(
     ) {
         Box(
             modifier = Modifier
-                .background(getGradientForSymbol(symbolCode)) // 🎨 ny og bedre gradient
+                .background(getGradientForSymbol(symbolCode))
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
