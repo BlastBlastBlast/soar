@@ -8,7 +8,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.toConfigList
 fun relativeUnsafety(value: Double?, threshold: Double): Double? {
     if (value == null) return null
     if (threshold == 0.0) {
-        return if (value < threshold) 0.0 else Double.MAX_VALUE
+        return if (value <= threshold) 0.0 else Double.MAX_VALUE
     }
     return value / threshold
 }
@@ -16,14 +16,15 @@ fun relativeUnsafety(value: Double?, threshold: Double): Double? {
 fun relativeUnsafety(config: ConfigProfile, forecastDataItem: ForecastDataItem? = null, isobaricData: IsobaricData? = null): Double? {
     val forecastList = forecastDataItem?.toConfigList(config) ?: emptyList()
     val isobaricList = isobaricData?.toConfigList(config) ?: emptyList()
-    val valueThresholdList = forecastList + isobaricList
+    val valueThresholdList = (forecastList + isobaricList).filter { (_, _, enabled) -> enabled }
+
     return relativeUnsafety(valueThresholdList)
 }
 
-fun relativeUnsafety(valueThresholdList: List<Pair<Double, Double>>): Double?
+fun relativeUnsafety(valueThresholdList: List<Triple<Double, Double, Boolean>>): Double?
 =
     valueThresholdList
-        .mapNotNull { (value, threshold) ->
-            println("Value: $value, Threshold: $threshold")
+        .mapNotNull { (value, threshold, isEnabled) ->
+            println("Value: $value, Threshold: $threshold, isEnabled: $isEnabled")
             relativeUnsafety(value, threshold) }
         .maxOrNull()
