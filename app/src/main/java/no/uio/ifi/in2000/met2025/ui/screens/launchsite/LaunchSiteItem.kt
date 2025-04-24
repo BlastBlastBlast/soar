@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +36,10 @@ fun LaunchSiteItem(
     site: LaunchSite,
     onDelete: () -> Unit,
     onEdit: (LaunchSite) -> Unit,
-    updateStatus: LaunchSiteViewModel.UpdateStatus
+    updateStatus: LaunchSiteViewModel.UpdateStatus,
+    viewModel : LaunchSiteViewModel
 ) {
-    var isEditing     by remember { mutableStateOf(false) }
+    var isEditing     by rememberSaveable { mutableStateOf(false) }
     var name          by remember { mutableStateOf(site.name) }
     var latitudeText  by remember { mutableStateOf(site.latitude.toString()) }
     var longitudeText by remember { mutableStateOf(site.longitude.toString()) }
@@ -117,7 +119,7 @@ fun LaunchSiteItem(
                     Column {
                         AppOutlinedTextField(
                             value = name,
-                            onValueChange = { name = it },
+                            onValueChange = { name = it; viewModel.checkNameAvailability(it) },
                             label = { Text("Name") },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -160,25 +162,22 @@ fun LaunchSiteItem(
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
                             }
                             IconButton(onClick = {
-                                isEditing = false
                                 name = site.name
                                 latitudeText = site.latitude.toString()
                                 longitudeText = site.longitude.toString()
+                                isEditing = false
                             }) {
                                 Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
                             }
+                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing
+                                && name != site.name) {
+                                Text(
+                                    text = updateStatus.message,
+                                    color = Color.Red
+                                )
+                            }
                         }
-
                     }
-                }
-                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error) {
-                    Text(
-                        text = updateStatus.message,
-                        color = Color.Red
-                    )
-                }
-                if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
-                    isEditing = false
                 }
             }
         }

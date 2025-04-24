@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LaunchSiteDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(sites: LaunchSite)
 
     @Delete
@@ -19,6 +19,9 @@ interface LaunchSiteDAO {
 
     @Query("SELECT * FROM LaunchSite")
     fun getAll(): Flow<List<LaunchSite>>
+
+    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
+    suspend fun getSiteByName(name: String): LaunchSite?
 
     @Update
     suspend fun update(sites: LaunchSite)
@@ -33,6 +36,12 @@ interface LaunchSiteDAO {
 
     @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
     suspend fun checkIfSiteExists(name: String): LaunchSite?
+
+    @Query("SELECT name FROM LaunchSite")
+    fun getAllLaunchSiteNames() : Flow<List<String>>
+
+    @Query("UPDATE LaunchSite SET elevation = :elevation WHERE uid = :uid")
+    suspend fun updateElevation(uid: Int, elevation: Double)
 }
 
 

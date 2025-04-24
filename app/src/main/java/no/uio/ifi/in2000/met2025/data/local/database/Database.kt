@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
+import androidx.room.Index
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
@@ -18,12 +19,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rocketConfigDao(): RocketConfigDao
 }
 
-@Entity
+@Entity(tableName = "LaunchSite", indices = [Index(value = ["name"], unique = true)])
 data class LaunchSite(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0 ,
+    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
-    @ColumnInfo(name = "name") val name: String
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "elevation") val elevation: Double = 0.0
 )
 
 @Entity(tableName = "grib_files")
@@ -104,5 +106,4 @@ data class RocketConfig(
     @ColumnInfo(name = "parachute_drag_coefficient") val parachuteDragCoefficient: Double,
     @ColumnInfo(name = "is_default") val isDefault: Boolean = false
 )
-
 
