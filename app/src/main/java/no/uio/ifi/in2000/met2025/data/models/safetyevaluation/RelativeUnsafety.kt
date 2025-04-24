@@ -8,7 +8,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.toConfigList
 fun relativeUnsafety(value: Double?, threshold: Double): Double? {
     if (value == null) return null
     if (threshold == 0.0) {
-        return if (value < threshold) 0.0 else Double.MAX_VALUE
+        return if (value <= threshold) 0.0 else Double.MAX_VALUE
     }
     return value / threshold
 }
