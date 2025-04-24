@@ -15,6 +15,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.div
 
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
+
 ) {
     fun calculateTrajectory(
         initialPosition: RealVector,

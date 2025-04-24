@@ -122,6 +122,8 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
+    implementation("org.aoache.commons:commons-math3:3.6.1")
+
     //netcdf and dependencies
     implementation(libs.cdm.core)// Core library
     implementation(libs.grib) // GRIB1 & GRIB2 support
