@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
@@ -30,9 +29,7 @@ fun FilterMenuOverlay(
     hoursToShow: Float,
     onHoursChanged: (Float) -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    selectedStatuses: Set<LaunchStatus>,
-    onStatusToggled: (LaunchStatus) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     // 1) full‑screen dimmed backdrop
     Box(
@@ -65,6 +62,7 @@ fun FilterMenuOverlay(
                         isActive = isFilterActive,
                         onClick  = {
                             onToggleFilter()
+                            onDismiss()
                         },
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -76,13 +74,6 @@ fun FilterMenuOverlay(
                         onHoursChanged = onHoursChanged,
                         modifier       = Modifier
                             .padding(horizontal = 16.dp)
-                    )
-
-                    //launch status row
-                    LaunchStatusToggleRow(
-                        selectedStatuses = selectedStatuses,
-                        onStatusToggled = onStatusToggled,
-                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
