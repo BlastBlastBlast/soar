@@ -22,6 +22,7 @@ class LocationForecastRepository @Inject constructor(
     private suspend fun fetchForecastDataResponse(
         lat: Double,
         lon: Double,
+        cacheResponse: Boolean
     ): Result<ForecastDataResponse> {
         Mutex().withLock {
             // Invalidate the cache if the coordinates have changed.
@@ -37,7 +38,10 @@ class LocationForecastRepository @Inject constructor(
             } else {
                 locationForecastDataSource.fetchForecastDataResponse(lat, lon).also { result ->
                     result.onSuccess { response ->
-                        cachedForecastDataResponse = response
+                        if (cacheResponse) {
+                            // Cache the response if requested.
+                            cachedForecastDataResponse = response
+                        }
                     }
                 }
             }
@@ -47,11 +51,12 @@ class LocationForecastRepository @Inject constructor(
     suspend fun getForecastData(
         lat: Double,
         lon: Double,
-        timeSpanInHours: Int,
+        timeSpanInHours: Int = 0,
         time: Instant? = null,
-        frequencyInHours: Int = 1
+        frequencyInHours: Int = 1,
+        cacheResponse: Boolean = true
     ): Result<ForecastData> {
-        val response = fetchForecastDataResponse(lat, lon).fold(
+        val response = fetchForecastDataResponse(lat, lon, cacheResponse).fold(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
         )

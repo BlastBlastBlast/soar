@@ -30,6 +30,7 @@ class TrajectoryCalculator(
         dragCoefficient: Double,
         parachuteCrossSectionalArea: Double,
         parachuteDragCoefficient: Double,
+        timeOfLaunch: Instant
     ): List<Pair<RealVector, Double>> {
 
         val launchDirectionUnitVector = ArrayRealVector(
@@ -53,7 +54,7 @@ class TrajectoryCalculator(
             result: SimpleLinkedList<Pair<RealVector, Double>>
         ): SimpleLinkedList<Pair<RealVector, Double>> {
 
-            val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition)
+            val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition, timeOfLaunch)
             val windVector = ArrayRealVector(
                 doubleArrayOf(airValues.windXComponent, airValues.windYComponent, 0.0)
             )

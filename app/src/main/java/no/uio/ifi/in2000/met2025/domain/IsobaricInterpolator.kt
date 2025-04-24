@@ -21,8 +21,10 @@ class IsobaricInterpolator(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
 ) {
+    var gribMap: GribDataMap? = null
+
     // key is [lat, lon, pressure]
-    var pointCache: MutableMap<RealVector, RealVector> = mutableMapOf()
+    var pointCache: MutableMap<RealVector, CartesianIsobaricValues> = mutableMapOf()
 
     // key is [lat, lon, pressure]
     var surfaceCache: MutableMap<RealVector, (RealVector) -> CartesianIsobaricValues> = mutableMapOf()
@@ -30,18 +32,112 @@ class IsobaricInterpolator(
     var lastVisitedGridIndex: RealVector? = null
 
     // FIXME: This function is a placeholder and should be implemented to return actual values.
-    fun getCartesianIsobaricValues(position: RealVector/*, velocity: D1Array<Double>*/): CartesianIsobaricValues {
+    fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
+        if (gribMap == null) {
+            val gribDataResult = isobaricRepository.getGribData()
+
+            when (gribDataResult) {
+                is GribDataResult.Success -> {
+                    gribMap = gribDataResult.gribDataMap.map
+                }
+                else -> {
+                    return Result.failure(Exception("Unknown error")) // TODO: Handle error properly
+                }
+            }
+        }
+
         val lat = position[0]
         val lon = position[1]
 
         assert(isWithinBounds(lat, lon)) { "Coordinates are outside the permitted bounds" }
 
-        if (lastVisitedGridIndex == null) {
+        val latIndex = lat.toGridIndex(MIN_LATITUDE)
+        val lonIndex = lon.toGridIndex(MIN_LONGITUDE)
 
-        } else if (!position.isInLastVisitedArea()) {
-            val pressureValues = (Constants.layerPressureValues).reversed()
-            val pressure = pressureValues[lastVisitedGridIndex!![2].toInt()]
+        val altitudeIndexToTry = if (lastVisitedGridIndex == null) {
+            0.0
+        }  else {
+            lastVisitedGridIndex!![2]
+        }
 
+        val pressureValues = (Constants.layerPressureValues).reversed()
+        val pressure = pressureValues[lastVisitedGridIndex!![2].toInt()]
+
+        fun pressureIndex(lastPressureIndex: Double): Double {
+            // attempt to fetch the surface at latIndex, lonIndex and lastAltitudeIndex from the cache
+            // if it does not exist, attempt to fetch the four points at latIndex (+1), lonIndex (+1) and lastAltitudeIndex from the cache
+            // for each point that does not exist in the cache, check the cache for the point below it
+            fun getValuesAtPoint(indices: RealVector): Result<CartesianIsobaricValues> {
+                return if (pointCache.containsKey(indices)) {
+                    pointCache[indices]!!
+                } else if (indices[2] == 0) {
+                        val forecastData = locationForecastRepository.getForecastData(
+                            lat = indices[0].toCoordinate(MIN_LATITUDE),
+                            lon = indices[1].toCoordinate(MIN_LONGITUDE),
+                            time = time,
+                            cacheResponse = false
+                        ).fold(
+                            onSuccess = { it },
+                            onFailure = { return Result.failure(it) }
+                        )
+
+                        val forecastDataValues = forecastData.properties.timeseries[0].values
+
+                        val airTemperatureAtSeaLevel = forecastValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
+
+                        val groundPressure = calculatePressureAtAltitude(
+                            altitude = forecastData.altitude,
+                            referencePressure = forecastItem.values.airPressureAtSeaLevel,
+                            referenceAirTemperature = airTemperatureAtSeaLevel
+                        )
+
+                        val values = CartesianIsobaricValues(
+                            altitude = forecastData.altitude,
+                            pressure = groundPressure,
+                            temperature = forecastDataValues.airTemperature,
+                            windXComponent = forecastDataValues.windSpeed10mU,
+                            windYComponent = forecastDataValues.windSpeed10mV
+                        )
+
+                        pointCache[indices] = values
+
+                        Result.Success(values)
+                    } else {
+                        val valuesBelow = getValuesAtPoint(
+                            ArrayRealVector(
+                                doubleArrayOf(
+                                    indices[0],
+                                    indices[1],
+                                    indices[2] - 1
+                                )
+                            )
+                        ).fold(
+                            onSuccess = { it },
+                            onFailure = { return Result.failure(it) }
+                        )
+                        val pressure = (Constants.layerPressureValues).reversed()[indices[2].toInt() - 1]
+                        val altitude = calculateAltitudeAtPressure(
+                            pressure = pressure,
+                            referencePressure = valuesBelow.pressure,
+                            referenceAltitude = valuesBelow.altitude,
+                            referenceTemperature = valuesBelow.temperature
+                        )
+                        val gribVector = gribMap!![indices[0], indices[1]][pressure.toInt()]
+
+                        val values = cartesianIsobaricValues = CartesianIsobaricValues(
+                            altitude = altitude,
+                            pressure = pressure,
+                            temperature = gribVector.temperature,
+                            windXComponent = gribVector.uComponentWind,
+                            windYComponent = gribVector.vComponentWind
+                        )
+
+                        pointCache[indices] = values
+
+                        Result.Success(values)
+                    }
+                }
+            }
         }
 
         //strategy:
@@ -140,6 +236,8 @@ class IsobaricInterpolator(
     private fun Double.toGridValue(lowerBound: Double) = (this - lowerBound) * RESOLUTION
 
     private fun Double.toGridIndex(lowerBound: Double) = toGridValue(lowerBound).toInt().toDouble()
+
+    private fun Double.toCoordinate(lowerBound: Double) = this / RESOLUTION + lowerBound
 }
 
 /**
