@@ -41,6 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
@@ -66,6 +69,7 @@ fun WeatherCardScreen(
     // Shared state for forecast hours (controlled via the filter overlay)
     var hoursToShow by rememberSaveable { mutableStateOf(24f) }
     var filterActive by rememberSaveable { mutableStateOf(false) }
+    var selectedStatuses by remember { mutableStateOf(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION, LaunchStatus.UNSAFE)) }
     var isConfigMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isFilterMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isLaunchMenuExpanded by rememberSaveable { mutableStateOf(false) }
@@ -82,6 +86,7 @@ fun WeatherCardScreen(
                 config = activeConfig!!,
                 filterActive = filterActive,
                 hoursToShow = hoursToShow,
+                selectedStatuses = selectedStatuses,
                 viewModel = viewModel
             )
             // Segmented Bottom Bar with three buttons.
@@ -139,6 +144,13 @@ fun WeatherCardScreen(
                     onToggleFilter = { filterActive = !filterActive },
                     hoursToShow = hoursToShow,
                     onHoursChanged = { hoursToShow = it },
+                    selectedStatuses = selectedStatuses,
+                    onStatusToggled = { status ->
+                        selectedStatuses = if (selectedStatuses.contains(status))
+                            selectedStatuses - status
+                        else
+                            selectedStatuses + status
+                    },
                     onDismiss = { isFilterMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -179,6 +191,7 @@ fun ScreenContent(
     config: ConfigProfile,
     filterActive: Boolean,
     hoursToShow: Float,
+    selectedStatuses: Set<LaunchStatus>,
     viewModel: WeatherCardViewmodel
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -186,17 +199,27 @@ fun ScreenContent(
     if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
         val forecastItems = uiState.forecastItems
         // Use the passed hoursToShow value for limiting forecast items.
-        val filteredItems = forecastItems.let { allItems ->
-            if (filterActive)
-                allItems.filter {
-                    forecastPassesFilter(
-                        it,
-                        config,
-                        LaunchStatusFilter(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION))
-                    )
-                }
-            else allItems
+        val filteredItems = forecastItems.filter { item ->
+            val state = evaluateLaunchConditions(item, config)
+
+            // if filter not active show all
+            if (!filterActive) {
+                if (state !is ParameterState.Available) return@filter true
+                val status = launchStatus(state.relativeUnsafety)
+                return@filter status in selectedStatuses
+            }
+
+            // if filter active remove UNSAFE
+            if (state !is ParameterState.Available) return@filter false
+            val status = launchStatus(state.relativeUnsafety)
+
+            // UNSAFE filtered regardless of what's chosen
+            if (status == LaunchStatus.UNSAFE) return@filter false
+
+            // selectedStatuses is used for further filtering
+            return@filter status in selectedStatuses
         }.take(hoursToShow.toInt())
+
         val forecastByDay: Map<String, List<ForecastDataItem>> =
             filteredItems.groupBy { it.time.substring(0, 10) }
         val sortedDays = forecastByDay.keys.sorted()
