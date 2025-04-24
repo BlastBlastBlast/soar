@@ -122,7 +122,7 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
-    implementation("org.aoache.commons:commons-math3:3.6.1")
+    implementation("org.apache.commons:commons-math3:3.6.1")
 
     //netcdf and dependencies
     implementation(libs.cdm.core)// Core library
