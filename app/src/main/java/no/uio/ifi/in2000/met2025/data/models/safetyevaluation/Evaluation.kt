@@ -102,7 +102,7 @@ fun evaluateParameterConditions(forecast: ForecastDataItem, config: ConfigProfil
                 label = configParameter.label(),
                 value = when (state) {
                     is ParameterState.Missing -> "Not available"
-                    is ParameterState.Disabled -> "Turned Off"
+                    is ParameterState.Disabled -> "$value ${configParameter.unit()}"
                     is ParameterState.Available -> {
                         "$value ${configParameter.unit()}"
                     }
