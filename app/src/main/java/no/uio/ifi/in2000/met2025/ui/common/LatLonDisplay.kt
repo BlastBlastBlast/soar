@@ -32,7 +32,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
-import no.uio.ifi.in2000.met2025.ui.theme.LocalAppCursorColor
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
