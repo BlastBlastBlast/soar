@@ -19,7 +19,7 @@ fun IsobaricData.toConfigList(config: ConfigProfile): List<Triple<Double, Double
         Triple(windShearSpeed(currentValues, nextValues), config.windShearSpeedThreshold, config.isEnabledWindShear)
     }
 
-    return (1..<(windThresholdsList.size + shearThresholdsList.size))
+    return (0..<(windThresholdsList.size + shearThresholdsList.size))
         .map { index ->
             if (index % 2 == 0) {
                 windThresholdsList[index / 2]
