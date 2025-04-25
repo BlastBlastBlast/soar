@@ -29,7 +29,7 @@ data class SunProperties(
 @Serializable
 data class SunEvent(
     val time: String,
-    val azimuth: Double
+    val azimuth: Double?
 )
 
 @Serializable
