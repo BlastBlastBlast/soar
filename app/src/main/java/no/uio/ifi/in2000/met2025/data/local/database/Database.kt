@@ -6,10 +6,12 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 import androidx.room.Index
+import no.uio.ifi.in2000.met2025.data.models.Angle
+import java.sql.Types.NULL
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
-    version = 5
+    version = 6
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
@@ -25,7 +27,7 @@ data class LaunchSite(
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "elevation") val elevation: Double = 0.0
+    @ColumnInfo(name = "elevation") val elevation: Double? = null
 )
 
 @Entity(tableName = "grib_files")

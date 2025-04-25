@@ -176,8 +176,8 @@ fun AppNavLauncher(
             ) {
                 composable(Screen.Home.route) {
                     HomeScreen(
-                        viewModel = homeScreenViewModel,
-                        onNavigateToWeather = { lat, lon ->
+                        viewModel            = homeScreenViewModel,
+                        onNavigateToWeather  = { lat, lon ->
                             navController.navigate(Screen.Weather.createRoute(lat, lon))
                         }
                     )

@@ -19,8 +19,8 @@ class TrajectoryCalculator(
 ) {
     fun calculateTrajectory(
         initialPosition: RealVector,
-        launchAzimuth: Angle,
-        launchPitch: Angle,
+        launchAzimuth: Double,
+        launchPitch: Double,
         launchRailLength: Double,
         wetMass: Double,
         dryMass: Double,
@@ -32,17 +32,19 @@ class TrajectoryCalculator(
         parachuteCrossSectionalArea: Double,
         parachuteDragCoefficient: Double,
     ): List<Pair<RealVector, Double>> {
+        val AzimuthAngle = Angle(launchAzimuth)
+        val launchPitchAngle = Angle(launchPitch)
 
         val launchDirectionUnitVector = ArrayRealVector(
             doubleArrayOf(
-                sin(launchAzimuth) * cos(launchPitch),
-                cos(launchAzimuth) * cos(launchPitch),
-                sin(launchPitch)
+                sin(AzimuthAngle) * cos(launchPitchAngle),
+                cos(AzimuthAngle) * cos(launchPitchAngle),
+                sin(launchPitchAngle)
             )
         ).unitVector()
 
         val accelerationFromGravity = ArrayRealVector(doubleArrayOf(0.0, 0.0, -GRAVITY))
-        val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
+        val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitchAngle) * GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
         tailrec fun calculateTrajectoryRecursive(
