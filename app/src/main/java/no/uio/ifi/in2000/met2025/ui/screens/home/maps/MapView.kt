@@ -161,14 +161,16 @@ fun MapView(
                         }
                     ) {
                         MarkerLabel(
-                            name = newMarker?.name ?: "New Marker",
-                            lat = "%.4f".format(pt.latitude()),
-                            lon = "%.4f".format(pt.longitude()),
-                            elevation = markerElevation?.let { "%.1f m".format(it) } ?: "—",
-                            onClick = { onMarkerAnnotationClick(pt, markerElevation) },
-                            onLongPress = { onMarkerAnnotationLongPress(pt, markerElevation) },
-                            onDoubleClick = { /* no-op */}
-                        )
+                            name               = newMarker?.name ?: "New Marker",
+                            lat                = "%.4f".format(pt.latitude()),
+                            lon                = "%.4f".format(pt.longitude()),
+                            elevation          = markerElevation?.let { "%.1f m".format(it) },
+                            isLoadingElevation = markerElevation == null,   // show spinner when null
+                            onClick            = { onMarkerAnnotationClick(pt, markerElevation) },
+                            onLongPress        = { onMarkerAnnotationLongPress(pt, markerElevation) },
+                            onDoubleClick      = { /* no-op */ }
+                            )
+
                     }
                 }
             }
