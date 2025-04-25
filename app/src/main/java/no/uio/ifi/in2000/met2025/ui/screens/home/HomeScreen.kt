@@ -40,10 +40,8 @@ import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
 import no.uio.ifi.in2000.met2025.ui.common.LatLonDisplay
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Flight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.zIndex
