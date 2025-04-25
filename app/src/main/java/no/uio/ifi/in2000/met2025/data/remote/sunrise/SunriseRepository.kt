@@ -2,8 +2,9 @@ package no.uio.ifi.in2000.met2025.data.remote.sunrise
 
 import SunriseResponse
 import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
+import no.uio.ifi.in2000.met2025.domain.helpers.formatter
 import java.time.Duration
-import java.time.Instant
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 class SunriseRepository @Inject constructor(
@@ -38,8 +39,10 @@ class SunriseRepository @Inject constructor(
 
         val sunrise = fetchRes.properties.sunrise.time
         val sunset = fetchRes.properties.sunset.time
-        val instantRise = Instant.parse(sunrise)
-        val instantSet = Instant.parse(sunset)
+        val offsetSunrise = OffsetDateTime.parse(sunrise, formatter)
+        val offsetSunset = OffsetDateTime.parse(sunset, formatter)
+        val instantRise = offsetSunrise.toInstant()
+        val instantSet = offsetSunset.toInstant()
 
         val result = ValidSunTimes(
             instantRise,
