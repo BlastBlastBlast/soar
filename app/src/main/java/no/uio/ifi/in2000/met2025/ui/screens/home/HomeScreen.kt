@@ -40,9 +40,13 @@ import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
 import no.uio.ifi.in2000.met2025.ui.common.LatLonDisplay
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Flight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.zIndex
+import no.uio.ifi.in2000.met2025.ui.screens.home.components.TrajectoryPopup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,299 +54,327 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
     onNavigateToWeather: (Double, Double) -> Unit
 ) {
-    // 1) UI state from VM
-    val uiState         by viewModel.uiState.collectAsState()
-    val coords          by viewModel.coordinates.collectAsState()
-    val launchSites     by viewModel.launchSites.collectAsState()
-    val updateStatus    by viewModel.updateStatus.collectAsState()
-    val newMarker       by viewModel.newMarker.collectAsState()
-    val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    // 2) Trajectory state
-    val trajectoryPoints = viewModel.trajectoryPoints
-    val isAnimating      = viewModel.isAnimating
-
-    // 3) Bottom sheet state
-    var showTrajectorySheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-    val scope      = rememberCoroutineScope()
-    LaunchedEffect(showTrajectorySheet) {
-        if (showTrajectorySheet) sheetState.show() else sheetState.hide()
-    }
-
-    // 4) Local UI flags
-    var isMenuExpanded         by rememberSaveable { mutableStateOf(false) }
-    var showSaveDialog         by rememberSaveable { mutableStateOf(false) }
-    var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double,Double>?>(null) }
-    var launchSiteName         by rememberSaveable { mutableStateOf("") }
-    var isEditingMarker        by rememberSaveable { mutableStateOf(false) }
-    var editingMarkerId        by rememberSaveable { mutableStateOf(0) }
-    var showAnnotations        by rememberSaveable { mutableStateOf(true) }
-
-    // 5) Coordinates input state
-    var coordsString by rememberSaveable { mutableStateOf("") }
-    var parseError   by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(coords) {
-        coordsString = "%.4f, %.4f".format(coords.first, coords.second)
-        parseError = null
-    }
-
-    // 6) Long-press placement, elevation may be null
-    val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
-        viewModel.onMarkerPlaced(
-            lat       = pt.latitude(),
-            lon       = pt.longitude(),
-            elevation = elev // null means "pending"
-        )
-    }
-
-    // 7) Map viewport state
-    val mapViewportState = rememberMapViewportState {
-        setCameraOptions {
-            center(Point.fromLngLat(coords.second, coords.first))
-            zoom(12.0); pitch(0.0); bearing(0.0)
+    when (uiState) {
+        is HomeScreenViewModel.HomeScreenUiState.Loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
-    }
-
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                icon   = { Icon(Icons.Filled.Flight, contentDescription = null) },
-                text   = { Text("Trajectory") },
-                onClick = { showTrajectorySheet = true }
-            )
+        is HomeScreenViewModel.HomeScreenUiState.Error -> {
+            val msg = (uiState as HomeScreenViewModel.HomeScreenUiState.Error).message
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Error: $msg", color = MaterialTheme.colorScheme.error)
+            }
         }
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            // A) Map + annotations
-            MapContainer(
-                coordinates         = coords,
-                newMarker           = newMarker,
-                newMarkerStatus     = newMarkerStatus,
-                launchSites         = launchSites,
-                mapViewportState    = mapViewportState,
-                showAnnotations     = showAnnotations,
-                onMapLongClick      = fakeLongClick,
-                onMarkerAnnotationClick = { pt, elev ->
-                    viewModel.updateCoordinates(pt.latitude(), pt.longitude())
-                    viewModel.updateLastVisited(
-                        pt.latitude(),
-                        pt.longitude(),
-                        elev // null safe
-                    )
-                },
-                onMarkerAnnotationLongPress = { pt, elev ->
-                    viewModel.updateCoordinates(pt.latitude(), pt.longitude())
-                    viewModel.updateLastVisited(
-                        pt.latitude(),
-                        pt.longitude(),
-                        elev
-                    )
-                    isEditingMarker = false
-                    savedMarkerCoordinates = pt.latitude() to pt.longitude()
-                    launchSiteName = "New Marker"
-                    showSaveDialog = true
-                },
-                onLaunchSiteMarkerClick = { site ->
-                    viewModel.updateCoordinates(site.latitude, site.longitude)
-                    viewModel.updateLastVisited(
-                        site.latitude,
-                        site.longitude,
-                        site.elevation // non-null
-                    )
-                },
-                onSavedMarkerAnnotationLongPress = { site ->
-                    viewModel.updateCoordinates(site.latitude, site.longitude)
-                    viewModel.updateLastVisited(
-                        site.latitude,
-                        site.longitude,
-                        site.elevation
-                    )
-                    isEditingMarker = true
-                    editingMarkerId = site.uid
-                    savedMarkerCoordinates = site.latitude to site.longitude
-                    launchSiteName = site.name
-                    showSaveDialog = true
-                },
-                onSiteElevation    = { uid, elev ->
-                    viewModel.updateSiteElevation(uid, elev)
-                },
-                trajectoryPoints   = trajectoryPoints,
-                isAnimating        = isAnimating,
-                onAnimationEnd     = { viewModel.isAnimating = false },
-                modifier           = Modifier.matchParentSize()
-            )
+        is HomeScreenViewModel.HomeScreenUiState.Success -> {
+            val coords                 by viewModel.coordinates.collectAsState()
+            val launchSites            by viewModel.launchSites.collectAsState()
+            val updateStatus           by viewModel.updateStatus.collectAsState()
+            val newMarker              by viewModel.newMarker.collectAsState()
+            val newMarkerStatus        by viewModel.newMarkerStatus.collectAsState()
+            val trajectoryPoints        = viewModel.trajectoryPoints
+            val isAnimating             = viewModel.isAnimating
+            var showTrajectorySheet    by remember { mutableStateOf(false) }
+            val sheetState              = rememberModalBottomSheetState()
+            val scope                   = rememberCoroutineScope()
+            var isMenuExpanded         by rememberSaveable { mutableStateOf(false) }
+            var showSaveDialog         by rememberSaveable { mutableStateOf(false) }
+            var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double,Double>?>(null) }
+            var launchSiteName         by rememberSaveable { mutableStateOf("") }
+            var isEditingMarker        by rememberSaveable { mutableStateOf(false) }
+            var editingMarkerId        by rememberSaveable { mutableStateOf(0) }
+            var showAnnotations        by rememberSaveable { mutableStateOf(true) }
+            var coordsString           by rememberSaveable { mutableStateOf("") }
+            var parseError             by rememberSaveable { mutableStateOf<String?>(null) }
+            val lastVisitedSite        by viewModel.lastVisited.collectAsState()
+            var showTrajectoryPopup    by remember { mutableStateOf(false) }
 
-            // B) Lat/Lon input & Done
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                LatLonDisplay(
-                    coordinates         = coordsString,
-                    onCoordinatesChange = { coordsString = it },
-                    onDone              = {
-                        parseLatLon(coordsString)?.let { (lat, lon) ->
-                            // place with no elevation initially
-                            viewModel.onMarkerPlaced(lat, lon, null)
+            val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
+                viewModel.onMarkerPlaced(
+                    lat       = pt.latitude(),
+                    lon       = pt.longitude(),
+                    elevation = elev
+                )
+            }
+
+            // Map viewport state
+            val mapViewportState = rememberMapViewportState {
+                setCameraOptions {
+                    center(Point.fromLngLat(coords.second, coords.first))
+                    zoom(12.0); pitch(0.0); bearing(0.0)
+                }
+            }
+
+            LaunchedEffect(showTrajectorySheet) {
+                if (showTrajectorySheet) sheetState.show() else sheetState.hide()
+            }
+
+            LaunchedEffect(coords) {
+                coordsString = "%.4f, %.4f".format(coords.first, coords.second)
+                parseError = null
+            }
+
+
+            Box(Modifier.fillMaxSize()) {
+                // A) Map + annotations
+                MapContainer(
+                    coordinates         = coords,
+                    newMarker           = newMarker,
+                    newMarkerStatus     = newMarkerStatus,
+                    launchSites         = launchSites,
+                    mapViewportState    = mapViewportState,
+                    showAnnotations     = showAnnotations,
+                    onMapLongClick      = fakeLongClick,
+                    onMarkerAnnotationClick = { pt, elev ->
+                        viewModel.updateCoordinates(pt.latitude(), pt.longitude())
+                        viewModel.updateLastVisited(
+                            pt.latitude(),
+                            pt.longitude(),
+                            elev
+                        )
+                    },
+                    onMarkerAnnotationLongPress = { pt, elev ->
+                        viewModel.updateCoordinates(pt.latitude(), pt.longitude())
+                        viewModel.updateLastVisited(
+                            pt.latitude(),
+                            pt.longitude(),
+                            elev
+                        )
+                        isEditingMarker = false
+                        savedMarkerCoordinates = pt.latitude() to pt.longitude()
+                        launchSiteName = "New Marker"
+                        showSaveDialog = true
+                    },
+                    onLaunchSiteMarkerClick = { site ->
+                        viewModel.updateCoordinates(site.latitude, site.longitude)
+                        viewModel.updateLastVisited(
+                            site.latitude,
+                            site.longitude,
+                            site.elevation
+                        )
+                    },
+                    onSavedMarkerAnnotationLongPress = { site ->
+                        viewModel.updateCoordinates(site.latitude, site.longitude)
+                        viewModel.updateLastVisited(
+                            site.latitude,
+                            site.longitude,
+                            site.elevation
+                        )
+                        isEditingMarker = true
+                        editingMarkerId = site.uid
+                        savedMarkerCoordinates = site.latitude to site.longitude
+                        launchSiteName = site.name
+                        showSaveDialog = true
+                    },
+                    onSiteElevation    = { uid, elev ->
+                        viewModel.updateSiteElevation(uid, elev)
+                    },
+                    trajectoryPoints   = trajectoryPoints,
+                    isAnimating        = isAnimating,
+                    onAnimationEnd     = { viewModel.isAnimating = false },
+                    modifier           = Modifier.matchParentSize()
+                )
+
+                ExtendedFloatingActionButton(
+                    icon     = { Icon(Icons.Filled.Flight, null) },
+                    text     = { Text("Trajectory") },
+                    onClick  = { showTrajectoryPopup = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                )
+
+                TrajectoryPopup(
+                    show               = showTrajectoryPopup,
+                    lastVisited        = lastVisitedSite,
+                    onClose            = { showTrajectoryPopup = false },
+                    onStartTrajectory  = { viewModel.loadMockTrajectory() },
+                    onPickRocketConfig = { viewModel.showRocketConfigDialog() },
+                    onShowCurrentLatLon= { viewModel.showCurrentLatLon() },
+                    onLaunchHere       = { viewModel.launchHere() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .zIndex(1f)
+                )
+
+                // B) Lat/Lon input & Done
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    if (!showTrajectoryPopup) {
+                        LatLonDisplay(
+                            coordinates         = coordsString,
+                            onCoordinatesChange = { coordsString = it },
+                            onDone              = {
+                                parseLatLon(coordsString)?.let { (lat, lon) ->
+                                    viewModel.onMarkerPlaced(lat, lon, null)
+                                    scope.launch {
+                                        mapViewportState.easeTo(
+                                            cameraOptions {
+                                                center(Point.fromLngLat(lon, lat))
+                                                zoom(mapViewportState.cameraState?.zoom ?: 12.0)
+                                            },
+                                            MapAnimationOptions.mapAnimationOptions { duration(500L) }
+                                        )
+                                    }
+                                } ?: run { parseError = "Invalid format" }
+                            },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                        parseError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    }
+                }
+
+                // C) Launch sites menu
+                LaunchSitesButton(
+                    Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp),
+                    onClick = { isMenuExpanded = !isMenuExpanded }
+                )
+                AnimatedVisibility(
+                    visible  = isMenuExpanded,
+                    enter    = expandVertically(tween(300)) + fadeIn(tween(300)),
+                    exit     = shrinkVertically(tween(300)) + fadeOut(tween(300)),
+                    modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 100.dp)
+                ) {
+                    LaunchSitesMenu(
+                        launchSites    = launchSites.filter { it.name != "Last Visited" },
+                        onSiteSelected = { site ->
                             scope.launch {
                                 mapViewportState.easeTo(
                                     cameraOptions {
-                                        center(Point.fromLngLat(lon, lat))
-                                        zoom(mapViewportState.cameraState?.zoom ?: 12.0)
+                                        center(Point.fromLngLat(site.longitude, site.latitude))
+                                        zoom(14.0); pitch(0.0); bearing(0.0)
                                     },
                                     MapAnimationOptions.mapAnimationOptions { duration(500L) }
                                 )
+                                viewModel.updateLastVisited(
+                                    site.latitude,
+                                    site.longitude,
+                                    site.elevation
+                                )
                             }
-                        } ?: run { parseError = "Invalid format" }
-                    },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                parseError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            }
-
-            // C) Launch sites menu
-            LaunchSitesButton(
-                Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp),
-                onClick = { isMenuExpanded = !isMenuExpanded }
-            )
-            AnimatedVisibility(
-                visible  = isMenuExpanded,
-                enter    = expandVertically(tween(300)) + fadeIn(tween(300)),
-                exit     = shrinkVertically(tween(300)) + fadeOut(tween(300)),
-                modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 100.dp)
-            ) {
-                LaunchSitesMenu(
-                    launchSites    = launchSites.filter { it.name != "Last Visited" },
-                    onSiteSelected = { site ->
-                        scope.launch {
-                            mapViewportState.easeTo(
-                                cameraOptions {
-                                    center(Point.fromLngLat(site.longitude, site.latitude))
-                                    zoom(14.0); pitch(0.0); bearing(0.0)
-                                },
-                                MapAnimationOptions.mapAnimationOptions { duration(500L) }
-                            )
-                            viewModel.updateLastVisited(
-                                site.latitude,
-                                site.longitude,
-                                site.elevation
-                            )
+                            isMenuExpanded = false
                         }
-                        isMenuExpanded = false
-                    }
-                )
-            }
+                    )
+                }
 
-            // D) Toggle annotations
-            IconButton(
-                onClick  = { showAnnotations = !showAnnotations },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
-            ) {
-                Icon(
-                    imageVector = if (showAnnotations) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                    contentDescription = "Toggle annotations"
-                )
-            }
+                // D) Toggle annotations
+                IconButton(
+                    onClick  = { showAnnotations = !showAnnotations },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (showAnnotations) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = "Toggle annotations"
+                    )
+                }
 
-            // E) Weather navigation
-            WeatherNavigationButton(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
-                latInput  = coords.first.toString(),
-                lonInput  = coords.second.toString(),
-                onNavigate = { lat, lon ->
-                    viewModel.updateCoordinates(lat, lon)
-                    onNavigateToWeather(lat, lon)
-                },
-                context = LocalContext.current
-            )
-
-            // F) Save/Edit dialog
-            if (showSaveDialog && savedMarkerCoordinates != null) {
-                SaveLaunchSiteDialog(
-                    launchSiteName = launchSiteName,
-                    onNameChange   = {
-                        launchSiteName = it
-                        viewModel.setUpdateStatusIdle()
+                // E) Weather navigation
+                WeatherNavigationButton(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
+                    latInput  = coords.first.toString(),
+                    lonInput  = coords.second.toString(),
+                    onNavigate = { lat, lon ->
+                        viewModel.updateCoordinates(lat, lon)
+                        onNavigateToWeather(lat, lon)
                     },
-                    onDismiss = {
+                    context = LocalContext.current
+                )
+
+                // F) Save/Edit dialog
+                if (showSaveDialog && savedMarkerCoordinates != null) {
+                    SaveLaunchSiteDialog(
+                        launchSiteName = launchSiteName,
+                        onNameChange   = {
+                            launchSiteName = it
+                            viewModel.setUpdateStatusIdle()
+                        },
+                        onDismiss = {
+                            showSaveDialog = false
+                            savedMarkerCoordinates = null
+                            launchSiteName = ""
+                            isEditingMarker = false
+                            viewModel.setUpdateStatusIdle()
+                            viewModel.setNewMarkerStatusFalse()
+                        },
+                        onConfirm = {
+                            val (lat, lon) = savedMarkerCoordinates!!
+                            val elev: Double? = if (isEditingMarker) {
+                                viewModel.launchSites.value.first { it.uid == editingMarkerId }.elevation
+                            } else {
+                                viewModel.lastVisited.value?.elevation
+                            }
+                            if (isEditingMarker) {
+                                viewModel.editLaunchSite(
+                                    editingMarkerId,
+                                    lat, lon,
+                                    elev,
+                                    launchSiteName
+                                )
+                            } else {
+                                viewModel.addLaunchSite(lat, lon, elev, launchSiteName)
+                                viewModel.updateNewMarker(lat, lon, elev)
+                            }
+                        },
+                        updateStatus = updateStatus
+                    )
+                }
+                LaunchedEffect(updateStatus) {
+                    if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
                         showSaveDialog = false
                         savedMarkerCoordinates = null
                         launchSiteName = ""
                         isEditingMarker = false
                         viewModel.setUpdateStatusIdle()
-                    },
-                    onConfirm = {
-                        val (lat, lon) = savedMarkerCoordinates!!
-                        val elev: Double? = if (isEditingMarker) {
-                            viewModel.launchSites.value.first { it.uid == editingMarkerId }.elevation
-                        } else {
-                            viewModel.lastVisited.value?.elevation
-                        }
-                        if (isEditingMarker) {
-                            viewModel.editLaunchSite(
-                                editingMarkerId,
-                                lat, lon,
-                                elev,
-                                launchSiteName
-                            )
-                        } else {
-                            viewModel.addLaunchSite(lat, lon, elev, launchSiteName)
-                            viewModel.updateNewMarker(lat, lon, elev)
-                        }
-                    },
-                    updateStatus = updateStatus
-                )
-            }
-            LaunchedEffect(updateStatus) {
-                if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
-                    showSaveDialog = false
-                    savedMarkerCoordinates = null
-                    launchSiteName = ""
-                    isEditingMarker = false
-                    viewModel.setUpdateStatusIdle()
-                    viewModel.setNewMarkerStatusFalse()
+                        viewModel.setNewMarkerStatusFalse()
+                    }
                 }
             }
-        }
 
-        // G) Trajectory control sheet
-        if (showTrajectorySheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showTrajectorySheet = false },
-                sheetState       = sheetState
-            ) {
-                TrajectoryControlSheet(
-                    onStartTrajectory   = { viewModel.loadMockTrajectory() },
-                    onPickRocketConfig  = { viewModel.showRocketConfigDialog() },
-                    onShowCurrentLatLon = { viewModel.showCurrentLatLon() },
-                    onLaunchAtMapCenter = { viewModel.launchHere() },
-                    onMinimize = {
-                        scope.launch { sheetState.hide() }
-                            .invokeOnCompletion {
-                                if (!sheetState.isVisible) showTrajectorySheet = false
-                            }
-                    }
-                )
+            // G) Trajectory control sheet
+            if (showTrajectorySheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showTrajectorySheet = false },
+                    sheetState       = sheetState
+                ) {
+                    TrajectoryControlSheet(
+                        onStartTrajectory   = { viewModel.loadMockTrajectory() },
+                        onPickRocketConfig  = { viewModel.showRocketConfigDialog() },
+                        onShowCurrentLatLon = { viewModel.showCurrentLatLon() },
+                        onLaunchAtMapCenter = { viewModel.launchHere() },
+                        onMinimize = {
+                            scope.launch { sheetState.hide() }
+                                .invokeOnCompletion {
+                                    if (!sheetState.isVisible) showTrajectorySheet = false
+                                }
+                        }
+                    )
+                }
             }
         }
     }
 }
 
+
+
 @Composable
 fun TrajectoryControlSheet(
-    onStartTrajectory: ()->Unit,
-    onPickRocketConfig: ()->Unit,
-    onShowCurrentLatLon: ()->Unit,
-    onLaunchAtMapCenter: ()->Unit,
-    onMinimize: ()->Unit
+    onStartTrajectory:      ()->Unit,
+    onPickRocketConfig:     ()->Unit,
+    onShowCurrentLatLon:    ()->Unit,
+    onLaunchAtMapCenter:    ()->Unit,
+    onMinimize:             ()->Unit
 ) {
     Column(
-        Modifier.fillMaxWidth().padding(16.dp),
+        Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             IconButton(onClick = onMinimize) {
                 Icon(Icons.Filled.ExpandMore, contentDescription = "Minimize")
             }
