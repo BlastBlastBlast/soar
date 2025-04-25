@@ -9,13 +9,21 @@ class SunriseRepository @Inject constructor(
     /*
      * Hent soloppgangsdata for angitt dato og koordinater.
      */
+    val cache = mutableMapOf<String, SunriseResponse>()
+
     suspend fun getSunTimes(
         lat: Double,
         lon: Double,
         date: String,
         offset: String = "+00:00"
     ): Result<SunriseResponse> {
-        return sunriseDataSource.fetchSunriseData(lat, lon, date, offset)
+        val res = sunriseDataSource.fetchSunriseData(lat, lon, date, offset)
+        if (res.isSuccess) {
+            cache[date] = res.getOrThrow()
+        }
+        return res
     }
+
+
 
 }
