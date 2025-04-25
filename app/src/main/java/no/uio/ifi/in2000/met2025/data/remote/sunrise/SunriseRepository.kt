@@ -1,6 +1,6 @@
 package no.uio.ifi.in2000.met2025.data.remote.sunrise
 
-import no.uio.ifi.in2000.met2025.data.models.SunTime
+import SunriseResponse
 import javax.inject.Inject
 
 class SunriseRepository @Inject constructor(
@@ -14,7 +14,7 @@ class SunriseRepository @Inject constructor(
         lon: Double,
         date: String,
         offset: String = "+00:00"
-    ): Result<SunTime> {
+    ): Result<SunriseResponse> {
         return sunriseDataSource.fetchSunriseData(lat, lon, date, offset)
     }
 

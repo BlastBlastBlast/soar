@@ -5,18 +5,18 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
 
 @HiltViewModel
 class ConfigListViewModel @Inject constructor(
-    private val configProfileDao: ConfigProfileDAO
+    private val configProfileRepository: ConfigProfileRepository
 ) : ViewModel() {
-    val configList = configProfileDao.getAllConfigProfiles()
+    val configList = configProfileRepository.getAllConfigProfiles()
 
     fun deleteConfig(config: ConfigProfile) {
         viewModelScope.launch {
-            configProfileDao.deleteConfigProfile(config)
+            configProfileRepository.deleteConfigProfile(config)
         }
     }
 }

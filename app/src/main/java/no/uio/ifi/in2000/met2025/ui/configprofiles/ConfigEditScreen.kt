@@ -1,31 +1,33 @@
 package no.uio.ifi.in2000.met2025.ui.configprofiles
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
+import no.uio.ifi.in2000.met2025.ui.common.ColoredSwitch
+import no.uio.ifi.in2000.met2025.ui.configprofiles.common.ScreenContainer
+import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SectionCard
+import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SettingItem
+import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SettingRow
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun ConfigEditScreen(
@@ -33,215 +35,221 @@ fun ConfigEditScreen(
     viewModel: ConfigEditViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    var configName by remember { mutableStateOf(config?.name ?: "") }
-    var groundWindThreshold by remember { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
-    var airWindThreshold by remember { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
-    var cloudCoverThreshold by remember { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCover by remember { mutableStateOf(config?.isEnabledCloudCover ?: true) }
-    var cloudCoverHighThreshold by remember { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverHigh by remember { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
-    var cloudCoverMediumThreshold by remember { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverMedium by remember { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
-    var cloudCoverLowThreshold by remember { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
-    var isEnabledCloudCoverLow by remember { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
-    var humidityThreshold by remember { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
-    var dewPointThreshold by remember { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
-    var isEnabledGroundWind by remember { mutableStateOf(config?.isEnabledGroundWind ?: true) }
-    var isEnabledAirWind by remember { mutableStateOf(config?.isEnabledAirWind ?: true) }
-    var isEnabledHumidity by remember { mutableStateOf(config?.isEnabledHumidity ?: true) }
-    var isEnabledDewPoint by remember { mutableStateOf(config?.isEnabledDewPoint ?: true) }
+    val updateStatus by viewModel.updateStatus.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        // General Settings Section
-        Card(
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("General Settings", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = configName,
-                    onValueChange = { configName = it },
-                    label = { Text("Configuration Name") },
-                    modifier = Modifier.fillMaxWidth()
+    // 1) UI state
+    var configName               by remember(config) { mutableStateOf(config?.name ?: "") }
+    var groundWind               by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
+    var isEnabledGroundWind      by remember(config) { mutableStateOf(config?.isEnabledGroundWind == true) }
+
+    var airWind                  by remember(config) { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
+    var isEnabledAirWind         by remember(config) { mutableStateOf(config?.isEnabledAirWind == true) }
+
+    var windShear                by remember(config) { mutableStateOf(config?.windShearSpeedThreshold?.toString() ?: "24.5") }
+    var isEnabledWindShear       by remember(config) { mutableStateOf(config?.isEnabledWindShear == true) }
+
+    var isEnabledWindDirection   by remember(config) { mutableStateOf(config?.isEnabledWindDirection == true) }
+
+    var overallCloud             by remember(config) { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
+    var isEnabledOverallCloud    by remember(config) { mutableStateOf(config?.isEnabledCloudCover == true) }
+    var highCloud                by remember(config) { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
+    var isEnabledHighCloud       by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh == true) }
+    var medCloud                 by remember(config) { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
+    var isEnabledMedCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium == true) }
+    var lowCloud                 by remember(config) { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
+    var isEnabledLowCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow == true) }
+
+    var fog                      by remember(config) { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
+    var isEnabledFog             by remember(config) { mutableStateOf(config?.isEnabledFog == true) }
+    var precip                   by remember(config) { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
+    var isEnabledPrecip          by remember(config) { mutableStateOf(config?.isEnabledPrecipitation == true) }
+    var humidity                 by remember(config) { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
+    var isEnabledHumidity        by remember(config) { mutableStateOf(config?.isEnabledHumidity == true) }
+    var dewPoint                 by remember(config) { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
+    var isEnabledDewPoint        by remember(config) { mutableStateOf(config?.isEnabledDewPoint == true) }
+    var thunder                  by remember(config) { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
+    var isEnabledThunder         by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder == true) }
+
+    var altitude                 by remember(config) { mutableStateOf(config?.altitudeUpperBound?.toString() ?: "5000.0") }
+    var isEnabledAltitude        by remember(config) { mutableStateOf(config?.isEnabledAltitudeUpperBound == true) }
+
+    // 2) Build typed lists
+    val windSettings = listOf(
+        SettingItem("Ground Wind Threshold", groundWind, { groundWind = it }, isEnabledGroundWind) { isEnabledGroundWind = it },
+        SettingItem("Air Wind Threshold",    airWind,    { airWind    = it }, isEnabledAirWind)    { isEnabledAirWind    = it },
+        SettingItem("Wind Shear Threshold",  windShear,  { windShear  = it }, isEnabledWindShear)  { isEnabledWindShear  = it },
+    )
+
+    val cloudSettings = listOf(
+        SettingItem("Overall Cloud Cover",    overallCloud, { overallCloud    = it }, isEnabledOverallCloud)    { isEnabledOverallCloud    = it },
+        SettingItem("High Cloud Cover",       highCloud,    { highCloud       = it }, isEnabledHighCloud)       { isEnabledHighCloud       = it },
+        SettingItem("Medium Cloud Cover",     medCloud,     { medCloud        = it }, isEnabledMedCloud)        { isEnabledMedCloud        = it },
+        SettingItem("Low Cloud Cover",        lowCloud,     { lowCloud        = it }, isEnabledLowCloud)        { isEnabledLowCloud        = it },
+    )
+
+    val weatherSettings = listOf(
+        SettingItem("Fog Threshold",              fog,     { fog     = it }, isEnabledFog)     { isEnabledFog     = it },
+        SettingItem("Precipitation Threshold",    precip,  { precip  = it }, isEnabledPrecip)  { isEnabledPrecip  = it },
+        SettingItem("Humidity Threshold",         humidity,{ humidity = it }, isEnabledHumidity){ isEnabledHumidity = it },
+        SettingItem("Dew Point Threshold",        dewPoint,{ dewPoint = it }, isEnabledDewPoint){ isEnabledDewPoint = it },
+        SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
+    )
+
+    // 3) Render
+    ScreenContainer(title = if (config==null) "New Configuration" else "Edit Configuration") {
+        val isNameError = updateStatus is ConfigEditViewModel.UpdateStatus.Error &&
+                configName != config?.name
+        // Name
+        SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
+            AppOutlinedTextField(
+                value         = configName,
+                onValueChange = { configName = it; viewModel.checkNameAvailability(it) },
+                label         = { Text("Name") },
+                modifier      = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(2.dp))
+            if (isNameError) {
+                Text(
+                    (updateStatus as ConfigEditViewModel.UpdateStatus.Error).message,
+                    color = Color.Red
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = groundWindThreshold,
-                    onValueChange = { groundWindThreshold = it },
-                    label = { Text("Ground Wind Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = airWindThreshold,
-                    onValueChange = { airWindThreshold = it },
-                    label = { Text("Air Wind Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = humidityThreshold,
-                    onValueChange = { humidityThreshold = it },
-                    label = { Text("Humidity Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = dewPointThreshold,
-                    onValueChange = { dewPointThreshold = it },
-                    label = { Text("Dew Point Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Ground Wind")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledGroundWind, onCheckedChange = { isEnabledGroundWind = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Air Wind")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledAirWind, onCheckedChange = { isEnabledAirWind = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Humidity")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledHumidity, onCheckedChange = { isEnabledHumidity = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Dew Point")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledDewPoint, onCheckedChange = { isEnabledDewPoint = it })
-                }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        // Cloud Cover Section
-        Card(
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Cloud Cover Settings", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                // Overall Cloud Cover
-                OutlinedTextField(
-                    value = cloudCoverThreshold,
-                    onValueChange = { cloudCoverThreshold = it },
-                    label = { Text("Overall Cloud Cover Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                // Cloud Cover High
-                OutlinedTextField(
-                    value = cloudCoverHighThreshold,
-                    onValueChange = { cloudCoverHighThreshold = it },
-                    label = { Text("Cloud Cover High Threshold") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+        Spacer(Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = cloudCoverMediumThreshold,
-                    onValueChange = { cloudCoverMediumThreshold = it },
-                    label = { Text("Cloud Cover Medium Threshold") },
-                    modifier = Modifier.fillMaxWidth()
+        // Wind Settings
+        SectionCard("Wind Settings", Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Wind Direction", Modifier.weight(1f))
+                ColoredSwitch(
+                    checked = isEnabledWindDirection,
+                    onCheckedChange = { isEnabledWindDirection = it },
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = cloudCoverLowThreshold,
-                    onValueChange = { cloudCoverLowThreshold = it },
-                    label = { Text("Cloud Cover Low Threshold") },
-                    modifier = Modifier.fillMaxWidth()
+            }
+            Spacer(Modifier.height(8.dp))
+            windSettings.forEach { item ->
+                SettingRow(
+                    label           = item.label,
+                    value           = item.value,
+                    onValueChange   = item.onValueChange,
+                    enabled         = item.enabled,
+                    onEnabledChange = item.onEnabledChange,
+                    modifier        = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Overall Cloud Cover")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCover, onCheckedChange = { isEnabledCloudCover = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Cloud Cover High")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCoverHigh, onCheckedChange = { isEnabledCloudCoverHigh = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Cloud Cover Medium")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCoverMedium, onCheckedChange = { isEnabledCloudCoverMedium = it })
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Cloud Cover Low")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(checked = isEnabledCloudCoverLow, onCheckedChange = { isEnabledCloudCoverLow = it })
-                }
+                Spacer(Modifier.height(8.dp))
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        // Save Button
+        Spacer(Modifier.height(16.dp))
+
+        // Cloud Cover Settings
+        SectionCard("Cloud Cover Settings", Modifier.fillMaxWidth()) {
+            cloudSettings.forEach { item ->
+                SettingRow(
+                    label           = item.label,
+                    value           = item.value,
+                    onValueChange   = item.onValueChange,
+                    enabled         = item.enabled,
+                    onEnabledChange = item.onEnabledChange,
+                    modifier        = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+
+        // Water & Weather Settings
+        SectionCard("Water & Weather Settings", Modifier.fillMaxWidth()) {
+            weatherSettings.forEach { item ->
+                SettingRow(
+                    label           = item.label,
+                    value           = item.value,
+                    onValueChange   = item.onValueChange,
+                    enabled         = item.enabled,
+                    onEnabledChange = item.onEnabledChange,
+                    modifier        = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+
+        // Altitude Settings
+        SectionCard("Altitude Settings", Modifier.fillMaxWidth()) {
+            SettingRow(
+                label           = "Upper Bound (m)",
+                value           = altitude,
+                onValueChange   = { altitude = it },
+                enabled         = isEnabledAltitude,
+                onEnabledChange = { isEnabledAltitude = it },
+                modifier        = Modifier.fillMaxWidth()
+            )
+        }
+        Spacer(Modifier.height(24.dp))
+
+        // Save button
         Button(
             onClick = {
-                val updatedConfig = ConfigProfile(
-                    id = config?.id ?: 0,
-                    name = configName,
-                    groundWindThreshold = groundWindThreshold.toDoubleOrNull() ?: 8.6,
-                    airWindThreshold = airWindThreshold.toDoubleOrNull() ?: 17.2,
-                    cloudCoverThreshold = cloudCoverThreshold.toDoubleOrNull() ?: 15.0,
-                    cloudCoverHighThreshold = cloudCoverHighThreshold.toDoubleOrNull() ?: 15.0,
-                    cloudCoverMediumThreshold = cloudCoverMediumThreshold.toDoubleOrNull() ?: 15.0,
-                    cloudCoverLowThreshold = cloudCoverLowThreshold.toDoubleOrNull() ?: 15.0,
-                    humidityThreshold = humidityThreshold.toDoubleOrNull() ?: 75.0,
-                    dewPointThreshold = dewPointThreshold.toDoubleOrNull() ?: 15.0,
-                    isEnabledGroundWind = isEnabledGroundWind,
-                    isEnabledAirWind = isEnabledAirWind,
-                    isEnabledCloudCover = isEnabledCloudCover,
-                    isEnabledCloudCoverHigh = isEnabledCloudCoverHigh,
-                    isEnabledCloudCoverMedium = isEnabledCloudCoverMedium,
-                    isEnabledCloudCoverLow = isEnabledCloudCoverLow,
-                    isEnabledHumidity = isEnabledHumidity,
-                    isEnabledDewPoint = isEnabledDewPoint,
-                    isDefault = config?.isDefault ?: false
+                val updated = ConfigProfile(
+                    id                             = config?.id ?: 0,
+                    name                           = configName,
+                    groundWindThreshold            = groundWind.toDoubleOrNull()                ?: 8.6,
+                    airWindThreshold               = airWind.toDoubleOrNull()                  ?: 17.2,
+                    cloudCoverThreshold            = overallCloud.toDoubleOrNull()             ?: 15.0,
+                    cloudCoverHighThreshold        = highCloud.toDoubleOrNull()                ?: 15.0,
+                    cloudCoverMediumThreshold      = medCloud.toDoubleOrNull()                 ?: 15.0,
+                    cloudCoverLowThreshold         = lowCloud.toDoubleOrNull()                 ?: 15.0,
+                    humidityThreshold              = humidity.toDoubleOrNull()                 ?: 75.0,
+                    dewPointThreshold              = dewPoint.toDoubleOrNull()                 ?: 15.0,
+                    isEnabledGroundWind            = isEnabledGroundWind,
+                    isEnabledAirWind               = isEnabledAirWind,
+                    isEnabledCloudCover            = isEnabledOverallCloud,
+                    isEnabledCloudCoverHigh        = isEnabledHighCloud,
+                    isEnabledCloudCoverMedium      = isEnabledMedCloud,
+                    isEnabledCloudCoverLow         = isEnabledLowCloud,
+                    isEnabledHumidity              = isEnabledHumidity,
+                    isEnabledDewPoint              = isEnabledDewPoint,
+                    isEnabledWindDirection         = isEnabledWindDirection,
+                    isEnabledFog                   = isEnabledFog,
+                    fogThreshold                   = fog.toDoubleOrNull()                     ?: 0.0,
+                    isEnabledPrecipitation         = isEnabledPrecip,
+                    precipitationThreshold         = precip.toDoubleOrNull()                  ?: 0.0,
+                    isEnabledProbabilityOfThunder  = isEnabledThunder,
+                    probabilityOfThunderThreshold  = thunder.toDoubleOrNull()                  ?: 0.0,
+                    isEnabledAltitudeUpperBound    = isEnabledAltitude,
+                    altitudeUpperBound             = altitude.toDoubleOrNull()                 ?: 5000.0,
+                    isEnabledWindShear             = isEnabledWindShear,
+                    windShearSpeedThreshold        = windShear.toDoubleOrNull()                ?: 24.5,
+                    isDefault                      = config?.isDefault == true
                 )
-                if (config == null) viewModel.saveConfig(updatedConfig)
-                else viewModel.updateConfig(updatedConfig)
-                onNavigateBack()
+                if (config == null) {
+                    viewModel.saveConfig(updated)
+                    onNavigateBack()
+                } else {
+                    if (!isNameError) {
+                        viewModel.updateConfig(updated)
+                        onNavigateBack()
+                    }
+                }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors   = ButtonDefaults.buttonColors(
+                containerColor = WarmOrange,
+                contentColor   = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
             Text("Save Configuration")
+        }
+        if (isNameError) {
+            Text(
+                (updateStatus as ConfigEditViewModel.UpdateStatus.Error).message,
+                color = Color.Red
+            )
+        }
+    }
+    LaunchedEffect(updateStatus) {
+        if (updateStatus is ConfigEditViewModel.UpdateStatus.Success) {
+            // Clear the status after a successful update.
+            viewModel.setUpdateStatusToIdle()
         }
     }
 }

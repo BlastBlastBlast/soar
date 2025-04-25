@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.home
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,17 +9,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
-import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
-import java.time.LocalDate
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import javax.inject.Inject
 
+// HomeScreenViewModel.kt
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val launchSiteDao: LaunchSiteDAO,
-    private val sunriseRepository: SunriseRepository
+    private val launchSitesRepository: LaunchSitesRepository
 ) : ViewModel() {
 
     sealed class HomeScreenUiState {
@@ -37,18 +34,31 @@ class HomeScreenViewModel @Inject constructor(
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
 
-    private val _sunTimes = MutableStateFlow<Pair<String, String>?>(null)
-    val sunTimes: StateFlow<Pair<String, String>?> = _sunTimes
+    private val _launchSites = MutableStateFlow<List<LaunchSite>>(emptyList())
+    val launchSites: StateFlow<List<LaunchSite>> = _launchSites
 
+    private val _lastVisited = MutableStateFlow<LaunchSite?>(null)
+    val lastVisited: StateFlow<LaunchSite?> = _lastVisited
+
+    private val _newMarker = MutableStateFlow<LaunchSite?>(null)
+    val newMarker: StateFlow<LaunchSite?> = _newMarker
+
+    private val _newMarkerStatus = MutableStateFlow(false)
+    val newMarkerStatus: StateFlow<Boolean> = _newMarkerStatus
+
+    sealed class UpdateStatus {
+        object Idle : UpdateStatus()
+        object Success : UpdateStatus()
+        data class Error(val message: String) : UpdateStatus()
+    }
+
+    private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
+    val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
     init {
-        // Continuously collect the launch sites list so that any update is emitted.
         viewModelScope.launch {
-            launchSiteDao.getAll().collect { sites ->
-                // Get the "Last Visited" record continuously.
-                val tempSite = launchSiteDao.getTempSite("Last Visited").firstOrNull()
-                val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
-                updateCoordinates(newCoords.first, newCoords.second)
+            launchSitesRepository.getAll().collect { sites ->
+                _launchSites.value = sites
                 _uiState.value = HomeScreenUiState.Success(
                     launchSites = sites,
                     apiKeyAvailable = true,
@@ -56,62 +66,149 @@ class HomeScreenViewModel @Inject constructor(
                 )
             }
         }
+        viewModelScope.launch {
+            val tempSite = launchSitesRepository.getNewMarkerTempSite().firstOrNull()
+            val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
+            updateCoordinates(newCoords.first, newCoords.second)
+        }
+        viewModelScope.launch {
+            launchSitesRepository.getNewMarkerTempSite().collect { site ->
+                _newMarker.value = site
+            }
+        }
+        viewModelScope.launch {
+            launchSitesRepository.getLastVisitedTempSite().collect { site ->
+                _lastVisited.value = site
+            }
+        }
+        viewModelScope.launch {
+            if (launchSitesRepository.checkIfSiteExists("New Marker")) {
+                _newMarkerStatus.value = true
+            }
+        }
     }
 
     fun updateCoordinates(lat: Double, lon: Double) {
         _coordinates.value = Pair(lat, lon)
-        fetchSunTimes(lat, lon)
     }
 
-    fun updateLastVisited(lat: Double, lon: Double) {
+    fun updateLastVisited(lat: Double, lon: Double, elevation: Double) {
         viewModelScope.launch {
             try {
-                val currentVisited = launchSiteDao.getTempSite("Last Visited").firstOrNull()
-                if (currentVisited == null) {
-                    launchSiteDao.insertAll(
-                        LaunchSite(latitude = lat, longitude = lon, name = "Last Visited")
+                val exists = launchSitesRepository.checkIfSiteExists("Last Visited")
+                if (exists && lastVisited.value != null) {
+                    launchSitesRepository.update(
+                        LaunchSite(
+                            uid       = lastVisited.value!!.uid,
+                            latitude  = lat,
+                            longitude = lon,
+                            name      = "Last Visited",
+                            elevation = elevation
+                        )
                     )
                 } else {
-                    launchSiteDao.updateSites(currentVisited.copy(latitude = lat, longitude = lon))
+                    launchSitesRepository.insert(
+                        LaunchSite(
+                            latitude  = lat,
+                            longitude = lon,
+                            name      = "Last Visited",
+                            elevation = elevation
+                        )
+                    )
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteConstraintException) {
                 e.printStackTrace()
+                _uiState.value = HomeScreenUiState.Error(
+                    "${e.message ?: "Unknown error"} for Last Visited"
+                )
             }
         }
     }
 
-    fun updateNewMarker(lat: Double, lon: Double) {
+    fun updateNewMarker(lat: Double, lon: Double, elevation: Double) {
         viewModelScope.launch {
             try {
-                val currentMarker = launchSiteDao.getTempSite("New Marker").firstOrNull()
-                if (currentMarker == null) {
-                    launchSiteDao.insertAll(
-                        LaunchSite(latitude = lat, longitude = lon, name = "New Marker")
+                val exists = launchSitesRepository.checkIfSiteExists("New Marker")
+                if (exists && newMarker.value != null) {
+                    launchSitesRepository.update(
+                        LaunchSite(
+                            uid       = newMarker.value!!.uid,
+                            latitude  = lat,
+                            longitude = lon,
+                            name      = "New Marker",
+                            elevation = elevation
+                        )
                     )
                 } else {
-                    launchSiteDao.updateSites(currentMarker.copy(latitude = lat, longitude = lon))
+                    launchSitesRepository.insert(
+                        LaunchSite(
+                            latitude  = lat,
+                            longitude = lon,
+                            name      = "New Marker",
+                            elevation = elevation
+                        )
+                    )
                 }
-            } catch (e: Exception) {
+            } catch (e: SQLiteConstraintException) {
                 e.printStackTrace()
+                _uiState.value = HomeScreenUiState.Error(
+                    "${e.message ?: "Unknown error"} for New Marker"
+                )
             }
         }
     }
 
-    fun onMarkerPlaced(lat: Double, lon: Double) {
-        // When placing a marker, update both temporary records.
+    fun editLaunchSite(siteId: Int, lat: Double, lon: Double, elevation: Double, name: String) {
+        viewModelScope.launch {
+            val exists = launchSitesRepository.checkIfSiteExists(name)
+            if (exists) {
+                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+            } else {
+                launchSitesRepository.update(
+                    LaunchSite(
+                        uid       = siteId,
+                        latitude  = lat,
+                        longitude = lon,
+                        name      = name,
+                        elevation = elevation
+                    )
+                )
+                _updateStatus.value = UpdateStatus.Success
+            }
+        }
+    }
+
+    fun onMarkerPlaced(lat: Double, lon: Double, elevation: Double) {
         updateCoordinates(lat, lon)
-        updateLastVisited(lat, lon)
-        updateNewMarker(lat, lon)
+        updateLastVisited(lat, lon, elevation)
+        updateNewMarker(lat, lon, elevation)
+        _newMarkerStatus.value = true
     }
 
-    fun addLaunchSite(lat: Double, lon: Double, name: String) {
+    fun setNewMarkerStatusFalse() {
+        _newMarkerStatus.value = false
+    }
+
+    fun addLaunchSite(lat: Double, lon: Double, elevation: Double, name: String) {
         viewModelScope.launch {
             try {
-                launchSiteDao.insertAll(LaunchSite(latitude = lat, longitude = lon, name = name))
-            } catch (e: Exception) {
-                _uiState.value = HomeScreenUiState.Error(e.message ?: "Failed to add launch site")
+                launchSitesRepository.insert(
+                    LaunchSite(
+                        latitude  = lat,
+                        longitude = lon,
+                        elevation = elevation,
+                        name      = name
+                    )
+                )
+                _updateStatus.value = UpdateStatus.Success
+            } catch (e: SQLiteConstraintException) {
+                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
             }
         }
+    }
+
+    fun setUpdateStatusIdle() {
+        _updateStatus.value = UpdateStatus.Idle
     }
 
     fun geocodeAddress(address: String): Pair<Double, Double>? {
@@ -122,21 +219,9 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    fun fetchSunTimes(lat: Double, lon: Double) {
+    fun updateSiteElevation(siteId: Int, elevation: Double) {
         viewModelScope.launch {
-            val date = LocalDate.now().toString()
-            val result = sunriseRepository.getSunTimes(lat, lon, date)
-            result.onSuccess {
-                val formatter = DateTimeFormatter.ofPattern("HH:mm")
-                val sunrise = ZonedDateTime.parse(it.properties.sunrise.time)
-                    .withZoneSameInstant(java.time.ZoneId.systemDefault())
-                    .format(formatter)
-                val sunset = ZonedDateTime.parse(it.properties.sunset.time)
-                    .withZoneSameInstant(java.time.ZoneId.systemDefault())
-                    .format(formatter)
-                _sunTimes.value = Pair(sunrise, sunset)
-            }
+            launchSitesRepository.updateElevation(siteId, elevation)
         }
     }
-
 }

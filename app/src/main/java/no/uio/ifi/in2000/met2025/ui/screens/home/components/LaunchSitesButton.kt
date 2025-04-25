@@ -3,6 +3,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.home.components
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -17,11 +18,13 @@ fun LaunchSitesButton(
     FloatingActionButton(
         onClick = onClick,
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
     ) {
         Icon(
             painter = painterResource(id = R.drawable.launchsites),
             contentDescription = "Open Launch Sites Menu",
-            modifier = Modifier.size(50.dp)
+            modifier = Modifier.size(50.dp),
         )
     }
 }

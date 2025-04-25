@@ -21,12 +21,12 @@ import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfigDao
+import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
-import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
-import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Named
 import javax.inject.Singleton
@@ -111,17 +111,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSunriseDataSource(@Named("jsonClient") client: HttpClient): SunriseDataSource {
-        return SunriseDataSource(client)
-    }
-
-    @Provides
-    @Singleton
-    fun provideSunriseRepository(dataSource: SunriseDataSource): SunriseRepository {
-        return SunriseRepository(dataSource)
-    }
-
+    fun provideRocketConfigRepository(rocketParametersDao: RocketConfigDao): RocketConfigRepository =
+        RocketConfigRepository(rocketParametersDao)
 }
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -150,5 +143,9 @@ object DatabaseModule {
 
     @Provides
     fun provideConfigProfileDao(db: AppDatabase): ConfigProfileDAO = db.configProfileDao()
-}
 
+    @Provides
+    fun provideRocketConfigDao(db: AppDatabase): RocketConfigDao = db.rocketConfigDao()
+
+
+}
