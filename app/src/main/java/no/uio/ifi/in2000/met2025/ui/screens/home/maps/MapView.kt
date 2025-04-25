@@ -16,6 +16,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.ScreenCoordinate
+import com.mapbox.maps.Style
 import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
@@ -25,15 +26,29 @@ import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.extension.compose.rememberMapState
+import com.mapbox.maps.extension.compose.style.LongValue
 import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.extension.compose.style.StringValue
+import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
+import com.mapbox.maps.extension.compose.style.sources.generated.rememberRasterDemSourceState
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
+import com.mapbox.maps.extension.style.layers.generated.skyLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.extension.style.layers.properties.generated.LineTranslateAnchor
+import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
+import com.mapbox.maps.extension.style.layers.properties.generated.SkyType
+import com.mapbox.maps.extension.style.projection.generated.projection
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.sources.generated.rasterDemSource
 import com.mapbox.maps.extension.style.sources.getSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
+import com.mapbox.maps.extension.style.style
+import com.mapbox.maps.extension.style.terrain.generated.terrain
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.easeTo
@@ -83,7 +98,28 @@ fun MapView(
     var temporaryMarker: Point? by rememberSaveable { mutableStateOf(null) }
     var mapViewRef: MapView? by remember { mutableStateOf(null) }
     var markerElevation: Double? by rememberSaveable { mutableStateOf(null) }
+    val trajSourceState = rememberGeoJsonSourceState {
+        data = GeoJSONData(
+            trajectoryPoints.map { (vec, _) ->
+                Feature.fromGeometry(
+                    Point.fromLngLat(
+                        vec.getEntry(1),  // lon
+                        vec.getEntry(0),  // lat
+                        vec.getEntry(2)   // alt
+                    )
+                )
+            }
+        )
+    }
+    val SOURCE = "TERRAIN_SOURCE"
+    val SKY_LAYER = "sky"
+    val TERRAIN_URL_TILE_RESOURCE = "mapbox://mapbox.mapbox-terrain-dem-v1"
 
+    // 0) Prepare the DEM source & terrain state
+    val rasterDemSourceState = rememberRasterDemSourceState().apply {
+        url      = StringValue("mapbox://mapbox.mapbox-terrain-dem-v1")
+        tileSize = LongValue(512)
+    }
 
     // ← NEW: helper to fetch & store DEM elevation
     suspend fun fetchTrueElevationAndStore(siteId: Int, pt: Point) {
@@ -109,33 +145,49 @@ fun MapView(
         }
     }
 
-    /*
-        mapViewRef!!.mapboxMap.queryTerrainElevation(
-      ScreenCoordinate(pt.x, pt.y),
-      ElevationUnit.METER
-    ) { result ->
-      result.value?.let { dem ->
-        onSiteElevation(siteId, dem)
-        markerElevation = dem
-      }
-    }
-    */
-
-
-    Box(modifier) {
-        // 4) Core MapboxMap
+    Box(Modifier.fillMaxSize()) {
         MapboxMap(
             modifier             = Modifier.fillMaxSize(),
-            style                = { MapStyle("mapbox://styles/larswt/cm9ftfa5h00ix01s86li36n61") },
             mapState             = mapState,
             mapViewportState     = mapViewportState,
             onMapLongClickListener = { pt ->
                 onMapLongClick(pt, null)
-                temporaryMarker = pt
                 true
-            }
+            },
+            // remove the style lambda entirely:
+            style = { /* no-op */ }
         ) {
-            // 5) Capture MapView reference & enable location puck
+            // 3) As soon as we get the MapView, call loadStyle exactly once
+            MapEffect(Unit) { mv ->
+                mapViewRef = mv
+                mv.mapboxMap.loadStyle(
+                    styleExtension = style(Style.SATELLITE_STREETS) {
+                        +rasterDemSource("dem") {
+                            url("mapbox://mapbox.mapbox-terrain-dem-v1")
+                            // padded DEM tile
+                            tileSize(514)
+                        }
+                        +terrain("dem") {
+                            exaggeration(1.0)
+                        }
+                        +skyLayer("sky") {
+                            skyType(SkyType.ATMOSPHERE)
+                            skyAtmosphereSun(listOf(-50.0, 90.2))
+                        }
+                        +projection(ProjectionName.GLOBE)
+                    }
+                ) {
+                    // after the style loads, you can turn on your location puck:
+                    (mv.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
+                        locationPuck       = createDefault2DPuck(withBearing = true)
+                        enabled            = true
+                        puckBearing        = PuckBearing.COURSE
+                        puckBearingEnabled = true
+                    }
+                }
+            }
+
+            // 4) (unchanged) capture MapView ref & enable location puck
             MapEffect(Unit) { mv ->
                 mapViewRef = mv
                 (mv.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
@@ -238,25 +290,47 @@ fun MapView(
                     }
                 }
 
-            // 8) Trajectory overlay + camera animation INSIDE MapboxMap
-            MapEffect(key1 = trajectoryPoints, key2 = isAnimating) { mv ->
-                val mbMap = mv.mapboxMap
-                mbMap.getStyle { style ->
-                    // a) add source + layer once
-                    if (style.getSource("traj-src") == null) {
-                        style.addSource(
-                            geoJsonSource("traj-src") { lineMetrics(true) }
-                        )
-                        style.addLayer(
-                            lineLayer("traj-layer", "traj-src") {
-                                lineColor("#FF0000"); lineWidth(4.0); lineJoin(LineJoin.ROUND)
+                // 4) Trajectory overlay (unchanged)
+                MapEffect(key1 = trajectoryPoints, key2 = isAnimating) { mv ->
+                    val mbMap = mv.mapboxMap
+                    mv.mapboxMap.getStyle { style ->
+                        if (style.getSource("traj-src") == null) {
+                            style.addSource(
+                                geoJsonSource("traj-src") { lineMetrics(true) }
+                            )
+                            style.addLayer(
+                                lineLayer("traj-layer", "traj-src") {
+                                    lineColor("#FF0000")
+                                    lineWidth(4.0)
+                                    lineCap(LineCap.ROUND)
+                                    lineJoin(LineJoin.ROUND)
+                                    // ← must have this to honor the Z-coordinate
+                                    lineTranslateAnchor(LineTranslateAnchor.MAP)
+                                    lineSortKey(1.0)
+                                }
+                            )
+                        }
+
+                        if (trajectoryPoints.isNotEmpty()) {
+                            val pts = trajectoryPoints.map { (vec, _) ->
+                                Point.fromLngLat(vec.getEntry(1), vec.getEntry(0), vec.getEntry(2))
                             }
-                        )
-                    }
-                    // b) update GeoJSON data
+                            style.getSourceAs<GeoJsonSource>("traj-src")
+                                ?.featureCollection(
+                                    FeatureCollection.fromFeatures(
+                                        arrayOf(Feature.fromGeometry(LineString.fromLngLats(pts)))
+                                    )
+                                )
+                        }
+
+                    // b) upload the 3D LineString
                     if (trajectoryPoints.isNotEmpty()) {
                         val pts = trajectoryPoints.map { (vec, _) ->
-                            Point.fromLngLat(vec.getEntry(1), vec.getEntry(0), vec.getEntry(2))
+                            Point.fromLngLat(
+                                vec.getEntry(1),
+                                vec.getEntry(0),
+                                vec.getEntry(2)
+                            )
                         }
                         style.getSourceAs<GeoJsonSource>("traj-src")
                             ?.featureCollection(
@@ -265,7 +339,8 @@ fun MapView(
                                 ))
                             )
                     }
-                    // c) animate camera
+
+                    // 2) animate the camera
                     if (isAnimating && trajectoryPoints.isNotEmpty()) {
                         (mv.context as ComponentActivity).lifecycleScope.launch {
                             var prev: Point? = null
@@ -275,10 +350,14 @@ fun MapView(
                                 val bearing = prev?.let {
                                     calculateBearing(it.longitude(), it.latitude(), lng, lat)
                                 } ?: 0.0
+
                                 mbMap.easeTo(
                                     CameraOptions.Builder()
                                         .center(Point.fromLngLat(lng, lat))
-                                        .pitch(60.0).bearing(bearing).zoom(14.0).build(),
+                                        .pitch(60.0)
+                                        .bearing(bearing)
+                                        .zoom(14.0)
+                                        .build(),
                                     MapAnimationOptions.mapAnimationOptions { duration(200L) }
                                 )
                                 prev = Point.fromLngLat(lng, lat)
