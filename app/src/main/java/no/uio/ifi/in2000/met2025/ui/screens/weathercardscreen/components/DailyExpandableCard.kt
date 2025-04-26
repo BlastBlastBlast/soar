@@ -30,7 +30,7 @@ val weatherPriority = listOf(
     "rain",                 // Regn
     "sleet",                // Sludd (farlig pga ising)
     "snow",                 // Snø (ok, men kan være synsproblemer)
-    "fog",                  // Tåke bør komme her! Sikt = viktig
+    "fog",                  // Sikt = viktig
     "cloudy",               // Helt overskyet
     "partlycloudy_day",     // Delvis skyet
     "fair_day",             // Ganske fint
@@ -41,18 +41,26 @@ val weatherPriority = listOf(
 fun getDominantSymbolCode(items: List<ForecastDataItem>): String? {
     val allCodes = items.mapNotNull { it.values.symbolCode }
 
+    // Først prøv å finne prioritert symbol
     for (prioritySymbol in weatherPriority) {
-        if (allCodes.any { it.contains(prioritySymbol) }) {
-            return allCodes.first { it.contains(prioritySymbol) }
-        }
+        allCodes.firstOrNull { it.contains(prioritySymbol) }?.let { return it }
     }
 
+    // Hvis ingen match i prioritering:
+    // Forsøk å velge 'day'-variant hvis mulig
+    val dayCode = allCodes.firstOrNull { it.contains("day", ignoreCase = true) }
+    if (dayCode != null) {
+        return dayCode
+    }
+
+    // Hvis ingen dagkode, ta det mest vanlige symbolet
     return allCodes
         .groupingBy { it }
         .eachCount()
         .maxByOrNull { it.value }
         ?.key
 }
+
 fun getSymbolDescription(symbolCode: String?): String {
     return symbolCode
         ?.replace("_", " ")
@@ -181,10 +189,17 @@ fun DailyForecastCard(
                     ) {
                         Text(
                             text = "${avgTemp.toInt()}°",
-                            style = MaterialTheme.typography.displayMedium,
+                            style = MaterialTheme.typography.displaySmall,
                             color = Color.White
                         )
-                        Text(text = description, color = Color.White)
+                        Text(
+                            text = description,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1
+
+                        )
+
                     }
 
                     iconRes?.let {
