@@ -20,6 +20,7 @@ import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
 import javax.inject.Inject
+import kotlin.math.sin
 
 // HomeScreenViewModel.kt
 @HiltViewModel
@@ -40,6 +41,12 @@ class HomeScreenViewModel @Inject constructor(
         data class Error(val message: String) : HomeScreenUiState()
     }
 
+    private val _trajectoryPoints = MutableStateFlow<List<Pair<RealVector, Double>>>(emptyList())
+    val trajectoryPoints: StateFlow<List<Pair<RealVector, Double>>> = _trajectoryPoints
+
+    var isAnimating      by mutableStateOf(false)
+    var isTrajectoryMode by mutableStateOf(false)
+
     // 1) all saved rocket configs
     private val _rocketConfigList = MutableStateFlow<List<RocketConfig>>(emptyList())
     val rocketConfigList: StateFlow<List<RocketConfig>> = _rocketConfigList
@@ -47,12 +54,6 @@ class HomeScreenViewModel @Inject constructor(
     // 2) which one is “active”
     private val _selectedConfig = MutableStateFlow<RocketConfig?>(null)
     val selectedConfig: StateFlow<RocketConfig?> = _selectedConfig
-
-    private val _trajectoryPoints = MutableStateFlow<List<Pair<RealVector, Double>>>(emptyList())
-    val trajectoryPoints: StateFlow<List<Pair<RealVector, Double>>> = _trajectoryPoints
-
-    var isAnimating by mutableStateOf(false)
-    var isTrajectoryMode by mutableStateOf(false)
 
     private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     val uiState: StateFlow<HomeScreenUiState> = _uiState
@@ -201,39 +202,72 @@ class HomeScreenViewModel @Inject constructor(
     fun loadMockTrajectory() {
         val baseLat = 59.9431
         val baseLon = 10.7185
-        // total points
-        val nPoints = 20
+        val nPoints = 100   // now 100 samples
 
-        // generate 20 samples t = 0..1
         val raw = (0 until nPoints).map { i ->
-            val t = i / (nPoints - 1).toDouble()   // from 0.0 .. 1.0
-
+            val t = i / (nPoints - 1).toDouble()   // 0.0 .. 1.0
             // interpolate Lat/Lon along a small NE vector
-            val lat = baseLat + 0.005 * t
-            val lon = baseLon + 0.005 * t
-
-            // altitude: sin(pi * t) * 3000  → start/end at 0, peak 3000m
-            val alt = kotlin.math.sin(Math.PI * t) * 3000.0
-
-            // speed: same shape, peak 500 m/s
-            val speed = kotlin.math.sin(Math.PI * t) * 500.0
-
+            val lat   = baseLat + 0.010 * t       // make it larger
+            val lon   = baseLon + 0.010 * t       // make it larger
+            // altitude: sin(π t) * 5000 → peaks at 5000m
+            val alt   = sin(Math.PI * t) * 5000.0
+            // speed: same shape, you can keep 500 or bump it
+            val speed = sin(Math.PI * t) * 500.0
             doubleArrayOf(lat, lon, alt, speed)
         }
 
-        // map into your StateFlow format: RealVector(lon, lat, alt) → speed
+        // Map into your StateFlow format: RealVector(lon, lat, alt) → speed
         val list: List<Pair<RealVector, Double>> = raw.map { arr ->
-            val lon   = arr[0]
-            val lat   = arr[1]
+            val lat   = arr[0]
+            val lon   = arr[1]
             val alt   = arr[2]
             val speed = arr[3]
-            // note: Mapbox expects (lon, lat, altitude) in the vector
             ArrayRealVector(doubleArrayOf(lon, lat, alt)) to speed
         }
 
-        // push into your ViewModel’s StateFlow and kick off the animation
         _trajectoryPoints.value = list
-        isAnimating = true
+        isAnimating      = true
+        isTrajectoryMode = true
+    }
+
+    // start “real” sim
+    fun startTrajectory() {
+        val cfg = _selectedConfig.value ?: return
+        viewModelScope.launch {
+            // build initial Vector
+            val (lat, lon) = _coordinates.value
+            val elev       = _lastVisited.value?.elevation ?: 0.0
+            val initial = ArrayRealVector(doubleArrayOf(lon, lat, elev))
+
+            // this returns List<Pair<RealVector, Double>>
+            val traj = TrajectoryCalculator(isobaricInterpolator)
+                .calculateTrajectory(
+                    initialPosition            = initial,
+                    launchAzimuth              = cfg.launchAzimuth,
+                    launchPitch                = cfg.launchPitch,
+                    launchRailLength           = cfg.launchRailLength,
+                    wetMass                    = cfg.wetMass,
+                    dryMass                    = cfg.dryMass,
+                    burnTime                   = cfg.burnTime,
+                    thrust                     = cfg.thrust,
+                    stepSize                   = cfg.stepSize,
+                    crossSectionalArea         = cfg.crossSectionalArea,
+                    dragCoefficient            = cfg.dragCoefficient,
+                    parachuteCrossSectionalArea= cfg.parachuteCrossSectionalArea,
+                    parachuteDragCoefficient   = cfg.parachuteDragCoefficient
+                )
+
+            // assign directly—no extra `to 0.0`
+            _trajectoryPoints.value = traj
+
+            isAnimating      = true
+            isTrajectoryMode = true
+        }
+    }
+
+    fun onTrajectoryComplete() {
+        isAnimating      = false
+        isTrajectoryMode = false
     }
 
     fun onMarkerPlaced(lat: Double, lon: Double, elevation: Double?) {

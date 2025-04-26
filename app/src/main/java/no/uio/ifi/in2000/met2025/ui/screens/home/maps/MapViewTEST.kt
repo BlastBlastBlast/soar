@@ -1,4 +1,6 @@
+/*
 package no.uio.ifi.in2000.met2025.ui.screens.home.maps
+
 
 import android.app.Activity
 import androidx.activity.ComponentActivity
@@ -476,3 +478,4 @@ fun MapView(
     }
 }
 
+*/

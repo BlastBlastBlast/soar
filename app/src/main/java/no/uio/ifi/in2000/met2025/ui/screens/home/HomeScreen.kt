@@ -90,7 +90,8 @@ fun HomeScreen(
             var parseError             by rememberSaveable { mutableStateOf<String?>(null) }
             val lastVisitedSite        by viewModel.lastVisited.collectAsState()
             var showTrajectoryPopup    by remember { mutableStateOf(false) }
-
+            val trajectory3D           by viewModel.trajectoryPoints.collectAsState()
+            val makeTraj               by remember { derivedStateOf { viewModel.isTrajectoryMode } }
             val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
                 viewModel.onMarkerPlaced(
                     lat       = pt.latitude(),

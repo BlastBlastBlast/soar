@@ -1,22 +1,23 @@
 package no.uio.ifi.in2000.met2025.ui.screens.home.maps
 
-import android.app.Activity
+import android.content.Context
+import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
-import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxExperimental
-import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.Style
 import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.dsl.cameraOptions
@@ -28,19 +29,12 @@ import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.extension.compose.rememberMapState
 import com.mapbox.maps.extension.compose.style.LongValue
-import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.extension.compose.style.StringValue
-import com.mapbox.maps.extension.compose.style.sources.GeoJSONData
-import com.mapbox.maps.extension.compose.style.sources.generated.rememberGeoJsonSourceState
 import com.mapbox.maps.extension.compose.style.sources.generated.rememberRasterDemSourceState
 import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.layers.generated.modelLayer
 import com.mapbox.maps.extension.style.layers.generated.skyLayer
 import com.mapbox.maps.extension.style.layers.getLayer
-import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
-import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
-import com.mapbox.maps.extension.style.layers.properties.generated.LineTranslateAnchor
 import com.mapbox.maps.extension.style.layers.properties.generated.ModelType
 import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
 import com.mapbox.maps.extension.style.layers.properties.generated.SkyType
@@ -48,11 +42,9 @@ import com.mapbox.maps.extension.style.model.addModel
 import com.mapbox.maps.extension.style.model.model
 import com.mapbox.maps.extension.style.projection.generated.projection
 import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.rasterDemSource
 import com.mapbox.maps.extension.style.sources.getSource
-import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.terrain.generated.terrain
 import com.mapbox.maps.plugin.PuckBearing
@@ -70,6 +62,8 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.ui.screens.home.calculateBearing
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
+
+
 
 @OptIn(MapboxExperimental::class)
 @Composable
@@ -99,23 +93,13 @@ fun MapView(
             zoom(12.0); pitch(0.0); bearing(0.0)
         }
     }
-
+    var baseStyleLoaded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var requestedPts by remember { mutableStateOf(setOf<Point>()) }
     var temporaryMarker: Point? by rememberSaveable { mutableStateOf(null) }
     var markerElevation: Double? by rememberSaveable { mutableStateOf(null) }
-    val rasterDemSourceState = rememberRasterDemSourceState().apply {
-        url = StringValue("mapbox://mapbox.mapbox-terrain-dem-v1")
-        tileSize = LongValue(512)
-    }
     var mapViewRef: MapView? by remember { mutableStateOf(null) }
-    var styleLoaded by remember { mutableStateOf(false) }
-    var worldTrajectory by remember { mutableStateOf<List<Pair<RealVector,Double>>>(emptyList()) }
-    val MODEL_ID      = "redball"
-    val SRC_ID        = "redball-src"
-    val LAYER_ID      = "redball-layer"
-    val DEM_SOURCE_ID = "dem-source"
-    val DEM_URL       = "mapbox://mapbox.mapbox-terrain-dem-v1"
+
 
     // ← NEW: helper to fetch & store DEM elevation
     suspend fun fetchTrueElevationAndStore(siteId: Int, pt: Point) {
@@ -141,130 +125,106 @@ fun MapView(
         }
     }
 
-    // 2) Build "worldTrajectory": add DEM + simAlt
-    LaunchedEffect(trajectoryPoints, mapViewRef) {
-        val mv = mapViewRef ?: return@LaunchedEffect
-        val mb = mv.mapboxMap
-        worldTrajectory = trajectoryPoints.map { (vec, simAlt) ->
-            val lat = vec.getEntry(0)
-            val lon = vec.getEntry(1)
-            val ground = mb.getElevation(Point.fromLngLat(lon, lat)) ?: 0.0
-            ArrayRealVector(doubleArrayOf(lat, lon, ground + simAlt)) to simAlt
-        }
-    }
-
-    // 2️⃣ Whenever trajectoryPoints or map is ready, lift each point above ground
-    LaunchedEffect(trajectoryPoints, mapViewRef) {
-        val mv = mapViewRef ?: return@LaunchedEffect
-        worldTrajectory = trajectoryPoints.map { (vec, simAlt) ->
-            val lon = vec.getEntry(1)
-            val lat = vec.getEntry(0)
-            val ground = mv.mapboxMap.getElevation(Point.fromLngLat(lon, lat)) ?: 0.0
-            ArrayRealVector(doubleArrayOf(lat, lon, ground + simAlt)) to simAlt
-        }
-    }
-
     Box(modifier.fillMaxSize()) {
         MapboxMap(
-            modifier             = Modifier.fillMaxSize(),
+            modifier             = modifier.fillMaxSize(),
             mapState             = mapState,
             mapViewportState     = mapViewportState,
             onMapLongClickListener = { pt -> onMapLongClick(pt, null); true },
-            style = { /* we load style imperatively below */ }
+            style                = { /* no-op: we load style imperatively below */ }
         ) {
-            // 3️⃣ Load style + register model + create source & layer (once)
+            // ─── 2) Base style + DEM + terrain + sky + globe ───────────────
             MapEffect(mapViewRef) { mv ->
                 mapViewRef = mv
-                if (!styleLoaded) {
-                    styleLoaded = true
-                    mv.mapboxMap.loadStyle(
-                        styleExtension = style(Style.SATELLITE_STREETS) {
-                            +rasterDemSource(DEM_SOURCE_ID) { url(DEM_URL); tileSize(514) }
-                            +terrain(DEM_SOURCE_ID) { exaggeration(1.0) }
-                            +skyLayer("sky") {
-                                skyType(SkyType.ATMOSPHERE)
-                                skyAtmosphereSun(listOf(-50.0, 90.2))
-                            }
-                            +projection(ProjectionName.GLOBE)
-                        }
-                    ) {
-                        // register redball.glb from assets/
-                        mv.mapboxMap.addModel(
-                            model(MODEL_ID) {
-                                uri("asset://redball.glb")
-                            }
-                        )
-                        // create empty GeoJSON source + ModelLayer
-                        mv.mapboxMap.getStyle { style ->
-                            if (style.getSource(SRC_ID) == null) {
-                                style.addSource(geoJsonSource(SRC_ID) {
-                                    data(FeatureCollection.fromFeatures(emptyArray()).toJson())
-                                })
-                            }
-                            if (style.getLayer(LAYER_ID) == null) {
-                                style.addLayer(
-                                    modelLayer(LAYER_ID, SRC_ID) {
-                                        modelId(MODEL_ID)
-                                        modelType(ModelType.COMMON_3D)
-                                        modelScale(listOf(2.0, 2.0, 2.0))
-                                        modelCastShadows(true)
-                                        modelReceiveShadows(true)
-                                    }
-                                )
-                            }
-                        }
-                        // turn on the location puck
+                if (!baseStyleLoaded) {
+                    baseStyleLoaded = true
+                    mv.mapboxMap.loadStyle(styleExtension = style(Style.SATELLITE_STREETS) {
+                        +rasterDemSource("dem") { url("mapbox://mapbox.mapbox-terrain-dem-v1"); tileSize(512) }
+                        +terrain("dem") { exaggeration(1.0) }
+                        +skyLayer("sky") { skyType(SkyType.ATMOSPHERE) }
+                        +projection(ProjectionName.GLOBE)
+                    }) {
+                        // turn on location puck
                         (mv.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
-                            locationPuck       = createDefault2DPuck(withBearing = true)
-                            enabled            = true
-                            puckBearing        = PuckBearing.COURSE
+                            enabled = true
+                            locationPuck = createDefault2DPuck(withBearing = true)
+                            puckBearing = PuckBearing.COURSE
                             puckBearingEnabled = true
                         }
                     }
                 }
             }
-
-            // 4️⃣ Push your lifted trajectory into the redball source
-            MapEffect(worldTrajectory) { mv ->
+            // ─── 3) When trajectoryPoints appear: register model+source+layer per point ───
+            MapEffect(trajectoryPoints) { mv ->
+                if (trajectoryPoints.isEmpty()) return@MapEffect
                 mv.mapboxMap.getStyle { style ->
-                    val feats = worldTrajectory.map { (vec, _) ->
-                        Feature.fromGeometry(
-                            Point.fromLngLat(
-                                vec.getEntry(1),
-                                vec.getEntry(0),
-                                vec.getEntry(2)
-                            )
-                        )
-                    }.toTypedArray()
-                    style.getSourceAs<GeoJsonSource>(SRC_ID)
-                        ?.featureCollection(FeatureCollection.fromFeatures(feats))
+                    trajectoryPoints.forEachIndexed { idx, (vec, _) ->
+                        val lon = vec.getEntry(0)
+                        val lat = vec.getEntry(1)
+                        val alt = vec.getEntry(2)
+
+                        val modelId  = "redball-$idx"
+                        val sourceId = "traj-src-$idx"
+                        val layerId  = "traj-lyr-$idx"
+
+                        // 3.1) add the GLB asset once
+                        if (style.getLayer(modelId) == null) {
+                            mv.mapboxMap.addModel(model(modelId) {
+                                uri("asset://redball.glb")
+                            })
+                        }
+
+                        // 3.2) add a GeoJSON source at exactly (lon,lat,alt)
+                        if (style.getSource(sourceId) == null) {
+                            style.addSource(geoJsonSource(sourceId) {
+                                data(
+                                    FeatureCollection.fromFeatures(arrayOf(
+                                        Feature.fromGeometry(Point.fromLngLat(lon, lat, alt))
+                                    )).toJson()
+                                )
+                            })
+                        }
+
+                        // 3.3) add a ModelLayer, shifted up by altitude
+                        if (style.getLayer(layerId) == null) {
+                            style.addLayer(modelLayer(layerId, sourceId) {
+                                modelId(modelId)
+                                modelType(ModelType.COMMON_3D)
+                                modelScale(listOf(5.0, 5.0, 5.0))
+                                modelTranslation(listOf(0.0, 0.0, alt))
+                                modelCastShadows(true)
+                                modelReceiveShadows(true)
+                            })
+                        }
+                    }
                 }
             }
 
-            // 5️⃣ Animate the camera along the same lifted path
-            MapEffect(worldTrajectory to isAnimating) { mv ->
-                if (isAnimating && worldTrajectory.isNotEmpty()) {
-                    (mv.context as ComponentActivity).lifecycleScope.launch {
-                        var prev: Point? = null
-                        for ((vec, _) in worldTrajectory) {
-                            val lon = vec.getEntry(1)
-                            val lat = vec.getEntry(0)
-                            val bearing = prev?.let {
-                                calculateBearing(it.longitude(), it.latitude(), lon, lat)
-                            } ?: 0.0
-                            mv.mapboxMap.easeTo(
-                                CameraOptions.Builder()
-                                    .center(Point.fromLngLat(lon, lat))
-                                    .pitch(60.0)
-                                    .bearing(bearing)
-                                    .zoom(14.0)
-                                    .build(),
-                                MapAnimationOptions.mapAnimationOptions { duration(200L) }
-                            )
-                            prev = Point.fromLngLat(lon, lat)
-                        }
-                        onAnimationEnd()
+            // ─── 4) Animate camera over the lifted trajectory ────────────────────
+            MapEffect(trajectoryPoints to isAnimating) { mv ->
+                if (!isAnimating || trajectoryPoints.isEmpty()) return@MapEffect
+                (mv.context as ComponentActivity).lifecycleScope.launch {
+                    var prev: Point? = null
+                    trajectoryPoints.forEach { (vec, _) ->
+                        val lon = vec.getEntry(0)
+                        val lat = vec.getEntry(1)
+                        val alt = vec.getEntry(2)
+                        val p   = Point.fromLngLat(lon, lat, alt)
+                        val bearing = prev?.let {
+                            calculateBearing(it.longitude(), it.latitude(), lon, lat)
+                        } ?: 0.0
+                        mv.mapboxMap.easeTo(
+                            CameraOptions.Builder()
+                                .center(p)
+                                .pitch(70.0)
+                                .bearing(bearing)
+                                .zoom(12.0)
+                                .build(),
+                            MapAnimationOptions.mapAnimationOptions { duration(200L) }
+                        )
+                        prev = p
                     }
+                    onAnimationEnd()
                 }
             }
 
@@ -471,4 +431,16 @@ fun MapView(
             }*/
         }
     }
+}
+
+/** Updated Helper */
+fun idToBitmap(context: Context, @DrawableRes id: Int): Bitmap {
+    val dr = ResourcesCompat.getDrawable(context.resources, id, null)
+        ?: error("Drawable $id not found")
+    val bmp = Bitmap.createBitmap(dr.intrinsicWidth, dr.intrinsicHeight, Bitmap.Config.ARGB_8888)
+    android.graphics.Canvas(bmp).apply {
+        dr.setBounds(0, 0, width, height)
+        dr.draw(this)
+    }
+    return bmp
 }
