@@ -18,7 +18,9 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.getWeatherIconRes
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 
 
 val weatherPriority = listOf(
@@ -192,22 +194,17 @@ fun DailyForecastCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = item.label,
-                                modifier = Modifier.weight(0.9f),
-                                color = Color.LightGray,
-                                style = MaterialTheme.typography.labelMedium,
-                                maxLines = 1
-                            )
-                            Text(
-                                text = item.value,
-                                modifier = Modifier
-                                    .weight(1.1f) // Mer plass her!
-                                    .padding(start = 4.dp),
+                                text = buildAnnotatedString {
+                                    append("${item.label} ")
+                                    withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) {
+                                        append(item.value)
+                                    }
+                                },
                                 color = Color.White,
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
-
                             )
+
                         }
                     }
                 }
