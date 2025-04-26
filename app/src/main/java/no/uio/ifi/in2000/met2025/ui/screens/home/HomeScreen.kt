@@ -74,8 +74,8 @@ fun HomeScreen(
             val updateStatus           by viewModel.updateStatus.collectAsState()
             val newMarker              by viewModel.newMarker.collectAsState()
             val newMarkerStatus        by viewModel.newMarkerStatus.collectAsState()
-            val trajectoryPoints        = viewModel.trajectoryPoints
-            val isAnimating             = viewModel.isAnimating
+            val trajectoryPoints       by viewModel.trajectoryPoints.collectAsState()
+            val isAnimating            = viewModel.isAnimating
             var showTrajectorySheet    by remember { mutableStateOf(false) }
             val sheetState              = rememberModalBottomSheetState()
             val scope                   = rememberCoroutineScope()
@@ -171,10 +171,11 @@ fun HomeScreen(
                     onSiteElevation    = { uid, elev ->
                         viewModel.updateSiteElevation(uid, elev)
                     },
-                    trajectoryPoints   = trajectoryPoints,
-                    isAnimating        = isAnimating,
+                    // ← HERE: pass down your 3D-ModelLayer trajectory state
+                    trajectoryPoints  = trajectoryPoints,
+                    isAnimating       = isAnimating,
                     onAnimationEnd     = { viewModel.isAnimating = false },
-                    modifier           = Modifier.matchParentSize()
+                    modifier          = Modifier.matchParentSize()
                 )
 
                 ExtendedFloatingActionButton(

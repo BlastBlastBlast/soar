@@ -36,6 +36,7 @@ class HomeScreenViewModel @Inject constructor(
             val apiKeyAvailable: Boolean,
             val isOnline: Boolean
         ) : HomeScreenUiState()
+
         data class Error(val message: String) : HomeScreenUiState()
     }
 
@@ -47,11 +48,10 @@ class HomeScreenViewModel @Inject constructor(
     private val _selectedConfig = MutableStateFlow<RocketConfig?>(null)
     val selectedConfig: StateFlow<RocketConfig?> = _selectedConfig
 
-    // trajectory state
-    var trajectoryPoints: List<Pair<RealVector, Double>> by mutableStateOf(emptyList())
-        private set
+    private val _trajectoryPoints = MutableStateFlow<List<Pair<RealVector, Double>>>(emptyList())
+    val trajectoryPoints: StateFlow<List<Pair<RealVector, Double>>> = _trajectoryPoints
+
     var isAnimating by mutableStateOf(false)
-        internal set
     var isTrajectoryMode by mutableStateOf(false)
 
     private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
@@ -134,10 +134,10 @@ class HomeScreenViewModel @Inject constructor(
             try {
                 val exists = launchSitesRepository.checkIfSiteExists("Last Visited")
                 val site = LaunchSite(
-                    uid       = lastVisited.value?.uid ?: 0,
-                    latitude  = lat,
+                    uid = lastVisited.value?.uid ?: 0,
+                    latitude = lat,
                     longitude = lon,
-                    name      = "Last Visited",
+                    name = "Last Visited",
                     elevation = elevation   // now nullable column
                 )
                 if (exists && lastVisited.value != null) {
@@ -158,10 +158,10 @@ class HomeScreenViewModel @Inject constructor(
             try {
                 val exists = launchSitesRepository.checkIfSiteExists("New Marker")
                 val site = LaunchSite(
-                    uid       = newMarker.value?.uid ?: 0,
-                    latitude  = lat,
+                    uid = newMarker.value?.uid ?: 0,
+                    latitude = lat,
                     longitude = lon,
-                    name      = "New Marker",
+                    name = "New Marker",
                     elevation = elevation
                 )
                 if (exists && newMarker.value != null) {
@@ -170,7 +170,8 @@ class HomeScreenViewModel @Inject constructor(
                     launchSitesRepository.insert(site)
                 }
             } catch (e: Exception) {
-                _uiState.value = HomeScreenUiState.Error("Error saving marker elevation: ${e.message}")
+                _uiState.value =
+                    HomeScreenUiState.Error("Error saving marker elevation: ${e.message}")
             }
         }
     }
@@ -180,35 +181,58 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val exists = launchSitesRepository.checkIfSiteExists(name)
             if (exists) {
-                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+                _updateStatus.value =
+                    UpdateStatus.Error("Launch site with this name already exists")
             } else {
                 launchSitesRepository.update(
-                    LaunchSite(uid = siteId, latitude = lat, longitude = lon, name = name, elevation = elevation)
+                    LaunchSite(
+                        uid = siteId,
+                        latitude = lat,
+                        longitude = lon,
+                        name = name,
+                        elevation = elevation
+                    )
                 )
                 _updateStatus.value = UpdateStatus.Success
             }
         }
     }
 
-    // HomeScreenViewModel.kt (inside your class)
     fun loadMockTrajectory() {
-        // Ten sample points: start at sea level, climb to 500 m, then descend
-        val raw = listOf(
-            doubleArrayOf(59.94,   10.72,   0.0),
-            doubleArrayOf(59.9405, 10.7205, 100.0),
-            doubleArrayOf(59.9410, 10.7210, 200.0),
-            doubleArrayOf(59.9415, 10.7215, 300.0),
-            doubleArrayOf(59.9420, 10.7220, 400.0),
-            doubleArrayOf(59.9425, 10.7225, 500.0),
-            doubleArrayOf(59.9430, 10.7230, 400.0),
-            doubleArrayOf(59.9435, 10.7235, 300.0),
-            doubleArrayOf(59.9440, 10.7240, 200.0),
-            doubleArrayOf(59.9445, 10.7245, 100.0)
-        )
-        trajectoryPoints = raw.map { arr ->
-            // ArrayRealVector(lat, lon, alt)
-            ArrayRealVector(doubleArrayOf(arr[0], arr[1], arr[2])) to arr[2]
+        val baseLat = 59.9431
+        val baseLon = 10.7185
+        // total points
+        val nPoints = 20
+
+        // generate 20 samples t = 0..1
+        val raw = (0 until nPoints).map { i ->
+            val t = i / (nPoints - 1).toDouble()   // from 0.0 .. 1.0
+
+            // interpolate Lat/Lon along a small NE vector
+            val lat = baseLat + 0.005 * t
+            val lon = baseLon + 0.005 * t
+
+            // altitude: sin(pi * t) * 3000  → start/end at 0, peak 3000m
+            val alt = kotlin.math.sin(Math.PI * t) * 3000.0
+
+            // speed: same shape, peak 500 m/s
+            val speed = kotlin.math.sin(Math.PI * t) * 500.0
+
+            doubleArrayOf(lat, lon, alt, speed)
         }
+
+        // map into your StateFlow format: RealVector(lon, lat, alt) → speed
+        val list: List<Pair<RealVector, Double>> = raw.map { arr ->
+            val lon   = arr[0]
+            val lat   = arr[1]
+            val alt   = arr[2]
+            val speed = arr[3]
+            // note: Mapbox expects (lon, lat, altitude) in the vector
+            ArrayRealVector(doubleArrayOf(lon, lat, alt)) to speed
+        }
+
+        // push into your ViewModel’s StateFlow and kick off the animation
+        _trajectoryPoints.value = list
         isAnimating = true
     }
 
@@ -231,7 +255,8 @@ class HomeScreenViewModel @Inject constructor(
                 )
                 _updateStatus.value = UpdateStatus.Success
             } catch (e: SQLiteConstraintException) {
-                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
+                _updateStatus.value =
+                    UpdateStatus.Error("Launch site with this name already exists")
             }
         }
     }
@@ -260,7 +285,7 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     /** Start the trajectory using the currently selected config */
-    fun startTrajectory() {
+    /*fun startTrajectory() {
         val cfg = _selectedConfig.value
             ?: return  // optionally show an error “please pick a config first”
 
@@ -289,7 +314,8 @@ class HomeScreenViewModel @Inject constructor(
 
             isAnimating = true
         }
-    }
+    */
+
     /** Called when the user taps “⚙️ Rocket Configs” */
     fun showRocketConfigDialog() {
         // TODO: e.g. flip a StateFlow or send a UI‐event that your
@@ -298,7 +324,7 @@ class HomeScreenViewModel @Inject constructor(
 
     /** Called when the user taps “📍 Show Current Lat/Lon” */
     fun showCurrentLatLon() {
-        val (lat, lon) = coordinates.value
+        //val (lat, lon) = coordinates.value
         // TODO: e.g. push a Toast or UI‐event with "$lat, $lon"
     }
 
@@ -306,9 +332,11 @@ class HomeScreenViewModel @Inject constructor(
     fun launchHere() {
         // simply reuse your startTrajectory logic, or
         // if you need to update a “launch site” first do that
-        startTrajectory()
+        //startTrajectory()
     }
+
 }
+
 
 // Utility for bearing
 fun calculateBearing(lon1: Double, lat1: Double, lon2: Double, lat2: Double): Double {

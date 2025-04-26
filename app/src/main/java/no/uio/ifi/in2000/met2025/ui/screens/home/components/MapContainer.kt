@@ -20,20 +20,16 @@ fun MapContainer(
     modifier: Modifier = Modifier,
     showAnnotations: Boolean = true,
 
-    // ← allow nullable elevation here
     onMapLongClick: (Point, Double?) -> Unit,
     onMarkerAnnotationClick: (Point, Double?) -> Unit,
     onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
-
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit,
     onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit,
-
-    // this stays non-null, because once you fetch you always pass a real Double
     onSiteElevation: (Int, Double) -> Unit,
 
-    trajectoryPoints: List<Pair<RealVector, Double>> = emptyList(),
-    isAnimating: Boolean = false,
-    onAnimationEnd: () -> Unit = {}
+    trajectoryPoints: List<Pair<RealVector, Double>>,
+    isAnimating: Boolean,
+    onAnimationEnd: () -> Unit
 ) {
     Box(modifier.fillMaxSize()) {
         MapView(
@@ -44,11 +40,9 @@ fun MapContainer(
             mapViewportState                 = mapViewportState,
             showAnnotations                  = showAnnotations,
 
-            // ← propagate the nullable signature
             onMapLongClick                   = onMapLongClick,
             onMarkerAnnotationClick          = onMarkerAnnotationClick,
             onMarkerAnnotationLongPress      = onMarkerAnnotationLongPress,
-
             onLaunchSiteMarkerClick          = onLaunchSiteMarkerClick,
             onSavedMarkerAnnotationLongPress = onSavedMarkerAnnotationLongPress,
             onSiteElevation                  = onSiteElevation,
@@ -56,6 +50,7 @@ fun MapContainer(
             trajectoryPoints                 = trajectoryPoints,
             isAnimating                      = isAnimating,
             onAnimationEnd                   = onAnimationEnd,
+
             modifier                         = Modifier.fillMaxSize()
         )
     }
