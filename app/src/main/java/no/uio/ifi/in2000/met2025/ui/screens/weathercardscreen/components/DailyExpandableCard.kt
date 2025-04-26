@@ -63,8 +63,11 @@ fun getGradientForSymbol(symbolCode: String?): Brush {
 
         symbolCode.contains("clearsky") || symbolCode.contains("fair") ->
             Brush.verticalGradient(
-                colors = listOf(Color(0xFFFFF59D), Color(0xFFFFB300), Color(0xFFFF8F00))
+                colors = listOf(
+                    Color(0xFFFFF8E1), Color(0xFFFFCC80), Color(0xFFFFA726)
+                )
             )
+
 
         symbolCode.contains("partlycloudy") || symbolCode.contains("cloudy") ->
             Brush.verticalGradient(
