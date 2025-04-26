@@ -24,10 +24,19 @@ import androidx.compose.ui.text.withStyle
 
 
 val weatherPriority = listOf(
-    "heavyrain", "heavyrainandthunder", "rainandthunder", "rain",
-    "sleet", "snow",
-    "cloudy", "partlycloudy_day", "fair_day", "clearsky_day"
+    "heavyrainandthunder", // Verst først: torden + mye regn
+    "rainandthunder",       // Torden + regn
+    "heavyrain",            // Masse regn
+    "rain",                 // Regn
+    "sleet",                // Sludd (farlig pga ising)
+    "snow",                 // Snø (ok, men kan være synsproblemer)
+    "fog",                  // Tåke bør komme her! Sikt = viktig
+    "cloudy",               // Helt overskyet
+    "partlycloudy_day",     // Delvis skyet
+    "fair_day",             // Ganske fint
+    "clearsky_day"          // Best
 )
+
 
 fun getDominantSymbolCode(items: List<ForecastDataItem>): String? {
     val allCodes = items.mapNotNull { it.values.symbolCode }
