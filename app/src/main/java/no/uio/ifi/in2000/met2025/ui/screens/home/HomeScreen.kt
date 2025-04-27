@@ -200,7 +200,7 @@ fun HomeScreen(
                     onStartTrajectory  = { viewModel.loadMockTrajectory() },
                     onPickRocketConfig = { viewModel.showRocketConfigDialog() },
                     onShowCurrentLatLon= { viewModel.showCurrentLatLon() },
-                    onLaunchHere       = { viewModel.launchHere() },
+                    onClearTrajectory  = { viewModel.clearTrajectory(); showTrajectoryPopup = false },
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
