@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +32,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -41,6 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
@@ -50,6 +52,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.site.LaunchSitesMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import java.time.Instant
+
+
 
 @Composable
 fun WeatherCardScreen(
@@ -209,10 +213,7 @@ fun ScreenContent(
             // You can remove the header section that previously hosted the slider and toggle.
             // Optional: Place other header or title elements here if required.
 
-            // Daily overview row.
-            item {
-                DailyForecastRowSection(forecastItems = forecastItems)
-            }
+
             // Horizontal Pager section.
             item {
                 Box(
@@ -241,18 +242,25 @@ fun ScreenContent(
                                 .padding(vertical = 16.dp),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .background(WarmOrange)
-                                    .fillMaxWidth()
-                            ) {
-                                Text(
-                                    text     = date,
-                                    color    = MaterialTheme.colorScheme.onPrimary,
-                                    style    = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                            }
+                            // 1. Show the Daily Card for this day
+                            DailyForecastCard(
+                                forecastItems = dailyForecastItems,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // 2. (Optional) Show the day label (if you want to keep it visible)
+                            /*
+                            Text(
+                                text = date,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            */
+
+                            // 3. Then the hourly expandable cards
                             dailyForecastItems.forEach { forecastItem ->
                                 HourlyExpandableCard(
                                     forecastItem = forecastItem,
