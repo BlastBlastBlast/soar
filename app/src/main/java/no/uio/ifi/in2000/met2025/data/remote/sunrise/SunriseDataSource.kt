@@ -14,7 +14,7 @@ class SunriseDataSource @Inject constructor(
         lat: Double,
         lon: Double,
         date: String,
-        offset: String = "+00:00"
+        offset: String = "+01:00"
     ): Result<SunriseResponse> {
         val url = "https://api.met.no/weatherapi/sunrise/3.0/sun?lat=$lat&lon=$lon&date=$date&offset=$offset"
         return try {
