@@ -64,7 +64,7 @@ import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
 
 
-
+// FIXME: CHECK NULL POINTER EXCEPTION WHEN PLACING FIRST MARKER
 @OptIn(MapboxExperimental::class)
 @Composable
 fun MapView(
