@@ -39,7 +39,7 @@ fun TrajectoryPopup(
     onStartTrajectory: () -> Unit,
     onPickRocketConfig: () -> Unit,
     onShowCurrentLatLon: () -> Unit,
-    onLaunchHere: () -> Unit,
+    onClearTrajectory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Track vertical drag offset
@@ -133,11 +133,8 @@ fun TrajectoryPopup(
                         ) {
                             Text("📍 Show Current Lat/Lon")
                         }
-                        Button(
-                            onClick = onLaunchHere,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("🚀 Launch From Center")
+                        Button(onClick = onClearTrajectory, modifier = Modifier.weight(1f)) {
+                            Text("🗑️ Clear Trajectory")   // ← swapped text & icon
                         }
                     }
                 }
