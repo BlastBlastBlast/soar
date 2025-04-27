@@ -1,7 +1,5 @@
 package no.uio.ifi.in2000.met2025
 
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
 import io.ktor.client.HttpClient
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
@@ -25,6 +23,10 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
+import no.uio.ifi.in2000.met2025.fakes.FakeConfigProfileDao
+import no.uio.ifi.in2000.met2025.fakes.FakeGribDataDAO
+import no.uio.ifi.in2000.met2025.fakes.FakeGribUpdatedDAO
+import no.uio.ifi.in2000.met2025.fakes.FakeLaunchSiteDAO
 import org.junit.After
 import org.junit.Before
 
@@ -35,23 +37,19 @@ class WeatherCardViewmodelTest {
 
     @Before
     fun setup() {
-        database = Room.inMemoryDatabaseBuilder(
-            ApplicationProvider.getApplicationContext(),
-            AppDatabase::class.java
-        )
-            .allowMainThreadQueries()
-            .build()
-
         val mockClient = createTestHttpClient()
+
+        val isobaricDataSource = IsobaricDataSource(mockClient, mockClient)
 
         val sunriseRepository = SunriseRepository(SunriseDataSource(mockClient))
         val locationForecastRepository = LocationForecastRepository(LocationForecastDataSource(mockClient))
-        val configProfileRepository = ConfigProfileRepository(database.configProfileDao())
-        val launchSitesRepository = LaunchSitesRepository(database.launchSiteDao())
+
+        val configProfileRepository = ConfigProfileRepository(FakeConfigProfileDao())
+        val launchSitesRepository = LaunchSitesRepository(FakeLaunchSiteDAO())
         val isobaricRepository = IsobaricRepository(
-            IsobaricDataSource(mockClient, mockClient),
-            database.gribDataDao(),
-            database.gribUpdatedDao()
+            isobaricDataSource,
+            FakeGribDataDAO(),
+            FakeGribUpdatedDAO()
         )
 
         val weatherModel = WeatherModel(locationForecastRepository, isobaricRepository)
