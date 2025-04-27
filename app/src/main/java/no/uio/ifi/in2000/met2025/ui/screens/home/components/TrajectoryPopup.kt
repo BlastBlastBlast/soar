@@ -38,7 +38,6 @@ fun TrajectoryPopup(
     onClose: () -> Unit,
     onStartTrajectory: () -> Unit,
     onPickRocketConfig: () -> Unit,
-    onShowCurrentLatLon: () -> Unit,
     onClearTrajectory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -120,25 +119,19 @@ fun TrajectoryPopup(
                             onClick = onPickRocketConfig,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("⚙️ Rocket Configs")
+                            Text("⚙️ Edit Configs")
                         }
                     }
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Button(
-                            onClick = onShowCurrentLatLon,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("📍 Show Current Lat/Lon")
                         }
                         Button(onClick = onClearTrajectory, modifier = Modifier.weight(1f)) {
-                            Text("🗑️ Clear Trajectory")   // ← swapped text & icon
+                            Text("🗑️ Clear Trajectory")
                         }
                     }
                 }
             }
         }
     }
-}

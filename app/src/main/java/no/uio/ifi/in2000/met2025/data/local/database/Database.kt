@@ -57,8 +57,7 @@ data class GribUpdated(
 
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val name: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
     @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
     @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
@@ -89,11 +88,10 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
 )
 
-@Entity(tableName = "rocket_configurations")
-data class RocketConfig(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id") val id: Int = 0,
-    @ColumnInfo(name = "name") val name: String,
+@Entity(
+    tableName = "rocket_configurations", primaryKeys = ["id", "name"], indices = [Index(value = ["name"], unique = true)])
+    data class RocketConfig(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
     @ColumnInfo(name = "launch_azimuth") val launchAzimuth: Double,
     @ColumnInfo(name = "launch_pitch") val launchPitch: Double,
     @ColumnInfo(name = "launch_rail_length") val launchRailLength: Double,

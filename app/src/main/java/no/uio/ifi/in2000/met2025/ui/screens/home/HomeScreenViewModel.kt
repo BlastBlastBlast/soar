@@ -9,12 +9,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
+import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
+import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
 import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
 import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
 import org.apache.commons.math3.linear.ArrayRealVector
@@ -123,7 +126,28 @@ class HomeScreenViewModel @Inject constructor(
                 _newMarkerStatus.value = true
             }
         }
+        viewModelScope.launch {
+            rocketConfigRepository.getDefaultRocketConfig().firstOrNull()?.let { /* ok */ }
+                ?: rocketConfigRepository.insertRocketConfig(
+                    mapToRocketConfig(
+                        name = "Default Rocket Config",
+                        values = getDefaultRocketParameterValues(),
+                        isDefault = true
+                    )
+                )
+        }
+        viewModelScope.launch {
+            rocketConfigRepository.getAllRocketConfigs()
+                .collect { list ->
+                    _rocketConfigList.value = list
+                    // pick first if nothing selected yet
+                    if (_selectedConfig.value == null && list.isNotEmpty()) {
+                        _selectedConfig.value = list.first()
+                    }
+                }
+        }
     }
+
 
     fun updateCoordinates(lat: Double, lon: Double) {
         _coordinates.value = Pair(lat, lon)
