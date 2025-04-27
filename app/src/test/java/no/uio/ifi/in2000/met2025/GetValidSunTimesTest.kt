@@ -1,19 +1,18 @@
 package no.uio.ifi.in2000.met2025
 
+import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.helpers.formatter
 import org.junit.Test
-import java.time.Instant
 import java.time.OffsetDateTime
-import kotlin.test.assertEquals
 
 class GetValidSunTimesTest {
 
     @Test
     fun getValidSunTimesTest() = runBlocking {
-        val mockClient = createSunriseMockClientWithJson()
+        val mockClient = no.uio.ifi.in2000.met2025.createSunriseMockClientWithJson()
         val sunriseDataSource = SunriseDataSource(mockClient)
         val sunriseRepository = SunriseRepository(sunriseDataSource)
 

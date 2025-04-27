@@ -14,10 +14,13 @@ import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricDataResult
+import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
+import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.DefaultConfig
 import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 
 // WeatherCardViewModel.kt
@@ -26,7 +29,8 @@ class WeatherCardViewmodel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
     private val configProfileRepository: ConfigProfileRepository,
     private val launchSitesRepository: LaunchSitesRepository,
-    private val weatherModel: WeatherModel
+    private val weatherModel: WeatherModel,
+    private val sunriseRepository: SunriseRepository
 ) : ViewModel() {
 
     sealed class WeatherCardUiState {
@@ -65,6 +69,8 @@ class WeatherCardViewmodel @Inject constructor(
 
     private val _isobaricData = MutableStateFlow<Map<Instant, AtmosphericWindUiState>>(emptyMap())
     val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
+
+    val validSunTimesMap = mutableMapOf<String, ValidSunTimes>()
 
     val launchSites = launchSitesRepository.getAll()
 
@@ -199,7 +205,17 @@ class WeatherCardViewmodel @Inject constructor(
                         "Some rounding exceptions may apply for border limits.")
             }
         }
-
         _isobaricData.value += (time to newState)
+    }
+
+    suspend fun getValidSunTimesList(lat: Double, lon: Double) {
+        val date = Instant.now()
+            .atZone(ZoneId.of("Europe/Oslo"))
+            .toLocalDate()
+
+        for (i in 0..4) {
+            validSunTimesMap[date.toString()] = sunriseRepository.getValidSunTimes(lat, lon,
+                date.plusDays(i.toLong()).toString())
+        }
     }
 }
