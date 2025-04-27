@@ -65,13 +65,34 @@ fun getDominantSymbolCode(items: List<ForecastDataItem>): String? {
 }
 
 fun getSymbolDescription(symbolCode: String?): String {
-    return symbolCode
-        ?.replace("_", " ")
-        ?.replaceFirstChar { it.uppercase() }
-        ?.replace("day", "")
-        ?.replace("night", "")
-        ?.replace("polartwilight", "")
-        ?.trim() ?: ""
+    if (symbolCode.isNullOrBlank()) return ""
+
+    val base = symbolCode
+        .removeSuffix("_day")
+        .removeSuffix("_night")
+        .removeSuffix("_polartwilight")
+        .lowercase()
+
+    val explicit = when {
+        base.contains("heavyrainandthunder") -> "Heavy Rain and Thunder"
+        base.contains("rainandthunder") -> "Rain and Thunder"
+        base.contains("heavyrain") -> "Heavy Rain"
+        base.contains("rain") -> "Rain"
+        base.contains("sleet") -> "Sleet"
+        base.contains("snow") -> "Snow"
+        base.contains("fog") -> "Fog"
+        base.contains("cloudy") && !base.contains("partly") -> "Cloudy"
+        base.contains("partlycloudy") -> "Partly Cloudy"
+        base.contains("fair") -> "Fair"
+        base.contains("clearsky") -> "Clear Sky"
+        else -> null
+    }
+    if (explicit != null) return explicit
+
+    return base
+        .split(Regex("[^A-Za-z]+"))
+        .filter { it.isNotBlank() }
+        .joinToString(" ") { token -> token.replaceFirstChar { it.uppercase() } }
 }
 
 
@@ -135,55 +156,23 @@ fun DailyForecastCard(
 ) {
     if (forecastItems.isEmpty()) return
 
-    // Basic info
-    val avgTemp = forecastItems.map { it.values.airTemperature }.average()
-    val symbolCode = getDominantSymbolCode(forecastItems)
-    val dayLabel = formatZuluTimeToLocalDayMonth(forecastItems.first().time)
-    val description = getSymbolDescription(symbolCode)
+    val avgTemp             = forecastItems.map { it.values.airTemperature }.average()
+    val symbolCode          = getDominantSymbolCode(forecastItems)
+    val dayLabel            = formatZuluTimeToLocalDayMonth(forecastItems.first().time)
+    val description         = getSymbolDescription(symbolCode)
+    val avgCloudCover       = forecastItems.mapNotNull { it.values.cloudAreaFraction }.averageOrNull()
+    val totalPrecipitation  = forecastItems.mapNotNull { it.values.precipitationAmount }
+                                 .takeIf { it.isNotEmpty() }?.sum()
+    val avgFog              = forecastItems.mapNotNull { it.values.fogAreaFraction }.averageOrNull()
+    val maxHumidity         = forecastItems.mapNotNull { it.values.relativeHumidity }.maxOrNull()
+    val maxDewPoint         = forecastItems.mapNotNull { it.values.dewPointTemperature }.maxOrNull()
+    val maxAirWind          = forecastItems.mapNotNull { it.values.windSpeedOfGust }.maxOrNull()
+    val minAirWind          = forecastItems.mapNotNull { it.values.windSpeedOfGust }.minOrNull()
+    val maxGroundWind       = forecastItems.mapNotNull { it.values.windSpeed }.maxOrNull()
+    val minGroundWind       = forecastItems.mapNotNull { it.values.windSpeed }.minOrNull()
+    val avgWindDirection    = forecastItems.mapNotNull { it.values.windFromDirection }.averageOrNull()
 
-    // Nullable statistics
-    val avgCloudCover = forecastItems
-        .mapNotNull { it.values.cloudAreaFraction }
-        .averageOrNull()
-
-    val totalPrecipitation = forecastItems
-        .mapNotNull { it.values.precipitationAmount }
-        .takeIf { it.isNotEmpty() }
-        ?.sum()
-
-    val avgFog = forecastItems
-        .mapNotNull { it.values.fogAreaFraction }
-        .averageOrNull()
-
-    val maxHumidity = forecastItems
-        .mapNotNull { it.values.relativeHumidity }
-        .maxOrNull()
-
-    val maxDewPoint = forecastItems
-        .mapNotNull { it.values.dewPointTemperature }
-        .maxOrNull()
-
-    val maxAirWind = forecastItems
-        .mapNotNull { it.values.windSpeedOfGust }
-        .maxOrNull()
-
-    val minAirWind = forecastItems
-        .mapNotNull { it.values.windSpeedOfGust }
-        .minOrNull()
-
-    val maxGroundWind = forecastItems
-        .mapNotNull { it.values.windSpeed }
-        .maxOrNull()
-
-    val minGroundWind = forecastItems
-        .mapNotNull { it.values.windSpeed }
-        .minOrNull()
-
-    val avgWindDirection = forecastItems
-        .mapNotNull { it.values.windFromDirection }
-        .averageOrNull()
-
-    // Build info items
+    // --- info items list ---
     val infoItems = listOf(
         WeatherInfoItem("☁️ Cloud cover", avgCloudCover?.let { "%.1f%%".format(it) }),
         WeatherInfoItem("🌧️ Precipitation", totalPrecipitation?.let { "%.1f mm".format(it) }),
@@ -207,7 +196,6 @@ fun DailyForecastCard(
 
     Card(
         modifier = modifier
-            .padding(16.dp)
             .width(260.dp),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(8.dp)
@@ -219,10 +207,8 @@ fun DailyForecastCard(
                 .padding(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Date + description
+                // date + main description
                 Text(dayLabel, style = MaterialTheme.typography.titleLarge, color = Color.White)
-
-                // Temp + icon row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -236,7 +222,7 @@ fun DailyForecastCard(
                     ) {
                         Text(
                             text = "${avgTemp.toInt()}°",
-                            style = MaterialTheme.typography.displaySmall,
+                            style = MaterialTheme.typography.displayMedium,
                             color = Color.White
                         )
                         Text(
@@ -247,7 +233,7 @@ fun DailyForecastCard(
                         )
                     }
 
-                    // Icon or fallback
+                    // icon fallback logic remains the same
                     if (symbolCode == null) {
                         Icon(
                             imageVector = Icons.Default.CloudOff,
@@ -271,36 +257,27 @@ fun DailyForecastCard(
                     }
                 }
 
-                // Info rows
+                // --- adjusted info rows: labels left, values right ---
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     infoItems.forEach { item ->
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (item.value == null) {
-                                Text(
-                                    text = "${item.label}: NOT AVAILABLE",
-                                    color = IconPurple,
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            } else {
-                                Text(
-                                    text = buildAnnotatedString {
-                                        append("${item.label} ")
-                                        withStyle(
-                                            style = androidx.compose.ui.text.SpanStyle(
-                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                            )
-                                        ) {
-                                            append(item.value)
-                                        }
-                                    },
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    maxLines = 1
-                                )
-                            }
+                            Text(
+                                text = item.label,
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+
+                            Text(
+                                text = item.value ?: "DATA NOT AVAILABLE",
+                                color = if (item.value != null) Color.White else IconPurple,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (item.value != null) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.End
+                            )
                         }
                     }
                 }
@@ -308,7 +285,6 @@ fun DailyForecastCard(
         }
     }
 }
-
 
 @Composable
 fun DailyLazyRow(allForecastItems: List<ForecastDataItem>) {
