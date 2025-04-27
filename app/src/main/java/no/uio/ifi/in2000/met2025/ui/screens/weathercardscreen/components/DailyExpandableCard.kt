@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,39 +24,39 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
+import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
 
 
 val weatherPriority = listOf(
-    "heavyrainandthunder", // Verst først: torden + mye regn
-    "rainandthunder",       // Torden + regn
-    "heavyrain",            // Masse regn
-    "rain",                 // Regn
-    "sleet",                // Sludd (farlig pga ising)
-    "snow",                 // Snø (ok, men kan være synsproblemer)
-    "fog",                  // Sikt = viktig
-    "cloudy",               // Helt overskyet
-    "partlycloudy_day",     // Delvis skyet
-    "fair_day",             // Ganske fint
-    "clearsky_day"          // Best
+    "heavyrainandthunder",
+    "rainandthunder",
+    "heavyrain",
+    "rain",
+    "sleet",
+    "snow",
+    "fog",
+    "cloudy",
+    "partlycloudy_day",
+    "fair_day",
+    "clearsky_day"
 )
 
 
 fun getDominantSymbolCode(items: List<ForecastDataItem>): String? {
+    // If there are no symbol codes at all, bail out immediately
     val allCodes = items.mapNotNull { it.values.symbolCode }
+    if (allCodes.isEmpty()) return null
 
-    // Først prøv å finne prioritert symbol
+    // First: look for any of our priority symbols
     for (prioritySymbol in weatherPriority) {
         allCodes.firstOrNull { it.contains(prioritySymbol) }?.let { return it }
     }
 
-    // Hvis ingen match i prioritering:
-    // Forsøk å velge 'day'-variant hvis mulig
+    // Next: try to pick a "day" variant if possible
     val dayCode = allCodes.firstOrNull { it.contains("day", ignoreCase = true) }
-    if (dayCode != null) {
-        return dayCode
-    }
+    if (dayCode != null) return dayCode
 
-    // Hvis ingen dagkode, ta det mest vanlige symbolet
+    // Finally: pick the most common symbol
     return allCodes
         .groupingBy { it }
         .eachCount()
@@ -118,9 +120,12 @@ fun getGradientForSymbol(symbolCode: String?): Brush {
     }
 }
 
+fun List<Double>.averageOrNull(): Double? =
+    if (isNotEmpty()) average() else null
+
 data class WeatherInfoItem(
     val label: String,
-    val value: String
+    val value: String?  // null means “no data”
 )
 
 @Composable
@@ -130,32 +135,74 @@ fun DailyForecastCard(
 ) {
     if (forecastItems.isEmpty()) return
 
+    // Basic info
     val avgTemp = forecastItems.map { it.values.airTemperature }.average()
     val symbolCode = getDominantSymbolCode(forecastItems)
     val dayLabel = formatZuluTimeToLocalDayMonth(forecastItems.first().time)
     val description = getSymbolDescription(symbolCode)
-    val iconRes = getWeatherIconRes(symbolCode)
 
-    val avgCloudCover = forecastItems.mapNotNull { it.values.cloudAreaFraction }.average()
-    val totalPrecipitation = forecastItems.mapNotNull { it.values.precipitationAmount }.sum()
-    val avgFog = forecastItems.mapNotNull { it.values.fogAreaFraction }.average()
-    val maxHumidity = forecastItems.mapNotNull { it.values.relativeHumidity }.maxOrNull() ?: 0.0
-    val maxDewPoint = forecastItems.mapNotNull { it.values.dewPointTemperature }.maxOrNull() ?: 0.0
-    val maxAirWind = forecastItems.mapNotNull { it.values.windSpeedOfGust }.maxOrNull() ?: 0.0
-    val minAirWind = forecastItems.mapNotNull { it.values.windSpeedOfGust }.minOrNull() ?: 0.0
-    val maxGroundWind = forecastItems.mapNotNull { it.values.windSpeed }.maxOrNull() ?: 0.0
-    val minGroundWind = forecastItems.mapNotNull { it.values.windSpeed }.minOrNull() ?: 0.0
-    val avgWindDirection = forecastItems.mapNotNull { it.values.windFromDirection }.average()
+    // Nullable statistics
+    val avgCloudCover = forecastItems
+        .mapNotNull { it.values.cloudAreaFraction }
+        .averageOrNull()
 
+    val totalPrecipitation = forecastItems
+        .mapNotNull { it.values.precipitationAmount }
+        .takeIf { it.isNotEmpty() }
+        ?.sum()
+
+    val avgFog = forecastItems
+        .mapNotNull { it.values.fogAreaFraction }
+        .averageOrNull()
+
+    val maxHumidity = forecastItems
+        .mapNotNull { it.values.relativeHumidity }
+        .maxOrNull()
+
+    val maxDewPoint = forecastItems
+        .mapNotNull { it.values.dewPointTemperature }
+        .maxOrNull()
+
+    val maxAirWind = forecastItems
+        .mapNotNull { it.values.windSpeedOfGust }
+        .maxOrNull()
+
+    val minAirWind = forecastItems
+        .mapNotNull { it.values.windSpeedOfGust }
+        .minOrNull()
+
+    val maxGroundWind = forecastItems
+        .mapNotNull { it.values.windSpeed }
+        .maxOrNull()
+
+    val minGroundWind = forecastItems
+        .mapNotNull { it.values.windSpeed }
+        .minOrNull()
+
+    val avgWindDirection = forecastItems
+        .mapNotNull { it.values.windFromDirection }
+        .averageOrNull()
+
+    // Build info items
     val infoItems = listOf(
-        WeatherInfoItem("☁️ Cloud cover", "${"%.1f".format(avgCloudCover)}%"),
-        WeatherInfoItem("🌧️ Percipitation", "${"%.1f".format(totalPrecipitation)} mm"),
-        WeatherInfoItem("🌫️ Fog", "${"%.1f".format(avgFog)}%"),
-        WeatherInfoItem("💧 Humidity ", "${"%.1f".format(maxHumidity)}%"),
-        WeatherInfoItem("🌡️ Dewpoint", "${"%.1f".format(maxDewPoint)}°C"),
-        WeatherInfoItem("💨 Air wind", "Min ${"%.1f".format(minAirWind)} / Max ${"%.1f".format(maxAirWind)} m/s"),
-        WeatherInfoItem("🌬️ Ground wind", "Min ${"%.1f".format(minGroundWind)} / Max ${"%.1f".format(maxGroundWind)} m/s"),
-        WeatherInfoItem("🧭 Wind direction", "${"%.1f".format(avgWindDirection)}°")
+        WeatherInfoItem("☁️ Cloud cover", avgCloudCover?.let { "%.1f%%".format(it) }),
+        WeatherInfoItem("🌧️ Precipitation", totalPrecipitation?.let { "%.1f mm".format(it) }),
+        WeatherInfoItem("🌫️ Fog", avgFog?.let { "%.1f%%".format(it) }),
+        WeatherInfoItem("💧 Humidity", maxHumidity?.let { "%.1f%%".format(it) }),
+        WeatherInfoItem("🌡️ Dew point", maxDewPoint?.let { "%.1f°C".format(it) }),
+        WeatherInfoItem(
+            "💨 Air wind",
+            if (minAirWind != null && maxAirWind != null)
+                "Min %.1f / Max %.1f m/s".format(minAirWind, maxAirWind)
+            else null
+        ),
+        WeatherInfoItem(
+            "🌬️ Ground wind",
+            if (minGroundWind != null && maxGroundWind != null)
+                "Min %.1f / Max %.1f m/s".format(minGroundWind, maxGroundWind)
+            else null
+        ),
+        WeatherInfoItem("🧭 Wind direction", avgWindDirection?.let { "%.1f°".format(it) })
     )
 
     Card(
@@ -171,12 +218,11 @@ fun DailyForecastCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Øverst: dato og værbeskrivelse
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Date + description
                 Text(dayLabel, style = MaterialTheme.typography.titleLarge, color = Color.White)
 
+                // Temp + icon row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -198,49 +244,71 @@ fun DailyForecastCard(
                             color = Color.White,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1
-
                         )
-
                     }
 
-                    iconRes?.let {
-                        Image(
-                            painter = painterResource(id = it),
-                            contentDescription = null,
+                    // Icon or fallback
+                    if (symbolCode == null) {
+                        Icon(
+                            imageVector = Icons.Default.CloudOff,
+                            contentDescription = "No weather data",
+                            tint = IconPurple,
+                            modifier = Modifier.size(130.dp)
+                        )
+                    } else {
+                        getWeatherIconRes(symbolCode)?.let { resId ->
+                            Image(
+                                painter = painterResource(id = resId),
+                                contentDescription = null,
+                                modifier = Modifier.size(130.dp)
+                            )
+                        } ?: Icon(
+                            imageVector = Icons.Default.CloudOff,
+                            contentDescription = "Unknown symbol",
+                            tint = IconPurple,
                             modifier = Modifier.size(130.dp)
                         )
                     }
                 }
 
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                // Info rows
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     infoItems.forEach { item ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    append("${item.label} ")
-                                    withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) {
-                                        append(item.value)
-                                    }
-                                },
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelMedium,
-                                maxLines = 1
-                            )
-
+                            if (item.value == null) {
+                                Text(
+                                    text = "${item.label}: NOT AVAILABLE",
+                                    color = IconPurple,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            } else {
+                                Text(
+                                    text = buildAnnotatedString {
+                                        append("${item.label} ")
+                                        withStyle(
+                                            style = androidx.compose.ui.text.SpanStyle(
+                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                            )
+                                        ) {
+                                            append(item.value)
+                                        }
+                                    },
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }
-
             }
         }
     }
 }
+
 
 @Composable
 fun DailyLazyRow(allForecastItems: List<ForecastDataItem>) {
