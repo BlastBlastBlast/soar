@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
 
 
 val weatherPriority = listOf(
@@ -131,7 +132,7 @@ fun DailyForecastCard(
 
     val avgTemp = forecastItems.map { it.values.airTemperature }.average()
     val symbolCode = getDominantSymbolCode(forecastItems)
-    val dayLabel = formatZuluTimeToLocalDate(forecastItems.first().time)
+    val dayLabel = formatZuluTimeToLocalDayMonth(forecastItems.first().time)
     val description = getSymbolDescription(symbolCode)
     val iconRes = getWeatherIconRes(symbolCode)
 
