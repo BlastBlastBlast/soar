@@ -8,9 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
@@ -44,19 +46,38 @@ class HomeScreenViewModel @Inject constructor(
         data class Error(val message: String) : HomeScreenUiState()
     }
 
+    /** All configs, sorted so the default (isDefault=1) comes first */
+    val rocketConfigList: StateFlow<List<RocketConfig>> =
+        rocketConfigRepository
+            .getAllRocketConfigs()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    /** The one and only "default" config (or null if none yet) */
+    val selectedConfig: StateFlow<RocketConfig?> =
+        rocketConfigRepository
+            .getDefaultRocketConfig()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = null
+            )
+
+    /** Call this when the user taps a config card */
+    fun selectConfig(cfg: RocketConfig) {
+        viewModelScope.launch {
+            rocketConfigRepository.setDefaultRocketConfig(cfg.id)
+        }
+    }
+
     private val _trajectoryPoints = MutableStateFlow<List<Pair<RealVector, Double>>>(emptyList())
     val trajectoryPoints: StateFlow<List<Pair<RealVector, Double>>> = _trajectoryPoints
 
     var isAnimating      by mutableStateOf(false)
     var isTrajectoryMode by mutableStateOf(false)
-
-    // 1) all saved rocket configs
-    private val _rocketConfigList = MutableStateFlow<List<RocketConfig>>(emptyList())
-    val rocketConfigList: StateFlow<List<RocketConfig>> = _rocketConfigList
-
-    // 2) which one is “active”
-    private val _selectedConfig = MutableStateFlow<RocketConfig?>(null)
-    val selectedConfig: StateFlow<RocketConfig?> = _selectedConfig
 
     private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
     val uiState: StateFlow<HomeScreenUiState> = _uiState
@@ -86,6 +107,7 @@ class HomeScreenViewModel @Inject constructor(
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
     init {
+        // 1) Load all launch sites
         viewModelScope.launch {
             launchSitesRepository.getAll().collect { sites ->
                 _launchSites.value = sites
@@ -96,16 +118,21 @@ class HomeScreenViewModel @Inject constructor(
                 )
             }
         }
+
+        // 2) Ensure a default rocket config exists
         viewModelScope.launch {
-            rocketConfigRepository
-                .getAllRocketConfigs()
-                .collect { list ->
-                    _rocketConfigList.value = list
-                    if (_selectedConfig.value == null && list.isNotEmpty()) {
-                        _selectedConfig.value = list.first()
-                    }
-                }
+            val hasDefault = rocketConfigRepository.getDefaultRocketConfig().firstOrNull() != null
+            if (!hasDefault) {
+                rocketConfigRepository.insertRocketConfig(
+                    mapToRocketConfig(
+                        name      = "Default Rocket Config",
+                        values    = getDefaultRocketParameterValues(),
+                        isDefault = true
+                    )
+                )
+            }
         }
+
         viewModelScope.launch {
             val tempSite = launchSitesRepository.getNewMarkerTempSite().firstOrNull()
             val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
@@ -135,16 +162,6 @@ class HomeScreenViewModel @Inject constructor(
                         isDefault = true
                     )
                 )
-        }
-        viewModelScope.launch {
-            rocketConfigRepository.getAllRocketConfigs()
-                .collect { list ->
-                    _rocketConfigList.value = list
-                    // pick first if nothing selected yet
-                    if (_selectedConfig.value == null && list.isNotEmpty()) {
-                        _selectedConfig.value = list.first()
-                    }
-                }
         }
     }
 
@@ -254,40 +271,43 @@ class HomeScreenViewModel @Inject constructor(
         isTrajectoryMode = true
     }
 
-    // start “real” sim
+    /** Start the trajectory using the currently selected config */
     fun startTrajectory() {
-        val cfg = _selectedConfig.value ?: return
         viewModelScope.launch {
-            // build initial Vector
+            // 1) Grab the current default/selected config
+            val cfg = selectedConfig.value
+                ?: return@launch    // nothing selected yet, bail
+
+            // 2) Build the initial position from your center coords + elevation
             val (lat, lon) = _coordinates.value
             val elev       = _lastVisited.value?.elevation ?: 0.0
-            val initial = ArrayRealVector(doubleArrayOf(lon, lat, elev))
+            val initial    = ArrayRealVector(doubleArrayOf(lon, lat, elev))
 
-            // this returns List<Pair<RealVector, Double>>
+            // 3) Run the physics‐based sim
             val traj = TrajectoryCalculator(isobaricInterpolator)
                 .calculateTrajectory(
-                    initialPosition            = initial,
-                    launchAzimuth              = cfg.launchAzimuth,
-                    launchPitch                = cfg.launchPitch,
-                    launchRailLength           = cfg.launchRailLength,
-                    wetMass                    = cfg.wetMass,
-                    dryMass                    = cfg.dryMass,
-                    burnTime                   = cfg.burnTime,
-                    thrust                     = cfg.thrust,
-                    stepSize                   = cfg.stepSize,
-                    crossSectionalArea         = cfg.crossSectionalArea,
-                    dragCoefficient            = cfg.dragCoefficient,
-                    parachuteCrossSectionalArea= cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient   = cfg.parachuteDragCoefficient
+                    initialPosition             = initial,
+                    launchAzimuth               = cfg.launchAzimuth,
+                    launchPitch                 = cfg.launchPitch,
+                    launchRailLength            = cfg.launchRailLength,
+                    wetMass                     = cfg.wetMass,
+                    dryMass                     = cfg.dryMass,
+                    burnTime                    = cfg.burnTime,
+                    thrust                      = cfg.thrust,
+                    stepSize                    = cfg.stepSize,
+                    crossSectionalArea          = cfg.crossSectionalArea,
+                    dragCoefficient             = cfg.dragCoefficient,
+                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
+                    parachuteDragCoefficient    = cfg.parachuteDragCoefficient
                 )
 
-            // assign directly—no extra `to 0.0`
+            // 4) Publish the points & kick off the camera animation
             _trajectoryPoints.value = traj
-
             isAnimating      = true
             isTrajectoryMode = true
         }
     }
+
 
     fun onTrajectoryComplete() {
         isAnimating      = false
@@ -335,11 +355,6 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             launchSitesRepository.updateElevation(siteId, elevation)
         }
-    }
-
-    /** Called when the user taps your “⚙️ Rocket Configs” button */
-    fun selectConfig(config: RocketConfig) {
-        _selectedConfig.value = config
     }
 
     /** Start the trajectory using the currently selected config */
