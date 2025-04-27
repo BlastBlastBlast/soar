@@ -33,7 +33,6 @@ import org.junit.Before
 class WeatherCardViewmodelTest {
 
     private lateinit var viewModel: WeatherCardViewmodel
-    private lateinit var database: AppDatabase
 
     @Before
     fun setup() {
@@ -63,11 +62,6 @@ class WeatherCardViewmodelTest {
         )
     }
 
-    @After
-    fun teardown() {
-        database.close()
-    }
-
     @Test
     fun getValidSunTimesMapTest() = runBlocking {
         viewModel.getValidSunTimesList(59.942, 10.726)
@@ -76,6 +70,10 @@ class WeatherCardViewmodelTest {
 
         assertTrue(sunTimesMap.isNotEmpty())
         assertEquals(4, sunTimesMap.size)
+        sunTimesMap.keys.forEach { key ->
+            assertTrue(key.contains("59.942"))
+            assertTrue(key.contains("10.726"))
+        }
     }
 }
 

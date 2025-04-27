@@ -213,9 +213,14 @@ class WeatherCardViewmodel @Inject constructor(
             .atZone(ZoneId.of("Europe/Oslo"))
             .toLocalDate()
 
-        for (i in 0..4) {
-            validSunTimesMap[date.toString()] = sunriseRepository.getValidSunTimes(lat, lon,
-                date.plusDays(i.toLong()).toString())
+        for (i in 0..3) { // Only 4 days, not 5! (careful here)
+            val currentDate = date.plusDays(i.toLong())
+            val key = "${lat}_${lon}_${currentDate}" // ✅ Unique key
+
+            val sunTimes = sunriseRepository.getValidSunTimes(
+                lat, lon, currentDate.toString()
+            )
+            validSunTimesMap[key] = sunTimes
         }
     }
 }
