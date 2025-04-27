@@ -20,6 +20,12 @@ fun formatZuluTimeToLocalDate(zuluTime: String): String {
     return localTime.format(DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH))
 }
 
+fun formatZuluTimeToLocalDayMonth(zuluTime: String): String {
+    val zonedDateTime = ZonedDateTime.parse(zuluTime)
+    val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
+    return localTime.format(DateTimeFormatter.ofPattern("EEE d MMM", Locale.ENGLISH))
+}
+
 fun formatZuluTimeToLocalTime(zuluTime: String): String {
     val zonedDateTime = ZonedDateTime.parse(zuluTime)
     val localTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Europe/Oslo"))
