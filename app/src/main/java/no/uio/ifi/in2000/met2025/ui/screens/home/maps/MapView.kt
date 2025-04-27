@@ -154,6 +154,29 @@ fun MapView(
                     }
                 }
             }
+
+            MapEffect(trajectoryPoints) { mv ->
+                if (trajectoryPoints.isEmpty()) {
+                    mv.mapboxMap.getStyle { style ->
+                        // 1) remove all "traj-lyr-*" layers
+                        style.styleLayers
+                            .map { it.id }                              // StyleObjectInfo.id
+                            .filter { it.startsWith("traj-lyr-") }
+                            .forEach { layerId ->
+                                style.removeStyleLayer(layerId)           // removeStyleLayer(String)
+                            }
+
+                        // 2) then remove all "traj-src-*" sources
+                        style.styleSources
+                            .map { it.id }
+                            .filter { it.startsWith("traj-src-") }
+                            .forEach { sourceId ->
+                                style.removeStyleSource(sourceId)         // removeStyleSource(String)
+                            }
+                    }
+                }
+            }
+
             // ─── 3) When trajectoryPoints appear: register model+source+layer per point ───
             MapEffect(trajectoryPoints) { mv ->
                 if (trajectoryPoints.isEmpty()) return@MapEffect

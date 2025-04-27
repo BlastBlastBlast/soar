@@ -369,6 +369,12 @@ class HomeScreenViewModel @Inject constructor(
         //startTrajectory()
     }
 
+    fun clearTrajectory() {
+        _trajectoryPoints.value = emptyList()
+        isAnimating = false
+        isTrajectoryMode = false
+    }
+
 }
 
 
