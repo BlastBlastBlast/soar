@@ -12,8 +12,8 @@ import kotlin.test.assertEquals
 class GetValidSunTimesTest {
 
     @Test
-    fun `test getValidSunTimes`() = runBlocking {
-        val mockClient = createMockClientWithJson()
+    fun getValidSunTimesTest() = runBlocking {
+        val mockClient = createSunriseMockClientWithJson()
         val sunriseDataSource = SunriseDataSource(mockClient)
         val sunriseRepository = SunriseRepository(sunriseDataSource)
 

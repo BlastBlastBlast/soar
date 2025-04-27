@@ -48,7 +48,7 @@ val exampleJson = """
 """.trimIndent()
 
 // Factory function for reusable mock client
-fun createMockClientWithJson(json: String = exampleJson): HttpClient {
+fun createSunriseMockClientWithJson(json: String = exampleJson): HttpClient {
     return HttpClient(MockEngine) {
         engine {
             addHandler {
