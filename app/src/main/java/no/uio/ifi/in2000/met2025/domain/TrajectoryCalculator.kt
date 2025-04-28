@@ -12,6 +12,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.times
 import no.uio.ifi.in2000.met2025.domain.helpers.plus
 import no.uio.ifi.in2000.met2025.domain.helpers.minus
 import no.uio.ifi.in2000.met2025.domain.helpers.div
+import java.time.Instant
 
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
