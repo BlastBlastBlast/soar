@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain.helpers
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import org.apache.commons.math3.linear.RealMatrix
 import org.apache.commons.math3.linear.RealVector
 
