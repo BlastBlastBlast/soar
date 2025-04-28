@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain
 
-import com.mapbox.maps.extension.style.expressions.dsl.generated.length
 import no.uio.ifi.in2000.met2025.data.models.Angle
 import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
@@ -14,10 +13,13 @@ import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.RESOLUTION
 import no.uio.ifi.in2000.met2025.domain.helpers.div
 import no.uio.ifi.in2000.met2025.domain.helpers.times
 import no.uio.ifi.in2000.met2025.domain.helpers.plus
+import no.uio.ifi.in2000.met2025.domain.helpers.minus
 import org.apache.commons.math3.linear.ArrayRealVector
-import no.uio.ifi.in2000.met2025.data.models.Constants
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
+import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.MAX_LATITUDE
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.MAX_LONGITUDE
 import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
@@ -43,15 +45,17 @@ class IsobaricInterpolator(
 
     var gribMap: GribDataMap? = null
 
-    // key is [lat, lon, pressure]
-    val pointCache: MutableMap<RealVector, CartesianIsobaricValues> = mutableMapOf()
+    // key is indices for [lat, lon, pressure]
+    val pointCache: MutableMap<IntArray, CartesianIsobaricValues> = mutableMapOf()
 
-    // key is [lat, lon, pressure]
-    val surfaceCache: MutableMap<RealVector, (RealVector) -> CartesianIsobaricValues> = mutableMapOf()
+    // key is indices [lat, lon, pressure]
+    val surfaceCache: MutableMap<IntArray, (Double, Double) -> CartesianIsobaricValues> = mutableMapOf()
 
-    var lastVisitedGridIndex: RealVector? = null
+    var lastVisitedIsobaricIndex: Int? = null
 
-    // FIXME: This function is a placeholder and should be implemented to return actual values.
+    val maxLatIndex = (MAX_LATITUDE - MIN_LATITUDE) * RESOLUTION.toInt()
+    val maxLonIndex = (MAX_LONGITUDE - MIN_LONGITUDE) * RESOLUTION.toInt()
+
     suspend fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
         if (gribMap == null) {
             val gribDataResult = isobaricRepository.getIsobaricGribData(time)
@@ -66,126 +70,205 @@ class IsobaricInterpolator(
             }
         }
 
-        val lat = position[0]
-        val lon = position[1]
+        assert(isWithinBounds(position[0], position[1])) { "Coordinates are outside the permitted bounds" }
 
-        assert(isWithinBounds(lat, lon)) { "Coordinates are outside the permitted bounds" }
+        return Result.success(
+            getValuesAtAppropriateLevel(
+                isobaricIndex = lastVisitedIsobaricIndex ?: 0,
+                coordinates = position,
+                time = time
+            ).fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+        )
+    }
 
-        val latIndex = lat.toGridIndex(MIN_LATITUDE)
-        val lonIndex = lon.toGridIndex(MIN_LONGITUDE)
-
-        val altitudeIndexToTry = if (lastVisitedGridIndex == null) {
-            0.0
-        }  else {
-            lastVisitedGridIndex!![2]
+    tailrec suspend fun getValuesAtAppropriateLevel(
+        isobaricIndex: Int,
+        coordinates: RealVector,
+        time: Instant
+    ): Result<CartesianIsobaricValues> {
+        if (isobaricIndex < 0 || isobaricIndex >= layerPressureValues.size) {
+            return Result.failure(Exception("No appropriate level found"))
         }
 
-        val pressureValues = (Constants.layerPressureValues).reversed()
-        val pressure = pressureValues[lastVisitedGridIndex!![2].toInt()]
+        val latIndex = coordinates[0].toGridIndex(MIN_LATITUDE)
+        val lonIndex = coordinates[1].toGridIndex(MIN_LONGITUDE)
 
-        fun validPressureIndex(initialPressureIndex: Double): Double {
-            // attempt to fetch the surface at latIndex, lonIndex and lastAltitudeIndex from the cache
-            // if it does not exist, attempt to fetch the four points at latIndex (+1), lonIndex (+1) and lastAltitudeIndex from the cache
-            // for each point that does not exist in the cache, check the cache for the point below it
-            suspend fun getValuesAtPoint(indices: RealVector): Result<CartesianIsobaricValues> {
-                return if (pointCache.containsKey(indices)) {
-                    Result.success(pointCache[indices]!!)
-                } else if (indices[2] == 0.0) {
-                        val forecastData = locationForecastRepository.getForecastData(
-                            lat = indices[0].toCoordinate(MIN_LATITUDE),
-                            lon = indices[1].toCoordinate(MIN_LONGITUDE),
-                            time = time,
-                            cacheResponse = false
+        val fractionalParts = coordinates.getSubVector(0, 2).toGridFractionalParts()
+        val latFractional = fractionalParts[0]
+        val lonFractional = fractionalParts[1]
+        val altitude = coordinates[2]
+
+        val lowerSurface = getSurfaceAtIndex(intArrayOf(latIndex, lonIndex, isobaricIndex), time)
+            .fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+        if (altitude < lowerSurface(latFractional, lonFractional).altitude) {
+            return getValuesAtAppropriateLevel(isobaricIndex - 1, coordinates, time)
+        }
+
+        val upperSurface = getSurfaceAtIndex(intArrayOf(latIndex, lonIndex, isobaricIndex + 1), time)
+            .fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+        if (altitude > upperSurface(latFractional, lonFractional).altitude) {
+            return getValuesAtAppropriateLevel(isobaricIndex + 1, coordinates, time)
+        }
+
+        val lowestSurface = getSurfaceAtIndex(intArrayOf(latIndex, lonIndex, isobaricIndex - 1), time)
+            .fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+        val highestSurface = getSurfaceAtIndex(intArrayOf(latIndex, lonIndex, isobaricIndex + 2), time)
+            .fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+
+        return Result.success(
+            interpolate(
+                coordinates,
+                listOf(
+                    lowestSurface,
+                    lowerSurface,
+                    upperSurface,
+                    highestSurface
+                )
+            )
+        ).also {
+            lastVisitedIsobaricIndex = isobaricIndex
+        }
+    }
+
+    suspend fun getSurfaceAtIndex(indices: IntArray, time: Instant): Result<(Double, Double) -> CartesianIsobaricValues> {
+        return Result.success(
+            surfaceCache[indices] ?: interpolatedSurface(
+                Array<Array<CartesianIsobaricValues>>(4) { row ->
+                    Array(4) { col ->
+                        if (indices[0] + row - 1 < 0) {
+                            val p1 = getPointAtIndex(indices = intArrayOf(0, indices[1] + col - 1, indices[2]), time = time)
+                                .fold(
+                                    onSuccess = { it },
+                                    onFailure = { return Result.failure(it) }
+                                ).toRealVector()
+
+                            val p2 = getPointAtIndex(indices = intArrayOf(1, indices[1] + col - 1, indices[2]), time = time)
+                                .fold(
+                                    onSuccess = { it },
+                                    onFailure = { return Result.failure(it) }
+                                ).toRealVector()
+
+                            2.0 * p1 - p2
+                        } //TODO: finish implementing edge cases
+                        getPointAtIndex(
+                            indices = intArrayOf(indices[0] + row - 1, indices[1] + col - 1, indices[2]),
+                            time = time
                         ).fold(
                             onSuccess = { it },
                             onFailure = { return Result.failure(it) }
                         )
-
-                        val forecastDataValues = forecastData.timeSeries[0].values
-
-                        val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
-
-                        val groundPressure = calculatePressureAtAltitude(
-                            altitude = forecastData.altitude,
-                            referencePressure = forecastDataValues.airPressureAtSeaLevel,
-                            referenceAirTemperature = airTemperatureAtSeaLevel
-                        )
-
-                        val windSpeed = forecastDataValues.windSpeed
-                        val windFromDirection = Angle(forecastDataValues.windFromDirection)
-
-                        val values = CartesianIsobaricValues(
-                            altitude = forecastData.altitude,
-                            pressure = groundPressure,
-                            temperature = forecastDataValues.airTemperature,
-                            windXComponent = cos(windFromDirection) * windSpeed,
-                            windYComponent = sin(windFromDirection) * windSpeed
-                        )
-
-                        pointCache[indices] = values
-
-                        Result.success(values)
-                    } else {
-                        val valuesBelow = getValuesAtPoint(
-                            ArrayRealVector(
-                                doubleArrayOf(
-                                    indices[0],
-                                    indices[1],
-                                    indices[2] - 1
-                                )
-                            )
-                        ).fold(
-                            onSuccess = { it },
-                            onFailure = { return Result.failure(it) }
-                        )
-                        val pressure = (Constants.layerPressureValues).reversed()[indices[2].toInt() - 1]
-                        val altitude = calculateAltitude(
-                            pressure = pressure.toDouble(),
-                            referencePressure = valuesBelow.pressure,
-                            referenceAltitude = valuesBelow.altitude,
-                            referenceAirTemperature = valuesBelow.temperature
-                        )
-                        val gribVector =
-                            gribMap!!.map[Pair(indices[0].toCoordinate(MIN_LATITUDE), indices[1].toCoordinate(MIN_LONGITUDE))]!![pressure.toInt()]!!
-
-                        val values = CartesianIsobaricValues(
-                            altitude = altitude,
-                            pressure = pressure.toDouble(),
-                            temperature = gribVector.temperature.toDouble(),
-                            windXComponent = gribVector.uComponentWind.toDouble(),
-                            windYComponent = gribVector.vComponentWind.toDouble()
-                        )
-
-                        pointCache[indices] = values
-
-                        Result.success(values)
                     }
                 }
-
+            ).also {
+                surfaceCache[indices] = it
             }
+        )
+    }
 
+    suspend fun getPointAtIndex(indices: IntArray, time: Instant): Result<CartesianIsobaricValues> {
+        suspend fun getPointAtIndexR(indices: IntArray): Result<CartesianIsobaricValues> {
             return Result.success(
-                CartesianIsobaricValues(
-                    pressure = 0.0,
-                    altitude = 0.0,
-                    temperature = 0.0,
-                    windXComponent = 0.0,
-                    windYComponent = 0.0,
-                )
+                pointCache[indices] ?:
+                (if (indices[2] == 0) {
+                    val forecastData = locationForecastRepository.getForecastData(
+                        lat = indices[0].toCoordinate(MIN_LATITUDE),
+                        lon = indices[1].toCoordinate(MIN_LONGITUDE),
+                        time = time,
+                        cacheResponse = false
+                    ).fold(
+                        onSuccess = { it },
+                        onFailure = { return Result.failure(it) }
+                    )
+
+                    val forecastDataValues = forecastData.timeSeries[0].values
+
+                    val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
+
+                    val groundPressure = calculatePressureAtAltitude(
+                        altitude = forecastData.altitude,
+                        referencePressure = forecastDataValues.airPressureAtSeaLevel,
+                        referenceAirTemperature = airTemperatureAtSeaLevel
+                    )
+
+                    val windSpeed = forecastDataValues.windSpeed
+                    val windFromDirection = Angle(forecastDataValues.windFromDirection)
+
+                    val values = CartesianIsobaricValues(
+                        altitude = forecastData.altitude,
+                        pressure = groundPressure,
+                        temperature = forecastDataValues.airTemperature,
+                        windXComponent = cos(windFromDirection) * windSpeed,
+                        windYComponent = sin(windFromDirection) * windSpeed
+                    )
+
+                    pointCache[indices] = values
+
+                    values
+                } else {
+                    val valuesBelow = getPointAtIndexR(
+                        intArrayOf(indices[0], indices[1], indices[2] - 1)
+                    ).fold(
+                        onSuccess = { it },
+                        onFailure = { return Result.failure(it) }
+                    )
+                    val pressure = (layerPressureValues).reversed()[indices[2].toInt() - 1]
+                    val altitude = calculateAltitude(
+                        pressure = pressure.toDouble(),
+                        referencePressure = valuesBelow.pressure,
+                        referenceAltitude = valuesBelow.altitude,
+                        referenceAirTemperature = valuesBelow.temperature
+                    )
+                    val gribVector =
+                        gribMap!!.map[Pair(indices[0].toCoordinate(MIN_LATITUDE), indices[1].toCoordinate(MIN_LONGITUDE))]!![pressure.toInt()]!!
+
+                    val values = CartesianIsobaricValues(
+                        altitude = altitude,
+                        pressure = pressure.toDouble(),
+                        temperature = gribVector.temperature.toDouble(),
+                        windXComponent = gribVector.uComponentWind.toDouble(),
+                        windYComponent = gribVector.vComponentWind.toDouble()
+                    )
+
+                    pointCache[indices] = values
+
+                    values
+                }).also {
+                    pointCache[indices] = it
+                }
             )
         }
 
-    fun interpolatedSurface(points: Array<Array<CartesianIsobaricValues>>): (RealVector) -> CartesianIsobaricValues {
+        return Result.success(
+            getPointAtIndexR(indices).fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+        )
+    }
+
+    fun interpolatedSurface(points: Array<Array<CartesianIsobaricValues>>): (Double, Double) -> CartesianIsobaricValues {
         assert(points.size == 4) { "Need four sets of points to interpolate over" }
         points.forEach { assert(it.size == 4) { "Need four points to interpolate over" } }
 
-        return { fractionalParts ->
-            assert(fractionalParts.dimension == 2) { "Need two fractional parts to interpolate over" }
-            assert(fractionalParts[0] in 0.0..1.0) { "Latitude fractional part out of bounds" }
-            assert(fractionalParts[1] in 0.0..1.0) { "Longitude fractional part out of bounds" }
+        return { t0, t1 ->
+            assert(t0 in 0.0..1.0) { "Latitude fractional part out of bounds" }
+            assert(t1 in 0.0..1.0) { "Longitude fractional part out of bounds" }
 
-            val t0 = fractionalParts[0]
-            val t1 = fractionalParts[1]
             val latVector = ArrayRealVector(doubleArrayOf(1.0, t0, t0 * t0, t0 * t0 * t0))
             val lonVector = ArrayRealVector(doubleArrayOf(1.0, t1, t1 * t1, t1 * t1 * t1))
 
@@ -209,49 +292,16 @@ class IsobaricInterpolator(
         }
     }
 
-        //strategy:
-        //check cache for spline solid containing position
-            // if found, return interpolated values
-            // if not found, check for up to 4 spline surfaces in x,y and z directions
-            // store the locations of the missing surfaces in some structure
-                // choose the direction with the most splines to interpolate solid from
-                // for each spline surface not present in cache:
-                    // check for spline curves along the two directions parallel to the surface (the last direction is the one we checked for the surface along)
-                    // choose the direction with the most spline curves to interpolate the surface from
-                    // for each spline curve not present in cache:
-                        // check for the four points to interpolate the curve from along the direction of the curve
-                        // for each point not present in cache:
-                            // check cache for points downward in the z direction
-                            // if a point is found, use the altitude and pressure values at that point to calculate the altitude at the missing point above, cache the point,
-                            // and continue calculating the altitude value of the next point using the pressure and altitude values of the previous point, caching all these points,
-                            // until the point we want to interpolate from is reached
-                        // when all four points are calculated and cached, use the four points to calculate the curve and cache it
-                        // delete the two points overlapping the curve from the cache
-                    // when all curves are calculated and cached, use the curves to calculate the surface and cache it
-                    // delete the two curves overlapping the solid from the cache
-                // when all surfaces are calculated and cached, use the surfaces to calculate the solid and cache it
-                // delete the two surfaces overlapping the solid from the cache
-                // for the two remaining directions:
-                    // for the location of each missing surface
-
-        // to check if a point lies within a cached solid:
-        // check if there is a solid that the lat and lon of the point lies within
-        // if such a solid exists, check if the altitude of the point lies within the min and max altitude of the solid at the point's lat and lon
-        // if the point lies within the solid, return the interpolated values of the solid at the point
-        // if the altitude of the point is above the max altitude of the solid, check if there is a solid above the point,
-        // and continue until we reach a solid that contains the point or until there are no more solids higher up
-        // similar for below
-        // if there are no solids that contain the point's lat and lon, check for surfaces as described above
-    }
-
-    fun interpolate(coordinates: RealVector, surfaces: List<(RealVector) -> CartesianIsobaricValues>): CartesianIsobaricValues {
+    fun interpolate(coordinates: RealVector, surfaces: List<(Double, Double) -> CartesianIsobaricValues>): CartesianIsobaricValues {
         assert(coordinates.dimension == 3) { "Not a coordinate vector of dimension 3" }
         assert(surfaces.size == 4) { "Need four surfaces to interpolate over" }
 
         val horizontalVector = coordinates.getSubVector(0, 2)
         val fractionalParts = horizontalVector.toGridFractionalParts()
+        val latFractional = fractionalParts[0]
+        val lonFractional = fractionalParts[1]
 
-        val splinePoints = surfaces.map{ it(fractionalParts).toRealVector() }
+        val splinePoints = surfaces.map{ it(latFractional, lonFractional).toRealVector() }
         val altitude = coordinates[2]
         val interpolatedVector = catmullRomInterpolation(altitude, splinePoints)
 
@@ -262,21 +312,6 @@ class IsobaricInterpolator(
             windXComponent = interpolatedVector[3],
             windYComponent = interpolatedVector[4]
         )
-    }
-
-    private fun RealVector.isInLastVisitedArea(): Boolean = (toGridIndices() == lastVisitedGridIndex?.getSubVector(0,2))
-
-    private fun RealVector.toGridIndices(): RealVector {
-        val lat = this[0]
-        val lon = this[1]
-
-        assert(dimension == 2) { "Not a coordinate vector of dimension 2" }
-        assert(isWithinBounds(lat, lon)) { "Coordinates out of bounds" }
-
-        val latIndex = lat.toGridIndex(MIN_LATITUDE)
-        val lonIndex = lon.toGridIndex(MIN_LONGITUDE)
-
-        return ArrayRealVector(doubleArrayOf(latIndex, lonIndex))
     }
 
     private fun RealVector.toGridFractionalParts(): RealVector {
@@ -294,13 +329,13 @@ class IsobaricInterpolator(
 
     private fun Double.toGridValue(lowerBound: Double) = (this - lowerBound) * RESOLUTION
 
-    private fun Double.toGridIndex(lowerBound: Double) = toGridValue(lowerBound).toInt().toDouble()
+    private fun Double.toGridIndex(lowerBound: Double) = toGridValue(lowerBound).toInt()
 
-    private fun Double.toCoordinate(lowerBound: Double) = this / RESOLUTION + lowerBound
+    private fun Int.toCoordinate(lowerBound: Double) = this / RESOLUTION + lowerBound
 }
 
 /**
- * Computes Catmull-Rom interpolation at a value t given 4 control points
+ * Performs Catmull-Rom interpolation at a value t given 4 control points
  * v0 = (t0, p0),
  * v1 = (t1, p1),
  * v2 = (t2, p2),
@@ -318,7 +353,7 @@ fun catmullRomInterpolation(t: Double, points: List<RealVector>): RealVector {
     assert(points.size == 4) { "Need four points to execute hermite spline interpolation" }
 
     val (t0, t1, t2, t3) = points.map { it[0] }
-    val (p0, p1, p2, p3) = points.map { it.getSubVector(1,it.dimension - 1) }
+    val (p0, p1, p2, p3) = points.map { it.getSubVector(1, it.dimension - 1) }
 
     assert(t in t1..t2) { "Value t must be in range" }
 
