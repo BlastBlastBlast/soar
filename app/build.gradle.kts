@@ -130,6 +130,20 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
+
+    //testing
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.slf4j.simple)
+    testImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.google.hilt.android.testing)
+    kspAndroidTest(libs.google.hilt.compiler)
+
+    //coil
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
 }
 
 //TEST LINE
