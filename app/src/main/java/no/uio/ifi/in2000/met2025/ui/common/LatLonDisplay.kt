@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun LatLonDisplay(
@@ -57,6 +59,11 @@ fun LatLonDisplay(
             .fillMaxWidth()
             .padding(8.dp)
     ) {
+        val selectionColors = TextSelectionColors(
+            handleColor     = WarmOrange,
+            backgroundColor = WarmOrange.copy(alpha = 0.4f)
+        )
+
         OutlinedTextField(
             value               = internalText,
             onValueChange       = {
@@ -100,7 +107,15 @@ fun LatLonDisplay(
                     errorMessage = "Invalid coordinates"
                 }
             }),
-            colors              = OutlinedTextFieldDefaults.colors()
+            colors        = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor    = WarmOrange,
+                unfocusedBorderColor  = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                cursorColor           = WarmOrange,
+                selectionColors       = selectionColors,
+                focusedLabelColor     = MaterialTheme.colorScheme.onPrimary,
+                unfocusedLabelColor   = MaterialTheme.colorScheme.onSurface,
+
+            )
         )
     }
 

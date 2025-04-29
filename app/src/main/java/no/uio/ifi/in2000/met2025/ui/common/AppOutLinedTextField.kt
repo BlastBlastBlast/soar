@@ -20,7 +20,6 @@ fun AppOutlinedTextField(
     enabled: Boolean = true,
     readOnly: Boolean = false
 ) {
-    // 1) selection‐handle & highlight colors
     val selectionColors = TextSelectionColors(
         handleColor     = WarmOrange,
         backgroundColor = WarmOrange.copy(alpha = 0.4f)
@@ -35,18 +34,12 @@ fun AppOutlinedTextField(
         enabled       = enabled,
         readOnly      = readOnly,
         colors        = OutlinedTextFieldDefaults.colors(
-            // borders & caret
             focusedBorderColor    = WarmOrange,
             unfocusedBorderColor  = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
             cursorColor           = LocalAppCursorColor.current,
             selectionColors       = selectionColors,
-
-            // make the floating label always onSurface (full alpha when focused)
             focusedLabelColor     = MaterialTheme.colorScheme.onPrimary,
             unfocusedLabelColor   = MaterialTheme.colorScheme.onSurface,
-
-            // make the placeholder / hint text onSurface too
-            //placeholderColor      = MaterialTheme.colorScheme.onSurface
         )
     )
 }

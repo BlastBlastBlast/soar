@@ -85,7 +85,9 @@ class LocationForecastRepository @Inject constructor(
                             cloudAreaFractionLow = ts.data.instant.details.cloudAreaFractionLow,
                             cloudAreaFractionMedium = ts.data.instant.details.cloudAreaFractionMedium,
                             precipitationAmount = ts.data.next1Hours?.details?.precipitationAmount,
-                            probabilityOfThunder = ts.data.next1Hours?.details?.probabilityOfThunder
+                            probabilityOfThunder = ts.data.next1Hours?.details?.probabilityOfThunder,
+                            symbolCode = ts.data.next1Hours?.summary?.symbolCode
+
                         )
                     )
                 }

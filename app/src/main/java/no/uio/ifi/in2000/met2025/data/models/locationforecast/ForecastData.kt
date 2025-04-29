@@ -25,7 +25,8 @@ data class ForecastDataValues(
     val cloudAreaFractionLow: Double,
     val cloudAreaFractionMedium: Double,
     val precipitationAmount: Double?,
-    val probabilityOfThunder: Double?
+    val probabilityOfThunder: Double?,
+    val symbolCode: String? = null
 )
 
 
