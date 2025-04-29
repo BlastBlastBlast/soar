@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,6 +27,8 @@ fun LaunchSiteScreen(
 ) {
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
     val updateStatus by viewModel.updateStatus.collectAsState()
+
+    val listState = rememberLazyListState()
 
     // Filter out temporary markers
     val displaySites = launchSites.filter { it.name != "New Marker" && it.name != "Last Visited" }
@@ -69,15 +73,18 @@ fun LaunchSiteScreen(
                         .fillMaxWidth()
                         .weight(1f),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    state = listState
                 ) {
-                    items(displaySites) { site ->
+                    itemsIndexed(displaySites) { index, site ->
                         LaunchSiteItem(
                             site = site,
                             onDelete = { viewModel.deleteLaunchSite(site) },
                             onEdit = { updatedSite -> viewModel.updateLaunchSite(updatedSite) },
                             updateStatus = updateStatus,
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            listState = listState,
+                            itemIndex = index
                         )
                     }
                 }
