@@ -364,12 +364,12 @@ class IsobaricInterpolator(
             )
         }
         else if (indices[2] == layerPressureValues.size + 1) {
-            val p1 = getPoint(intArrayOf(indices[0], indices[1], layerPressureValues.size - 3), time)
+            val p1 = getPoint(intArrayOf(indices[0], indices[1], layerPressureValues.size - 1), time)
                 .fold(
                     onSuccess = { it },
                     onFailure = { return Result.failure(it) }
                 ).toRealVector()
-            val p2 = getPoint(intArrayOf(indices[0], indices[1], layerPressureValues.size - 2), time)
+            val p2 = getPoint(intArrayOf(indices[0], indices[1], layerPressureValues.size), time)
                 .fold(
                     onSuccess = { it },
                     onFailure = { return Result.failure(it) }
