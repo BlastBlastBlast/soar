@@ -17,10 +17,10 @@ import java.time.Instant
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
 ) {
-    fun calculateTrajectory(
+    suspend fun calculateTrajectory(
         initialPosition: RealVector,
-        launchAzimuth: Angle,
-        launchPitch: Angle,
+        launchAzimuthInDegrees: Double, // in degrees
+        launchPitchInDegrees: Double, // in degrees
         launchRailLength: Double,
         wetMass: Double,
         dryMass: Double,
@@ -32,7 +32,10 @@ class TrajectoryCalculator(
         parachuteCrossSectionalArea: Double,
         parachuteDragCoefficient: Double,
         timeOfLaunch: Instant
-    ): List<Pair<RealVector, Double>> {
+    ): Result<List<Pair<RealVector, Double>>> {
+
+        val launchAzimuth = Angle(launchAzimuthInDegrees)
+        val launchPitch = Angle(launchPitchInDegrees)
 
         val launchDirectionUnitVector = ArrayRealVector(
             doubleArrayOf(
@@ -46,16 +49,20 @@ class TrajectoryCalculator(
         val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
-        tailrec fun calculateTrajectoryRecursive(
+        tailrec suspend fun calculateTrajectoryRecursive(
             currentPosition: RealVector,
             currentVelocity: RealVector,
             timeAfterLaunch: Double,
             coefficientOfDrag: Double,
             areaOfCrossSection: Double,
             result: SimpleLinkedList<Pair<RealVector, Double>>
-        ): SimpleLinkedList<Pair<RealVector, Double>> {
+        ): Result<SimpleLinkedList<Pair<RealVector, Double>>> {
 
             val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition, timeOfLaunch)
+                .fold(
+                    onSuccess = { it },
+                    onFailure = { return Result.failure(it) }
+                )
             val windVector = ArrayRealVector(
                 doubleArrayOf(airValues.windXComponent, airValues.windYComponent, 0.0)
             )
@@ -100,7 +107,7 @@ class TrajectoryCalculator(
             )
 
             return if (newPosition[2] < initialPosition[2]) {
-                result
+                Result.success(result)
             } else {
                 val newPositionWithSpeed = Pair(newPosition, newVelocity.norm)
                 result += newPositionWithSpeed
@@ -134,9 +141,14 @@ class TrajectoryCalculator(
             coefficientOfDrag = dragCoefficient,
             areaOfCrossSection = crossSectionalArea,
             result = SimpleLinkedList(Pair(initialPosition, 0.0))
+        ).fold(
+            onSuccess = { it },
+            onFailure = { return Result.failure(it) }
         )
 
-        return result.toList()
+        return Result.success(
+            result.toList()
+        )
     }
 }
 
