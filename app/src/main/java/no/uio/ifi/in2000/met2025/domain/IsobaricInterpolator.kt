@@ -146,7 +146,6 @@ class IsobaricInterpolator(
     }
 
     suspend fun getSurface(indices: IntArray, time: Instant): Result<(Double, Double) -> CartesianIsobaricValues> {
-//        if (indices[2] == -1)
         return Result.success(
             surfaceCache[indices] ?: interpolatedSurface(
                 Array<Array<CartesianIsobaricValues>>(4) { col ->
