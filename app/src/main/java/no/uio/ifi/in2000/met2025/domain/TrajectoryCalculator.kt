@@ -12,15 +12,15 @@ import no.uio.ifi.in2000.met2025.domain.helpers.times
 import no.uio.ifi.in2000.met2025.domain.helpers.plus
 import no.uio.ifi.in2000.met2025.domain.helpers.minus
 import no.uio.ifi.in2000.met2025.domain.helpers.div
+import java.time.Instant
 
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
-
 ) {
-    fun calculateTrajectory(
+    suspend fun calculateTrajectory(
         initialPosition: RealVector,
-        launchAzimuth: Double,
-        launchPitch: Double,
+        launchAzimuthInDegrees: Double, // in degrees
+        launchPitchInDegrees: Double, // in degrees
         launchRailLength: Double,
         wetMass: Double,
         dryMass: Double,
@@ -31,32 +31,38 @@ class TrajectoryCalculator(
         dragCoefficient: Double,
         parachuteCrossSectionalArea: Double,
         parachuteDragCoefficient: Double,
-    ): List<Pair<RealVector, Double>> {
-        val AzimuthAngle = Angle(launchAzimuth)
-        val launchPitchAngle = Angle(launchPitch)
+        timeOfLaunch: Instant
+    ): Result<List<Pair<RealVector, Double>>> {
+
+        val launchAzimuth = Angle(launchAzimuthInDegrees)
+        val launchPitch = Angle(launchPitchInDegrees)
 
         val launchDirectionUnitVector = ArrayRealVector(
             doubleArrayOf(
-                sin(AzimuthAngle) * cos(launchPitchAngle),
-                cos(AzimuthAngle) * cos(launchPitchAngle),
-                sin(launchPitchAngle)
+                sin(launchAzimuth) * cos(launchPitch),
+                cos(launchAzimuth) * cos(launchPitch),
+                sin(launchPitch)
             )
         ).unitVector()
 
         val accelerationFromGravity = ArrayRealVector(doubleArrayOf(0.0, 0.0, -GRAVITY))
-        val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitchAngle) * GRAVITY * launchDirectionUnitVector
+        val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
-        tailrec fun calculateTrajectoryRecursive(
+        tailrec suspend fun calculateTrajectoryRecursive(
             currentPosition: RealVector,
             currentVelocity: RealVector,
             timeAfterLaunch: Double,
             coefficientOfDrag: Double,
             areaOfCrossSection: Double,
             result: SimpleLinkedList<Pair<RealVector, Double>>
-        ): SimpleLinkedList<Pair<RealVector, Double>> {
+        ): Result<SimpleLinkedList<Pair<RealVector, Double>>> {
 
-            val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition)
+            val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition, timeOfLaunch)
+                .fold(
+                    onSuccess = { it },
+                    onFailure = { return Result.failure(it) }
+                )
             val windVector = ArrayRealVector(
                 doubleArrayOf(airValues.windXComponent, airValues.windYComponent, 0.0)
             )
@@ -101,7 +107,7 @@ class TrajectoryCalculator(
             )
 
             return if (newPosition[2] < initialPosition[2]) {
-                result
+                Result.success(result)
             } else {
                 val newPositionWithSpeed = Pair(newPosition, newVelocity.norm)
                 result += newPositionWithSpeed
@@ -135,9 +141,14 @@ class TrajectoryCalculator(
             coefficientOfDrag = dragCoefficient,
             areaOfCrossSection = crossSectionalArea,
             result = SimpleLinkedList(Pair(initialPosition, 0.0))
+        ).fold(
+            onSuccess = { it },
+            onFailure = { return Result.failure(it) }
         )
 
-        return result.toList()
+        return Result.success(
+            result.toList()
+        )
     }
 }
 
