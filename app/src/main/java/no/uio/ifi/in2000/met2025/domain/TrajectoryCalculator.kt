@@ -18,7 +18,7 @@ class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
 ) {
     suspend fun calculateTrajectory(
-        initialPosition: RealVector,
+        initialPosition: RealVector, // lat, long, elevation from viewmodel function call
         launchAzimuthInDegrees: Double, // in degrees
         launchPitchInDegrees: Double, // in degrees
         launchRailLength: Double,
@@ -33,7 +33,7 @@ class TrajectoryCalculator(
         parachuteDragCoefficient: Double,
         timeOfLaunch: Instant
     ): Result<List<Pair<RealVector, Double>>> {
-
+        print("$initialPosition")
         val launchAzimuth = Angle(launchAzimuthInDegrees)
         val launchPitch = Angle(launchPitchInDegrees)
 
@@ -50,6 +50,7 @@ class TrajectoryCalculator(
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
         tailrec suspend fun calculateTrajectoryRecursive(
+
             currentPosition: RealVector,
             currentVelocity: RealVector,
             timeAfterLaunch: Double,
@@ -57,7 +58,7 @@ class TrajectoryCalculator(
             areaOfCrossSection: Double,
             result: SimpleLinkedList<Pair<RealVector, Double>>
         ): Result<SimpleLinkedList<Pair<RealVector, Double>>> {
-
+            print("$currentPosition")
             val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentPosition, timeOfLaunch)
                 .fold(
                     onSuccess = { it },

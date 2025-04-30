@@ -212,7 +212,7 @@ fun HomeScreen(
                         selectedConfig = selectedCfg,                // ← pass default
                         onSelectConfig = { viewModel.selectConfig(it) },
                         onClose = { showTrajectoryPopup = false },
-                        onStartTrajectory = { viewModel.loadMockTrajectory() },
+                        onStartTrajectory = { viewModel.startTrajectory() },
                         onEditConfigs = { },
                         onClearTrajectory = {
                             viewModel.clearTrajectory()

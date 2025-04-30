@@ -25,6 +25,7 @@ import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
 import javax.inject.Inject
+import java.time.Instant
 import kotlin.math.sin
 
 // HomeScreenViewModel.kt
@@ -281,25 +282,25 @@ class HomeScreenViewModel @Inject constructor(
             // 2) Build the initial position from your center coords + elevation
             val (lat, lon) = _coordinates.value
             val elev       = _lastVisited.value?.elevation ?: 0.0
-            val initial    = ArrayRealVector(doubleArrayOf(lon, lat, elev))
-
+            val initial    = ArrayRealVector(doubleArrayOf(lat, lon, elev))
+            val traj: List<Pair<RealVector, Double>> = TrajectoryCalculator(isobaricInterpolator)
             // 3) Run the physics‐based sim
-            val traj = TrajectoryCalculator(isobaricInterpolator)
                 .calculateTrajectory(
-                    initialPosition             = initial,
-                    launchAzimuth               = cfg.launchAzimuth,
-                    launchPitch                 = cfg.launchPitch,
-                    launchRailLength            = cfg.launchRailLength,
-                    wetMass                     = cfg.wetMass,
-                    dryMass                     = cfg.dryMass,
-                    burnTime                    = cfg.burnTime,
-                    thrust                      = cfg.thrust,
-                    stepSize                    = cfg.stepSize,
-                    crossSectionalArea          = cfg.crossSectionalArea,
-                    dragCoefficient             = cfg.dragCoefficient,
+                    initialPosition = initial,
+                    launchAzimuthInDegrees = cfg.launchAzimuth,
+                    launchPitchInDegrees = cfg.launchPitch,
+                    launchRailLength = cfg.launchRailLength,
+                    wetMass = cfg.wetMass,
+                    dryMass = cfg.dryMass,
+                    burnTime = cfg.burnTime,
+                    thrust = cfg.thrust,
+                    stepSize = cfg.stepSize,
+                    crossSectionalArea = cfg.crossSectionalArea,
+                    dragCoefficient = cfg.dragCoefficient,
                     parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient    = cfg.parachuteDragCoefficient
-                )
+                    parachuteDragCoefficient = cfg.parachuteDragCoefficient,
+                    timeOfLaunch = Instant.now()
+                ).getOrThrow()
 
             // 4) Publish the points & kick off the camera animation
             _trajectoryPoints.value = traj
