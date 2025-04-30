@@ -193,7 +193,7 @@ fun MapView(
                         // 3.1) add the GLB asset once
                         if (style.getLayer(modelId) == null) {
                             mv.mapboxMap.addModel(model(modelId) {
-                                uri("asset://redball.glb")
+                                uri("asset://tiny_icosphere2.glb")
                             })
                         }
 

@@ -243,7 +243,7 @@ class HomeScreenViewModel @Inject constructor(
     fun loadMockTrajectory() {
         val baseLat = 59.9431
         val baseLon = 10.7185
-        val nPoints = 100   // now 100 samples
+        val nPoints = 200   // now 100 samples
 
         val raw = (0 until nPoints).map { i ->
             val t = i / (nPoints - 1).toDouble()   // 0.0 .. 1.0

@@ -1,14 +1,9 @@
 package no.uio.ifi.in2000.met2025.ui.screens.home.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,13 +24,11 @@ fun RocketConfigCarousel(
     onSelectConfig: (RocketConfig) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 3a) remember a scroll state
     val listState = rememberLazyListState()
 
-    // 3b) whenever the selection changes, scroll to it
     LaunchedEffect(selectedConfig, configs) {
         selectedConfig?.let { sel ->
-            val index = configs.indexOfFirst { it.uid == sel.uid }
+            val index = configs.indexOfFirst { it.id == sel.id }
             if (index >= 0) {
                 listState.animateScrollToItem(index)
             }
@@ -43,7 +36,7 @@ fun RocketConfigCarousel(
     }
 
     LazyRow(
-        state = listState,                                 // ← attach the state
+        state = listState,
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -52,14 +45,16 @@ fun RocketConfigCarousel(
     ) {
         items(
             items = configs,
-            key   = { it.uid }                               // ← stable key
+            key   = { it.id }
         ) { cfg ->
-            val isSelected = cfg.uid == selectedConfig?.uid
+            val isSelected = cfg.id == selectedConfig?.id
             Card(
-                modifier = Modifier
+                modifier  = Modifier
                     .width(160.dp)
                     .clickable { onSelectConfig(cfg) },
-                elevation = if (isSelected) 8.dp else 2.dp,
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = if (isSelected) 8.dp else 2.dp
+                ),
                 colors    = CardDefaults.cardColors(
                     containerColor = if (isSelected)
                         MaterialTheme.colorScheme.primaryContainer

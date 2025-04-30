@@ -62,40 +62,48 @@ fun HomeScreen(
                 CircularProgressIndicator()
             }
         }
+
         is HomeScreenViewModel.HomeScreenUiState.Error -> {
             val msg = (uiState as HomeScreenViewModel.HomeScreenUiState.Error).message
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Error: $msg", color = MaterialTheme.colorScheme.error)
             }
         }
+
         is HomeScreenViewModel.HomeScreenUiState.Success -> {
-            val coords                 by viewModel.coordinates.collectAsState()
-            val launchSites            by viewModel.launchSites.collectAsState()
-            val updateStatus           by viewModel.updateStatus.collectAsState()
-            val newMarker              by viewModel.newMarker.collectAsState()
-            val newMarkerStatus        by viewModel.newMarkerStatus.collectAsState()
-            val trajectoryPoints       by viewModel.trajectoryPoints.collectAsState()
-            val isAnimating            = viewModel.isAnimating
-            var showTrajectorySheet    by remember { mutableStateOf(false) }
-            val sheetState              = rememberModalBottomSheetState()
-            val scope                   = rememberCoroutineScope()
-            var isMenuExpanded         by rememberSaveable { mutableStateOf(false) }
-            var showSaveDialog         by rememberSaveable { mutableStateOf(false) }
-            var savedMarkerCoordinates by rememberSaveable { mutableStateOf<Pair<Double,Double>?>(null) }
-            var launchSiteName         by rememberSaveable { mutableStateOf("") }
-            var isEditingMarker        by rememberSaveable { mutableStateOf(false) }
-            var editingMarkerId        by rememberSaveable { mutableStateOf(0) }
-            var showAnnotations        by rememberSaveable { mutableStateOf(true) }
-            var coordsString           by rememberSaveable { mutableStateOf("") }
-            var parseError             by rememberSaveable { mutableStateOf<String?>(null) }
-            val lastVisitedSite        by viewModel.lastVisited.collectAsState()
-            var showTrajectoryPopup    by remember { mutableStateOf(false) }
-            val trajectory3D           by viewModel.trajectoryPoints.collectAsState()
-            val makeTraj               by remember { derivedStateOf { viewModel.isTrajectoryMode } }
+            val coords by viewModel.coordinates.collectAsState()
+            val launchSites by viewModel.launchSites.collectAsState()
+            val updateStatus by viewModel.updateStatus.collectAsState()
+            val newMarker by viewModel.newMarker.collectAsState()
+            val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
+            val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
+            val isAnimating = viewModel.isAnimating
+            var showTrajectorySheet by remember { mutableStateOf(false) }
+            val sheetState = rememberModalBottomSheetState()
+            val scope = rememberCoroutineScope()
+            var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
+            var showSaveDialog by rememberSaveable { mutableStateOf(false) }
+            var savedMarkerCoordinates by rememberSaveable {
+                mutableStateOf<Pair<Double, Double>?>(
+                    null
+                )
+            }
+            var launchSiteName by rememberSaveable { mutableStateOf("") }
+            var isEditingMarker by rememberSaveable { mutableStateOf(false) }
+            var editingMarkerId by rememberSaveable { mutableStateOf(0) }
+            var showAnnotations by rememberSaveable { mutableStateOf(true) }
+            var coordsString by rememberSaveable { mutableStateOf("") }
+            var parseError by rememberSaveable { mutableStateOf<String?>(null) }
+            val lastVisitedSite by viewModel.lastVisited.collectAsState()
+            val trajectory3D by viewModel.trajectoryPoints.collectAsState()
+            val configs by viewModel.rocketConfigList.collectAsState()
+            val selectedCfg by viewModel.selectedConfig.collectAsState()
+            var showTrajectoryPopup by remember { mutableStateOf(false) }
+            val makeTraj by remember { derivedStateOf { viewModel.isTrajectoryMode } }
             val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
                 viewModel.onMarkerPlaced(
-                    lat       = pt.latitude(),
-                    lon       = pt.longitude(),
+                    lat = pt.latitude(),
+                    lon = pt.longitude(),
                     elevation = elev
                 )
             }
@@ -121,13 +129,13 @@ fun HomeScreen(
             Box(Modifier.fillMaxSize()) {
                 // A) Map + annotations
                 MapContainer(
-                    coordinates         = coords,
-                    newMarker           = newMarker,
-                    newMarkerStatus     = newMarkerStatus,
-                    launchSites         = launchSites,
-                    mapViewportState    = mapViewportState,
-                    showAnnotations     = showAnnotations,
-                    onMapLongClick      = fakeLongClick,
+                    coordinates = coords,
+                    newMarker = newMarker,
+                    newMarkerStatus = newMarkerStatus,
+                    launchSites = launchSites,
+                    mapViewportState = mapViewportState,
+                    showAnnotations = showAnnotations,
+                    onMapLongClick = fakeLongClick,
                     onMarkerAnnotationClick = { pt, elev ->
                         viewModel.updateCoordinates(pt.latitude(), pt.longitude())
                         viewModel.updateLastVisited(
@@ -169,43 +177,53 @@ fun HomeScreen(
                         launchSiteName = site.name
                         showSaveDialog = true
                     },
-                    onSiteElevation    = { uid, elev ->
+                    onSiteElevation = { uid, elev ->
                         viewModel.updateSiteElevation(uid, elev)
                     },
                     // ← HERE: pass down your 3D-ModelLayer trajectory state
-                    trajectoryPoints  = trajectoryPoints,
-                    isAnimating       = isAnimating,
-                    onAnimationEnd     = { viewModel.isAnimating = false },
-                    modifier          = Modifier.matchParentSize()
+                    trajectoryPoints = trajectoryPoints,
+                    isAnimating = isAnimating,
+                    onAnimationEnd = { viewModel.isAnimating = false },
+                    modifier = Modifier.matchParentSize()
                 )
 
                 ExtendedFloatingActionButton(
-                    icon     = { Icon(
-                        painter = painterResource(id = R.drawable.missile),
-                        contentDescription = null,
-                        modifier = Modifier.size(30.dp).padding(4.dp),
-                        tint = Color.Black // Set the desired color here
-                    ) },
-                    text     = { Text("Trajectory") },
-                    onClick  = { showTrajectoryPopup = true },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.missile),
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp).padding(4.dp),
+                            tint = Color.Black // Set the desired color here
+                        )
+                    },
+                    text = { Text("Trajectory") },
+                    onClick = { showTrajectoryPopup = true },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
                 )
 
-                TrajectoryPopup(
-                    show               = showTrajectoryPopup,
-                    lastVisited        = lastVisitedSite,
-                    onClose            = { showTrajectoryPopup = false },
-                    onStartTrajectory  = { viewModel.loadMockTrajectory() },
-                    onPickRocketConfig = { viewModel.showRocketConfigDialog() },
-                    onShowCurrentLatLon= { viewModel.showCurrentLatLon() },
-                    onClearTrajectory  = { viewModel.clearTrajectory(); showTrajectoryPopup = false },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .zIndex(1f)
-                )
+                // B) Now the popup with carousel inside
+                if (showTrajectoryPopup) {
+                    TrajectoryPopup(
+                        show = true,
+                        lastVisited = viewModel.lastVisited.collectAsState().value,
+                        configs = configs,                    // ← pass list
+                        selectedConfig = selectedCfg,                // ← pass default
+                        onSelectConfig = { viewModel.selectConfig(it) },
+                        onClose = { showTrajectoryPopup = false },
+                        onStartTrajectory = { viewModel.loadMockTrajectory() },
+                        onEditConfigs = { },
+                        onClearTrajectory = {
+                            viewModel.clearTrajectory()
+                            showTrajectoryPopup = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .zIndex(1f)
+                    )
+                }
 
                 // B) Lat/Lon input & Done
                 Column(
@@ -215,9 +233,9 @@ fun HomeScreen(
                 ) {
                     if (!showTrajectoryPopup) {
                         LatLonDisplay(
-                            coordinates         = coordsString,
+                            coordinates = coordsString,
                             onCoordinatesChange = { coordsString = it },
-                            onDone              = {
+                            onDone = {
                                 parseLatLon(coordsString)?.let { (lat, lon) ->
                                     viewModel.onMarkerPlaced(lat, lon, null)
                                     scope.launch {
@@ -226,7 +244,11 @@ fun HomeScreen(
                                                 center(Point.fromLngLat(lon, lat))
                                                 zoom(mapViewportState.cameraState?.zoom ?: 12.0)
                                             },
-                                            MapAnimationOptions.mapAnimationOptions { duration(500L) }
+                                            MapAnimationOptions.mapAnimationOptions {
+                                                duration(
+                                                    500L
+                                                )
+                                            }
                                         )
                                     }
                                 } ?: run { parseError = "Invalid format" }
@@ -243,13 +265,14 @@ fun HomeScreen(
                     onClick = { isMenuExpanded = !isMenuExpanded }
                 )
                 AnimatedVisibility(
-                    visible  = isMenuExpanded,
-                    enter    = expandVertically(tween(300)) + fadeIn(tween(300)),
-                    exit     = shrinkVertically(tween(300)) + fadeOut(tween(300)),
-                    modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp, bottom = 100.dp)
+                    visible = isMenuExpanded,
+                    enter = expandVertically(tween(300)) + fadeIn(tween(300)),
+                    exit = shrinkVertically(tween(300)) + fadeOut(tween(300)),
+                    modifier = Modifier.align(Alignment.BottomStart)
+                        .padding(start = 16.dp, bottom = 100.dp)
                 ) {
                     LaunchSitesMenu(
-                        launchSites    = launchSites.filter { it.name != "Last Visited" },
+                        launchSites = launchSites.filter { it.name != "Last Visited" },
                         onSiteSelected = { site ->
                             scope.launch {
                                 mapViewportState.easeTo(
@@ -272,7 +295,7 @@ fun HomeScreen(
 
                 // D) Toggle annotations
                 IconButton(
-                    onClick  = { showAnnotations = !showAnnotations },
+                    onClick = { showAnnotations = !showAnnotations },
                     modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
                 ) {
                     Icon(
@@ -284,8 +307,8 @@ fun HomeScreen(
                 // E) Weather navigation
                 WeatherNavigationButton(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
-                    latInput  = coords.first.toString(),
-                    lonInput  = coords.second.toString(),
+                    latInput = coords.first.toString(),
+                    lonInput = coords.second.toString(),
                     onNavigate = { lat, lon ->
                         viewModel.updateCoordinates(lat, lon)
                         onNavigateToWeather(lat, lon)
@@ -297,7 +320,7 @@ fun HomeScreen(
                 if (showSaveDialog && savedMarkerCoordinates != null) {
                     SaveLaunchSiteDialog(
                         launchSiteName = launchSiteName,
-                        onNameChange   = {
+                        onNameChange = {
                             launchSiteName = it
                             viewModel.setUpdateStatusIdle()
                         },
@@ -342,61 +365,6 @@ fun HomeScreen(
                     }
                 }
             }
-
-            // G) Trajectory control sheet
-            if (showTrajectorySheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showTrajectorySheet = false },
-                    sheetState       = sheetState
-                ) {
-                    TrajectoryControlSheet(
-                        onStartTrajectory   = { viewModel.loadMockTrajectory() },
-                        onPickRocketConfig  = { viewModel.showRocketConfigDialog() },
-                        onShowCurrentLatLon = { viewModel.showCurrentLatLon() },
-                        onLaunchAtMapCenter = { viewModel.launchHere() },
-                        onMinimize = {
-                            scope.launch { sheetState.hide() }
-                                .invokeOnCompletion {
-                                    if (!sheetState.isVisible) showTrajectorySheet = false
-                                }
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-
-@Composable
-fun TrajectoryControlSheet(
-    onStartTrajectory:      ()->Unit,
-    onPickRocketConfig:     ()->Unit,
-    onShowCurrentLatLon:    ()->Unit,
-    onLaunchAtMapCenter:    ()->Unit,
-    onMinimize:             ()->Unit
-) {
-    Column(
-        Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            IconButton(onClick = onMinimize) {
-                Icon(Icons.Filled.ExpandMore, contentDescription = "Minimize")
-            }
-        }
-        Button(onClick=onStartTrajectory, Modifier.fillMaxWidth()) {
-            Text("▶️ Start Trajectory")
-        }
-        Button(onClick=onPickRocketConfig, Modifier.fillMaxWidth()) {
-            Text("⚙️ Rocket Configs")
-        }
-        Button(onClick=onShowCurrentLatLon, Modifier.fillMaxWidth()) {
-            Text("📍 Show Current Lat/Lon")
-        }
-        Button(onClick=onLaunchAtMapCenter, Modifier.fillMaxWidth()) {
-            Text("🚀 Launch From Center")
         }
     }
 }

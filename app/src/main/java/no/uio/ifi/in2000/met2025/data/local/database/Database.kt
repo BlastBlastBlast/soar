@@ -11,7 +11,7 @@ import java.sql.Types.NULL
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
-    version = 6
+    version = 7
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
@@ -89,21 +89,25 @@ data class ConfigProfile(
 )
 
 @Entity(
-    tableName = "rocket_configurations", primaryKeys = ["id", "name"], indices = [Index(value = ["name"], unique = true)])
-    data class RocketConfig(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
-    @ColumnInfo(name = "launch_azimuth") val launchAzimuth: Double,
-    @ColumnInfo(name = "launch_pitch") val launchPitch: Double,
-    @ColumnInfo(name = "launch_rail_length") val launchRailLength: Double,
-    @ColumnInfo(name = "wet_mass") val wetMass: Double,
-    @ColumnInfo(name = "dry_mass") val dryMass: Double,
-    @ColumnInfo(name = "burn_time") val burnTime: Double,
-    @ColumnInfo(name = "thrust") val thrust: Double,
-    @ColumnInfo(name = "step_size") val stepSize: Double,
-    @ColumnInfo(name = "cross_sectional_area") val crossSectionalArea: Double,
-    @ColumnInfo(name = "drag_coefficient") val dragCoefficient: Double,
+    tableName = "rocket_configurations",
+    indices = [Index(value = ["name"], unique = true)]
+)
+data class RocketConfig(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val name: String,
+    @ColumnInfo(name = "launch_azimuth")               val launchAzimuth: Double,
+    @ColumnInfo(name = "launch_pitch")                 val launchPitch: Double,
+    @ColumnInfo(name = "launch_rail_length")           val launchRailLength: Double,
+    @ColumnInfo(name = "wet_mass")                     val wetMass: Double,
+    @ColumnInfo(name = "dry_mass")                     val dryMass: Double,
+    @ColumnInfo(name = "burn_time")                    val burnTime: Double,
+    @ColumnInfo(name = "thrust")                       val thrust: Double,
+    @ColumnInfo(name = "step_size")                    val stepSize: Double,
+    @ColumnInfo(name = "cross_sectional_area")         val crossSectionalArea: Double,
+    @ColumnInfo(name = "drag_coefficient")             val dragCoefficient: Double,
     @ColumnInfo(name = "parachute_cross_sectional_area") val parachuteCrossSectionalArea: Double,
-    @ColumnInfo(name = "parachute_drag_coefficient") val parachuteDragCoefficient: Double,
-    @ColumnInfo(name = "is_default") val isDefault: Boolean = false
+    @ColumnInfo(name = "parachute_drag_coefficient")   val parachuteDragCoefficient: Double,
+    @ColumnInfo(name = "is_default")                   val isDefault: Boolean = false
 )
 

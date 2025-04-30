@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import kotlin.math.roundToInt
@@ -35,10 +36,13 @@ import kotlin.math.roundToInt
 fun TrajectoryPopup(
     show: Boolean,
     lastVisited: LaunchSite?,
+    configs: List<RocketConfig>,              // ← all configs
+    selectedConfig: RocketConfig?,            // ← current default
+    onSelectConfig: (RocketConfig) -> Unit,   // ← tap a new default
     onClose: () -> Unit,
     onStartTrajectory: () -> Unit,
-    onPickRocketConfig: () -> Unit,
     onClearTrajectory: () -> Unit,
+    onEditConfigs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Track vertical drag offset
@@ -78,7 +82,7 @@ fun TrajectoryPopup(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -101,32 +105,27 @@ fun TrajectoryPopup(
                 )
 
                 // Grid of buttons (2 columns)
-                Column(
-                    Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = onStartTrajectory,
-                            modifier = Modifier.weight(1f)
-                        ) {
+                // 2) Carousel right here:
+                RocketConfigCarousel(
+                    configs        = configs,
+                    selectedConfig = selectedConfig,
+                    onSelectConfig = onSelectConfig,
+                    modifier       = Modifier
+                        .fillMaxWidth()
+                        .height(70.dp)              // or whatever fits
+                )
+
+                // 3) Buttons grid:
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onStartTrajectory, modifier = Modifier.weight(1f)) {
                             Text("▶️ Start Trajectory")
                         }
-                        Button(
-                            onClick = onPickRocketConfig,
-                            modifier = Modifier.weight(1f)
-                        ) {
+                        Button(onClick = onEditConfigs, modifier = Modifier.weight(1f)) {
                             Text("⚙️ Edit Configs")
                         }
                     }
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = onClearTrajectory, modifier = Modifier.weight(1f)) {
                             Text("🗑️ Clear Trajectory")
                         }
@@ -135,3 +134,4 @@ fun TrajectoryPopup(
             }
         }
     }
+}
