@@ -1,4 +1,5 @@
 [versions]
+accompanistSystemuicontroller = "0.32.0"
 agp = "8.9.1"
 cdmCore = "5.7.0"
 gradle = "8.9.1"
@@ -30,6 +31,7 @@ kotlinTest = "2.1.20"
 kotlinxCoroutinesTest = "1.7.3"
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 cdm-core = { module = "edu.ucar:cdm-core", version.ref = "cdmCore" }
