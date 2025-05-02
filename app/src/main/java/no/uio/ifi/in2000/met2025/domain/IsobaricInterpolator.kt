@@ -1,6 +1,8 @@
 package no.uio.ifi.in2000.met2025.domain
 
 import com.mapbox.maps.extension.style.expressions.dsl.generated.length
+import no.uio.ifi.in2000.met2025.data.models.Angle
+import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
@@ -15,28 +17,34 @@ import no.uio.ifi.in2000.met2025.domain.helpers.times
 import no.uio.ifi.in2000.met2025.domain.helpers.plus
 import org.apache.commons.math3.linear.ArrayRealVector
 import no.uio.ifi.in2000.met2025.data.models.Constants
+import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
+import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
+import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
+import no.uio.ifi.in2000.met2025.data.models.sin
+import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
+import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
+import java.time.Instant
 
 
 class IsobaricInterpolator(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
 ) {
-    var gribMap: GribDataMap? = null
+    private var gribMap: GribDataMap? = null
 
     // key is [lat, lon, pressure]
-    var pointCache: MutableMap<RealVector, CartesianIsobaricValues> = mutableMapOf()
+    private var pointCache: MutableMap<RealVector, CartesianIsobaricValues> = mutableMapOf()
 
     // key is [lat, lon, pressure]
-    var surfaceCache: MutableMap<RealVector, (RealVector) -> CartesianIsobaricValues> = mutableMapOf()
+    private var surfaceCache: MutableMap<RealVector, (RealVector) -> CartesianIsobaricValues> = mutableMapOf()
 
-    var lastVisitedGridIndex: RealVector? = null
+    private var lastVisitedGridIndex: RealVector? = null
 
     // FIXME: This function is a placeholder and should be implemented to return actual values.
-    fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
+    suspend fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
         if (gribMap == null) {
-            val gribDataResult = isobaricRepository.getGribData()
-
-            when (gribDataResult) {
+            when (val gribDataResult = isobaricRepository.getIsobaricGribData(time)) {
                 is GribDataResult.Success -> {
                     gribMap = gribDataResult.gribDataMap.map
                 }
@@ -63,14 +71,14 @@ class IsobaricInterpolator(
         val pressureValues = (Constants.layerPressureValues).reversed()
         val pressure = pressureValues[lastVisitedGridIndex!![2].toInt()]
 
-        fun pressureIndex(lastPressureIndex: Double): Double {
+        suspend fun pressureIndex(lastPressureIndex: Double): Double {
             // attempt to fetch the surface at latIndex, lonIndex and lastAltitudeIndex from the cache
             // if it does not exist, attempt to fetch the four points at latIndex (+1), lonIndex (+1) and lastAltitudeIndex from the cache
             // for each point that does not exist in the cache, check the cache for the point below it
-            fun getValuesAtPoint(indices: RealVector): Result<CartesianIsobaricValues> {
+            suspend fun getValuesAtPoint(indices: RealVector): Result<CartesianIsobaricValues> {
                 return if (pointCache.containsKey(indices)) {
-                    pointCache[indices]!!
-                } else if (indices[2] == 0) {
+                    Result.success(pointCache[indices]!!)
+                } else if (indices[2] == 0.0) {
                         val forecastData = locationForecastRepository.getForecastData(
                             lat = indices[0].toCoordinate(MIN_LATITUDE),
                             lon = indices[1].toCoordinate(MIN_LONGITUDE),
@@ -81,27 +89,33 @@ class IsobaricInterpolator(
                             onFailure = { return Result.failure(it) }
                         )
 
-                        val forecastDataValues = forecastData.properties.timeseries[0].values
+                        val forecastDataValues = forecastData.timeSeries[0].values
 
-                        val airTemperatureAtSeaLevel = forecastValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
+                        val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
 
                         val groundPressure = calculatePressureAtAltitude(
                             altitude = forecastData.altitude,
-                            referencePressure = forecastItem.values.airPressureAtSeaLevel,
+                            referencePressure = forecastDataValues.airPressureAtSeaLevel,
                             referenceAirTemperature = airTemperatureAtSeaLevel
                         )
+
+                    val windAngle = Angle(forecastDataValues.windFromDirection)
+                    val windSpeed = forecastDataValues.windSpeed
+
+                    val windXComponent = windSpeed * cos(windAngle)
+                    val windYComponent = windSpeed * sin(windAngle)
 
                         val values = CartesianIsobaricValues(
                             altitude = forecastData.altitude,
                             pressure = groundPressure,
                             temperature = forecastDataValues.airTemperature,
-                            windXComponent = forecastDataValues.windSpeed10mU,
-                            windYComponent = forecastDataValues.windSpeed10mV
+                            windXComponent = windXComponent,
+                            windYComponent = windYComponent
                         )
 
                         pointCache[indices] = values
 
-                        Result.Success(values)
+                        Result.success(values)
                     } else {
                         val valuesBelow = getValuesAtPoint(
                             ArrayRealVector(
@@ -115,18 +129,18 @@ class IsobaricInterpolator(
                             onSuccess = { it },
                             onFailure = { return Result.failure(it) }
                         )
-                        val pressure = (Constants.layerPressureValues).reversed()[indices[2].toInt() - 1]
-                        val altitude = calculateAltitudeAtPressure(
-                            pressure = pressure,
+                        val airPressure = (Constants.layerPressureValues).reversed()[indices[2].toInt() - 1]
+                        val altitude = calculateAltitude(
+                            pressure = airPressure.toDouble(),
                             referencePressure = valuesBelow.pressure,
-                            referenceAltitude = valuesBelow.altitude,
-                            referenceTemperature = valuesBelow.temperature
+                            referenceAirTemperature = valuesBelow.temperature,
+                            referenceAltitude = valuesBelow.altitude
                         )
-                        val gribVector = gribMap!![indices[0], indices[1]][pressure.toInt()]
+                        val gribVector = gribMap!![indices[0], indices[1]][airPressure]
 
-                        val values = cartesianIsobaricValues = CartesianIsobaricValues(
+                        val values =  CartesianIsobaricValues(
                             altitude = altitude,
-                            pressure = pressure,
+                            pressure = airPressure.toDouble(),
                             temperature = gribVector.temperature,
                             windXComponent = gribVector.uComponentWind,
                             windYComponent = gribVector.vComponentWind
@@ -134,7 +148,7 @@ class IsobaricInterpolator(
 
                         pointCache[indices] = values
 
-                        Result.Success(values)
+                        Result.success(values)
                     }
                 }
             }
