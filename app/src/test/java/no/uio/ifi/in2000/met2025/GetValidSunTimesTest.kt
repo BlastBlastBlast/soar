@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.helpers.formatter
+import no.uio.ifi.in2000.met2025.helpers.createSunriseMockClientWithJson
 import org.junit.Test
 import java.time.OffsetDateTime
 
@@ -12,7 +13,7 @@ class GetValidSunTimesTest {
 
     @Test
     fun getValidSunTimesTest() = runBlocking {
-        val mockClient = no.uio.ifi.in2000.met2025.createSunriseMockClientWithJson()
+        val mockClient = createSunriseMockClientWithJson()
         val sunriseDataSource = SunriseDataSource(mockClient)
         val sunriseRepository = SunriseRepository(sunriseDataSource)
 
