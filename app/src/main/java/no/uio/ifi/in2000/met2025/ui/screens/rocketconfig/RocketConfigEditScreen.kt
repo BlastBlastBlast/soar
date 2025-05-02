@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.data.models.RocketParameterType
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
@@ -29,38 +30,53 @@ fun RocketConfigEditScreen(
     viewModel: RocketConfigEditViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    val defaults = getDefaultRocketParameterValues().valueMap
-    var name            by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Rocket Config") }
-    var apogee          by remember(rocketParameters) { mutableStateOf(rocketParameters?.apogee?.toString() ?: (defaults["APOGEE"]?.toString() ?: "5000.0")) }
-    var launchDirection by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchDirection?.toString() ?: (defaults["LAUNCH_DIRECTION"]?.toString() ?: "90.0")) }
-    var launchAngle     by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchAngle?.toString() ?: (defaults["LAUNCH_ANGLE"]?.toString() ?: "80.0")) }
-    var thrust          by remember(rocketParameters) { mutableStateOf(rocketParameters?.thrust?.toString() ?: (defaults["THRUST_NEWTONS"]?.toString() ?: "4500.0")) }
-    var burnTime        by remember(rocketParameters) { mutableStateOf(rocketParameters?.burnTime?.toString() ?: (defaults["BURN_TIME"]?.toString() ?: "12.0")) }
-    var dryWeight       by remember(rocketParameters) { mutableStateOf(rocketParameters?.dryWeight?.toString() ?: (defaults["DRY_WEIGHT"]?.toString() ?: "100.0")) }
-    var wetWeight       by remember(rocketParameters) { mutableStateOf(rocketParameters?.wetWeight?.toString() ?: (defaults["WET_WEIGHT"]?.toString() ?: "130.0")) }
-    var resolution      by remember(rocketParameters) { mutableStateOf(rocketParameters?.resolution?.toString() ?: (defaults["RESOLUTION"]?.toString() ?: "1.0")) }
+    val defaultsMap = getDefaultRocketParameterValues().valueMap
+
+    var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Rocket Config") }
+    var launchAzimuth by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchAzimuth?.toString()
+        ?: defaultsMap[RocketParameterType.LAUNCH_AZIMUTH.name]?.toString() ?: "") }
+    var launchPitch by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchPitch?.toString()
+        ?: defaultsMap[RocketParameterType.LAUNCH_PITCH.name]?.toString() ?: "") }
+    var launchRailLength by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchRailLength?.toString()
+        ?: defaultsMap[RocketParameterType.LAUNCH_RAIL_LENGTH.name]?.toString() ?: "") }
+    var wetMass by remember(rocketParameters) { mutableStateOf(rocketParameters?.wetMass?.toString()
+        ?: defaultsMap[RocketParameterType.WET_MASS.name]?.toString() ?: "") }
+    var dryMass by remember(rocketParameters) { mutableStateOf(rocketParameters?.dryMass?.toString()
+        ?: defaultsMap[RocketParameterType.DRY_MASS.name]?.toString() ?: "") }
+    var burnTime by remember(rocketParameters) { mutableStateOf(rocketParameters?.burnTime?.toString()
+        ?: defaultsMap[RocketParameterType.BURN_TIME.name]?.toString() ?: "") }
+    var thrust by remember(rocketParameters) { mutableStateOf(rocketParameters?.thrust?.toString()
+        ?: defaultsMap[RocketParameterType.THRUST.name]?.toString() ?: "") }
+    var stepSize by remember(rocketParameters) { mutableStateOf(rocketParameters?.stepSize?.toString()
+        ?: defaultsMap[RocketParameterType.STEP_SIZE.name]?.toString() ?: "") }
+    var crossSectionalArea by remember(rocketParameters) { mutableStateOf(rocketParameters?.crossSectionalArea?.toString()
+        ?: defaultsMap[RocketParameterType.CROSS_SECTIONAL_AREA.name]?.toString() ?: "") }
+    var dragCoefficient by remember(rocketParameters) { mutableStateOf(rocketParameters?.dragCoefficient?.toString()
+        ?: defaultsMap[RocketParameterType.DRAG_COEFFICIENT.name]?.toString() ?: "") }
+    var parachuteCrossSectionalArea by remember(rocketParameters) { mutableStateOf(rocketParameters?.parachuteCrossSectionalArea?.toString()
+        ?: defaultsMap[RocketParameterType.PARACHUTE_CROSS_SECTIONAL_AREA.name]?.toString() ?: "") }
+    var parachuteDragCoefficient by remember(rocketParameters) { mutableStateOf(rocketParameters?.parachuteDragCoefficient?.toString()
+        ?: defaultsMap[RocketParameterType.PARACHUTE_DRAG_COEFFICIENT.name]?.toString() ?: "") }
 
     Box(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Wrapper on "surface" with tonal+shadow
         Surface(
-            modifier        = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            color           = MaterialTheme.colorScheme.surface,
-            tonalElevation  = 4.dp,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp,
             shadowElevation = 8.dp,
-            shape           = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Column(
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Orange header band
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -70,99 +86,64 @@ fun RocketConfigEditScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text      = if (rocketParameters == null) "NEW ROCKET CONFIG" else "EDIT ROCKET CONFIG",
-                        style     = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                        color     = MaterialTheme.colorScheme.onPrimary,
+                        text = if (rocketParameters == null) "NEW ROCKET CONFIG" else "EDIT ROCKET CONFIG",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                        color = MaterialTheme.colorScheme.onPrimary,
                         textAlign = TextAlign.Center,
-                        modifier  = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
                 Spacer(Modifier.height(8.dp))
 
-                // Form fields
                 Column(Modifier.padding(horizontal = 16.dp)) {
-                    AppOutlinedTextField(
-                        value         = name,
-                        onValueChange = { name = it },
-                        label         = { Text("Configuration Name") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Configuration Name") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = apogee,
-                        onValueChange = { apogee = it },
-                        label         = { Text("Apogee (m)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = launchAzimuth, onValueChange = { launchAzimuth = it }, label = { Text("Launch Azimuth (°)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = launchDirection,
-                        onValueChange = { launchDirection = it },
-                        label         = { Text("Launch Direction (°)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = launchPitch, onValueChange = { launchPitch = it }, label = { Text("Launch Pitch (°)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = launchAngle,
-                        onValueChange = { launchAngle = it },
-                        label         = { Text("Launch Angle (°)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = launchRailLength, onValueChange = { launchRailLength = it }, label = { Text("Launch Rail Length (m)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = thrust,
-                        onValueChange = { thrust = it },
-                        label         = { Text("Thrust (N)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = wetMass, onValueChange = { wetMass = it }, label = { Text("Wet Mass (kg)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = burnTime,
-                        onValueChange = { burnTime = it },
-                        label         = { Text("Burn Time (s)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = dryMass, onValueChange = { dryMass = it }, label = { Text("Dry Mass (kg)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = dryWeight,
-                        onValueChange = { dryWeight = it },
-                        label         = { Text("Dry Weight (kg)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = burnTime, onValueChange = { burnTime = it }, label = { Text("Burn Time (s)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = wetWeight,
-                        onValueChange = { wetWeight = it },
-                        label         = { Text("Wet Weight (kg)") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = thrust, onValueChange = { thrust = it }, label = { Text("Thrust (N)") }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    AppOutlinedTextField(
-                        value         = resolution,
-                        onValueChange = { resolution = it },
-                        label         = { Text("Resolution") },
-                        modifier      = Modifier.fillMaxWidth()
-                    )
+                    AppOutlinedTextField(value = stepSize, onValueChange = { stepSize = it }, label = { Text("Step Size (s)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    AppOutlinedTextField(value = crossSectionalArea, onValueChange = { crossSectionalArea = it }, label = { Text("Cross-Sectional Area (m²)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    AppOutlinedTextField(value = dragCoefficient, onValueChange = { dragCoefficient = it }, label = { Text("Drag Coefficient") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    AppOutlinedTextField(value = parachuteCrossSectionalArea, onValueChange = { parachuteCrossSectionalArea = it }, label = { Text("Parachute Cross-Sectional Area (m²)") }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                    AppOutlinedTextField(value = parachuteDragCoefficient, onValueChange = { parachuteDragCoefficient = it }, label = { Text("Parachute Drag Coefficient") }, modifier = Modifier.fillMaxWidth())
                 }
 
                 Spacer(Modifier.height(16.dp))
 
-                // Save button
                 Button(
-                    onClick  = {
+                    onClick = {
                         val updated = RocketConfig(
-                            id              = rocketParameters?.id ?: 0,
-                            name            = name,
-                            apogee          = apogee.toDoubleOrNull()          ?: defaults["APOGEE"]!!,
-                            launchDirection = launchDirection.toDoubleOrNull() ?: defaults["LAUNCH_DIRECTION"]!!,
-                            launchAngle     = launchAngle.toDoubleOrNull()     ?: defaults["LAUNCH_ANGLE"]!!,
-                            thrust          = thrust.toDoubleOrNull()          ?: defaults["THRUST_NEWTONS"]!!,
-                            burnTime        = burnTime.toDoubleOrNull()        ?: defaults["BURN_TIME"]!!,
-                            dryWeight       = dryWeight.toDoubleOrNull()       ?: defaults["DRY_WEIGHT"]!!,
-                            wetWeight       = wetWeight.toDoubleOrNull()       ?: defaults["WET_WEIGHT"]!!,
-                            resolution      = resolution.toDoubleOrNull()      ?: defaults["RESOLUTION"]!!,
-                            isDefault       = rocketParameters?.isDefault ?: false
+                            id = rocketParameters?.id ?: 0,
+                            name = name,
+                            launchAzimuth = launchAzimuth.toDoubleOrNull() ?: defaultsMap[RocketParameterType.LAUNCH_AZIMUTH.name]!!,
+                            launchPitch = launchPitch.toDoubleOrNull() ?: defaultsMap[RocketParameterType.LAUNCH_PITCH.name]!!,
+                            launchRailLength = launchRailLength.toDoubleOrNull() ?: defaultsMap[RocketParameterType.LAUNCH_RAIL_LENGTH.name]!!,
+                            wetMass = wetMass.toDoubleOrNull() ?: defaultsMap[RocketParameterType.WET_MASS.name]!!,
+                            dryMass = dryMass.toDoubleOrNull() ?: defaultsMap[RocketParameterType.DRY_MASS.name]!!,
+                            burnTime = burnTime.toDoubleOrNull() ?: defaultsMap[RocketParameterType.BURN_TIME.name]!!,
+                            thrust = thrust.toDoubleOrNull() ?: defaultsMap[RocketParameterType.THRUST.name]!!,
+                            stepSize = stepSize.toDoubleOrNull() ?: defaultsMap[RocketParameterType.STEP_SIZE.name]!!,
+                            crossSectionalArea = crossSectionalArea.toDoubleOrNull() ?: defaultsMap[RocketParameterType.CROSS_SECTIONAL_AREA.name]!!,
+                            dragCoefficient = dragCoefficient.toDoubleOrNull() ?: defaultsMap[RocketParameterType.DRAG_COEFFICIENT.name]!!,
+                            parachuteCrossSectionalArea = parachuteCrossSectionalArea.toDoubleOrNull() ?: defaultsMap[RocketParameterType.PARACHUTE_CROSS_SECTIONAL_AREA.name]!!,
+                            parachuteDragCoefficient = parachuteDragCoefficient.toDoubleOrNull() ?: defaultsMap[RocketParameterType.PARACHUTE_DRAG_COEFFICIENT.name]!!,
+                            isDefault = rocketParameters?.isDefault ?: false
                         )
                         if (rocketParameters == null) viewModel.saveRocketConfig(updated)
                         else viewModel.updateRocketConfig(updated)
@@ -171,9 +152,9 @@ fun RocketConfigEditScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    colors   = ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
-                        contentColor   = MaterialTheme.colorScheme.onPrimary
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text("Save Rocket Configuration")

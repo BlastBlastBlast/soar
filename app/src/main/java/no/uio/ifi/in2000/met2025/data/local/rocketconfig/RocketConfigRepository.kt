@@ -29,4 +29,8 @@ class RocketConfigRepository(private val rocketConfigDao: RocketConfigDao) {
     fun getRocketConfig(rocketId: Int): Flow<RocketConfig?> {
         return rocketConfigDao.getRocketConfig(rocketId)
     }
+
+    suspend fun setDefaultRocketConfig(rocketId: Int) {
+        rocketConfigDao.setDefaultRocketConfig(rocketId)
+    }
 }

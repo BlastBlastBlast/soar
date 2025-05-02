@@ -140,7 +140,7 @@ fun AppNavLauncher(
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Image(
-                                painter = painterResource(id = R.drawable.placeholder_logo),
+                                painter = painterResource(id = R.drawable.soarlogo),
                                 contentDescription = "Logo",
                                 modifier = Modifier.size(40.dp)
                             )
@@ -176,8 +176,8 @@ fun AppNavLauncher(
             ) {
                 composable(Screen.Home.route) {
                     HomeScreen(
-                        viewModel = homeScreenViewModel,
-                        onNavigateToWeather = { lat, lon ->
+                        viewModel            = homeScreenViewModel,
+                        onNavigateToWeather  = { lat, lon ->
                             navController.navigate(Screen.Weather.createRoute(lat, lon))
                         }
                     )

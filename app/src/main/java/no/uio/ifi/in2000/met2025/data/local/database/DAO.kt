@@ -5,13 +5,14 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface LaunchSiteDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(sites: LaunchSite)
 
     @Delete
@@ -19,6 +20,9 @@ interface LaunchSiteDAO {
 
     @Query("SELECT * FROM LaunchSite")
     fun getAll(): Flow<List<LaunchSite>>
+
+    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
+    suspend fun getSiteByName(name: String): LaunchSite?
 
     @Update
     suspend fun update(sites: LaunchSite)
@@ -33,6 +37,12 @@ interface LaunchSiteDAO {
 
     @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
     suspend fun checkIfSiteExists(name: String): LaunchSite?
+
+    @Query("SELECT name FROM LaunchSite")
+    fun getAllLaunchSiteNames() : Flow<List<String>>
+
+    @Query("UPDATE LaunchSite SET elevation = :elevation WHERE uid = :uid")
+    suspend fun updateElevation(uid: Int, elevation: Double)
 }
 
 
@@ -89,8 +99,8 @@ interface ConfigProfileDAO {
 
 @Dao
 interface RocketConfigDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRocketConfig(rocketConfig: RocketConfig)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertRocketConfig(rocketConfig: RocketConfig): Long
 
     @Update
     suspend fun updateRocketConfig(rocketConfig: RocketConfig)
@@ -98,7 +108,7 @@ interface RocketConfigDao {
     @Delete
     suspend fun deleteRocketConfig(rocketConfig: RocketConfig)
 
-    @Query("SELECT * FROM rocket_configurations")
+    @Query("SELECT * FROM rocket_configurations ORDER BY is_default DESC, name ASC")
     fun getAllRocketConfigs(): Flow<List<RocketConfig>>
 
     @Query("SELECT * FROM rocket_configurations WHERE is_default = 1 LIMIT 1")
@@ -106,4 +116,19 @@ interface RocketConfigDao {
 
     @Query("SELECT * FROM rocket_configurations WHERE id = :rocketId LIMIT 1")
     fun getRocketConfig(rocketId: Int): Flow<RocketConfig?>
+
+    @Query("SELECT * FROM rocket_configurations WHERE name = :name LIMIT 1")
+    fun getRocketConfigByName(name: String): Flow<RocketConfig?>
+
+    @Query("UPDATE rocket_configurations SET is_default = 0")
+    suspend fun clearDefaultFlags()
+
+    @Query("UPDATE rocket_configurations SET is_default = 1 WHERE id = :rocketId")
+    suspend fun setDefaultFlag(rocketId: Int)
+
+    @Transaction
+    suspend fun setDefaultRocketConfig(rocketId: Int) {
+        clearDefaultFlags()
+        setDefaultFlag(rocketId)
+    }
 }

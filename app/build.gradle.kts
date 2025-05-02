@@ -87,6 +87,8 @@ dependencies {
     // Mapbox
     implementation("com.mapbox.extension:maps-compose:11.11.0")
     implementation("com.mapbox.maps:android:11.11.0")
+    //implementation("com.mapbox.maps:android-maps-extension-style-sources:11.11.0")
+    //implementation("com.mapbox.maps:android-maps-extension-style-layers:11.11.0")
 
     // Icons
     implementation(libs.androidx.material.icons.extended)
@@ -121,6 +123,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(kotlin("stdlib"))
+
+    implementation("org.apache.commons:commons-math3:3.6.1")
 
     //netcdf and dependencies
     implementation(libs.cdm.core)// Core library
