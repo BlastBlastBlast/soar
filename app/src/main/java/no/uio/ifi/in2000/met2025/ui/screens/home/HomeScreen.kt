@@ -76,6 +76,12 @@ fun HomeScreen(
             val updateStatus by viewModel.updateStatus.collectAsState()
             val newMarker by viewModel.newMarker.collectAsState()
             val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
+            var savedMarkerCoordinates by rememberSaveable {
+                mutableStateOf<Pair<Double, Double>?>(
+                    null
+                )
+            }
+
             val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
             val isAnimating = viewModel.isAnimating
             var showTrajectorySheet by remember { mutableStateOf(false) }
@@ -83,11 +89,7 @@ fun HomeScreen(
             val scope = rememberCoroutineScope()
             var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
             var showSaveDialog by rememberSaveable { mutableStateOf(false) }
-            var savedMarkerCoordinates by rememberSaveable {
-                mutableStateOf<Pair<Double, Double>?>(
-                    null
-                )
-            }
+
             var launchSiteName by rememberSaveable { mutableStateOf("") }
             var isEditingMarker by rememberSaveable { mutableStateOf(false) }
             var editingMarkerId by rememberSaveable { mutableStateOf(0) }
@@ -144,15 +146,15 @@ fun HomeScreen(
                             elev
                         )
                     },
-                    onMarkerAnnotationLongPress = { site, elev ->
-                        viewModel.updateCoordinates(site.latitude(), site.longitude())
+                    onMarkerAnnotationLongPress = { pt, elev ->
+                        viewModel.updateCoordinates(pt.latitude(), pt.longitude())
                         viewModel.updateLastVisited(
-                            site.latitude(),
-                            site.longitude(),
+                            pt.latitude(),
+                            pt.longitude(),
                             elev
                         )
                         isEditingMarker = false
-                        savedMarkerCoordinates = site.latitude() to site.longitude()
+                        savedMarkerCoordinates = pt.latitude() to pt.longitude()
                         launchSiteName = "New Marker"
                         showSaveDialog = true
                     },

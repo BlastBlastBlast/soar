@@ -282,14 +282,26 @@ fun MapView(
                         }
                     ) {
                         MarkerLabel(
-                            name = newMarker.name ?: "New Marker",
+                            name = newMarker.name,
                             lat = "%.4f".format(pt.latitude()),
                             lon = "%.4f".format(pt.longitude()),
                             elevation = markerElevation?.let { "%.1f m".format(it) },
                             isLoadingElevation = markerElevation == null,   // show spinner when null
                             onClick = { onMarkerAnnotationClick(pt, markerElevation) },
                             onLongPress = { onMarkerAnnotationLongPress(pt, markerElevation) },
-                            onDoubleClick = { /* no-op */ }
+                            onDoubleClick = { scope.launch {
+                                mapViewportState.easeTo(
+                                    cameraOptions {
+                                        center(pt)
+                                        zoom(14.0)
+                                        pitch(0.0)
+                                        bearing(0.0)
+                                    },
+                                    MapAnimationOptions.mapAnimationOptions { duration(1000L) }
+                                )
+                            }
+                                onLaunchSiteMarkerClick(newMarker)
+                            }
                         )
 
                     }
