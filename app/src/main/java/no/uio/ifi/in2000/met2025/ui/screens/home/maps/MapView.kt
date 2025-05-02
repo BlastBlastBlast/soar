@@ -264,13 +264,14 @@ fun MapView(
 
 
             // 6) Draw the “new” marker
-            if (newMarkerStatus) {
+            //Null check needed for first launch of app
+            if (newMarkerStatus && newMarker != null) {
                 val icon = rememberIconImage(
                     key = R.drawable.red_marker,
                     painter = painterResource(R.drawable.red_marker)
                 )
                 val pt =
-                    temporaryMarker ?: Point.fromLngLat(newMarker!!.longitude, newMarker.latitude)
+                    temporaryMarker ?: Point.fromLngLat(newMarker.longitude, newMarker.latitude)
                 PointAnnotation(point = pt) { iconImage = icon }
                 if (showAnnotations) {
                     ViewAnnotation(
@@ -281,7 +282,7 @@ fun MapView(
                         }
                     ) {
                         MarkerLabel(
-                            name = newMarker?.name ?: "New Marker",
+                            name = newMarker.name ?: "New Marker",
                             lat = "%.4f".format(pt.latitude()),
                             lon = "%.4f".format(pt.longitude()),
                             elevation = markerElevation?.let { "%.1f m".format(it) },

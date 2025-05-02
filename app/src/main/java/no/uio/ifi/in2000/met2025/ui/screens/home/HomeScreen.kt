@@ -144,15 +144,15 @@ fun HomeScreen(
                             elev
                         )
                     },
-                    onMarkerAnnotationLongPress = { pt, elev ->
-                        viewModel.updateCoordinates(pt.latitude(), pt.longitude())
+                    onMarkerAnnotationLongPress = { site, elev ->
+                        viewModel.updateCoordinates(site.latitude(), site.longitude())
                         viewModel.updateLastVisited(
-                            pt.latitude(),
-                            pt.longitude(),
+                            site.latitude(),
+                            site.longitude(),
                             elev
                         )
                         isEditingMarker = false
-                        savedMarkerCoordinates = pt.latitude() to pt.longitude()
+                        savedMarkerCoordinates = site.latitude() to site.longitude()
                         launchSiteName = "New Marker"
                         showSaveDialog = true
                     },
@@ -330,7 +330,6 @@ fun HomeScreen(
                             launchSiteName = ""
                             isEditingMarker = false
                             viewModel.setUpdateStatusIdle()
-                            viewModel.setNewMarkerStatusFalse()
                         },
                         onConfirm = {
                             val (lat, lon) = savedMarkerCoordinates!!
