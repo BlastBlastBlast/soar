@@ -108,6 +108,7 @@ fun HomeScreen(
                     lon = pt.longitude(),
                     elevation = elev
                 )
+                launchSiteName = "New Marker"
             }
 
             // Map viewport state
@@ -154,7 +155,6 @@ fun HomeScreen(
                             elev
                         )
                         isEditingMarker = false
-                        savedMarkerCoordinates = pt.latitude() to pt.longitude()
                         launchSiteName = "New Marker"
                         showSaveDialog = true
                     },
@@ -319,7 +319,7 @@ fun HomeScreen(
                 )
 
                 // F) Save/Edit dialog
-                if (showSaveDialog && savedMarkerCoordinates != null) {
+                if (showSaveDialog) {
                     SaveLaunchSiteDialog(
                         launchSiteName = launchSiteName,
                         onNameChange = {
@@ -334,22 +334,22 @@ fun HomeScreen(
                             viewModel.setUpdateStatusIdle()
                         },
                         onConfirm = {
-                            val (lat, lon) = savedMarkerCoordinates!!
                             val elev: Double? = if (isEditingMarker) {
                                 viewModel.launchSites.value.first { it.uid == editingMarkerId }.elevation
                             } else {
                                 viewModel.lastVisited.value?.elevation
                             }
+                            //Null safety for savedMarkerCoordinates is that the only operation that sets isEditingMarker
+                            //to true also updates savedMarkerCoordinates
                             if (isEditingMarker) {
                                 viewModel.editLaunchSite(
                                     editingMarkerId,
-                                    lat, lon,
+                                    savedMarkerCoordinates!!.first, savedMarkerCoordinates!!.second,
                                     elev,
                                     launchSiteName
                                 )
                             } else {
-                                viewModel.addLaunchSite(lat, lon, elev, launchSiteName)
-                                viewModel.updateNewMarker(lat, lon, elev)
+                                viewModel.addLaunchSite(newMarker!!.latitude, newMarker!!.longitude, elev, launchSiteName)
                             }
                         },
                         updateStatus = updateStatus

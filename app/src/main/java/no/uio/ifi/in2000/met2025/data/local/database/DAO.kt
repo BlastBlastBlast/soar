@@ -21,8 +21,8 @@ interface LaunchSiteDAO {
     @Query("SELECT * FROM LaunchSite")
     fun getAll(): Flow<List<LaunchSite>>
 
-    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
-    suspend fun getSiteByName(name: String): LaunchSite?
+    @Query("SELECT * FROM LaunchSite WHERE uid = :id LIMIT 1")
+    suspend fun getSiteById(id: Int): LaunchSite?
 
     @Update
     suspend fun update(sites: LaunchSite)
