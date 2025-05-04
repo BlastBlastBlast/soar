@@ -142,7 +142,7 @@ class WeatherCardViewmodel @Inject constructor(
     fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) {
         viewModelScope.launch {
             _uiState.value = WeatherCardUiState.Loading
-            val result = locationForecastRepository.getForecastData(lat, lon, timeSpanInHours)
+            val result = locationForecastRepository.getTimeZoneAdjustedForecast(lat, lon, timeSpanInHours)
             result.fold(
                 onSuccess = { forecastData ->
                     _uiState.value = WeatherCardUiState.Success(forecastData.timeSeries)
