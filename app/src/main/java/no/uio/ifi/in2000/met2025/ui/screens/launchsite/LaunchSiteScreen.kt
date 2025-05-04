@@ -48,26 +48,6 @@ fun LaunchSiteScreen(
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                        .background(
-                            WarmOrange,
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "LAUNCH SITES",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -76,6 +56,28 @@ fun LaunchSiteScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     state = listState
                 ) {
+                    item {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 16.dp)
+                                .background(
+                                    WarmOrange,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "LAUNCH SITES",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
                     itemsIndexed(displaySites) { index, site ->
                         LaunchSiteItem(
                             site = site,

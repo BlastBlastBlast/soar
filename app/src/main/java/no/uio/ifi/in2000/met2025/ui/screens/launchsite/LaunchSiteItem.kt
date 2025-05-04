@@ -141,21 +141,19 @@ fun LaunchSiteItem(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth()) {
-                            AppOutlinedTextField(
-                                value = latitudeText,
-                                onValueChange = { latitudeText = it },
-                                label = { Text("Lat") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            AppOutlinedTextField(
-                                value = longitudeText,
-                                onValueChange = { longitudeText = it },
-                                label = { Text("Lon") },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                        AppOutlinedTextField(
+                            value = latitudeText,
+                            onValueChange = { latitudeText = it },
+                            label = { Text("Lat") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        AppOutlinedTextField(
+                            value = longitudeText,
+                            onValueChange = { longitudeText = it },
+                            label = { Text("Lon") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         Spacer(Modifier.height(8.dp))
                         Row(
                             Modifier.fillMaxWidth(),
