@@ -17,7 +17,6 @@ import org.junit.Test
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
-import no.uio.ifi.in2000.met2025.data.local.database.AppDatabase
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
@@ -27,7 +26,7 @@ import no.uio.ifi.in2000.met2025.fakes.FakeConfigProfileDao
 import no.uio.ifi.in2000.met2025.fakes.FakeGribDataDAO
 import no.uio.ifi.in2000.met2025.fakes.FakeGribUpdatedDAO
 import no.uio.ifi.in2000.met2025.fakes.FakeLaunchSiteDAO
-import org.junit.After
+import no.uio.ifi.in2000.met2025.helpers.exampleJson
 import org.junit.Before
 
 class WeatherCardViewmodelTest {
