@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,17 +32,25 @@ fun AppTopBar(
     val title = when {
         currentRoute == Screen.Home.route                              -> "Map"
         currentRoute == Screen.LaunchSite.route                        -> "Launch Sites"
-        currentRoute?.startsWith("weather?") == true                   -> "Weather"
+        currentRoute?.startsWith("weather?") == true             -> "Weather"
         currentRoute == Screen.RocketConfigList.route                  -> "Rocket Profiles"
-        currentRoute?.startsWith("rocket_config_edit") == true         -> "Edit Rocket Profile"
+        currentRoute?.startsWith("rocket_config_edit") == true   -> "Edit Rocket Profile"
         currentRoute == Screen.ConfigList.route                        -> "Weather Settings"
-        currentRoute?.startsWith("config_edit") == true                -> "Edit Weather Settings"
+        currentRoute?.startsWith("config_edit") == true          -> "Edit Weather Settings"
         else                                                           -> ""
     }
 
     TopAppBar(
         modifier       = Modifier.background(Color.Black),
-        title          = { Text(title, color = Color.White) },
+        title          = {
+            Text(
+                text = title,
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        },
         navigationIcon = {
             IconButton(onClick = onOpenDrawer) {
                 Image(
