@@ -26,7 +26,7 @@ fun SiteMenuItemList(
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        contentPadding      = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
     ) {
         pinned?.let { site ->
             item {

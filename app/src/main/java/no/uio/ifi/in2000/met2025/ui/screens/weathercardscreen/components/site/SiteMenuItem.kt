@@ -29,7 +29,7 @@ fun SiteMenuItem(
 ) {
     ElevatedCard(
         modifier  = Modifier
-            .fillMaxWidth()
+            .widthIn(min = minWidth, max = maxWidth)
             .animateContentSize(tween(200))
             .clickable(onClick = onClick),
         shape     = RoundedCornerShape(8.dp),
@@ -41,7 +41,6 @@ fun SiteMenuItem(
     ) {
         Row(
             Modifier
-                .widthIn(min = minWidth, max = maxWidth)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

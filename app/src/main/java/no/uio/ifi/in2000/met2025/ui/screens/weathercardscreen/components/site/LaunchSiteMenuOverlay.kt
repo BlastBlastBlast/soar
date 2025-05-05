@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,12 +36,13 @@ fun LaunchSitesMenuOverlay(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val configuration = LocalConfiguration.current
-    val screenWidth   = configuration.screenWidthDp.dp
-    val screenHeight  = configuration.screenHeightDp.dp
-    val minWidth      = screenWidth * 0.3f
-    val maxWidth      = screenWidth * 0.8f
-    val maxHeight     = screenHeight * 0.5f
+    val configuration   = LocalConfiguration.current
+    val screenWidth     = configuration.screenWidthDp.dp
+    val screenHeight    = configuration.screenHeightDp.dp
+    val minWidth        = screenWidth * 0.3f
+    val maxWidth        = screenWidth * 0.55f
+    val maxSurfaceWidth = screenWidth * 0.6f
+    val maxHeight       = screenHeight * 0.5f
 
     // 1) full‑screen dimmed backdrop
     Box(
@@ -57,7 +59,7 @@ fun LaunchSitesMenuOverlay(
         ) {
             Surface(
                 modifier        = Modifier
-                    .fillMaxWidth()
+                    .widthIn(max = maxSurfaceWidth, min = minWidth)
                     .padding(16.dp),
                 color           = WarmOrange,
                 tonalElevation  = 4.dp,
@@ -67,7 +69,7 @@ fun LaunchSitesMenuOverlay(
                 Column(
                     modifier = Modifier
                         .heightIn(max = maxHeight)
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SiteMenuItemList(

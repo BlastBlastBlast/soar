@@ -169,8 +169,8 @@ fun WeatherCardScreen(
                     },
                     onDismiss = { isLaunchMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomEnd) // For bottom-right placement.
-                        .offset(x = (-16).dp, y = -(56.dp + 16.dp)),
+                        .align(Alignment.BottomStart) // For bottom-right placement.
+                        .offset(y = -(30.dp + 16.dp)),
                 )
             }
         }
