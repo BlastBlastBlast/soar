@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,12 +36,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastRowSection
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
@@ -50,7 +47,6 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.FilterMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.site.LaunchSitesMenuOverlay
-import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import java.time.Instant
 
 
@@ -73,6 +69,7 @@ fun WeatherCardScreen(
     var isConfigMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isFilterMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isLaunchMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var selectedStatuses by remember { mutableStateOf(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION, LaunchStatus.UNSAFE)) }
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
@@ -143,6 +140,13 @@ fun WeatherCardScreen(
                     onToggleFilter = { filterActive = !filterActive },
                     hoursToShow = hoursToShow,
                     onHoursChanged = { hoursToShow = it },
+                    selectedStatuses = selectedStatuses,
+                    onStatusToggled = { status ->
+                        selectedStatuses = if (selectedStatuses.contains(status))
+                            selectedStatuses - status
+                        else
+                            selectedStatuses + status
+                    },
                     onDismiss = { isFilterMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
