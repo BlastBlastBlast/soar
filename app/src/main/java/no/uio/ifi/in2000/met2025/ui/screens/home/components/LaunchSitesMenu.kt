@@ -53,7 +53,7 @@ fun LaunchSitesMenu(
     val screenWidth   = configuration.screenWidthDp.dp
     val screenHeight  = configuration.screenHeightDp.dp
     val minWidth      = screenWidth * 0.3f
-    val maxWidth      = screenWidth * 0.8f
+    val maxWidth      = screenWidth * 0.5f
     val maxHeight     = screenHeight * 0.5f
 
     // build list with "New Marker" first
