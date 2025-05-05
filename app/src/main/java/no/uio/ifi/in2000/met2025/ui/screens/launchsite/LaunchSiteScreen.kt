@@ -32,6 +32,7 @@ fun LaunchSiteScreen(
 
     // Filter out temporary markers
     val displaySites = launchSites.filter { it.name != "New Marker" && it.name != "Last Visited" }
+    val sortedDisplaySites = displaySites.sortedBy { it.name }
 
     Box(
         Modifier
@@ -78,11 +79,11 @@ fun LaunchSiteScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                     }
-                    itemsIndexed(displaySites) { index, site ->
+                    itemsIndexed(sortedDisplaySites) { index, site ->
                         LaunchSiteItem(
                             site = site,
                             onDelete = { viewModel.deleteLaunchSite(site) },
-                            onEdit = { updatedSite -> viewModel.updateLaunchSite(updatedSite) },
+                            onEdit = { updatedSite -> viewModel.updateLaunchSite(updatedSite, site.name) },
                             updateStatus = updateStatus,
                             viewModel = viewModel,
                             listState = listState,

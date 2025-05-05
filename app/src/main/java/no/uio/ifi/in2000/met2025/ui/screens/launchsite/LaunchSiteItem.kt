@@ -162,7 +162,9 @@ fun LaunchSiteItem(
                             IconButton(onClick = {
                                 val newLat = latitudeText.toDoubleOrNull()
                                 val newLon = longitudeText.toDoubleOrNull()
-                                if (newLat != null && newLon != null && name.isNotBlank()) {
+                                if (newLat == site.latitude && newLon == site.longitude && name == site.name) {
+                                    isEditing = false
+                                } else if (newLat != null && newLon != null && name.isNotBlank()) {
                                     onEdit(
                                         LaunchSite(
                                             uid = site.uid,
@@ -171,9 +173,6 @@ fun LaunchSiteItem(
                                             name = name
                                         )
                                     )
-                                }
-                                if (newLat == site.latitude && newLon == site.longitude && name == site.name) {
-                                    isEditing = false
                                 }
                             }) {
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
