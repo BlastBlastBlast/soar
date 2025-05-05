@@ -9,14 +9,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import no.uio.ifi.in2000.met2025.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
-    navController: NavController,
+    navController: NavHostController,
     currentThemeDark: Boolean,
     onToggleTheme: () -> Unit,
     onOpenDrawer: () -> Unit
@@ -50,7 +50,7 @@ fun AppTopBar(
                     tint = Color.White
                 )
             }
-            IconButton(onClick = { navController.navigate(Screen.LaunchSite.route) }) {
+            IconButton(onClick = { navController.navigateSingleTopTo(Screen.LaunchSite.route) }) {
                 Icon(
                     painter = painterResource(R.drawable.fav_launchsites),
                     contentDescription = "Launch Sites",
