@@ -21,13 +21,22 @@ fun AppTopBar(
     onToggleTheme: () -> Unit,
     onOpenDrawer: () -> Unit
 ) {
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    val currentRoute = navController
+        .currentBackStackEntryAsState()
+        .value
+        ?.destination
+        ?.route
+
+    // Mirror the route names exactly as in your drawer info
     val title = when {
-        currentRoute == Screen.Home.route -> "Home"
-        currentRoute == Screen.LaunchSite.route -> "Launch Sites"
-        currentRoute?.startsWith("weather") == true -> "Weather"
-        currentRoute == Screen.RocketConfigList.route -> "Rocket Configurations"
-        else -> "Unknown"
+        currentRoute == Screen.Home.route                              -> "Map"
+        currentRoute == Screen.LaunchSite.route                        -> "Launch Sites"
+        currentRoute?.startsWith("weather?") == true                   -> "Weather"
+        currentRoute == Screen.RocketConfigList.route                  -> "Rocket Profiles"
+        currentRoute?.startsWith("rocket_config_edit") == true         -> "Edit Rocket Profile"
+        currentRoute == Screen.ConfigList.route                        -> "Weather Settings"
+        currentRoute?.startsWith("config_edit") == true                -> "Edit Weather Settings"
+        else                                                           -> ""
     }
 
     TopAppBar(
@@ -36,25 +45,21 @@ fun AppTopBar(
         navigationIcon = {
             IconButton(onClick = onOpenDrawer) {
                 Image(
-                    painter = painterResource(R.drawable.placeholder_logo),
-                    contentDescription = "Menu",
-                    modifier = Modifier.size(40.dp)
+                    painter           = painterResource(R.drawable.placeholder_logo),
+                    contentDescription = "Open navigation drawer",
+                    modifier          = Modifier.size(40.dp)
                 )
             }
         },
         actions = {
             IconButton(onClick = onToggleTheme) {
                 Icon(
-                    painter = painterResource(if (currentThemeDark) R.drawable.sun_icon else R.drawable.moon_icon),
-                    contentDescription = "Toggle Theme",
-                    tint = Color.White
-                )
-            }
-            IconButton(onClick = { navController.navigateSingleTopTo(Screen.LaunchSite.route) }) {
-                Icon(
-                    painter = painterResource(R.drawable.fav_launchsites),
-                    contentDescription = "Launch Sites",
-                    tint = Color.White
+                    painter           = painterResource(
+                        if (currentThemeDark) R.drawable.sun_icon
+                        else               R.drawable.moon_icon
+                    ),
+                    contentDescription = "Toggle theme",
+                    tint               = Color.White
                 )
             }
         },
