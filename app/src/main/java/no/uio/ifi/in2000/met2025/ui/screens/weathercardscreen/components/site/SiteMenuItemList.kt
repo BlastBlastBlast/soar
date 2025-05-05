@@ -10,13 +10,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
 @Composable
 fun SiteMenuItemList(
     launchSites: List<LaunchSite>,
-    onSelect: (LaunchSite) -> Unit
+    onSelect: (LaunchSite) -> Unit,
+    minWidth: Dp,
+    maxWidth: Dp
 ) {
     val pinned = launchSites.find { it.name == "New Marker" }
     val others = launchSites.filter { it.name != "New Marker" }
@@ -27,15 +30,25 @@ fun SiteMenuItemList(
     ) {
         pinned?.let { site ->
             item {
-                SiteMenuItem(site = site, onClick = { onSelect(site) })
+                SiteMenuItem(
+                    site = site,
+                    onClick = { onSelect(site) },
+                    minWidth = minWidth,
+                    maxWidth = maxWidth
+                )
             }
             item {
-                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
             }
         }
 
         itemsIndexed(others) { idx, site ->
-            SiteMenuItem(site = site, onClick = { onSelect(site) })
+            SiteMenuItem(
+                site = site,
+                onClick = { onSelect(site) },
+                minWidth = minWidth,
+                maxWidth = maxWidth
+            )
             if (idx < others.lastIndex) {
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
