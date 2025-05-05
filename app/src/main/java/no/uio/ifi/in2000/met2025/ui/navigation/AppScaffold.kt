@@ -17,7 +17,6 @@ fun AppScaffold(
     darkTheme: Boolean,
     toggleTheme: () -> Unit
 ) {
-    // — nav & drawer state (unchanged) —
     val navController   = rememberNavController()
     val drawerState     = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope           = rememberCoroutineScope()
