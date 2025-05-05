@@ -32,9 +32,9 @@ android {
                 "META-INF/third-party-licenses/gretty/LICENSE",
                 "META-INF/third-party-licenses/NOAA_LICENSE"
             )
-            println("Exclusions: $excludes") // Debug log to verify exclusions
         }
     }
+
 
     buildTypes {
         release {
@@ -87,8 +87,6 @@ dependencies {
     // Mapbox
     implementation("com.mapbox.extension:maps-compose:11.11.0")
     implementation("com.mapbox.maps:android:11.11.0")
-    //implementation("com.mapbox.maps:android-maps-extension-style-sources:11.11.0")
-    //implementation("com.mapbox.maps:android-maps-extension-style-layers:11.11.0")
 
     // Icons
     implementation(libs.androidx.material.icons.extended)
@@ -124,33 +122,35 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
-    implementation("org.apache.commons:commons-math3:3.6.1")
-
     //netcdf and dependencies
     implementation(libs.cdm.core)// Core library
     implementation(libs.grib) // GRIB1 & GRIB2 support
     implementation(libs.guava.v3100android)
     implementation(libs.listenablefuture)
 
-//    constraints {
-//        implementation("com.google.guava:guava:31.0.1-android")
-//        implementation("com.google.code.findbugs:jsr305:3.0.2")
-//        implementation("com.google.guava:listenablefuture:1.0")
-//    }
+    //system ui control
+    implementation(libs.accompanist.systemuicontroller)
 
-    // ND4J CPU Backend for linear algebra
-//    implementation(libs.nd4j.native.platform) {
-//        exclude(group = "com.google.guava", module = "guava")
-//        //exclude(group = "org.nd4j", module = "protobuf")
-//        exclude(group = "com.google.code.findbugs", module = "jsr305")
-//        exclude(group = "com.google.guava", module = "listenablefuture")
-//    }
 
     //database dependencies
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
+
+    //testing
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.slf4j.simple)
+    testImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.google.hilt.android.testing)
+    kspAndroidTest(libs.google.hilt.compiler)
+
+    //coil
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
 }
 
 //TEST LINE

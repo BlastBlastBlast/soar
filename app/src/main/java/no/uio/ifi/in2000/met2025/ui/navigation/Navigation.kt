@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.met2025.ui.navigation
 
 import android.os.Bundle
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +27,9 @@ import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigEditViewMod
 import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.accompanist.systemuicontroller.SystemUiController
+
 
 //TODO: FIKSE NAVIGATION KALL TIL Å IKKE LAUNCHE MANGE GANGER PÅ SAMME SKJERM!
 
@@ -60,6 +64,14 @@ fun AppNavLauncher(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = Color.Black,
+            darkIcons = false // Always white text/icons
+        )
+    }
+
     // Determine current screen title based on the nav back stack.
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentScreenTitle = when (currentBackStackEntry?.destination?.route) {
@@ -77,6 +89,7 @@ fun AppNavLauncher(
     val homeScreenViewModel: HomeScreenViewModel = hiltViewModel()
 
     ModalNavigationDrawer(
+        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
         drawerState = drawerState,
         gesturesEnabled = gesturesEnabled,
         drawerContent = {
@@ -136,6 +149,8 @@ fun AppNavLauncher(
         Scaffold(
             topBar = {
                 TopAppBar(
+                    modifier = Modifier
+                        .background(Color.Black),
                     title = { Text(text = currentScreenTitle, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -172,7 +187,9 @@ fun AppNavLauncher(
             NavHost(
                 navController = navController,
                 startDestination = Screen.Home.route,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .windowInsetsPadding(WindowInsets.ime)
             ) {
                 composable(Screen.Home.route) {
                     HomeScreen(

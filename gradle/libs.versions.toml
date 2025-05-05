@@ -1,4 +1,5 @@
 [versions]
+accompanistSystemuicontroller = "0.32.0"
 agp = "8.9.1"
 cdmCore = "5.7.0"
 commonsMath3 = "3.6.1"
@@ -25,15 +26,19 @@ kotlinxSerializationJson = "1.8.0"
 appcompat = "1.7.0"
 listenablefuture = "31.1-android"
 materialIconsExtended = "1.7.8"
-multikCore = "0.2.3"
-multikDefault = "0.2.3"
-nd4jNativePlatform = "1.0.0-M2.1"
+ktorClientMock = "3.1.0"
+slf4jSimple = "2.0.7"
+kotlinTest = "2.1.20"
+kotlinxCoroutinesTest = "1.7.3"
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 cdm-core = { module = "edu.ucar:cdm-core", version.ref = "cdmCore" }
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commonsMath3" }
+google-hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hiltAndroid" }
+google-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 grib = { module = "edu.ucar:grib", version.ref = "cdmCore" }
 guava-v3100android = { module = "com.google.guava:guava", version.ref = "guavaVersion" }
@@ -61,9 +66,10 @@ ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", vers
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 listenablefuture = { module = "com.google.guava:listenablefuture", version.ref = "listenablefuture" }
-multik-core = { module = "org.jetbrains.kotlinx:multik-core", version.ref = "multikCore" }
-multik-default = { module = "org.jetbrains.kotlinx:multik-default", version.ref = "multikDefault" }
-nd4j-native-platform = { module = "org.nd4j:nd4j-native-platform", version.ref = "nd4jNativePlatform" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorClientMock" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

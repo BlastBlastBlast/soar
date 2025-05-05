@@ -29,7 +29,7 @@ class LaunchSiteViewModel @Inject constructor(
 
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
-        object Success : UpdateStatus()
+        data class Success(val siteUid: Int) : UpdateStatus()
         data class Error(val message: String) : UpdateStatus()
     }
 
@@ -101,7 +101,7 @@ class LaunchSiteViewModel @Inject constructor(
             } else {
                 // Use your repository's update function.
                 launchSitesRepository.update(launchSite)
-                _updateStatus.value = UpdateStatus.Success
+                _updateStatus.value = UpdateStatus.Success(launchSite.uid)
             }
         }
     }
