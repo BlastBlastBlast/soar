@@ -182,8 +182,8 @@ fun MapView(
                 if (trajectoryPoints.isEmpty()) return@MapEffect
                 mv.mapboxMap.getStyle { style ->
                     trajectoryPoints.forEachIndexed { idx, (vec, _) ->
-                        val lon = vec.getEntry(0)
-                        val lat = vec.getEntry(1)
+                        val lon = vec.getEntry(1)
+                        val lat = vec.getEntry(0)
                         val alt = vec.getEntry(2)
 
                         val modelId  = "redball-$idx"
@@ -229,8 +229,8 @@ fun MapView(
                 (mv.context as ComponentActivity).lifecycleScope.launch {
                     var prev: Point? = null
                     trajectoryPoints.forEach { (vec, _) ->
-                        val lon = vec.getEntry(0)
-                        val lat = vec.getEntry(1)
+                        val lon = vec.getEntry(1)
+                        val lat = vec.getEntry(0)
                         val alt = vec.getEntry(2)
                         val p   = Point.fromLngLat(lon, lat, alt)
                         val bearing = prev?.let {

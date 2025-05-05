@@ -1,5 +1,7 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import android.util.Log
+import io.ktor.client.plugins.logging.Logging
 import no.uio.ifi.in2000.met2025.data.models.Angle
 import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
@@ -97,6 +99,17 @@ class IsobaricInterpolator(
                 onFailure = { return Result.failure(it) }
             )
         if (altitude < lowerSurface(latFractional, lonFractional).altitude) {
+            if (isobaricIndex == 0) {
+                Log.i("IsobaricInterpolator", "lowerSurface altitude: ${lowerSurface(latFractional, lonFractional).altitude}")
+                return Result.success(
+                    lowerSurface(latFractional, lonFractional)
+                        .also {
+                            lastVisitedIsobaricIndex = 0
+                        }
+                )
+            }
+
+            Log.i("IsobaricInterpolator", "lowerSurface: ${lowerSurface(latFractional, lonFractional)}")
             return getValuesAtAppropriateLevel(isobaricIndex - 1, coordinates, time)
         }
 
@@ -106,6 +119,17 @@ class IsobaricInterpolator(
                 onFailure = { return Result.failure(it) }
             )
         if (altitude > upperSurface(latFractional, lonFractional).altitude) {
+            if (isobaricIndex == layerPressureValues.size - 1) {
+                Log.i("IsobaricInterpolator", "upperSurface: ${upperSurface(latFractional, lonFractional)}")
+                return Result.success(
+                    upperSurface(latFractional, lonFractional)
+                        .also {
+                            lastVisitedIsobaricIndex = layerPressureValues.size - 1
+                        }
+                )
+            }
+
+            Log.i("IsobaricInterpolator", "upperSurface: ${upperSurface(latFractional, lonFractional)}")
             return getValuesAtAppropriateLevel(isobaricIndex + 1, coordinates, time)
         }
 
@@ -136,6 +160,9 @@ class IsobaricInterpolator(
     }
 
     private suspend fun getSurface(indices: List<Int>, time: Instant): Result<(Double, Double) -> CartesianIsobaricValues> {
+
+        Log.i("IsobaricInterpolator", "getSurface: $indices")
+
         return Result.success(
             surfaceCache[indices] ?: interpolatedSurface(
                 Array<Array<CartesianIsobaricValues>>(4) { col ->
@@ -158,7 +185,9 @@ class IsobaricInterpolator(
     private var howManyAPICalls = 0
 
     private suspend fun getPoint(indices: List<Int>, time: Instant): Result<CartesianIsobaricValues> {
-        print("$indices")
+
+        Log.i("IsobaricInterpolator", "getPoint: $indices")
+
         return Result.success(
             pointCache[indices] ?:
             when {
@@ -191,7 +220,7 @@ class IsobaricInterpolator(
                         onFailure = { return Result.failure(it) }
                     )
                     howManyAPICalls += 1
-                    println("API call number: $howManyAPICalls\n")
+                    Log.i("IsobaricInterpolator", "API call number: $howManyAPICalls")
 
                     val forecastDataValues = forecastData.timeSeries[0].values
 
@@ -200,7 +229,7 @@ class IsobaricInterpolator(
                     val groundPressure = calculatePressureAtAltitude(
                         altitude = forecastData.altitude,
                         referencePressure = forecastDataValues.airPressureAtSeaLevel,
-                        referenceAirTemperature = airTemperatureAtSeaLevel
+                        referenceAirTemperature = airTemperatureAtSeaLevel,
                     )
 
                     val windSpeed = forecastDataValues.windSpeed
@@ -227,7 +256,7 @@ class IsobaricInterpolator(
                         pressure = pressure.toDouble(),
                         referencePressure = valuesBelow.pressure,
                         referenceAltitude = valuesBelow.altitude,
-                        referenceAirTemperature = valuesBelow.temperature
+                        referenceAirTemperature = valuesBelow.temperature + CELSIUS_TO_KELVIN
                     )
                     // 1) make sure we have data at all
                     val grib = gribMap
@@ -257,13 +286,14 @@ class IsobaricInterpolator(
                     CartesianIsobaricValues(
                         altitude = altitude,
                         pressure = pressure.toDouble(),
-                        temperature = gribVector.temperature.toDouble(),
+                        temperature = gribVector.temperature.toDouble() - CELSIUS_TO_KELVIN,
                         windXComponent = gribVector.uComponentWind.toDouble(),
                         windYComponent = gribVector.vComponentWind.toDouble()
                     )
                 }
             }.also {
                 pointCache[indices] = it
+                Log.i("IsobaricInterpolator", "point: $indices, value: $it")
             }
         )
     }
@@ -274,7 +304,12 @@ class IsobaricInterpolator(
         coordinate: Int,
         isLowerBound: Boolean
     ): Result<CartesianIsobaricValues> {
-        val indexAdjustment = if (isLowerBound) 1 else -2
+
+        Log.i("IsobaricInterpolator.handleOutOfBounds", "handleOutOfBounds: $indices, isLowerBound: $isLowerBound")
+
+        val indexAdjustment = if (isLowerBound) +1 else -2
+        Log.i("IsobaricInterpolator.handleOutOfBounds", "indexAdjustment: $indexAdjustment")
+        Log.i("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
         val p1 = getPoint(
             indices.mapIndexed{ i, value -> value + if (i == coordinate) indexAdjustment else 0 },
             time
@@ -283,6 +318,7 @@ class IsobaricInterpolator(
             onFailure = { return Result.failure(it) }
         ).toRealVector()
 
+        Log.i("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
         val p2 = getPoint(
             indices.mapIndexed{ i, value -> value + if (i == coordinate) indexAdjustment + 1 else 0 },
             time
@@ -291,7 +327,11 @@ class IsobaricInterpolator(
             onFailure = { return Result.failure(it) }
         ).toRealVector()
 
-        val extrapolatedPoint = if (isLowerBound) 2.0 * p1 - p2 else 2.0 * p2 - p1
+        Log.i("IsobaricInterpolator.handleOutOfBounds", "p1.altitude: ${p1[0]}, p2.altitude: ${p2[0]}")
+
+        val extrapolatedPoint = if (isLowerBound) (2.0 * p1) - p2 else (2.0 * p2) - p1
+
+        Log.i("IsobaricInterpolator.handleOutOfBounds", "extrapolatedPoint.altitude: ${extrapolatedPoint[0]}")
 
         return Result.success(
             CartesianIsobaricValues(
@@ -310,8 +350,9 @@ class IsobaricInterpolator(
 
         return { t0, t1 ->
             if (t0 !in 0.0..1.0 || t1 !in 0.0..1.0) {
-                println("🛑 Fractional parts out of bounds: t0 = $t0, t1 = $t1")
-                println("⚠️  Likely bad coordinate input or rounding issue")
+                Log.i("IsobaricInterpolator", "Fractional parts out of bounds: t0 = $t0, t1 = $t1")
+                Log.i("IsobaricInterpolator", "Points: ${points.map { it.toList() }}")
+                Log.i("IsobaricInterpolator", "Likely bad coordinate input or rounding issue")
             }
 
             assert(t0 in 0.0..1.0) { "Latitude fractional part out of bounds: $t0" }
@@ -331,6 +372,13 @@ class IsobaricInterpolator(
             val temperature = latVector * catmullRomMatrix * temperatureMatrix * catmullRomMatrix.transpose() * lonVector
             val windX = latVector * catmullRomMatrix * windXMatrix * catmullRomMatrix.transpose() * lonVector
             val windY = latVector * catmullRomMatrix * windYMatrix * catmullRomMatrix.transpose() * lonVector
+
+//            Log.i("IsobaricInterpolator", "t0 = $t0, t1 = $t1")
+//            Log.i("IsobaricInterpolator", "altitudeMatrix = $altitudeMatrix")
+//            Log.i("IsobaricInterpolator", "temperatureMatrix = $temperatureMatrix")
+//            Log.i("IsobaricInterpolator", "windXMatrix = $windXMatrix")
+//            Log.i("IsobaricInterpolator", "windYMatrix = $windYMatrix")
+//            Log.i("IsobaricInterpolator", "Interpolated values: altitude = $altitude, temperature = $temperature, windX = $windX, windY = $windY")
 
             CartesianIsobaricValues(
                 altitude = altitude,

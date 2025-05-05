@@ -281,7 +281,7 @@ class HomeScreenViewModel @Inject constructor(
 
             // 2) Build the initial position from your center coords + elevation
             val (lat, lon) = _coordinates.value
-            val elev       = _lastVisited.value?.elevation ?: 0.0
+            val elev       = launchSitesRepository.getLastVisitedElevation()
             val initial    = ArrayRealVector(doubleArrayOf(lat, lon, elev))
             val traj: List<Pair<RealVector, Double>> = TrajectoryCalculator(isobaricInterpolator)
             // 3) Run the physics‐based sim

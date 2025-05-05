@@ -1,6 +1,8 @@
 package no.uio.ifi.in2000.met2025.data.local.launchsites
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
@@ -39,6 +41,10 @@ class LaunchSitesRepository @Inject constructor(
 
     fun getLastVisitedTempSite(): Flow<LaunchSite?> {
         return launchSiteDAO.getLastVisitedTempSite()
+    }
+
+    suspend fun getLastVisitedElevation(): Double {
+        return launchSiteDAO.getLastVisitedTempSite().firstOrNull()?.elevation ?: 0.0
     }
 
     fun getNewMarkerTempSite(): Flow<LaunchSite?> {
