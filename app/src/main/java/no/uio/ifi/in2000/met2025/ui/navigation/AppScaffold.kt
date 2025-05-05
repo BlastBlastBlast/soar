@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
@@ -18,7 +19,7 @@ fun AppScaffold(
 ) {
     // — nav & drawer state (unchanged) —
     val navController   = rememberNavController()
-    val drawerState     = rememberDrawerState(DrawerValue.Closed)
+    val drawerState     = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope           = rememberCoroutineScope()
     val sysUiController = rememberSystemUiController()
 
@@ -32,10 +33,18 @@ fun AppScaffold(
     // ↓ hoist all VMs in one call ↓
     val vm = provideAppViewModels()
 
+    // observe the current route
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    // gesturesEnabled = true when:
+    //  • we’re not on Home (allow drag-to-open), OR
+    //  • drawer is already open (always allow drag-to-close)
+    val gesturesEnabled = (currentRoute != Screen.Home.route) || drawerState.isOpen
 
     ModalNavigationDrawer(
         drawerState     = drawerState,
-        gesturesEnabled = true,  // you can still pass gesturesEnabled if you want
+        gesturesEnabled = gesturesEnabled,
         modifier        = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
         drawerContent   = {
             AppDrawer(
