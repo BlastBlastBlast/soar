@@ -9,8 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,6 +23,27 @@ import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
 import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.*
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.*
 
+import androidx.navigation.NavGraph.Companion.findStartDestination
+
+/**
+ * Navigate to [route] but:
+ *  • pop up to the graph’s start destination (so we don’t pile on duplicates)
+ *  • save & restore state
+ *  • launchSingleTop
+ */
+fun NavHostController.navigateSingleTopTo(route: String) {
+    this.navigate(route) {
+        // Pop up to the start destination of this graph to avoid building up a huge back stack
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        // Only one copy on top
+        launchSingleTop = true
+        // If we’ve been here before, restore state
+        restoreState = true
+    }
+}
+
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
@@ -32,7 +54,7 @@ fun NavigationGraph(
     rocketConfigEditViewModel: RocketConfigEditViewModel
 ) {
     NavHost(
-        navController   = navController,
+        navController    = navController,
         startDestination = Screen.Home.route,
         modifier         = Modifier
             .padding(innerPadding)
@@ -41,12 +63,15 @@ fun NavigationGraph(
         // Home
         composable(Screen.Home.route) {
             HomeScreen(
-                viewModel         = homeScreenViewModel,
+                viewModel = homeScreenViewModel,
                 onNavigateToWeather = { lat, lon ->
-                    navController.navigate(Screen.Weather.createRoute(lat, lon))
+                    navController.navigateSingleTopTo(
+                        Screen.Weather.createRoute(lat, lon)
+                    )
                 }
             )
         }
+
         // Weather
         composable(
             route     = Screen.Weather.route,
@@ -63,25 +88,32 @@ fun NavigationGraph(
             }
 
             WeatherCardScreen(
-                viewModel      = weatherCardViewModel,
-                navController  = navController
+                viewModel     = weatherCardViewModel,
+                navController = navController
             )
         }
+
         // Launch Site
         composable(Screen.LaunchSite.route) {
             LaunchSiteScreen()
         }
+
         // Config List
         composable(Screen.ConfigList.route) {
             ConfigListScreen(
-                onEditConfig   = { cfg -> navController.navigate("config_edit/${cfg.id}") },
-                onAddConfig    = { navController.navigate("config_edit/-1") },
+                onEditConfig   = { cfg ->
+                    navController.navigateSingleTopTo("config_edit/${cfg.id}")
+                },
+                onAddConfig    = {
+                    navController.navigateSingleTopTo("config_edit/-1")
+                },
                 onSelectConfig = { cfg ->
                     weatherCardViewModel.setActiveConfig(cfg)
                     navController.popBackStack()
                 }
             )
         }
+
         // Config Edit
         composable(
             route     = "config_edit/{configId}",
@@ -90,32 +122,36 @@ fun NavigationGraph(
                 defaultValue = -1
             })
         ) { back ->
-            val id = back.arguments?.getInt("configId") ?: -1
+            val id by remember {
+                mutableStateOf(back.arguments?.getInt("configId") ?: -1)
+            }
             val config by configEditViewModel
                 .getConfigProfile(id)
                 .collectAsState(initial = null)
 
             ConfigEditScreen(
-                config        = config,
+                config         = config,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
         // Rocket Config List
         composable(Screen.RocketConfigList.route) {
             RocketConfigListScreen(
                 onEditRocketConfig = { rocket ->
-                    // Navigate using both name and id.
-                    navController.navigate(Screen.RocketConfigEdit.createRoute(rocket.name, rocket.id))
+                    navController.navigateSingleTopTo(
+                        Screen.RocketConfigEdit.createRoute(rocket.name, rocket.id)
+                    )
                 },
                 onAddRocketConfig = {
-                    // Use a placeholder name ("new") and -1 id for a new configuration.
-                    navController.navigate(Screen.RocketConfigEdit.createRoute("new", -1))
+                    navController.navigateSingleTopTo(
+                        Screen.RocketConfigEdit.createRoute("new", -1)
+                    )
                 },
-                onSelectRocketConfig = { rocket ->
-                    // You may handle selection here.
-                }
+                onSelectRocketConfig = { /* … */ }
             )
         }
+
         // Rocket Config Edit
         composable(
             route     = Screen.RocketConfigEdit.route,
