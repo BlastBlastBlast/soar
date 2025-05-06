@@ -27,29 +27,25 @@ import no.uio.ifi.in2000.met2025.ui.configprofiles.common.ScreenContainer
 import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SectionCard
 import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SettingItem
 import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SettingRow
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun ConfigEditScreen(
     config: ConfigProfile? = null,
-    viewModel: ConfigEditViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val updateStatus by viewModel.updateStatus.collectAsState()
 
-    // 1) UI state
     var configName               by remember(config) { mutableStateOf(config?.name ?: "") }
     var groundWind               by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
     var isEnabledGroundWind      by remember(config) { mutableStateOf(config?.isEnabledGroundWind == true) }
-
     var airWind                  by remember(config) { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
     var isEnabledAirWind         by remember(config) { mutableStateOf(config?.isEnabledAirWind == true) }
-
     var windShear                by remember(config) { mutableStateOf(config?.windShearSpeedThreshold?.toString() ?: "24.5") }
     var isEnabledWindShear       by remember(config) { mutableStateOf(config?.isEnabledWindShear == true) }
-
     var isEnabledWindDirection   by remember(config) { mutableStateOf(config?.isEnabledWindDirection == true) }
-
     var overallCloud             by remember(config) { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
     var isEnabledOverallCloud    by remember(config) { mutableStateOf(config?.isEnabledCloudCover == true) }
     var highCloud                by remember(config) { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
@@ -58,7 +54,6 @@ fun ConfigEditScreen(
     var isEnabledMedCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium == true) }
     var lowCloud                 by remember(config) { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
     var isEnabledLowCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow == true) }
-
     var fog                      by remember(config) { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
     var isEnabledFog             by remember(config) { mutableStateOf(config?.isEnabledFog == true) }
     var precip                   by remember(config) { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
@@ -69,11 +64,9 @@ fun ConfigEditScreen(
     var isEnabledDewPoint        by remember(config) { mutableStateOf(config?.isEnabledDewPoint == true) }
     var thunder                  by remember(config) { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
     var isEnabledThunder         by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder == true) }
-
     var altitude                 by remember(config) { mutableStateOf(config?.altitudeUpperBound?.toString() ?: "5000.0") }
     var isEnabledAltitude        by remember(config) { mutableStateOf(config?.isEnabledAltitudeUpperBound == true) }
 
-    // 2) Build typed lists
     val windSettings = listOf(
         SettingItem("Ground Wind Threshold", groundWind, { groundWind = it }, isEnabledGroundWind) { isEnabledGroundWind = it },
         SettingItem("Air Wind Threshold",    airWind,    { airWind    = it }, isEnabledAirWind)    { isEnabledAirWind    = it },
@@ -95,22 +88,29 @@ fun ConfigEditScreen(
         SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
     )
 
-    // 3) Render
-    ScreenContainer(title = if (config==null) "New Configuration" else "Edit Configuration") {
-        val isNameError = updateStatus is ConfigEditViewModel.UpdateStatus.Error &&
+    LaunchedEffect(configName) {
+        viewModel.checkWeatherNameAvailability(configName)
+    }
+
+    ScreenContainer(title = if (config == null) "New Configuration" else "Edit Configuration") {
+        val isNameError = updateStatus is SettingsViewModel.UpdateStatus.Error &&
                 configName != config?.name
+
         // Name
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
             AppOutlinedTextField(
                 value         = configName,
-                onValueChange = { configName = it; viewModel.checkNameAvailability(it) },
-                label         = { Text("Name") },
-                modifier      = Modifier.fillMaxWidth()
+                onValueChange = {
+                    configName = it
+                    viewModel.checkWeatherNameAvailability(it)
+                },
+                label    = { Text("Name") },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
                 Text(
-                    (updateStatus as ConfigEditViewModel.UpdateStatus.Error).message,
+                    (updateStatus as SettingsViewModel.UpdateStatus.Error).message,
                     color = Color.Red
                 )
             }
@@ -222,13 +222,9 @@ fun ConfigEditScreen(
                     isDefault                      = config?.isDefault == true
                 )
                 if (config == null) {
-                    viewModel.saveConfig(updated)
-                    onNavigateBack()
+                    viewModel.saveWeatherConfig(updated)
                 } else {
-                    if (!isNameError) {
-                        viewModel.updateConfig(updated)
-                        onNavigateBack()
-                    }
+                    viewModel.updateWeatherConfig(updated)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -239,17 +235,17 @@ fun ConfigEditScreen(
         ) {
             Text("Save Configuration")
         }
-        if (isNameError) {
+        if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
             Text(
-                (updateStatus as ConfigEditViewModel.UpdateStatus.Error).message,
+                (updateStatus as SettingsViewModel.UpdateStatus.Error).message,
                 color = Color.Red
             )
         }
     }
     LaunchedEffect(updateStatus) {
-        if (updateStatus is ConfigEditViewModel.UpdateStatus.Success) {
-            // Clear the status after a successful update.
-            viewModel.setUpdateStatusToIdle()
+        if (updateStatus is SettingsViewModel.UpdateStatus.Success) {
+            viewModel.resetWeatherStatus()
+            onNavigateBack()
         }
     }
 }
