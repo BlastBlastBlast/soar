@@ -274,6 +274,8 @@ class HomeScreenViewModel @Inject constructor(
         isTrajectoryMode = true
     }
 
+    fun startTrajectory(){/* noop */}
+    /*
     /** Start the trajectory using the currently selected config */
     fun startTrajectory() {
         viewModelScope.launch {
@@ -310,7 +312,7 @@ class HomeScreenViewModel @Inject constructor(
             isTrajectoryMode = true
         }
     }
-
+ */
 
     fun onTrajectoryComplete() {
         isAnimating      = false
