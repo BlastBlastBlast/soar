@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -20,8 +21,8 @@ interface LaunchSiteDAO {
     @Query("SELECT * FROM LaunchSite")
     fun getAll(): Flow<List<LaunchSite>>
 
-    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
-    suspend fun getSiteByName(name: String): LaunchSite?
+    @Query("SELECT * FROM LaunchSite WHERE uid = :id LIMIT 1")
+    suspend fun getSiteById(id: Int): LaunchSite?
 
     @Update
     suspend fun update(sites: LaunchSite)
@@ -113,7 +114,7 @@ interface ConfigProfileDAO {
 
 @Dao
 interface RocketConfigDao {
-
+    //TODO: CHECK IF REPLACE OR IGNORE
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRocketConfig(rc: RocketConfig)
 
@@ -134,4 +135,19 @@ interface RocketConfigDao {
 
     @Query("SELECT * FROM rocket_configurations WHERE is_default = 1 LIMIT 1")
     fun getDefaultRocketConfig(): Flow<RocketConfig?>
+
+    @Query("SELECT * FROM rocket_configurations WHERE name = :name LIMIT 1")
+    fun getRocketConfigByName(name: String): Flow<RocketConfig?>
+
+    @Query("UPDATE rocket_configurations SET is_default = 0")
+    suspend fun clearDefaultFlags()
+
+    @Query("UPDATE rocket_configurations SET is_default = 1 WHERE id = :rocketId")
+    suspend fun setDefaultFlag(rocketId: Int)
+
+    @Transaction
+    suspend fun setDefaultRocketConfig(rocketId: Int) {
+        clearDefaultFlags()
+        setDefaultFlag(rocketId)
+    }
 }

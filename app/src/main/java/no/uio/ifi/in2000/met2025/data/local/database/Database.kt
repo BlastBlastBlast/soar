@@ -6,10 +6,12 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 import androidx.room.Index
+import no.uio.ifi.in2000.met2025.data.models.Angle
+import java.sql.Types.NULL
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
-    version = 1
+    version = 9
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
@@ -25,7 +27,7 @@ data class LaunchSite(
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "elevation") val elevation: Double = 0.0
+    @ColumnInfo(name = "elevation") val elevation: Double? = null
 )
 
 @Entity(tableName = "grib_files")
@@ -55,8 +57,7 @@ data class GribUpdated(
 
 @Entity(tableName = "config_profiles")
 data class ConfigProfile(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val name: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
     @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
     @ColumnInfo(name = "humidity_threshold") val humidityThreshold: Double = 75.0,
@@ -87,23 +88,26 @@ data class ConfigProfile(
     @ColumnInfo(name = "is_enabled_wind_shear") val isEnabledWindShear: Boolean = true,
 )
 
-@Entity(tableName = "rocket_configurations")
+@Entity(
+    tableName = "rocket_configurations",
+    indices = [Index(value = ["name"], unique = true)]
+)
 data class RocketConfig(
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id") val id: Int = 0,
-    @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "apogee") val apogee: Double,
-    @ColumnInfo(name = "launch_direction") val launchDirection: Double,
-    @ColumnInfo(name = "launch_angle") val launchAngle: Double,
-    @ColumnInfo(name = "thrust") val thrust: Double,
-    @ColumnInfo(name = "burn_time") val burnTime: Double,
-    @ColumnInfo(name = "dry_weight") val dryWeight: Double,
-    @ColumnInfo(name = "wet_weight") val wetWeight: Double,
-    @ColumnInfo(name = "resolution") val resolution: Double,
-    @ColumnInfo(name = "body_diameter") val bodyDiameter: Double,
-    @ColumnInfo(name = "drag_coefficient") val dragCoefficient: Double,
-    @ColumnInfo(name = "parachute_area") val parachuteArea: Double,
-    @ColumnInfo(name = "parachute_drag_coefficient") val parachuteDragCoefficient: Double,
-    @ColumnInfo(name = "is_default") val isDefault: Boolean = false
+    val id: Int = 0,
+    val name: String,
+    @ColumnInfo(name = "launch_azimuth")               val launchAzimuth: Double,
+    @ColumnInfo(name = "launch_pitch")                 val launchPitch: Double,
+    @ColumnInfo(name = "launch_rail_length")           val launchRailLength: Double,
+    @ColumnInfo(name = "wet_mass")                     val wetMass: Double,
+    @ColumnInfo(name = "dry_mass")                     val dryMass: Double,
+    @ColumnInfo(name = "burn_time")                    val burnTime: Double,
+    @ColumnInfo(name = "thrust")                       val thrust: Double,
+    @ColumnInfo(name = "step_size")                    val stepSize: Double,
+    @ColumnInfo(name = "cross_sectional_area")         val crossSectionalArea: Double,
+    @ColumnInfo(name = "drag_coefficient")             val dragCoefficient: Double,
+    @ColumnInfo(name = "parachute_cross_sectional_area") val parachuteCrossSectionalArea: Double,
+    @ColumnInfo(name = "parachute_drag_coefficient")   val parachuteDragCoefficient: Double,
+    @ColumnInfo(name = "is_default")                   val isDefault: Boolean = false
 )
 

@@ -24,15 +24,25 @@ fun SaveLaunchSiteDialog(
     onConfirm: () -> Unit,
     updateStatus: HomeScreenViewModel.UpdateStatus
 ) {
+    // only allow dismiss when there's no error
+    val canDismiss = updateStatus !is HomeScreenViewModel.UpdateStatus.Error
+
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            if (canDismiss) {
+                onDismiss()
+            }
+        },
         containerColor   = MaterialTheme.colorScheme.primary,
         tonalElevation   = AlertDialogDefaults.TonalElevation,
 
         title = {
             CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
                 Text(
-                    text  = "Save Launch Site",
+                    text  = if (updateStatus is HomeScreenViewModel.UpdateStatus.Error)
+                        "Name Already Exists"
+                    else
+                        "Save Launch Site",
                     style = AppTypography.headlineSmall
                 )
             }
@@ -53,9 +63,11 @@ fun SaveLaunchSiteDialog(
                         modifier      = Modifier.fillMaxWidth()
                     )
                     if (updateStatus is HomeScreenViewModel.UpdateStatus.Error) {
+                        Spacer(Modifier.height(4.dp))
                         Text(
-                            text = updateStatus.message,
-                            color = Color.Red
+                            text  = updateStatus.message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = AppTypography.bodySmall
                         )
                     }
                 }
@@ -64,8 +76,9 @@ fun SaveLaunchSiteDialog(
 
         confirmButton = {
             Button(
-                onClick      = onConfirm,
-                colors       = ButtonDefaults.buttonColors(
+                onClick = onConfirm,
+                enabled = launchSiteName.isNotBlank(), // prevent empty name
+                colors  = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor   = MaterialTheme.colorScheme.primary
                 )
@@ -76,8 +89,11 @@ fun SaveLaunchSiteDialog(
 
         dismissButton = {
             TextButton(
-                onClick      = onDismiss,
-                colors       = ButtonDefaults.textButtonColors(
+                onClick = {
+                    if (canDismiss) onDismiss()
+                },
+                enabled = canDismiss,
+                colors  = ButtonDefaults.textButtonColors(
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
@@ -86,4 +102,3 @@ fun SaveLaunchSiteDialog(
         }
     )
 }
-

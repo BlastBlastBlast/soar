@@ -6,15 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -28,7 +33,8 @@ fun MarkerLabel(
     name: String,
     lat: String,
     lon: String,
-    elevation: String? = null,       // ← new parameter
+    elevation: String? = null,
+    isLoadingElevation: Boolean = false,
     onClick: () -> Unit,
     onDoubleClick: () -> Unit,
     onLongPress: () -> Unit,
@@ -40,14 +46,14 @@ fun MarkerLabel(
         modifier = Modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap       = { onClick() },
+                    onTap = { onClick() },
                     onDoubleTap = { onDoubleClick() },
                     onLongPress = { onLongPress() }
                 )
             }
     ) {
         Column {
-            // — Title row —
+            // Title bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -59,60 +65,81 @@ fun MarkerLabel(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text           = name,
-                    fontSize       = fontSize,
-                    color          = MaterialTheme.colorScheme.onPrimary,
+                    text = name,
+                    fontSize = fontSize,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     textDecoration = TextDecoration.Underline
                 )
             }
 
-            // — Body rows: lat, lon, (optional) elev —
+            // Body: lat, lon, elevation/spinner
             Column(
-                modifier           = Modifier
+                modifier = Modifier
                     .padding(horizontal = 6.dp, vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Row {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text     = "Lat: ",
+                        text = "Lat: ",
                         fontSize = fontSize,
-                        color    = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text        = lat,
-                        fontSize    = fontSize,
-                        fontWeight  = FontWeight.Bold,
-                        color       = MaterialTheme.colorScheme.onPrimary
+                        text = lat,
+                        fontSize = fontSize,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-                Row {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text     = "Lon: ",
+                        text = "Lon: ",
                         fontSize = fontSize,
-                        color    = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text        = lon,
-                        fontSize    = fontSize,
-                        fontWeight  = FontWeight.Bold,
-                        color       = MaterialTheme.colorScheme.onPrimary
+                        text = lon,
+                        fontSize = fontSize,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-                // only show elevation if non-null
-                elevation?.let { elevText ->
-                    Row {
-                        Text(
-                            text     = "Elev: ",
-                            fontSize = fontSize,
-                            color    = MaterialTheme.colorScheme.onPrimary
+
+                if (isLoadingElevation) {
+                    // Match spinner size to font size to avoid stutter
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.height(fontSize.value.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(fontSize.value.dp),
+                            strokeWidth = (fontSize.value / 2).dp,
+                            color = Color.Black
                         )
-                        Text(
-                            text        = elevText,
-                            fontSize    = fontSize,
-                            fontWeight  = FontWeight.Bold,
-                            color       = MaterialTheme.colorScheme.onPrimary
-                        )
+                    }
+                } else {
+                    elevation?.let { elevText ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Elev: ",
+                                fontSize = fontSize,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Text(
+                                text = elevText,
+                                fontSize = fontSize,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             }
