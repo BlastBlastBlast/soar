@@ -62,6 +62,7 @@ fun WeatherCardScreen(
     val coordinates by viewModel.coordinates.collectAsState()
     // Expose launch sites via the view model.
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
+    val currentSite by viewModel.currentSite.collectAsState()
 
     // Shared state for forecast hours (controlled via the filter overlay)
     var hoursToShow by rememberSaveable { mutableStateOf(24f) }
@@ -209,6 +210,8 @@ fun ScreenContent(
             filteredItems.groupBy { it.time.substring(0, 10) }
         val sortedDays = forecastByDay.keys.sorted()
         val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
+
+
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
