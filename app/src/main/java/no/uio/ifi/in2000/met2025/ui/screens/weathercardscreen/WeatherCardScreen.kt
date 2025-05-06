@@ -233,14 +233,15 @@ fun ScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(screenHeight)
-                        .padding(vertical = 16.dp)
+                        //.padding(vertical = 16.dp)
                 ) {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(screenHeight)
-                            .padding(vertical = 16.dp),
+                            //.padding(vertical = 16.dp)
+                                ,
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         pageSpacing = 16.dp,
                         pageSize = PageSize.Fill
@@ -255,9 +256,12 @@ fun ScreenContent(
                                 .padding(vertical = 16.dp),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            currentSite?.let { site ->
-                            SiteHeader(site = site, modifier = Modifier.fillMaxWidth())
-                            }
+                            SiteHeader(
+                                site = currentSite,
+                                coordinates = coordinates,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
                             // 1. Show the Daily Card for this day
                             DailyForecastCard(
                                 forecastItems = dailyForecastItems,
