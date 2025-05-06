@@ -12,18 +12,18 @@ object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
 // in no.uio.ifi.in2000.met2025.ui.navigation.Screen.kt
 
 sealed class Screen(val route: String) {
-    object Home               : Screen("home")
-    object Weather            : Screen("weather/{lat}/{lon}") {
+    data object Home               : Screen("home")
+    data object Weather            : Screen("weather/{lat}/{lon}") {
         fun createRoute(lat: Double, lon: Double) = "weather/$lat/$lon"
     }
-    object LaunchSite         : Screen("launch_site")
-    object Settings           : Screen("settings")
-    object ConfigList         : Screen("config_list")
-    object ConfigEdit         : Screen("config_edit/{configId}") {
+    data object LaunchSite         : Screen("launch_site")
+    data object Settings           : Screen("settings")
+    data object ConfigList         : Screen("config_list")
+    data object ConfigEdit         : Screen("config_edit/{configId}") {
         fun createRoute(id: Int) = "config_edit/$id"
     }
-    object RocketConfigList   : Screen("rocket_list")
-    object RocketConfigEdit   : Screen("rocket_edit/{rocketName}/{rocketId}") {
+    data object RocketConfigList   : Screen("rocket_list")
+    data object RocketConfigEdit   : Screen("rocket_edit/{rocketName}/{rocketId}") {
         fun createRoute(name: String, id: Int) = "rocket_edit/$name/$id"
     }
 }
