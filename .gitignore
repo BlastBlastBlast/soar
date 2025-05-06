@@ -129,6 +129,9 @@ obj/
 .cproject
 .settings/
 
+# Mac Specific
+.DS_Store
+
 # Mobile Tools for Java (J2ME)
 
 # Package Files #

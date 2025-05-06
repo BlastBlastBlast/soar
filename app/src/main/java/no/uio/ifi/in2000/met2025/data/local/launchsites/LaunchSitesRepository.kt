@@ -1,9 +1,14 @@
 package no.uio.ifi.in2000.met2025.data.local.launchsites
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import javax.inject.Inject
@@ -18,6 +23,21 @@ class LaunchSitesRepository @Inject constructor(
             launchSite?.let { Pair(it.latitude, it.longitude) } ?: defaultCoordinates
         }
     }
+
+    /**
+     * The full LaunchSite row flagged as “Last Visited”,
+     * or null if the user has never picked a site.
+     */
+    fun getActiveSite(): Flow<LaunchSite?> =
+        getLastVisitedTempSite()
+            .mapLatest { placeholder ->
+                placeholder?.let {
+                    withContext(Dispatchers.IO) {
+                        launchSiteDAO.getSiteByCoordinates(it.latitude, it.longitude)
+                    }
+                }
+            }
+            .flowOn(Dispatchers.IO)
 
     suspend fun insert(sites: LaunchSite) {
         launchSiteDAO.insert(sites)
@@ -61,4 +81,6 @@ class LaunchSitesRepository @Inject constructor(
 
     suspend fun updateElevation(uid: Int, elevation: Double) =
         launchSiteDAO.updateElevation(uid, elevation)
+
+
 }
