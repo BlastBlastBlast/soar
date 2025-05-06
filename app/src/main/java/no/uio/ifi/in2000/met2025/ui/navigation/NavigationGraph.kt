@@ -27,6 +27,7 @@ import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
 
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
 
 /**
  * Navigate to [route] in the normal way, but if the
@@ -47,8 +48,7 @@ fun NavigationGraph(
     innerPadding: PaddingValues,
     homeScreenViewModel: HomeScreenViewModel,
     weatherCardViewModel: WeatherCardViewmodel,
-    configEditViewModel: ConfigEditViewModel,
-    rocketConfigEditViewModel: RocketConfigEditViewModel
+    settingsViewModel: SettingsViewModel,
 ) {
     NavHost(
         navController    = navController,
@@ -130,8 +130,8 @@ fun NavigationGraph(
             })
         ) { back ->
             val id by remember { mutableStateOf(back.arguments?.getInt("configId") ?: -1) }
-            val config by configEditViewModel
-                .getConfigProfile(id)
+            val config by settingsViewModel
+                .getWeatherConfig(id)
                 .collectAsState(initial = null)
 
             ConfigEditScreen(
@@ -170,7 +170,7 @@ fun NavigationGraph(
         ) { back ->
             val rocketId   = back.arguments?.getInt("rocketId") ?: -1
             val rocketName = back.arguments?.getString("rocketName") ?: ""
-            val rocketParams by rocketConfigEditViewModel
+            val rocketParams by settingsViewModel
                 .getRocketConfig(rocketId)
                 .collectAsState(initial = null)
 
