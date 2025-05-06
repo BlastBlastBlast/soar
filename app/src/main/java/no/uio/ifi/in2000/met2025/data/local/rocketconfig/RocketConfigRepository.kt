@@ -29,4 +29,7 @@ class RocketConfigRepository(private val rocketConfigDao: RocketConfigDao) {
     fun getRocketConfig(rocketId: Int): Flow<RocketConfig?> {
         return rocketConfigDao.getRocketConfig(rocketId)
     }
+
+    fun getAllRocketConfigNames(): Flow<List<String>> =
+        rocketConfigDao.getAllRocketConfigNames()
 }
