@@ -167,20 +167,16 @@ fun WeatherCardScreen(
             // Launch Sites Overlay.
             if (isLaunchMenuExpanded) {
                 LaunchSitesMenuOverlay(
-                    launchSites = sitesForOverlay,    // ← use our filtered list
+                    launchSites = sitesForOverlay,
                     onSiteSelected = { selectedSite ->
-                        // Update the coordinates using the helper function.
                         viewModel.updateCoordinates(selectedSite.latitude, selectedSite.longitude)
-                        // Reload forecast data for the new coordinates.
                         viewModel.loadForecast(selectedSite.latitude, selectedSite.longitude)
-                        // Reload isobaric data – using current time.
                         viewModel.loadIsobaricData(selectedSite.latitude, selectedSite.longitude, Instant.now())
-                        // Dismiss the launch overlay.
                         isLaunchMenuExpanded = false
                     },
                     onDismiss = { isLaunchMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomStart) // For bottom-right placement.
+                        .align(Alignment.BottomStart)
                         .offset(y = -(30.dp + 16.dp)),
                 )
             }
@@ -205,7 +201,6 @@ fun ScreenContent(
 
     if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
         val forecastItems = uiState.forecastItems
-        // Use the passed hoursToShow value for limiting forecast items.
         val filteredItems = forecastItems.let { allItems ->
             if (filterActive)
                 allItems.filter {
@@ -233,15 +228,12 @@ fun ScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(screenHeight)
-                        //.padding(vertical = 16.dp)
                 ) {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(screenHeight)
-                            //.padding(vertical = 16.dp)
-                                ,
+                            .height(screenHeight),
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         pageSpacing = 16.dp,
                         pageSize = PageSize.Fill
@@ -262,7 +254,6 @@ fun ScreenContent(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            // 1. Show the Daily Card for this day
                             DailyForecastCard(
                                 forecastItems = dailyForecastItems,
                                 modifier = Modifier.fillMaxWidth()
@@ -270,17 +261,6 @@ fun ScreenContent(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // 2. (Optional) Show the day label (if you want to keep it visible)
-                            /*
-                            Text(
-                                text = date,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            */
-
-                            // 3. Then the hourly expandable cards
                             dailyForecastItems.forEach { forecastItem ->
                                 HourlyExpandableCard(
                                     forecastItem = forecastItem,
