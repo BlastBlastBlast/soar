@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
@@ -60,16 +61,25 @@ fun WeatherCardScreen(
     val activeConfig by viewModel.activeConfig.collectAsState()
     val configList by viewModel.configList.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
-    // Expose launch sites via the view model.
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
-
-    // Shared state for forecast hours (controlled via the filter overlay)
+    val currentSite by viewModel.currentSite.collectAsState()
     var hoursToShow by rememberSaveable { mutableStateOf(24f) }
     var filterActive by rememberSaveable { mutableStateOf(false) }
     var isConfigMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isFilterMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isLaunchMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedStatuses by remember { mutableStateOf(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION, LaunchStatus.UNSAFE)) }
+    val sitesForOverlay = remember(launchSites) {
+        val allButLastVisited = launchSites.filter { it.name != "Last Visited" }
+        val (newMarkerList, realSites) = allButLastVisited.partition { it.name == "New Marker" }
+        val shouldShowNewMarker = newMarkerList.firstOrNull()?.let { nm ->
+            realSites.none { it.latitude == nm.latitude && it.longitude == nm.longitude }
+        } ?: false
+
+        buildList { addAll(realSites)
+            if (shouldShowNewMarker) add(newMarkerList.first())
+        }
+    }
 
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
@@ -83,6 +93,7 @@ fun WeatherCardScreen(
                 config = activeConfig!!,
                 filterActive = filterActive,
                 hoursToShow = hoursToShow,
+                currentSite = currentSite,
                 viewModel = viewModel
             )
             // Segmented Bottom Bar with three buttons.
@@ -156,21 +167,18 @@ fun WeatherCardScreen(
             // Launch Sites Overlay.
             if (isLaunchMenuExpanded) {
                 LaunchSitesMenuOverlay(
-                    launchSites = launchSites.filter { it.name != "Last Visited" }, // filter out "Last Visited"
+                    launchSites = sitesForOverlay,
                     onSiteSelected = { selectedSite ->
-                        // Update the coordinates using the helper function.
                         viewModel.updateCoordinates(selectedSite.latitude, selectedSite.longitude)
-                        // Reload forecast data for the new coordinates.
                         viewModel.loadForecast(selectedSite.latitude, selectedSite.longitude)
-                        // Reload isobaric data – using current time.
                         viewModel.loadIsobaricData(selectedSite.latitude, selectedSite.longitude, Instant.now())
-                        // Dismiss the launch overlay.
                         isLaunchMenuExpanded = false
                     },
                     onDismiss = { isLaunchMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomStart) // For bottom-right placement.
                         .offset(y = (10.dp)),
+
                 )
             }
         }
@@ -187,13 +195,13 @@ fun ScreenContent(
     config: ConfigProfile,
     filterActive: Boolean,
     hoursToShow: Float,
+    currentSite: LaunchSite?,
     viewModel: WeatherCardViewmodel
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
         val forecastItems = uiState.forecastItems
-        // Use the passed hoursToShow value for limiting forecast items.
         val filteredItems = forecastItems.let { allItems ->
             if (filterActive)
                 allItems.filter {
@@ -210,28 +218,23 @@ fun ScreenContent(
         val sortedDays = forecastByDay.keys.sorted()
         val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
 
+
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // You can remove the header section that previously hosted the slider and toggle.
-            // Optional: Place other header or title elements here if required.
-
-
-            // Horizontal Pager section.
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(screenHeight)
-                        .padding(vertical = 16.dp)
                 ) {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(screenHeight)
-                            .padding(vertical = 16.dp),
+                            .height(screenHeight),
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         pageSpacing = 16.dp,
                         pageSize = PageSize.Fill
@@ -246,7 +249,12 @@ fun ScreenContent(
                                 .padding(vertical = 16.dp),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            // 1. Show the Daily Card for this day
+                            SiteHeader(
+                                site = currentSite,
+                                coordinates = coordinates,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
                             DailyForecastCard(
                                 forecastItems = dailyForecastItems,
                                 modifier = Modifier.fillMaxWidth()
@@ -254,17 +262,6 @@ fun ScreenContent(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // 2. (Optional) Show the day label (if you want to keep it visible)
-                            /*
-                            Text(
-                                text = date,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            */
-
-                            // 3. Then the hourly expandable cards
                             dailyForecastItems.forEach { forecastItem ->
                                 HourlyExpandableCard(
                                     forecastItem = forecastItem,

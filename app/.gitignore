@@ -40,6 +40,8 @@ replay_pid*
 # Files for the ART/Dalvik VM
 *.dex
 
+#Mac specific
+.DS_Store
 # Java class files
 
 # Generated files
