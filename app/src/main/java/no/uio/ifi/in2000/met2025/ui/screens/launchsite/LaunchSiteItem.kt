@@ -77,7 +77,10 @@ fun LaunchSiteItem(
                 Modifier
                     .fillMaxWidth()
                     .height(orangeStripHeight)
-                    .background(WarmOrange, shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .background(
+                        WarmOrange,
+                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
             )
 
             // Card body
@@ -97,19 +100,7 @@ fun LaunchSiteItem(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(Modifier.weight(1f)) {
-                            if (isSpecialMarker) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Last Marker", style = MaterialTheme.typography.bodyLarge)
-                                    Spacer(Modifier.width(4.dp))
-                                    Image(
-                                        painter = painterResource(R.drawable.red_marker),
-                                        contentDescription = "New Marker",
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            } else {
-                                Text(site.name, style = MaterialTheme.typography.bodyLarge)
-                            }
+                            Text(site.name, style = MaterialTheme.typography.bodyLarge)
                             Text(
                                 "Lat: %.4f   Lon: %.4f".format(site.latitude, site.longitude),
                                 style = MaterialTheme.typography.bodySmall
@@ -122,14 +113,85 @@ fun LaunchSiteItem(
                                     listState.animateScrollToItem(itemIndex)
                                 }
                             }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = IconGreen)
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Edit",
+                                    tint = IconGreen
+                                )
                             }
                             IconButton(onClick = onDelete) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = IconRed)
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = IconRed
+                                )
                             }
                         }
                     }
                 } else {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            AppOutlinedTextField(
+                                value = name,
+                                onValueChange = {
+                                    name = it
+                                    viewModel.checkNameAvailability(it)
+                                },
+                                label = { Text("Name") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
+                                Text(
+                                    text = updateStatus.message,
+                                    color = Color.Red
+                                )
+                            }
+                            Text(
+                                "Lat: %.4f   Lon: %.4f".format(site.latitude, site.longitude),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Row {
+                            IconButton(onClick = {
+                                val newLat = latitudeText.toDoubleOrNull()
+                                val newLon = longitudeText.toDoubleOrNull()
+                                if (newLat == site.latitude && newLon == site.longitude && name == site.name) {
+                                    isEditing = false
+                                } else if (newLat != null && newLon != null && name.isNotBlank()) {
+                                    onEdit(
+                                        LaunchSite(
+                                            uid = site.uid,
+                                            latitude = newLat,
+                                            longitude = newLon,
+                                            name = name
+                                        )
+                                    )
+                                }
+                            }) {
+                                Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
+                            }
+                            IconButton(onClick = {
+                                name = site.name
+                                latitudeText = site.latitude.toString()
+                                longitudeText = site.longitude.toString()
+                                isEditing = false
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+                    /*
                     Column {
                         AppOutlinedTextField(
                             value = name,
@@ -198,4 +260,4 @@ fun LaunchSiteItem(
         }
     }
 }
-
+*/

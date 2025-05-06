@@ -26,20 +26,14 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 
 /**
- * Navigate to [route] but:
- *  • pop up to the graph’s start destination (so we don’t pile on duplicates)
- *  • save & restore state
- *  • launchSingleTop
+ * Navigate to [route] in the normal way, but if the
+ * top of the back-stack is already [route], don’t push a new copy.
  */
 fun NavHostController.navigateSingleTopTo(route: String) {
     this.navigate(route) {
-        // Pop up to the start destination of this graph to avoid building up a huge back stack
-        popUpTo(graph.findStartDestination().id) {
-            saveState = true
-        }
-        // Only one copy on top
+        // don’t add a duplicate if it’s already on top
         launchSingleTop = true
-        // If we’ve been here before, restore state
+        // optional: if you want to restore state when re-visiting
         restoreState = true
     }
 }
