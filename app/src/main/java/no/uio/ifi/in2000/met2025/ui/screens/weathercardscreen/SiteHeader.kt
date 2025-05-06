@@ -41,7 +41,7 @@ fun SiteHeader(
                 site?.let {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "Elevation: ${it.elevation.toInt()} m",
+                        text = "Elevation: ${it.elevation?.toInt() ?: "--"} m",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )

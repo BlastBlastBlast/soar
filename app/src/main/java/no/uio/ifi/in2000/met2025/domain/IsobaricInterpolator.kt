@@ -21,6 +21,7 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAP
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
 import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.MAX_LATITUDE
 import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.MAX_LONGITUDE
+import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries.isWithinBounds
 import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
@@ -262,25 +263,20 @@ class IsobaricInterpolator(
                     val grib = gribMap
                         ?: return Result.failure(Exception("GRIB data not initialized"))
 
-// 2) clamp your grid indices to valid range
                     val latIdx = indices[0].coerceIn(0, maxLatIndex)
                     val lonIdx = indices[1].coerceIn(0, maxLonIndex)
                     val pressureInt = pressure.toInt()
 
-// 3) compute the exact coordinate key
                     val lat  = latIdx.toCoordinate(MIN_LATITUDE)
                     val lon  = lonIdx.toCoordinate(MIN_LONGITUDE)
                     val key  = Pair(lat, lon)
 
-// 4) look up the 2D cell
                     val levelMap = grib.map[key]
                         ?: return Result.failure(Exception("No GRIB cell at [$lat, $lon]"))
 
-// 5) look up the pressure slice
                     val slice = levelMap[pressureInt]
                         ?: return Result.failure(Exception("No GRIB data for pressure level $pressureInt"))
 
-// 6) finally, you have your vector without any `!!`
                     val gribVector = slice
 
                     CartesianIsobaricValues(
@@ -307,7 +303,7 @@ class IsobaricInterpolator(
 
         Log.i("IsobaricInterpolator.handleOutOfBounds", "handleOutOfBounds: $indices, isLowerBound: $isLowerBound")
 
-        val indexAdjustment = if (isLowerBound) +1 else -2
+        val indexAdjustment = if (isLowerBound) 1 else -2
         Log.i("IsobaricInterpolator.handleOutOfBounds", "indexAdjustment: $indexAdjustment")
         Log.i("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
         val p1 = getPoint(
@@ -416,8 +412,8 @@ class IsobaricInterpolator(
         val lat = this[0]
         val lon = this[1]
 
-        //assert(dimension == 2) { "Not a coordinate vector of dimension 2" }
-        //assert(isWithinBounds(lat, lon)) { "Coordinates out of bounds" }
+        assert(dimension == 2) { "Not a coordinate vector of dimension 2" }
+        assert(isWithinBounds(lat, lon)) { "Coordinates out of bounds" }
 
         val latFractional = lat.toGridValue(MIN_LATITUDE) - lat.toGridIndex(MIN_LATITUDE)
         val lonFractional = lon.toGridValue(MIN_LONGITUDE) - lon.toGridIndex(MIN_LONGITUDE)
@@ -465,6 +461,8 @@ fun catmullRomInterpolation(t: Double, points: List<RealVector>): RealVector {
     val b2 = ((t3 - t) * a2 + (t - t1) * a3) / (t3 - t1)
 
     val c = ((t2 - t) * b1 + (t - t1) * b2) * t21
+
+    Log.i("IsobaricInterpolator", "catmullRomInterpolation: t = $t, points = $points, c = $c")
 
     return c
 }

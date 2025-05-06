@@ -3,6 +3,7 @@ package no.uio.ifi.in2000.met2025.domain
 import android.util.Log
 import no.uio.ifi.in2000.met2025.data.models.Angle
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
+import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.EARTH_AIR_MOLAR_MASS
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.GRAVITY
 import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.sin
@@ -50,20 +51,20 @@ class TrajectoryCalculator(
     }
 
     suspend fun calculateTrajectory(
-        initialPosition: RealVector, // lat, long, elevation from viewmodel function call
-        launchAzimuthInDegrees: Double, // in degrees
-        launchPitchInDegrees: Double, // in degrees
-        launchRailLength: Double,
-        wetMass: Double,
-        dryMass: Double,
-        burnTime: Double,
-        thrust: Double,
-        stepSize: Double,
-        crossSectionalArea: Double,
-        dragCoefficient: Double,
-        parachuteCrossSectionalArea: Double,
-        parachuteDragCoefficient: Double,
-        timeOfLaunch: Instant
+        initialPosition: RealVector,            // lat, long, elevation from viewmodel function call
+        launchAzimuthInDegrees: Double,         // degrees
+        launchPitchInDegrees: Double,           // degrees
+        launchRailLength: Double,               // meters
+        wetMass: Double,                        // kg
+        dryMass: Double,                        // kg
+        burnTime: Double,                       // seconds
+        thrust: Double,                         // Newtons
+        stepSize: Double,                       // seconds
+        crossSectionalArea: Double,             // m^2
+        dragCoefficient: Double,                // dimensionless
+        parachuteCrossSectionalArea: Double,    // m^2
+        parachuteDragCoefficient: Double,       // dimensionless
+        timeOfLaunch: Instant = Instant.now()   // time of launch
     ): Result<List<Pair<RealVector, Double>>> {
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: initial position: $initialPosition")
@@ -86,11 +87,14 @@ class TrajectoryCalculator(
             )
         ).unitVector()
 
-        Log.i("TrajectoryCalculator", "calculateTrajectory: launchDirectionUnitVector: $launchDirectionUnitVector")
+        Log.i("TrajectoryCalculator", "calculateTrajectory: launchDirectionUnitVector: $launchDirectionUnitVector, length: ${launchDirectionUnitVector.norm}")
 
         val accelerationFromGravity = ArrayRealVector(doubleArrayOf(0.0, 0.0, -GRAVITY))
         val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
+
+        Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravity: $accelerationFromGravity")
+        Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravityOnLaunchRail: $accelerationFromGravityOnLaunchRail")
 
         tailrec suspend fun calculateTrajectoryRecursive(
             currentPosition: RealVector,
@@ -103,22 +107,28 @@ class TrajectoryCalculator(
 
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: timeAfterLaunch: $timeAfterLaunch")
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: current velocity: $currentVelocity")
-
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: current position: $currentPosition")
+            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: coefficientOfDrag: $coefficientOfDrag")
+            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: areaOfCrossSection: $areaOfCrossSection")
 
             val (latDeg, lonDeg, altM) = enuToGeo(currentPosition)
             val currentGeoPosition = ArrayRealVector(doubleArrayOf(latDeg, lonDeg, altM))
+
+            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: currentGeoPosition: $currentGeoPosition")
 
             val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentGeoPosition, timeOfLaunch)
                 .fold(
                     onSuccess = { it },
                     onFailure = { return Result.failure(it) }
                 )
+
+            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airValues: $airValues")
+
             val windVector = ArrayRealVector(
                 doubleArrayOf(airValues.windXComponent, airValues.windYComponent, 0.0)
             )
 
-            val isOnLaunchRail: (RealVector) -> Boolean = { position ->
+            val onLaunchRail: (RealVector) -> Boolean = { position ->
                 (position - initialPosition).norm <= launchRailLength
             }
 
@@ -127,35 +137,40 @@ class TrajectoryCalculator(
                 time = timeAfterLaunch,
                 stepSize = stepSize,
                 derivative = { incrementedTime, incrementedVelocity ->
-                    val velocityWithWind = if (isOnLaunchRail(currentPosition)) {
+                    val velocityWithWind = if (onLaunchRail(currentPosition)) {
                         incrementedVelocity
                     } else {
-                        incrementedVelocity.subtract(windVector)
+                        incrementedVelocity - windVector
                     }
 
-                    val airDensity = 100.0 * airValues.pressure / ((airValues.temperature + CELSIUS_TO_KELVIN) * UNIVERSAL_GAS_CONSTANT)
+                    val airDensity = 100.0 * airValues.pressure * EARTH_AIR_MOLAR_MASS / ((airValues.temperature + CELSIUS_TO_KELVIN) * UNIVERSAL_GAS_CONSTANT)
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
 
                     val dragForce = -0.5 * (crossSectionalArea * dragCoefficient * airDensity * velocityWithWind.norm * velocityWithWind)
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: dragForce: $dragForce")
 
-                    val (thrustForce, burnProgress) = if (incrementedTime >= burnTime) {
+                    val (thrustVector, burnProgress) = if (incrementedTime >= burnTime) {
                         Pair(zeroVector, 1.0)
                     } else {
                         Pair(thrust * launchDirectionUnitVector, incrementedTime / burnTime)
                     }
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustVector, burnProgress: $burnProgress")
 
                     val massAtIncrement = wetMass * (1 - burnProgress) + dryMass * burnProgress
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: massAtIncrement: $massAtIncrement")
 
-                    (dragForce + thrustForce) / massAtIncrement +
-                        if (isOnLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
+                    (dragForce + thrustVector) / massAtIncrement +
+                        if (onLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
                 }
             )
+            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: newVelocity: $newVelocity")
 
             val newPosition = rungeKutta4(
                 initialVector = currentPosition,
                 time = timeAfterLaunch,
                 stepSize = stepSize,
                 derivative = { _, incrementedPosition ->
-                    currentVelocity - if (isOnLaunchRail(incrementedPosition)) zeroVector else windVector
+                    currentVelocity - if (onLaunchRail(incrementedPosition)) zeroVector else windVector
                 }
             )
 
@@ -171,8 +186,6 @@ class TrajectoryCalculator(
                 result += newPositionWithSpeed
 
                 if (currentVelocity[2] >= 0 && newVelocity[2] <= 0) {
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: parachute deployed")
-
                     calculateTrajectoryRecursive(
                         currentPosition = newPosition,
                         currentVelocity = newVelocity,
@@ -182,8 +195,6 @@ class TrajectoryCalculator(
                         result = result
                     )
                 } else {
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: rising")
-
                     calculateTrajectoryRecursive(
                         currentPosition = newPosition,
                         currentVelocity = newVelocity,
