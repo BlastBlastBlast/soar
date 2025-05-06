@@ -1,3 +1,5 @@
+/*
+
 package no.uio.ifi.in2000.met2025.ui.navigation
 
 import android.os.Bundle
@@ -33,26 +35,7 @@ import com.google.accompanist.systemuicontroller.SystemUiController
 
 //TODO: FIKSE NAVIGATION KALL TIL Å IKKE LAUNCHE MANGE GANGER PÅ SAMME SKJERM!
 
-object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
-    override fun get(bundle: Bundle, key: String): Double? = bundle.getDouble(key)
-    override fun parseValue(value: String): Double = value.toDouble()
-    override fun put(bundle: Bundle, key: String, value: Double) = bundle.putDouble(key, value)
-}
 
-sealed class Screen(val route: String) {
-    data object Home : Screen("home")
-    data object Weather : Screen("weather?lat={lat}&lon={lon}") {
-        fun createRoute(lat: Double, lon: Double) = "weather?lat=$lat&lon=$lon"
-    }
-    data object LaunchSite : Screen("launchsite")
-    data object ConfigList : Screen("config_list")
-    data object ConfigEdit : Screen("config_edit")
-    // New rocket configuration screens:
-    data object RocketConfigList : Screen("rocket_config_list")
-    data object RocketConfigEdit : Screen("rocket_config_edit/{rocketName}/{rocketId}") {
-        fun createRoute(rocketName: String, rocketId: Int) = "rocket_config_edit/$rocketName/$rocketId"
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -290,3 +273,4 @@ fun AppNavLauncher(
         }
     }
 }
+*/
