@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import dagger.hilt.android.AndroidEntryPoint
 import no.uio.ifi.in2000.met2025.ui.navigation.App
-import no.uio.ifi.in2000.met2025.ui.navigation.AppNavLauncher
 import no.uio.ifi.in2000.met2025.ui.theme.In2000_met2025_team21Theme
 
 @AndroidEntryPoint

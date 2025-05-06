@@ -38,11 +38,12 @@ fun AppDrawer(
     // Map route → display name
     val infoTitle = when {
         currentRoute == Screen.Home.route                               -> "Map"
-        currentRoute?.startsWith("weather?") == true             -> "Weather"
+        currentRoute?.startsWith("weather?") == true                    -> "Weather"
         currentRoute == Screen.RocketConfigList.route                   -> "Rocket Profiles"
-        currentRoute?.startsWith("rocket_config_edit") == true   -> "Edit Rocket Profile"
+        currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Profile"
         currentRoute == Screen.ConfigList.route                         -> "Weather Settings"
-        currentRoute?.startsWith("config_edit") == true          -> "Edit Weather Settings"
+        currentRoute?.startsWith("config_edit") == true                 -> "Edit Weather Settings"
+        currentRoute == Screen.Settings.route                           -> "Settings"
         currentRoute == Screen.LaunchSite.route                         -> "Launch Sites"
         else                                                            -> "Help"
     }
@@ -106,6 +107,15 @@ fun AppDrawer(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
                 NavigationDrawerItem(
+                    label    = { Text("Settings") },
+                    selected = currentRoute == Screen.Settings.route,
+                    onClick  = {
+                        navController.navigateSingleTopTo(Screen.Settings.route)
+                        closeDrawer()
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+                NavigationDrawerItem(
                     label    = { Text("Launch Sites") },
                     selected = currentRoute == Screen.LaunchSite.route,
                     onClick  = { navController.navigateSingleTopTo(Screen.LaunchSite.route); closeDrawer() },
@@ -150,6 +160,10 @@ fun AppDrawer(
                     "Weather Settings" -> {
                         HorizontalDivider()
                         Text("Manage your saved weather configurations. Select one to apply or edit it.")
+                    }
+                    "Settings" -> {
+                        HorizontalDivider()
+                        Text("From here you can choose to manage either Weather Settings or Rocket Profiles.")
                     }
                     "Edit Weather Settings" -> {
                         HorizontalDivider()

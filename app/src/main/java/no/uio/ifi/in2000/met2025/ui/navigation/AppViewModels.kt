@@ -2,9 +2,8 @@ package no.uio.ifi.in2000.met2025.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.ui.configprofiles.ConfigEditViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigEditViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
 
 /**
@@ -13,8 +12,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmod
 data class AppViewModels(
     val home: HomeScreenViewModel,
     val weather: WeatherCardViewmodel,
-    val configEdit: ConfigEditViewModel,
-    val rocketEdit: RocketConfigEditViewModel
+    val settings: SettingsViewModel
 )
 
 /**
@@ -24,12 +22,11 @@ data class AppViewModels(
 fun provideAppViewModels(): AppViewModels {
     val home       = hiltViewModel<HomeScreenViewModel>()
     val weather    = hiltViewModel<WeatherCardViewmodel>()
-    val configEdit = hiltViewModel<ConfigEditViewModel>()
-    val rocketEdit = hiltViewModel<RocketConfigEditViewModel>()
+    val settings   = hiltViewModel<SettingsViewModel>()
+
     return AppViewModels(
-        home       = home,
-        weather    = weather,
-        configEdit = configEdit,
-        rocketEdit = rocketEdit
+        home = home,
+        weather = weather,
+        settings = settings,
     )
 }

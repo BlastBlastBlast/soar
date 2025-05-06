@@ -67,8 +67,7 @@ fun AppScaffold(
                 innerPadding                = innerPadding,
                 homeScreenViewModel         = vm.home,
                 weatherCardViewModel        = vm.weather,
-                configEditViewModel         = vm.configEdit,
-                rocketConfigEditViewModel   = vm.rocketEdit
+                settingsViewModel           = vm.settings,
             )
         }
     }

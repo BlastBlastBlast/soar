@@ -17,13 +17,16 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import no.uio.ifi.in2000.met2025.ui.configprofiles.*
 import no.uio.ifi.in2000.met2025.ui.screens.home.*
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
-import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.*
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.*
-
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigListScreen
 
 /**
  * Navigate to [route] in the normal way, but if the
@@ -44,31 +47,28 @@ fun NavigationGraph(
     innerPadding: PaddingValues,
     homeScreenViewModel: HomeScreenViewModel,
     weatherCardViewModel: WeatherCardViewmodel,
-    configEditViewModel: ConfigEditViewModel,
-    rocketConfigEditViewModel: RocketConfigEditViewModel
+    settingsViewModel: SettingsViewModel,
 ) {
     NavHost(
         navController    = navController,
-        startDestination = Screen.Home.route,
+        startDestination = Home.route,
         modifier         = Modifier
             .padding(innerPadding)
             .windowInsetsPadding(WindowInsets.ime)
     ) {
-        // Home
-        composable(Screen.Home.route) {
+        // — Home —
+        composable(Home.route) {
             HomeScreen(
                 viewModel = homeScreenViewModel,
                 onNavigateToWeather = { lat, lon ->
-                    navController.navigateSingleTopTo(
-                        Screen.Weather.createRoute(lat, lon)
-                    )
-                }
+                    navController.navigateSingleTopTo(Weather.createRoute(lat, lon))
+                },
             )
         }
 
-        // Weather
+        // — Weather —
         composable(
-            route     = Screen.Weather.route,
+            route     = Weather.route,
             arguments = listOf(
                 navArgument("lat") { type = DoubleNavType },
                 navArgument("lon") { type = DoubleNavType }
@@ -87,19 +87,31 @@ fun NavigationGraph(
             )
         }
 
-        // Launch Site
-        composable(Screen.LaunchSite.route) {
+        // — Launch Site —
+        composable(LaunchSite.route) {
             LaunchSiteScreen()
         }
 
-        // Config List
-        composable(Screen.ConfigList.route) {
+        // — Settings (NEW) —
+        composable(Settings.route) {
+            SettingsScreen(
+                onWeatherConfigsClick = {
+                    navController.navigateSingleTopTo(ConfigList.route)
+                },
+                onRocketConfigsClick = {
+                    navController.navigateSingleTopTo(RocketConfigList.route)
+                }
+            )
+        }
+
+        // — Config List —
+        composable(ConfigList.route) {
             ConfigListScreen(
                 onEditConfig   = { cfg ->
-                    navController.navigateSingleTopTo("config_edit/${cfg.id}")
+                    navController.navigateSingleTopTo(ConfigEdit.createRoute(cfg.id))
                 },
                 onAddConfig    = {
-                    navController.navigateSingleTopTo("config_edit/-1")
+                    navController.navigateSingleTopTo(ConfigEdit.createRoute(-1))
                 },
                 onSelectConfig = { cfg ->
                     weatherCardViewModel.setActiveConfig(cfg)
@@ -108,19 +120,17 @@ fun NavigationGraph(
             )
         }
 
-        // Config Edit
+        // — Config Edit —
         composable(
-            route     = "config_edit/{configId}",
+            route     = ConfigEdit.route,
             arguments = listOf(navArgument("configId") {
                 type         = NavType.IntType
                 defaultValue = -1
             })
         ) { back ->
-            val id by remember {
-                mutableStateOf(back.arguments?.getInt("configId") ?: -1)
-            }
-            val config by configEditViewModel
-                .getConfigProfile(id)
+            val id by remember { mutableStateOf(back.arguments?.getInt("configId") ?: -1) }
+            val config by settingsViewModel
+                .getWeatherConfig(id)
                 .collectAsState(initial = null)
 
             ConfigEditScreen(
@@ -129,26 +139,26 @@ fun NavigationGraph(
             )
         }
 
-        // Rocket Config List
-        composable(Screen.RocketConfigList.route) {
+        // — Rocket Config List —
+        composable(RocketConfigList.route) {
             RocketConfigListScreen(
                 onEditRocketConfig = { rocket ->
                     navController.navigateSingleTopTo(
-                        Screen.RocketConfigEdit.createRoute(rocket.name, rocket.id)
+                        RocketConfigEdit.createRoute(rocket.name, rocket.id)
                     )
                 },
                 onAddRocketConfig = {
                     navController.navigateSingleTopTo(
-                        Screen.RocketConfigEdit.createRoute("new", -1)
+                        RocketConfigEdit.createRoute("new", -1)
                     )
                 },
                 onSelectRocketConfig = { /* … */ }
             )
         }
 
-        // Rocket Config Edit
+        // — Rocket Config Edit —
         composable(
-            route     = Screen.RocketConfigEdit.route,
+            route     = RocketConfigEdit.route,
             arguments = listOf(
                 navArgument("rocketName") { type = NavType.StringType },
                 navArgument("rocketId") {
@@ -159,7 +169,7 @@ fun NavigationGraph(
         ) { back ->
             val rocketId   = back.arguments?.getInt("rocketId") ?: -1
             val rocketName = back.arguments?.getString("rocketName") ?: ""
-            val rocketParams by rocketConfigEditViewModel
+            val rocketParams by settingsViewModel
                 .getRocketConfig(rocketId)
                 .collectAsState(initial = null)
 
