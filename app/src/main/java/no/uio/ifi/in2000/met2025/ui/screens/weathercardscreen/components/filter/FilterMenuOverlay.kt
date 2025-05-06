@@ -36,6 +36,8 @@ fun FilterMenuOverlay(
     modifier: Modifier = Modifier,
     selectedStatuses: Set<LaunchStatus>,
     onStatusToggled: (LaunchStatus) -> Unit,
+    isSunFilterActive: Boolean,
+    onToggleSunFilter: () -> Unit
 ) {
     val bottomBarHeight = 56.dp
 
@@ -95,6 +97,13 @@ fun FilterMenuOverlay(
                         selectedStatuses = selectedStatuses,
                         onStatusToggled = onStatusToggled,
                         modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    SunriseFilter(
+                        isSunFilterActive = isSunFilterActive,
+                        onToggleSunFilter = onToggleSunFilter,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
                     )
                 }
             }

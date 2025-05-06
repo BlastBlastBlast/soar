@@ -38,7 +38,10 @@ class WeatherCardViewmodel @Inject constructor(
     sealed class WeatherCardUiState {
         object Idle : WeatherCardUiState()
         object Loading : WeatherCardUiState()
-        data class Success(val forecastItems: List<ForecastDataItem>) : WeatherCardUiState()
+        data class Success(
+            val forecastItems: List<ForecastDataItem>,
+            val sunTimes: Map<String, ValidSunTimes> = emptyMap()
+        ) : WeatherCardUiState()
         data class Error(val message: String) : WeatherCardUiState()
     }
 
@@ -154,7 +157,23 @@ class WeatherCardViewmodel @Inject constructor(
             val result = locationForecastRepository.getTimeZoneAdjustedForecast(lat, lon, timeSpanInHours)
             result.fold(
                 onSuccess = { forecastData ->
-                    _uiState.value = WeatherCardUiState.Success(forecastData.timeSeries)
+                    val forecastItems = forecastData.timeSeries
+
+                    val dates = forecastItems
+                        .map { it.time.substring(0, 10) }
+                        .distinct()
+
+                    val sunTimesMap = mutableMapOf<String, ValidSunTimes>()
+
+                    for (date in dates) {
+                        val sunTimes = sunriseRepository.getValidSunTimes(lat, lon, date)
+                        sunTimesMap[date] = sunTimes
+                    }
+
+                    _uiState.value = WeatherCardUiState.Success(
+                        forecastItems = forecastItems,
+                        sunTimes = sunTimesMap
+                    )
                 },
                 onFailure = { throwable ->
                     _uiState.value = WeatherCardUiState.Error(throwable.message ?: "Unknown error")
