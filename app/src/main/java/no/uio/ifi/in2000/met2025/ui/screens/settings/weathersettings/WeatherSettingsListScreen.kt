@@ -1,43 +1,41 @@
-package no.uio.ifi.in2000.met2025.ui.screens.rocketconfig
+package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings
 
-// File: RocketConfigListScreen.kt
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Surface
+import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
-import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+
 
 @Composable
-fun RocketConfigListScreen(
-    viewModel: RocketConfigListViewModel = hiltViewModel(),
-    onEditRocketConfig: (RocketConfig) -> Unit,
-    onAddRocketConfig: () -> Unit,
-    onSelectRocketConfig: (RocketConfig) -> Unit
+fun ConfigListScreen(
+    viewModel: SettingsViewModel = hiltViewModel(),
+    onEditConfig: (ConfigProfile) -> Unit,
+    onAddConfig: () -> Unit,
+    onSelectConfig: (ConfigProfile) -> Unit
 ) {
-    val rockets by viewModel.rocketList.collectAsState(initial = emptyList())
+    val configList by viewModel.weatherConfigs.collectAsState(initial = emptyList())
 
     Box(
         Modifier
@@ -49,14 +47,14 @@ fun RocketConfigListScreen(
                 .fillMaxSize()
                 .padding(16.dp),
             color           = MaterialTheme.colorScheme.surface,
-            tonalElevation  = 4.dp,
+            tonalElevation  = 4.dp,    // subtle tint under items
             shadowElevation = 8.dp,
             shape           = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
-                // Orange header band
+                // — HEADER IN ORANGE BAND —
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                         .background(WarmOrange, RoundedCornerShape(4.dp))
@@ -64,7 +62,7 @@ fun RocketConfigListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "ROCKET CONFIGURATIONS",
+                        "SAVED CONFIGURATIONS",
                         style     = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                         color     = MaterialTheme.colorScheme.onPrimary,
                         textAlign = TextAlign.Center,
@@ -75,18 +73,18 @@ fun RocketConfigListScreen(
                 Spacer(Modifier.height(8.dp))
 
                 LazyColumn(
-                    Modifier
+                    modifier            = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(rockets) { rocket ->
-                        RocketConfigItem(
-                            rocketConfig = rocket,
-                            onClick      = { onSelectRocketConfig(rocket) },
-                            onEdit       = { if (!rocket.isDefault) onEditRocketConfig(rocket) },
-                            onDelete     = { if (!rocket.isDefault) viewModel.deleteRocketConfig(rocket) }
+                    items(configList) { config ->
+                        ConfigListItem(
+                            config    = config,
+                            onClick   = { onSelectConfig(config) },
+                            onEdit    = { onEditConfig(config) },
+                            onDelete  = { viewModel.deleteWeatherConfig(config) }
                         )
                     }
                 }
@@ -94,19 +92,17 @@ fun RocketConfigListScreen(
                 Spacer(Modifier.height(8.dp))
 
                 Button(
-                    onClick    = onAddRocketConfig,
-                    modifier   = Modifier
+                    onClick  = onAddConfig,
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    colors     = ButtonDefaults.buttonColors(
+                    colors   = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text("+")
                 }
-
-                Spacer(Modifier.height(16.dp))
             }
         }
     }
