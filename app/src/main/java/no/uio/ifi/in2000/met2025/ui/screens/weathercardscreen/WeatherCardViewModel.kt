@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
@@ -71,6 +73,13 @@ class WeatherCardViewmodel @Inject constructor(
     val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
 
     val validSunTimesMap = mutableMapOf<String, ValidSunTimes>()
+
+     private val _currentSite: StateFlow<LaunchSite?> =
+             launchSitesRepository.getActiveSite().stateIn(
+                 viewModelScope, SharingStarted.Eagerly, null
+             )
+    val currentSite: StateFlow<LaunchSite?> = _currentSite
+
 
     val launchSites = launchSitesRepository.getAll()
 

@@ -38,13 +38,24 @@ interface LaunchSiteDAO {
     suspend fun checkIfSiteExists(name: String): LaunchSite?
 
     @Query("SELECT name FROM LaunchSite")
-    fun getAllLaunchSiteNames() : Flow<List<String>>
+    fun getAllLaunchSiteNames(): Flow<List<String>>
 
     @Query("UPDATE LaunchSite SET elevation = :elevation WHERE uid = :uid")
     suspend fun updateElevation(uid: Int, elevation: Double)
+
+    /** Return the “real” site matching these coords,
+     *  ignoring both placeholder rows. */
+    @Query(
+        """
+    SELECT * FROM LaunchSite
+    WHERE latitude  = :lat
+      AND longitude = :lon
+      AND name NOT IN ('Last Visited', 'New Marker')
+    LIMIT 1
+  """
+    )
+    suspend fun getSiteByCoordinates(lat: Double, lon: Double): LaunchSite?
 }
-
-
 
 @Dao
 interface GribDataDAO {
