@@ -37,6 +37,7 @@ fun AppTopBar(
         currentRoute?.startsWith("rocket_config_edit") == true   -> "Edit Rocket Profile"
         currentRoute == Screen.ConfigList.route                        -> "Weather Settings"
         currentRoute?.startsWith("config_edit") == true          -> "Edit Weather Settings"
+        currentRoute == Screen.Settings.route                          -> "Settings"
         else                                                           -> ""
     }
 
