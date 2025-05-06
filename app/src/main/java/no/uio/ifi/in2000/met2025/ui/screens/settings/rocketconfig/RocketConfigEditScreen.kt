@@ -1,5 +1,5 @@
 // File: RocketConfigEditScreen.kt
-package no.uio.ifi.in2000.met2025.ui.screens.rocketconfig
+package no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

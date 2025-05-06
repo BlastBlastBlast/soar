@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.navigation
 
-import android.os.Bundle
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
@@ -18,16 +17,19 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import no.uio.ifi.in2000.met2025.ui.configprofiles.*
+import no.uio.ifi.in2000.met2025.ui.weathersettings.*
 import no.uio.ifi.in2000.met2025.ui.screens.home.*
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
 import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.*
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.*
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
 
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsScreen
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigListScreen
 
 /**
  * Navigate to [route] in the normal way, but if the

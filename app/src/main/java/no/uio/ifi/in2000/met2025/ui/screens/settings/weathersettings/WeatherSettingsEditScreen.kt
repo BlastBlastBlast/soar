@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.configprofiles
+package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,10 +23,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSwitch
-import no.uio.ifi.in2000.met2025.ui.configprofiles.common.ScreenContainer
-import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SectionCard
-import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SettingItem
-import no.uio.ifi.in2000.met2025.ui.configprofiles.common.SettingRow
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.ScreenContainer
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.SectionCard
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.SettingItem
+import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.SettingRow
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
