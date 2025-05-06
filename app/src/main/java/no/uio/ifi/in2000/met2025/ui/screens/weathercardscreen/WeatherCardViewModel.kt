@@ -74,11 +74,12 @@ class WeatherCardViewmodel @Inject constructor(
 
     val validSunTimesMap = mutableMapOf<String, ValidSunTimes>()
 
-    private val _currentSite: StateFlow<LaunchSite?> =
-        launchSitesRepository
-            .getLastVisitedTempSite()
-            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+     private val _currentSite: StateFlow<LaunchSite?> =
+             launchSitesRepository.getActiveSite().stateIn(
+                 viewModelScope, SharingStarted.Eagerly, null
+             )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
+
 
     val launchSites = launchSitesRepository.getAll()
 
