@@ -7,6 +7,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,10 +39,18 @@ fun ConfigMenuOverlay(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bottomBarHeight = 56.dp
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Black.copy(alpha = 0.3f))
+            .padding(bottom = bottomBarHeight)
+            .clickable(
+                onClick = onDismiss,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
     ) {
         Box(
             modifier = modifier
@@ -58,7 +69,8 @@ fun ConfigMenuOverlay(
                 Surface(
                     modifier        = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .clickable(enabled = false) {},
                     color           = WarmOrange,
                     tonalElevation  = 4.dp,
                     shadowElevation = 8.dp,

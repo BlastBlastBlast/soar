@@ -141,7 +141,7 @@ fun WeatherCardScreen(
                     onDismiss = { isConfigMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .offset(y = -(56.dp + 16.dp))
+                        .offset(y = (10.dp))
                 )
             }
             // Filter Overlay.
@@ -161,7 +161,7 @@ fun WeatherCardScreen(
                     onDismiss = { isFilterMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .offset(y = -(56.dp + 16.dp))
+                        .offset(y = (10.dp))
                 )
             }
             // Launch Sites Overlay.
@@ -176,8 +176,9 @@ fun WeatherCardScreen(
                     },
                     onDismiss = { isLaunchMenuExpanded = false },
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .offset(y = -(30.dp + 16.dp)),
+                        .align(Alignment.BottomStart) // For bottom-right placement.
+                        .offset(y = (10.dp)),
+
                 )
             }
         }

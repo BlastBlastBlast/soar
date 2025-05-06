@@ -122,7 +122,7 @@ fun ConfigEditScreen(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Wind Direction", Modifier.weight(1f))
                 ColoredSwitch(
-                    checked = isEnabledWindDirection,
+                    checked = if (config == null) true else isEnabledWindDirection,
                     onCheckedChange = { isEnabledWindDirection = it },
                 )
             }
@@ -132,7 +132,7 @@ fun ConfigEditScreen(
                     label           = item.label,
                     value           = item.value,
                     onValueChange   = item.onValueChange,
-                    enabled         = item.enabled,
+                    enabled         = if (config == null) true else item.enabled,
                     onEnabledChange = item.onEnabledChange,
                     modifier        = Modifier.fillMaxWidth()
                 )
@@ -148,7 +148,7 @@ fun ConfigEditScreen(
                     label           = item.label,
                     value           = item.value,
                     onValueChange   = item.onValueChange,
-                    enabled         = item.enabled,
+                    enabled         = if (config == null) true else item.enabled,
                     onEnabledChange = item.onEnabledChange,
                     modifier        = Modifier.fillMaxWidth()
                 )
@@ -164,7 +164,7 @@ fun ConfigEditScreen(
                     label           = item.label,
                     value           = item.value,
                     onValueChange   = item.onValueChange,
-                    enabled         = item.enabled,
+                    enabled         = if (config == null) true else item.enabled,
                     onEnabledChange = item.onEnabledChange,
                     modifier        = Modifier.fillMaxWidth()
                 )
@@ -179,7 +179,7 @@ fun ConfigEditScreen(
                 label           = "Upper Bound (m)",
                 value           = altitude,
                 onValueChange   = { altitude = it },
-                enabled         = isEnabledAltitude,
+                enabled         = if (config == null) true else isEnabledAltitude,
                 onEnabledChange = { isEnabledAltitude = it },
                 modifier        = Modifier.fillMaxWidth()
             )
