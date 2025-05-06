@@ -28,16 +28,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun RocketConfigListScreen(
-    viewModel: RocketConfigListViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel = hiltViewModel(),
     onEditRocketConfig: (RocketConfig) -> Unit,
     onAddRocketConfig: () -> Unit,
     onSelectRocketConfig: (RocketConfig) -> Unit
 ) {
-    val rockets by viewModel.rocketList.collectAsState(initial = emptyList())
+    val rockets by viewModel.rocketConfigs.collectAsState(initial = emptyList())
 
     Box(
         Modifier

@@ -25,16 +25,17 @@ import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
 
 
 @Composable
 fun ConfigListScreen(
-    viewModel: ConfigListViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel = hiltViewModel(),
     onEditConfig: (ConfigProfile) -> Unit,
     onAddConfig: () -> Unit,
     onSelectConfig: (ConfigProfile) -> Unit
 ) {
-    val configList by viewModel.configList.collectAsState(initial = emptyList())
+    val configList by viewModel.weatherConfigs.collectAsState(initial = emptyList())
 
     Box(
         Modifier
@@ -83,7 +84,7 @@ fun ConfigListScreen(
                             config    = config,
                             onClick   = { onSelectConfig(config) },
                             onEdit    = { onEditConfig(config) },
-                            onDelete  = { viewModel.deleteConfig(config) }
+                            onDelete  = { viewModel.deleteWeatherConfig(config) }
                         )
                     }
                 }
