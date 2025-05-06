@@ -224,8 +224,10 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val exists = launchSitesRepository.checkIfSiteExists(name)
             if (exists) {
-                _updateStatus.value =
-                    UpdateStatus.Error("Launch site with this name already exists")
+                if (name != launchSitesRepository.getSiteById(siteId)?.name) {
+                    _updateStatus.value =
+                        UpdateStatus.Error("Launch site with this name already exists")
+                }
             } else {
                 launchSitesRepository.update(
                     LaunchSite(
