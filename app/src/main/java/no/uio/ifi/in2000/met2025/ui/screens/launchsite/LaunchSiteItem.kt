@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -24,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
@@ -37,40 +39,51 @@ fun LaunchSiteItem(
     onDelete: () -> Unit,
     onEdit: (LaunchSite) -> Unit,
     updateStatus: LaunchSiteViewModel.UpdateStatus,
-    viewModel : LaunchSiteViewModel
+    viewModel: LaunchSiteViewModel,
+    listState: LazyListState,
+    itemIndex: Int
 ) {
-    var isEditing     by rememberSaveable { mutableStateOf(false) }
-    var name          by remember { mutableStateOf(site.name) }
-    var latitudeText  by remember { mutableStateOf(site.latitude.toString()) }
+    var isEditing by rememberSaveable { mutableStateOf(false) }
+    var name by remember { mutableStateOf(site.name) }
+    var latitudeText by remember { mutableStateOf(site.latitude.toString()) }
     var longitudeText by remember { mutableStateOf(site.longitude.toString()) }
+    val coroutineScope = rememberCoroutineScope()
     val isSpecialMarker = site.name == "New Marker"
     val orangeStripHeight = 16.dp
     val cornerShape = RoundedCornerShape(8.dp)
 
-    //TODO: Fix keyboard overlapping cards while editing. Add onDone to keyboard.
+    LaunchedEffect(updateStatus) {
+        if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success && updateStatus.siteUid == site.uid && isEditing) {
+            isEditing = false
+            viewModel.setUpdateStatusToIdle()
+        }
+    }
 
     ElevatedCard(
-        modifier  = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .animateContentSize(),
-        shape     = cornerShape,
-        elevation = CardDefaults.elevatedCardElevation(2.dp),      // small tonal+shadow on white
-        colors    = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primary,      // pure white
-            contentColor   = MaterialTheme.colorScheme.onPrimary
+        shape = cornerShape,
+        elevation = CardDefaults.elevatedCardElevation(2.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
         Column(Modifier.clip(cornerShape)) {
-            // orange strip at top
+            // Top orange strip
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(orangeStripHeight)
-                    .background(WarmOrange, shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .background(
+                        WarmOrange,
+                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
             )
 
-            // white/dark surface body
+            // Card body
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -87,18 +100,55 @@ fun LaunchSiteItem(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(Modifier.weight(1f)) {
-                            if (isSpecialMarker) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Last Marker", style = MaterialTheme.typography.bodyLarge)
-                                    Spacer(Modifier.width(4.dp))
-                                    Image(
-                                        painter = painterResource(R.drawable.red_marker),
-                                        contentDescription = "New Marker",
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                            Text(site.name, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                "Lat: %.4f   Lon: %.4f".format(site.latitude, site.longitude),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Row {
+                            IconButton(onClick = {
+                                isEditing = true
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(itemIndex)
                                 }
-                            } else {
-                                Text(site.name, style = MaterialTheme.typography.bodyLarge)
+                            }) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Edit",
+                                    tint = IconGreen
+                                )
+                            }
+                            IconButton(onClick = onDelete) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = IconRed
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            AppOutlinedTextField(
+                                value = name,
+                                onValueChange = {
+                                    name = it
+                                    viewModel.checkNameAvailability(it)
+                                },
+                                label = { Text("Name") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
+                                Text(
+                                    text = updateStatus.message,
+                                    color = Color.Red
+                                )
                             }
                             Text(
                                 "Lat: %.4f   Lon: %.4f".format(site.latitude, site.longitude),
@@ -106,52 +156,15 @@ fun LaunchSiteItem(
                             )
                         }
                         Row {
-                            IconButton(onClick = { isEditing = true }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = IconGreen)
-                            }
-                            IconButton(onClick = onDelete) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = IconRed)
-                            }
-                        }
-                    }
-                } else {
-                    // edit mode…
-                    Column {
-                        AppOutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it; viewModel.checkNameAvailability(it) },
-                            label = { Text("Name") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth()) {
-                            AppOutlinedTextField(
-                                value = latitudeText,
-                                onValueChange = { latitudeText = it },
-                                label = { Text("Lat") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            AppOutlinedTextField(
-                                value = longitudeText,
-                                onValueChange = { longitudeText = it },
-                                label = { Text("Lon") },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
                             IconButton(onClick = {
                                 val newLat = latitudeText.toDoubleOrNull()
                                 val newLon = longitudeText.toDoubleOrNull()
-                                if (newLat != null && newLon != null && name.isNotBlank()) {
-                                    // Save the edited marker as a new launch site.
+                                if (newLat == site.latitude && newLon == site.longitude && name == site.name) {
+                                    isEditing = false
+                                } else if (newLat != null && newLon != null && name.isNotBlank()) {
                                     onEdit(
                                         LaunchSite(
-                                            uid = site.uid, // or leave 0 so that the database assigns a new UID.
+                                            uid = site.uid,
                                             latitude = newLat,
                                             longitude = newLon,
                                             name = name
@@ -169,8 +182,72 @@ fun LaunchSiteItem(
                             }) {
                                 Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
                             }
-                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing
-                                && name != site.name) {
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+                    /*
+                    Column {
+                        AppOutlinedTextField(
+                            value = name,
+                            onValueChange = {
+                                name = it
+                                viewModel.checkNameAvailability(it)
+                            },
+                            label = { Text("Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        AppOutlinedTextField(
+                            value = latitudeText,
+                            onValueChange = { latitudeText = it },
+                            label = { Text("Lat") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        AppOutlinedTextField(
+                            value = longitudeText,
+                            onValueChange = { longitudeText = it },
+                            label = { Text("Lon") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            IconButton(onClick = {
+                                val newLat = latitudeText.toDoubleOrNull()
+                                val newLon = longitudeText.toDoubleOrNull()
+                                if (newLat == site.latitude && newLon == site.longitude && name == site.name) {
+                                    isEditing = false
+                                } else if (newLat != null && newLon != null && name.isNotBlank()) {
+                                    onEdit(
+                                        LaunchSite(
+                                            uid = site.uid,
+                                            latitude = newLat,
+                                            longitude = newLon,
+                                            name = name
+                                        )
+                                    )
+                                }
+                            }) {
+                                Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
+                            }
+                            IconButton(onClick = {
+                                name = site.name
+                                latitudeText = site.latitude.toString()
+                                longitudeText = site.longitude.toString()
+                                isEditing = false
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
+                            }
+                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
                                 Text(
                                     text = updateStatus.message,
                                     color = Color.Red
@@ -183,3 +260,4 @@ fun LaunchSiteItem(
         }
     }
 }
+*/

@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
@@ -22,11 +23,13 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 @Composable
 fun SiteMenuItem(
     site: LaunchSite,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    minWidth: Dp,
+    maxWidth: Dp
 ) {
     ElevatedCard(
         modifier  = Modifier
-            .fillMaxWidth()
+            .widthIn(min = minWidth, max = maxWidth)
             .animateContentSize(tween(200))
             .clickable(onClick = onClick),
         shape     = RoundedCornerShape(8.dp),
@@ -38,7 +41,6 @@ fun SiteMenuItem(
     ) {
         Row(
             Modifier
-                .fillMaxWidth()
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

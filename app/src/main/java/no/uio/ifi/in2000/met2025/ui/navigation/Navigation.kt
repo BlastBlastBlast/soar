@@ -1,7 +1,10 @@
+/*
+
 package no.uio.ifi.in2000.met2025.ui.navigation
 
 import android.os.Bundle
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,29 +29,13 @@ import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigEditViewMod
 import no.uio.ifi.in2000.met2025.ui.screens.rocketconfig.RocketConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.accompanist.systemuicontroller.SystemUiController
+
 
 //TODO: FIKSE NAVIGATION KALL TIL Å IKKE LAUNCHE MANGE GANGER PÅ SAMME SKJERM!
 
-object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
-    override fun get(bundle: Bundle, key: String): Double? = bundle.getDouble(key)
-    override fun parseValue(value: String): Double = value.toDouble()
-    override fun put(bundle: Bundle, key: String, value: Double) = bundle.putDouble(key, value)
-}
 
-sealed class Screen(val route: String) {
-    data object Home : Screen("home")
-    data object Weather : Screen("weather?lat={lat}&lon={lon}") {
-        fun createRoute(lat: Double, lon: Double) = "weather?lat=$lat&lon=$lon"
-    }
-    data object LaunchSite : Screen("launchsite")
-    data object ConfigList : Screen("config_list")
-    data object ConfigEdit : Screen("config_edit")
-    // New rocket configuration screens:
-    data object RocketConfigList : Screen("rocket_config_list")
-    data object RocketConfigEdit : Screen("rocket_config_edit/{rocketName}/{rocketId}") {
-        fun createRoute(rocketName: String, rocketId: Int) = "rocket_config_edit/$rocketName/$rocketId"
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +46,14 @@ fun AppNavLauncher(
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = Color.Black,
+            darkIcons = false // Always white text/icons
+        )
+    }
 
     // Determine current screen title based on the nav back stack.
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -77,6 +72,7 @@ fun AppNavLauncher(
     val homeScreenViewModel: HomeScreenViewModel = hiltViewModel()
 
     ModalNavigationDrawer(
+        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
         drawerState = drawerState,
         gesturesEnabled = gesturesEnabled,
         drawerContent = {
@@ -136,6 +132,8 @@ fun AppNavLauncher(
         Scaffold(
             topBar = {
                 TopAppBar(
+                    modifier = Modifier
+                        .background(Color.Black),
                     title = { Text(text = currentScreenTitle, color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -172,7 +170,9 @@ fun AppNavLauncher(
             NavHost(
                 navController = navController,
                 startDestination = Screen.Home.route,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .windowInsetsPadding(WindowInsets.ime)
             ) {
                 composable(Screen.Home.route) {
                     HomeScreen(
@@ -273,3 +273,4 @@ fun AppNavLauncher(
         }
     }
 }
+*/

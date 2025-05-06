@@ -9,6 +9,8 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.TimeSeries
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 // LocationForecastRepository.kt
@@ -98,6 +100,32 @@ class LocationForecastRepository @Inject constructor(
                 }
             )
         )
+    }
+
+    suspend fun getTimeZoneAdjustedForecast(
+        lat: Double,
+        lon: Double,
+        timeSpanInHours: Int
+    ): Result<ForecastData> {
+
+        val response = getForecastData(lat, lon, timeSpanInHours).fold(
+            onFailure = { return Result.failure(it) },
+            onSuccess = { it }
+        )
+
+        val osloZone = ZoneId.of("Europe/Oslo")
+        val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+
+        val adjustedTimeSeries = response.timeSeries.map { item ->
+            val osloTime = Instant.parse(item.time).atZone(osloZone)
+            val formattedTime = formatter.format(osloTime)
+
+            item.copy(time = formattedTime)
+        }
+
+        val result = ForecastData(response.updatedAt, response.altitude, adjustedTimeSeries)
+
+        return Result.success(result)
     }
 
     private fun List<TimeSeries>.takeUntilDurationExceeds(threshold: Int): List<TimeSeries> {
