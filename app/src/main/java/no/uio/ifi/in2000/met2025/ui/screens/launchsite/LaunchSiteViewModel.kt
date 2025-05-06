@@ -91,12 +91,12 @@ class LaunchSiteViewModel @Inject constructor(
         }
     }
 
-    fun updateLaunchSite(launchSite: LaunchSite) {
+    fun updateLaunchSite(launchSite: LaunchSite, name: String) {
         viewModelScope.launch {
             // Create an updated LaunchSite instance.
             // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
             val exists = launchSitesRepository.checkIfSiteExists(launchSite.name)
-            if (exists) {
+            if (exists && launchSite.name != name) {
                 _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
             } else {
                 // Use your repository's update function.
