@@ -32,9 +32,9 @@ android {
                 "META-INF/third-party-licenses/gretty/LICENSE",
                 "META-INF/third-party-licenses/NOAA_LICENSE"
             )
+            println("Exclusions: $excludes") // Debug log to verify exclusions
         }
     }
-
 
     buildTypes {
         release {

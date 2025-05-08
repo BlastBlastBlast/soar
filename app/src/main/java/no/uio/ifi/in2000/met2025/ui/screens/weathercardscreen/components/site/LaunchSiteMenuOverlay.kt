@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -43,12 +46,19 @@ fun LaunchSitesMenuOverlay(
     val maxWidth        = screenWidth * 0.55f
     val maxSurfaceWidth = screenWidth * 0.6f
     val maxHeight       = screenHeight * 0.5f
+    val bottomBarHeight = 56.dp
 
     // 1) full‑screen dimmed backdrop
     Box(
         Modifier
             .fillMaxSize()
             .background(Black.copy(alpha = 0.3f))
+            .padding(bottom = bottomBarHeight)
+            .clickable(
+                onClick = onDismiss,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
     ) {
         // 2) orange sheet, popped up at bottom
         AnimatedVisibility(
@@ -60,7 +70,8 @@ fun LaunchSitesMenuOverlay(
             Surface(
                 modifier        = Modifier
                     .widthIn(max = maxSurfaceWidth, min = minWidth)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .clickable(enabled = false) {},
                 color           = WarmOrange,
                 tonalElevation  = 4.dp,
                 shadowElevation = 8.dp,

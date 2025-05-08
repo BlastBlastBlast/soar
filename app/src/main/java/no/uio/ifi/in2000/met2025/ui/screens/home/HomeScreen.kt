@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.TrajectoryPopup
+import no.uio.ifi.in2000.met2025.ui.screens.home.maps.MapView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,49 +131,34 @@ fun HomeScreen(
 
 
             Box(Modifier.fillMaxSize()) {
-                // A) Map + annotations
-                MapContainer(
-                    coordinates = coords,
-                    newMarker = newMarker,
-                    newMarkerStatus = newMarkerStatus,
-                    launchSites = launchSites,
-                    mapViewportState = mapViewportState,
-                    showAnnotations = showAnnotations,
-                    onMapLongClick = fakeLongClick,
-                    onMarkerAnnotationClick = { pt, elev ->
+                // A) Map + annotations (inlined MapView instead of MapContainer)
+                MapView(
+                    center                   = coords,
+                    newMarker                = newMarker,
+                    newMarkerStatus          = newMarkerStatus,
+                    launchSites              = launchSites,
+                    mapViewportState         = mapViewportState,
+                    modifier                 = Modifier.matchParentSize(),
+                    showAnnotations          = showAnnotations,
+                    onMapLongClick           = fakeLongClick,
+                    onMarkerAnnotationClick  = { pt, elev ->
                         viewModel.updateCoordinates(pt.latitude(), pt.longitude())
-                        viewModel.updateLastVisited(
-                            pt.latitude(),
-                            pt.longitude(),
-                            elev
-                        )
+                        viewModel.updateLastVisited(pt.latitude(), pt.longitude(), elev)
                     },
                     onMarkerAnnotationLongPress = { pt, elev ->
                         viewModel.updateCoordinates(pt.latitude(), pt.longitude())
-                        viewModel.updateLastVisited(
-                            pt.latitude(),
-                            pt.longitude(),
-                            elev
-                        )
+                        viewModel.updateLastVisited(pt.latitude(), pt.longitude(), elev)
                         isEditingMarker = false
                         launchSiteName = "New Marker"
                         showSaveDialog = true
                     },
-                    onLaunchSiteMarkerClick = { site ->
+                    onLaunchSiteMarkerClick      = { site ->
                         viewModel.updateCoordinates(site.latitude, site.longitude)
-                        viewModel.updateLastVisited(
-                            site.latitude,
-                            site.longitude,
-                            site.elevation
-                        )
+                        viewModel.updateLastVisited(site.latitude, site.longitude, site.elevation)
                     },
                     onSavedMarkerAnnotationLongPress = { site ->
                         viewModel.updateCoordinates(site.latitude, site.longitude)
-                        viewModel.updateLastVisited(
-                            site.latitude,
-                            site.longitude,
-                            site.elevation
-                        )
+                        viewModel.updateLastVisited(site.latitude, site.longitude, site.elevation)
                         isEditingMarker = true
                         editingMarkerId = site.uid
                         savedMarkerCoordinates = site.latitude to site.longitude
@@ -182,11 +168,9 @@ fun HomeScreen(
                     onSiteElevation = { uid, elev ->
                         viewModel.updateSiteElevation(uid, elev)
                     },
-                    // ← HERE: pass down your 3D-ModelLayer trajectory state
                     trajectoryPoints = trajectoryPoints,
-                    isAnimating = isAnimating,
-                    onAnimationEnd = { viewModel.isAnimating = false },
-                    modifier = Modifier.matchParentSize()
+                    isAnimating       = isAnimating,
+                    onAnimationEnd    = { viewModel.isAnimating = false }
                 )
 
                 ExtendedFloatingActionButton(

@@ -37,6 +37,7 @@ fun AppTopBar(
         currentRoute?.startsWith("rocket_config_edit") == true   -> "Edit Rocket Profile"
         currentRoute == Screen.ConfigList.route                        -> "Weather Settings"
         currentRoute?.startsWith("config_edit") == true          -> "Edit Weather Settings"
+        currentRoute == Screen.Settings.route                          -> "Settings"
         else                                                           -> ""
     }
 
@@ -54,7 +55,7 @@ fun AppTopBar(
         navigationIcon = {
             IconButton(onClick = onOpenDrawer) {
                 Image(
-                    painter           = painterResource(R.drawable.placeholder_logo),
+                    painter           = painterResource(R.drawable.soarlogo),
                     contentDescription = "Open navigation drawer",
                     modifier          = Modifier.size(40.dp)
                 )

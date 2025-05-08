@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.configprofiles
+package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

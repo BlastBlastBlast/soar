@@ -27,9 +27,9 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
-import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Named
 import javax.inject.Singleton
