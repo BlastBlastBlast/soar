@@ -26,6 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.ui.theme.Black
@@ -46,6 +50,10 @@ fun ConfigMenuOverlay(
             .fillMaxSize()
             .background(Black.copy(alpha = 0.3f))
             .padding(bottom = bottomBarHeight)
+            .semantics {
+                role = Role.Button
+                contentDescription = "Dismiss launch sites menu by clicking outside"
+            }
             .clickable(
                 onClick = onDismiss,
                 indication = null,
@@ -57,6 +65,9 @@ fun ConfigMenuOverlay(
             ) {
                 AnimatedVisibility(
                 visible = true,
+                modifier = modifier.semantics {
+                    contentDescription = "Configuration selection menu"
+                },
                 enter = expandVertically(
                     expandFrom = Alignment.Bottom,
                     animationSpec = tween(300)
