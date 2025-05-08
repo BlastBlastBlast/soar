@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.theme.AppTypography
@@ -39,10 +42,9 @@ fun SaveLaunchSiteDialog(
         title = {
             CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
                 Text(
-                    text  = if (updateStatus is HomeScreenViewModel.UpdateStatus.Error)
-                        "Name Already Exists"
-                    else
-                        "Save Launch Site",
+                    text = if (updateStatus is HomeScreenViewModel.UpdateStatus.Error)
+                        "Name Already Exists" else "Save Launch Site",
+                    modifier = Modifier.semantics { heading() },
                     style = AppTypography.headlineSmall
                 )
             }
@@ -61,6 +63,7 @@ fun SaveLaunchSiteDialog(
                         onValueChange = onNameChange,
                         label         = { Text("Site Name") },
                         modifier      = Modifier.fillMaxWidth()
+                            .semantics { contentDescription = "Launch site name input field" }
                     )
                     if (updateStatus is HomeScreenViewModel.UpdateStatus.Error) {
                         Spacer(Modifier.height(4.dp))
@@ -77,7 +80,8 @@ fun SaveLaunchSiteDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                enabled = launchSiteName.isNotBlank(), // prevent empty name
+                enabled = launchSiteName.isNotBlank(),
+                // prevent empty name
                 colors  = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor   = MaterialTheme.colorScheme.primary
