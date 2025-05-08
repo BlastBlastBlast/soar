@@ -128,7 +128,6 @@ fun HomeScreen(
                 launchSiteName = "New Marker"
             }
 
-            // Map viewport state
             val mapViewportState = rememberMapViewportState {
                 setCameraOptions {
                     center(Point.fromLngLat(coords.second, coords.first))
@@ -148,7 +147,6 @@ fun HomeScreen(
 
             Box(Modifier.fillMaxSize().semantics { contentDescription = "Home screen with map and controls" }
             ) {
-                // A) Map + annotations
                 Box(modifier = Modifier.matchParentSize().semantics {
                             // Treat the map as an image with interactive markers
                             role = Role.Image
@@ -156,7 +154,6 @@ fun HomeScreen(
                                 "Map view showing launch sites and your current position"
                         }
                 ) {
-                    // A) Map + annotations (inlined MapView instead of MapContainer)
                     MapView(
                         center = coords,
                         newMarker = newMarker,
@@ -222,7 +219,6 @@ fun HomeScreen(
                             .padding(16.dp)
                     )
 
-                    // B) Now the popup with carousel inside
                     if (showTrajectoryPopup) {
                         TrajectoryPopup(
                             show = true,
@@ -244,7 +240,6 @@ fun HomeScreen(
                         )
                     }
 
-                    // B) Lat/Lon input & Done
                     Column(
                         Modifier
                             .fillMaxWidth()
@@ -278,7 +273,6 @@ fun HomeScreen(
                         }
                     }
 
-                    // C) Launch sites menu
                     LaunchSitesButton(
                         Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp),
                         onClick = { isMenuExpanded = !isMenuExpanded }
@@ -312,7 +306,6 @@ fun HomeScreen(
                         )
                     }
 
-                    // D) Toggle annotations
                     IconButton(
                         onClick = { showAnnotations = !showAnnotations },
                         modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
@@ -323,7 +316,6 @@ fun HomeScreen(
                         )
                     }
 
-                    // E) Weather navigation
                     WeatherNavigationButton(
                         modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
                         latInput = coords.first.toString(),
@@ -335,7 +327,6 @@ fun HomeScreen(
                         context = LocalContext.current
                     )
 
-                    // F) Save/Edit dialog
                     if (showSaveDialog) {
                         SaveLaunchSiteDialog(
                             launchSiteName = launchSiteName,
@@ -356,8 +347,6 @@ fun HomeScreen(
                                 } else {
                                     viewModel.lastVisited.value?.elevation
                                 }
-                                //Null safety for savedMarkerCoordinates is that the only operation that sets isEditingMarker
-                                //to true also updates savedMarkerCoordinates
                                 if (isEditingMarker) {
                                     viewModel.editLaunchSite(
                                         editingMarkerId,
