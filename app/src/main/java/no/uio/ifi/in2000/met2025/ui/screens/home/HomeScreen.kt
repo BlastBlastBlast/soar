@@ -274,8 +274,7 @@ fun HomeScreen(
                     }
 
                     LaunchSitesButton(
-                        Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp)
-                            .semantics { contentDescription = "Open launch sites menu" },
+                        Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp),
                         onClick = { isMenuExpanded = !isMenuExpanded }
                     )
 
@@ -323,8 +322,7 @@ fun HomeScreen(
                     }
 
                     WeatherNavigationButton(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp)
-                            .semantics { contentDescription = "Go to weather for current coordinates" },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
                         latInput = coords.first.toString(),
                         lonInput = coords.second.toString(),
                         onNavigate = { lat, lon ->
