@@ -271,6 +271,8 @@ fun ScreenContent(
                                     viewModel = viewModel
                                 )
                             }
+
+                            Spacer(modifier = Modifier.height(50.dp))
                         }
                     }
                 }
