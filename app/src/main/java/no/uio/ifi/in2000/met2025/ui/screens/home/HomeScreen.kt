@@ -274,9 +274,11 @@ fun HomeScreen(
                     }
 
                     LaunchSitesButton(
-                        Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp),
+                        Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp)
+                            .semantics { contentDescription = "Open launch sites menu" },
                         onClick = { isMenuExpanded = !isMenuExpanded }
                     )
+
                     AnimatedVisibility(
                         visible = isMenuExpanded,
                         enter = expandVertically(tween(300)) + fadeIn(tween(300)),
@@ -309,15 +311,20 @@ fun HomeScreen(
                     IconButton(
                         onClick = { showAnnotations = !showAnnotations },
                         modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
+                            .semantics {
+                                contentDescription = if (showAnnotations)
+                                    "Hide map annotations" else "Show map annotations" }
                     ) {
                         Icon(
-                            imageVector = if (showAnnotations) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = "Toggle annotations"
+                            imageVector = if (showAnnotations)
+                                Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = null
                         )
                     }
 
                     WeatherNavigationButton(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp)
+                            .semantics { contentDescription = "Go to weather for current coordinates" },
                         latInput = coords.first.toString(),
                         lonInput = coords.second.toString(),
                         onNavigate = { lat, lon ->
