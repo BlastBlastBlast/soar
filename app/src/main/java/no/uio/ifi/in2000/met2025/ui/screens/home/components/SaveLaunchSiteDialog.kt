@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
@@ -81,8 +83,11 @@ fun SaveLaunchSiteDialog(
             Button(
                 onClick = onConfirm,
                 enabled = launchSiteName.isNotBlank(),
-                // prevent empty name
-                colors  = ButtonDefaults.buttonColors(
+                modifier = Modifier.semantics {
+                    contentDescription = "Save launch site"
+                    role = Role.Button
+                },
+                colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor   = MaterialTheme.colorScheme.primary
                 )
@@ -93,11 +98,13 @@ fun SaveLaunchSiteDialog(
 
         dismissButton = {
             TextButton(
-                onClick = {
-                    if (canDismiss) onDismiss()
-                },
+                onClick = { if (canDismiss) onDismiss() },
                 enabled = canDismiss,
-                colors  = ButtonDefaults.textButtonColors(
+                modifier = Modifier.semantics {
+                    contentDescription = "Cancel saving launch site"
+                    role = Role.Button
+                },
+                colors = ButtonDefaults.textButtonColors(
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
