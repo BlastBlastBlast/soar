@@ -21,6 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -35,7 +39,9 @@ fun SegmentedBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(Color.Black),
+            .background(Color.Black).semantics {
+                contentDescription = "Bottom navigation: Launch, Filter, Config"
+            },
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -44,7 +50,10 @@ fun SegmentedBottomBar(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { onLaunchClick() },
+                .clickable { onLaunchClick() }.semantics {
+                    role = Role.Tab
+                    contentDescription = "Launch"
+                },
             contentAlignment = Alignment.Center,
         ) {
             Box(
@@ -67,7 +76,11 @@ fun SegmentedBottomBar(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { onFilterClick() },
+                .clickable { onFilterClick() }
+                .semantics {
+                    role = Role.Tab
+                    contentDescription = "Filter launch windows"
+                },
             contentAlignment = Alignment.Center
         ) {
             Box(
@@ -89,7 +102,11 @@ fun SegmentedBottomBar(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable { onConfigClick() },
+                .clickable { onConfigClick() }
+                .semantics {
+                    role = Role.Tab
+                    contentDescription = "Configure profile"
+                },
             contentAlignment = Alignment.Center
         ) {
             Box(
