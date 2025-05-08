@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -41,34 +42,56 @@ fun AppTopBar(
     }
 
     TopAppBar(
-        modifier       = Modifier.background(Color.Black),
-        title          = {
+        modifier = Modifier
+            .background(Color.Black)
+            .semantics {
+                contentDescription = "$title screen toolbar"
+            },
+        title = {
             Text(
                 text = title,
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                modifier = Modifier.semantics {
+                    heading()
+                }
             )
         },
         navigationIcon = {
-            IconButton(onClick = onOpenDrawer) {
+            IconButton(
+                onClick = onOpenDrawer,
+                modifier = Modifier.semantics {
+                    role = Role.Button
+                    contentDescription = "Open navigation drawer"
+                }
+            ) {
                 Image(
-                    painter           = painterResource(R.drawable.soarlogo),
-                    contentDescription = "Open navigation drawer",
-                    modifier          = Modifier.size(40.dp)
+                    painter = painterResource(R.drawable.soarlogo),
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp)
                 )
             }
         },
         actions = {
-            IconButton(onClick = onToggleTheme) {
+            IconButton(
+                onClick = onToggleTheme,
+                modifier = Modifier.semantics {
+                    role = Role.Button
+                    contentDescription = if (currentThemeDark)
+                        "Switch to light theme"
+                    else
+                        "Switch to dark theme"
+                }
+            ) {
                 Icon(
-                    painter           = painterResource(
+                    painter = painterResource(
                         if (currentThemeDark) R.drawable.sun_icon
                         else               R.drawable.moon_icon
                     ),
-                    contentDescription = "Toggle theme",
-                    tint               = Color.White
+                    contentDescription = null,
+                    tint = Color.White
                 )
             }
         },
