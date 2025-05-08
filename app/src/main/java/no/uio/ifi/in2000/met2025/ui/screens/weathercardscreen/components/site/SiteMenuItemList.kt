@@ -10,6 +10,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
@@ -26,7 +30,10 @@ fun SiteMenuItemList(
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding      = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+        contentPadding      = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+        modifier = Modifier.semantics {
+            contentDescription = "Available launch sites"
+        }
     ) {
         pinned?.let { site ->
             item {

@@ -24,6 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
@@ -63,7 +67,15 @@ fun LaunchSiteItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .animateContentSize(),
+            .animateContentSize()
+            .semantics {
+                role = Role.Button
+                contentDescription = if (!isEditing) {
+                    "${site.name}, latitude ${"%.4f".format(site.latitude)}, longitude ${"%.4f".format(site.longitude)}. Double-tap to edit."
+                } else {
+                    "Editing site ${site.name}. Double-tap to save or cancel."
+                }
+            },
         shape = cornerShape,
         elevation = CardDefaults.elevatedCardElevation(2.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -112,14 +124,18 @@ fun LaunchSiteItem(
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(itemIndex)
                                 }
-                            }) {
+                            },  modifier = Modifier.semantics { contentDescription = "Edit site" }
+
+                            ) {
                                 Icon(
                                     Icons.Default.Edit,
                                     contentDescription = "Edit",
                                     tint = IconGreen
                                 )
                             }
-                            IconButton(onClick = onDelete) {
+                            IconButton(onClick = onDelete,
+                                modifier = Modifier.semantics { contentDescription = "Delete site" }
+                            ) {
                                 Icon(
                                     Icons.Default.Delete,
                                     contentDescription = "Delete",
@@ -141,7 +157,7 @@ fun LaunchSiteItem(
                                     name = it
                                     viewModel.checkNameAvailability(it)
                                 },
-                                label = { Text("Name") },
+                                labelText = "Name",
                                 modifier = Modifier.fillMaxWidth()
                             )
                             if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
@@ -171,7 +187,8 @@ fun LaunchSiteItem(
                                         )
                                     )
                                 }
-                            }) {
+                            },  modifier = Modifier.semantics { contentDescription = "Save changes" }
+                            ) {
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
                             }
                             IconButton(onClick = {
@@ -179,7 +196,8 @@ fun LaunchSiteItem(
                                 latitudeText = site.latitude.toString()
                                 longitudeText = site.longitude.toString()
                                 isEditing = false
-                            }) {
+                            },  modifier = Modifier.semantics { contentDescription = "Cancel edit" }
+                            ) {
                                 Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
                             }
                         }

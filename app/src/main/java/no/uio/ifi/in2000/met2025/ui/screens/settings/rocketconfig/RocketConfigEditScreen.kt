@@ -14,6 +14,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,7 +82,15 @@ fun RocketConfigEditScreen(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .semantics {
+                    // announce whether we're creating or editing
+                    contentDescription =
+                        if (rocketParameters == null)
+                            "New Rocket Configuration Screen"
+                        else
+                            "Edit Rocket Configuration Screen"
+                },
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 4.dp,
             shadowElevation = 8.dp,
@@ -92,7 +107,8 @@ fun RocketConfigEditScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                         .background(WarmOrange, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .semantics { heading() },    // ← marks this Text as a heading
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -107,11 +123,12 @@ fun RocketConfigEditScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Column(Modifier.padding(horizontal = 16.dp)) {
+                    // --- all fields now use labelText + implicit semantics ---
                     AppOutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text("Configuration Name") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = name,
+                        onValueChange= { name = it },
+                        labelText    = "Configuration Name",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
                         Text(
@@ -121,90 +138,103 @@ fun RocketConfigEditScreen(
                         )
                     }
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = launchAzimuth,
-                        onValueChange = { launchAzimuth = it },
-                        label = { Text("Launch Azimuth (°)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = launchAzimuth,
+                        onValueChange= { launchAzimuth = it },
+                        labelText    = "Launch Azimuth (°)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = launchPitch,
-                        onValueChange = { launchPitch = it },
-                        label = { Text("Launch Pitch (°)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = launchPitch,
+                        onValueChange= { launchPitch = it },
+                        labelText    = "Launch Pitch (°)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = launchRailLength,
-                        onValueChange = { launchRailLength = it },
-                        label = { Text("Launch Rail Length (m)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = launchRailLength,
+                        onValueChange= { launchRailLength = it },
+                        labelText    = "Launch Rail Length (m)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = wetMass,
-                        onValueChange = { wetMass = it },
-                        label = { Text("Wet Mass (kg)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = wetMass,
+                        onValueChange= { wetMass = it },
+                        labelText    = "Wet Mass (kg)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = dryMass,
-                        onValueChange = { dryMass = it },
-                        label = { Text("Dry Mass (kg)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = dryMass,
+                        onValueChange= { dryMass = it },
+                        labelText    = "Dry Mass (kg)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = burnTime,
-                        onValueChange = { burnTime = it },
-                        label = { Text("Burn Time (s)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = burnTime,
+                        onValueChange= { burnTime = it },
+                        labelText    = "Burn Time (s)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = thrust,
-                        onValueChange = { thrust = it },
-                        label = { Text("Thrust (N)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = thrust,
+                        onValueChange= { thrust = it },
+                        labelText    = "Thrust (N)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = stepSize,
-                        onValueChange = { stepSize = it },
-                        label = { Text("Step Size (s)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = stepSize,
+                        onValueChange= { stepSize = it },
+                        labelText    = "Step Size (s)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = crossSectionalArea,
-                        onValueChange = { crossSectionalArea = it },
-                        label = { Text("Cross-Sectional Area (m²)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = crossSectionalArea,
+                        onValueChange= { crossSectionalArea = it },
+                        labelText    = "Cross-Sectional Area (m²)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = dragCoefficient,
-                        onValueChange = { dragCoefficient = it },
-                        label = { Text("Drag Coefficient") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = dragCoefficient,
+                        onValueChange= { dragCoefficient = it },
+                        labelText    = "Drag Coefficient",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = parachuteCrossSectionalArea,
-                        onValueChange = { parachuteCrossSectionalArea = it },
-                        label = { Text("Parachute Cross-Sectional Area (m²)") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = parachuteCrossSectionalArea,
+                        onValueChange= { parachuteCrossSectionalArea = it },
+                        labelText    = "Parachute Cross-Sectional Area (m²)",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
+
                     AppOutlinedTextField(
-                        value = parachuteDragCoefficient,
-                        onValueChange = { parachuteDragCoefficient = it },
-                        label = { Text("Parachute Drag Coefficient") },
-                        modifier = Modifier.fillMaxWidth()
+                        value        = parachuteDragCoefficient,
+                        onValueChange= { parachuteDragCoefficient = it },
+                        labelText    = "Parachute Drag Coefficient",
+                        modifier     = Modifier.fillMaxWidth()
                     )
                 }
+
 
                 Spacer(Modifier.height(24.dp))
 
@@ -246,6 +276,10 @@ fun RocketConfigEditScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Save rocket configuration"
+                        }
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
@@ -253,6 +287,19 @@ fun RocketConfigEditScreen(
                     )
                 ) {
                     Text("Save Rocket Configuration")
+                }
+                if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
+                    val err = (updateStatus as SettingsViewModel.UpdateStatus.Error).message
+                    Text(
+                        text = err,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .semantics {
+                                liveRegion = LiveRegionMode.Polite
+                                contentDescription = err
+                            }
+                    )
                 }
 
                 Spacer(Modifier.height(16.dp))

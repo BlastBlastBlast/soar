@@ -16,6 +16,8 @@ import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.unit
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WindDirectionIcon
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 
 @Composable
@@ -42,7 +44,17 @@ fun WindLayerRow(
         ?.roundToDecimals(1) ?: "--")
         .toString()
 
-    Row(modifier = modifier) {
+    Row(
+        modifier = modifier.semantics {
+            contentDescription = buildString {
+                altitude?.let {
+                    append("Altitude ${altitudeText}. ")
+                }
+                append("Wind direction ${windDirectionText}. ")
+                append("Wind speed ${windSpeedText}. ")
+            }
+        }
+    ) {
         if (altitude == null) {
             Box(modifier = Modifier.weight(1f))
         } else {

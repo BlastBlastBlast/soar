@@ -14,6 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -31,6 +35,14 @@ fun SiteMenuItem(
         modifier  = Modifier
             .widthIn(min = minWidth, max = maxWidth)
             .animateContentSize(tween(200))
+            .semantics {
+                role = Role.Button
+                contentDescription = buildString {
+                    append("Launch site ${site.name}. ")
+                    append("Coordinates: %.4f, %.4f".format(site.latitude, site.longitude))
+                    if (site.name == "New Marker") append(". Pinned site.")
+                }
+            }
             .clickable(onClick = onClick),
         shape     = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp),

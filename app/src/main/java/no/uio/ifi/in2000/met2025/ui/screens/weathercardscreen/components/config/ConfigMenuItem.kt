@@ -28,6 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun EditConfigsMenuItem(
@@ -43,7 +48,13 @@ fun EditConfigsMenuItem(
         modifier  = modifier
             .widthIn(min = minWidth, max = maxWidth)
             .animateContentSize(tween(200))
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick)
+            .semantics {
+                role = Role.Button
+                contentDescription =
+                    if (enabled) "Edit configurations"
+                    else       "Edit configurations (disabled)"
+            },
         shape     = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = 2.dp,
@@ -57,7 +68,8 @@ fun EditConfigsMenuItem(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp),
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+                .semantics { heading() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -90,7 +102,11 @@ fun ConfigMenuItem(
         modifier  = modifier
             .widthIn(min = minWidth, max = maxWidth)
             .animateContentSize(tween(200))
-            .clickable { onConfigSelected(config) },
+            .clickable { onConfigSelected(config) }
+            .semantics {
+                role = Role.Button
+                contentDescription = "Select configuration ${config.name}"
+            },
         shape     = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = 2.dp,
@@ -104,7 +120,8 @@ fun ConfigMenuItem(
         Box(
             Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 8.dp)
+                .semantics { heading() },
             contentAlignment = Alignment.Center
         ) {
             Text(

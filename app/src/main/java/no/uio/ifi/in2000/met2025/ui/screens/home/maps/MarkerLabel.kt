@@ -21,6 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
@@ -40,10 +46,26 @@ fun MarkerLabel(
     onLongPress: () -> Unit,
     fontSize: TextUnit = 8.sp
 ) {
+// Build a descriptive string for accessibility
+    val description = buildString {
+        append(name)
+        append(". Latitude $lat. Longitude $lon.")
+        elevation?.let { append(" Elevation $it.") }
+    }
+
     Surface(
         shape = RoundedCornerShape(4.dp),
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
+            .semantics {
+                role = Role.Button
+                contentDescription = description
+                customActions = listOf(
+                    CustomAccessibilityAction(label = "Label") { onClick(); true },
+                    CustomAccessibilityAction(label = "Select and move to marker") { onDoubleClick(); true },
+                    CustomAccessibilityAction(label = "Edit or save marker") { onLongPress(); true }
+                )
+            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
