@@ -18,6 +18,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
@@ -227,7 +233,11 @@ fun ConfigEditScreen(
                     viewModel.updateWeatherConfig(updated)
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Save configuration"
+                },
             colors   = ButtonDefaults.buttonColors(
                 containerColor = WarmOrange,
                 contentColor   = MaterialTheme.colorScheme.onPrimary
@@ -236,9 +246,14 @@ fun ConfigEditScreen(
             Text("Save Configuration")
         }
         if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
+            val msg = (updateStatus as SettingsViewModel.UpdateStatus.Error).message
             Text(
-                (updateStatus as SettingsViewModel.UpdateStatus.Error).message,
-                color = Color.Red
+                text = msg,
+                color = Color.Red,
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = msg
+                }
             )
         }
     }

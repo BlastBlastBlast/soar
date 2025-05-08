@@ -14,9 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -274,6 +276,10 @@ fun RocketConfigEditScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Save rocket configuration"
+                        }
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
@@ -281,6 +287,19 @@ fun RocketConfigEditScreen(
                     )
                 ) {
                     Text("Save Rocket Configuration")
+                }
+                if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
+                    val err = (updateStatus as SettingsViewModel.UpdateStatus.Error).message
+                    Text(
+                        text = err,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .semantics {
+                                liveRegion = LiveRegionMode.Polite
+                                contentDescription = err
+                            }
+                    )
                 }
 
                 Spacer(Modifier.height(16.dp))
