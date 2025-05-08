@@ -40,32 +40,32 @@ fun ConfigEditScreen(
 
     var configName               by remember(config) { mutableStateOf(config?.name ?: "") }
     var groundWind               by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
-    var isEnabledGroundWind      by remember(config) { mutableStateOf(config?.isEnabledGroundWind == true) }
+    var isEnabledGroundWind      by remember(config) { mutableStateOf(config?.isEnabledGroundWind ?: true) }
     var airWind                  by remember(config) { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
-    var isEnabledAirWind         by remember(config) { mutableStateOf(config?.isEnabledAirWind == true) }
+    var isEnabledAirWind         by remember(config) { mutableStateOf(config?.isEnabledAirWind ?: true) }
     var windShear                by remember(config) { mutableStateOf(config?.windShearSpeedThreshold?.toString() ?: "24.5") }
-    var isEnabledWindShear       by remember(config) { mutableStateOf(config?.isEnabledWindShear == true) }
-    var isEnabledWindDirection   by remember(config) { mutableStateOf(config?.isEnabledWindDirection == true) }
+    var isEnabledWindShear       by remember(config) { mutableStateOf(config?.isEnabledWindShear ?: true) }
+    var isEnabledWindDirection   by remember(config) { mutableStateOf(config?.isEnabledWindDirection ?: true) }
     var overallCloud             by remember(config) { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
-    var isEnabledOverallCloud    by remember(config) { mutableStateOf(config?.isEnabledCloudCover == true) }
+    var isEnabledOverallCloud    by remember(config) { mutableStateOf(config?.isEnabledCloudCover ?: true) }
     var highCloud                by remember(config) { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
-    var isEnabledHighCloud       by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh == true) }
+    var isEnabledHighCloud       by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
     var medCloud                 by remember(config) { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
-    var isEnabledMedCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium == true) }
+    var isEnabledMedCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
     var lowCloud                 by remember(config) { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
-    var isEnabledLowCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow == true) }
+    var isEnabledLowCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
     var fog                      by remember(config) { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
-    var isEnabledFog             by remember(config) { mutableStateOf(config?.isEnabledFog == true) }
+    var isEnabledFog             by remember(config) { mutableStateOf(config?.isEnabledFog ?: true) }
     var precip                   by remember(config) { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
-    var isEnabledPrecip          by remember(config) { mutableStateOf(config?.isEnabledPrecipitation == true) }
+    var isEnabledPrecip          by remember(config) { mutableStateOf(config?.isEnabledPrecipitation ?: true) }
     var humidity                 by remember(config) { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
-    var isEnabledHumidity        by remember(config) { mutableStateOf(config?.isEnabledHumidity == true) }
+    var isEnabledHumidity        by remember(config) { mutableStateOf(config?.isEnabledHumidity ?: true) }
     var dewPoint                 by remember(config) { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
-    var isEnabledDewPoint        by remember(config) { mutableStateOf(config?.isEnabledDewPoint == true) }
+    var isEnabledDewPoint        by remember(config) { mutableStateOf(config?.isEnabledDewPoint ?: true) }
     var thunder                  by remember(config) { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
-    var isEnabledThunder         by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder == true) }
+    var isEnabledThunder         by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder ?: true) }
     var altitude                 by remember(config) { mutableStateOf(config?.altitudeUpperBound?.toString() ?: "5000.0") }
-    var isEnabledAltitude        by remember(config) { mutableStateOf(config?.isEnabledAltitudeUpperBound == true) }
+    var isEnabledAltitude        by remember(config) { mutableStateOf(config?.isEnabledAltitudeUpperBound ?: true) }
 
     val windSettings = listOf(
         SettingItem("Ground Wind Threshold", groundWind, { groundWind = it }, isEnabledGroundWind) { isEnabledGroundWind = it },
@@ -122,7 +122,7 @@ fun ConfigEditScreen(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("Wind Direction", Modifier.weight(1f))
                 ColoredSwitch(
-                    checked = if (config == null) true else isEnabledWindDirection,
+                    checked =  isEnabledWindDirection,
                     onCheckedChange = { isEnabledWindDirection = it },
                 )
             }
@@ -132,7 +132,7 @@ fun ConfigEditScreen(
                     label           = item.label,
                     value           = item.value,
                     onValueChange   = item.onValueChange,
-                    enabled         = if (config == null) true else item.enabled,
+                    enabled         =  item.enabled,
                     onEnabledChange = item.onEnabledChange,
                     modifier        = Modifier.fillMaxWidth()
                 )
@@ -148,7 +148,7 @@ fun ConfigEditScreen(
                     label           = item.label,
                     value           = item.value,
                     onValueChange   = item.onValueChange,
-                    enabled         = if (config == null) true else item.enabled,
+                    enabled         =  item.enabled,
                     onEnabledChange = item.onEnabledChange,
                     modifier        = Modifier.fillMaxWidth()
                 )
@@ -164,7 +164,7 @@ fun ConfigEditScreen(
                     label           = item.label,
                     value           = item.value,
                     onValueChange   = item.onValueChange,
-                    enabled         = if (config == null) true else item.enabled,
+                    enabled         =  item.enabled,
                     onEnabledChange = item.onEnabledChange,
                     modifier        = Modifier.fillMaxWidth()
                 )
@@ -179,7 +179,7 @@ fun ConfigEditScreen(
                 label           = "Upper Bound (m)",
                 value           = altitude,
                 onValueChange   = { altitude = it },
-                enabled         = if (config == null) true else isEnabledAltitude,
+                enabled         =  isEnabledAltitude,
                 onEnabledChange = { isEnabledAltitude = it },
                 modifier        = Modifier.fillMaxWidth()
             )
