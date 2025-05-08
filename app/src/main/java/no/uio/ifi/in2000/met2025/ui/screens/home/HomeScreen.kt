@@ -44,6 +44,8 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.TrajectoryPopup
@@ -60,7 +62,11 @@ fun HomeScreen(
     when (uiState) {
         is HomeScreenViewModel.HomeScreenUiState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    modifier = Modifier.semantics {
+                        contentDescription = "Loading map and data"
+                    }
+                )
             }
         }
 
