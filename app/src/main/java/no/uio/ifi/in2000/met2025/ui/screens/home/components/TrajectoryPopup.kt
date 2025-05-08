@@ -23,6 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -54,9 +60,12 @@ fun TrajectoryPopup(
         visible = show,
         enter   = slideInVertically { it } + fadeIn(),
         exit    = slideOutVertically { it } + fadeOut(),
-        modifier = modifier
+        modifier = modifier.semantics {
+            contentDescription = "Trajectory options dialog"
+            customActions = listOf(
+                CustomAccessibilityAction(label = "Close dialog") { onClose(); true }
+            ) }
     ) {
-        // Draggable surface
         Surface(
             shape          = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
             color          = WarmOrange,
@@ -64,9 +73,7 @@ fun TrajectoryPopup(
             modifier       = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.3f)
-                // apply drag offset
                 .offset { IntOffset(x = 0, y = offsetY.roundToInt()) }
-                // detect vertical drag for dismiss
                 .pointerInput(show) {
                     detectVerticalDragGestures { change, dragAmount ->
                         change.consume()
@@ -101,7 +108,13 @@ fun TrajectoryPopup(
                     text = lastVisited
                         ?.let { "Current: %.4f, %.4f".format(it.latitude, it.longitude) }
                         ?: "No location yet",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.semantics {
+                        contentDescription =
+                            lastVisited
+                                ?.let { "Last visited at %.4f latitude, %.4f longitude".format(it.latitude, it.longitude) }
+                                ?: "No location yet"
+                    }
                 )
 
                 // Grid of buttons (2 columns)
@@ -112,21 +125,54 @@ fun TrajectoryPopup(
                     onSelectConfig = onSelectConfig,
                     modifier       = Modifier
                         .fillMaxWidth()
-                        .height(70.dp)              // or whatever fits
+                        .height(70.dp)
                 )
 
-                // 3) Buttons grid:
-                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onStartTrajectory, modifier = Modifier.weight(1f)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick  = onStartTrajectory,
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics {
+                                    contentDescription = "Start trajectory"
+                                    role = Role.Button
+                                }
+                        ) {
                             Text("▶️ Start Trajectory")
                         }
-                        Button(onClick = onEditConfigs, modifier = Modifier.weight(1f)) {
+                        Button(
+                            onClick  = onEditConfigs,
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics {
+                                    contentDescription = "Edit rocket configurations"
+                                    role = Role.Button
+                                }
+                        ) {
                             Text("⚙️ Edit Configs")
                         }
                     }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onClearTrajectory, modifier = Modifier.weight(1f)) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick  = onClearTrajectory,
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics {
+                                    contentDescription = "Clear trajectory"
+                                    role = Role.Button
+                                }
+                        ) {
                             Text("🗑️ Clear Trajectory")
                         }
                     }
