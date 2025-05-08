@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
@@ -214,12 +215,30 @@ fun DailyForecastCard(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Date heading
-                Text(
-                    text = dayLabel,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    modifier = Modifier.semantics { heading() }
-                )
+                Box(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CutCornerShape(
+                                //topEnd = 32.dp,
+                                bottomEnd = 40.dp
+                            )
+                        )
+                        .padding(
+                            start = 12.dp,
+                            end = 32.dp,   // extra padding to balance the slant
+                            top = 4.dp,
+                            bottom = 4.dp
+                        )
+                ) {
+                    Text(
+                        text = dayLabel + " ",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                }
 
                 Row(
                     modifier = Modifier
