@@ -16,6 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
@@ -30,7 +34,10 @@ fun LaunchStatusToggleRow(
     val minW = screenWidth * 0.4f
     val maxW = screenWidth * 0.8f
     ElevatedCard(
-        modifier = modifier.widthIn(min = minW, max = maxW),
+        modifier = modifier.widthIn(min = minW, max = maxW)
+            .semantics {
+                contentDescription = "Filter by launch status"
+            },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -49,6 +56,12 @@ fun LaunchStatusToggleRow(
                 FilterChip(
                     selected = isSelected,
                     onClick = { onStatusToggled(status) },
+                    modifier = Modifier.semantics {
+                        role = Role.Checkbox
+                        contentDescription =
+                            "${status.name.lowercase().replaceFirstChar { it.uppercase() }} filter, " +
+                                    if (isSelected) "selected" else "not selected"
+                    },
                     label = { Text(status.name.lowercase().replaceFirstChar { it.uppercase() }) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = WarmOrange,

@@ -17,6 +17,10 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSlider
 
 @Composable
@@ -31,7 +35,10 @@ fun FilterSliderHours(
 
     ElevatedCard(
         modifier = modifier
-            .widthIn(min = minW, max = maxW),
+            .widthIn(min = minW, max = maxW)
+            .semantics {
+                contentDescription = "Forecast hours slider, currently set to ${hoursToShow.toInt()} hours"
+            },
         shape     = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp, pressedElevation = 4.dp),
         colors    = CardDefaults.elevatedCardColors(
