@@ -49,23 +49,32 @@ fun AppDrawer(
         else                                                            -> "Help"
     }
 
-    // Precompute the info text for screen readers
     val infoText = when (infoTitle) {
-        "Map" -> "Set markers for launch sites, save launch sites, navigate between sites, " +
-                "check elevation and coordinates, move around, fetch and compute weather for " +
-                "a selected location and calculate ballistic trajectory based on LocationForecast 2.0 " +
-                "and Isobaric Grib-2 data."
-        "Weather" -> "On this screen you have a day‐pager where each page shows one day’s launch windows by hour. " +
-                "You can get the hourly forecast for any window, fetch and display 3-hour isobaric wind data on demand, " +
-                "and see which windows already have wind data loaded. You can also filter launch windows " +
-                "using the threshold values from Weather Settings via the filter menu."
-        "Rocket Profiles"   -> "Create and manage your rocket parameter sets. Tap plus to add a new profile."
-        "Edit Rocket Profile" -> "Adjust thrust, payload mass, and stages. Save when you’re done."
-        "Weather Settings"  -> "Manage your saved weather configurations. Select one to apply or edit it."
-        "Settings"          -> "From here you can choose to manage either Weather Settings or Rocket Profiles."
-        "Edit Weather Settings" -> "Fine-tune your forecast preferences, like units or data sources."
-        "Launch Sites"      -> "Browse available launch pads, see pad specs, and upcoming launch windows."
-        else                -> "Select a screen from above to see context-sensitive tips."
+        "Map" -> "Explore the map: set and save launch-site markers, navigate between sites, " +
+                "view elevation and coordinates, pan and zoom, fetch and compute weather data " +
+                "for the selected location, and calculate ballistic trajectories using LocationForecast 2.0 " +
+                "and Isobaric GRIB-2 data."
+
+        "Weather" -> "Browse a day-pager of hourly launch windows. For each window, view the hourly forecast, " +
+                "fetch and display three-hour isobaric wind data on demand, and see which windows " +
+                "already have wind data loaded. Use the filter menu to apply your Weather Settings thresholds."
+
+        "Rocket Profiles" -> "View all saved rocket configuration profiles. A standard default profile is provided; " +
+                "press the plus button to create your own. Default threshold values are preconfigured."
+
+        "Edit Rocket Profile" -> "Edit the selected rocket profile’s parameters—thrust, payload mass, and stages. " +
+                "Save when you’re done."
+
+        "Weather Settings" -> "Configure your weather thresholds and preferences. Select or edit saved settings " +
+                "that determine which launch windows are shown."
+
+        "Settings" -> "From here you can choose to manage Weather Settings or Rocket Profiles."
+
+        "Edit Weather Settings" -> "Configure which parameters are used to filter launch windows."
+
+        "Launch Sites" -> "Browse saved launch sites, edit names."
+
+        else -> ""
     }
 
     val bodyScroll = rememberScrollState()
