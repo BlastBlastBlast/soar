@@ -63,7 +63,7 @@ fun SaveLaunchSiteDialog(
                     AppOutlinedTextField(
                         value         = launchSiteName,
                         onValueChange = onNameChange,
-                        label         = { Text("Site Name") },
+                        labelText         = "Site Name",
                         modifier      = Modifier.fillMaxWidth()
                             .semantics { contentDescription = "Launch site name input field" }
                     )

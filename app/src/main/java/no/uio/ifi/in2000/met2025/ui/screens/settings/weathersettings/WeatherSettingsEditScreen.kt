@@ -104,7 +104,7 @@ fun ConfigEditScreen(
                     configName = it
                     viewModel.checkWeatherNameAvailability(it)
                 },
-                label    = { Text("Name") },
+                labelText    = "Name",
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(2.dp))

@@ -26,7 +26,7 @@ fun SettingRow(
         AppOutlinedTextField(
             value         = value,
             onValueChange = onValueChange,
-            label         = { Text(label, color = MaterialTheme.colorScheme.onPrimary) }, // label in onPrimary
+            labelText         = label,
             modifier      = Modifier.weight(1f)
         )
         Spacer(Modifier.width(8.dp))

@@ -141,7 +141,7 @@ fun LaunchSiteItem(
                                     name = it
                                     viewModel.checkNameAvailability(it)
                                 },
-                                label = { Text("Name") },
+                                labelText = "Name",
                                 modifier = Modifier.fillMaxWidth()
                             )
                             if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
