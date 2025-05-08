@@ -39,7 +39,7 @@ fun AppDrawer(
 
     val infoTitle = when {
         currentRoute == Screen.Home.route                               -> "Map"
-        currentRoute?.startsWith("weather?") == true                    -> "Weather"
+        currentRoute?.startsWith("weather/") == true                    -> "Weather"
         currentRoute == Screen.RocketConfigList.route                   -> "Rocket Profiles"
         currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Profile"
         currentRoute == Screen.ConfigList.route                         -> "Weather Settings"
@@ -51,8 +51,14 @@ fun AppDrawer(
 
     // Precompute the info text for screen readers
     val infoText = when (infoTitle) {
-        "Map"               -> "Here you can zoom around the map, set waypoints or see your rocket’s current position."
-        "Weather"           -> "Displays forecast for your chosen coordinates. Temperatures in °C, precipitation in mm."
+        "Map" -> "Set markers for launch sites, save launch sites, navigate between sites, " +
+                "check elevation and coordinates, move around, fetch and compute weather for " +
+                "a selected location and calculate ballistic trajectory based on LocationForecast 2.0 " +
+                "and Isobaric Grib-2 data."
+        "Weather" -> "On this screen you have a day‐pager where each page shows one day’s launch windows by hour. " +
+                "You can get the hourly forecast for any window, fetch and display 3-hour isobaric wind data on demand, " +
+                "and see which windows already have wind data loaded. You can also filter launch windows " +
+                "using the threshold values from Weather Settings via the filter menu."
         "Rocket Profiles"   -> "Create and manage your rocket parameter sets. Tap plus to add a new profile."
         "Edit Rocket Profile" -> "Adjust thrust, payload mass, and stages. Save when you’re done."
         "Weather Settings"  -> "Manage your saved weather configurations. Select one to apply or edit it."
@@ -125,7 +131,7 @@ fun AppDrawer(
                 )
                 NavigationDrawerItem(
                     label    = { Text("Weather") },
-                    selected = currentRoute?.startsWith("weather?") == true,
+                    selected = currentRoute?.startsWith("weather/") == true,
                     onClick  = {
                         navController.navigateSingleTopTo(Screen.Weather.createRoute(0.0, 0.0))
                         closeDrawer()
