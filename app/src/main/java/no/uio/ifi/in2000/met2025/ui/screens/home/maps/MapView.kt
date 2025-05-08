@@ -34,6 +34,7 @@ import com.mapbox.maps.extension.compose.style.sources.generated.rememberRasterD
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.modelLayer
 import com.mapbox.maps.extension.style.layers.generated.skyLayer
+import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.getLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.ModelType
 import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
@@ -63,6 +64,7 @@ import no.uio.ifi.in2000.met2025.domain.RocketState
 import no.uio.ifi.in2000.met2025.ui.screens.home.calculateBearing
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
+import kotlin.rem
 
 
 // FIXME: CHECK NULL POINTER EXCEPTION WHEN PLACING FIRST MARKER
@@ -181,38 +183,84 @@ fun MapView(
             // ─── 3) When trajectoryPoints appear: register model+source+layer per point ───
             MapEffect(trajectoryPoints) { mv ->
                 if (trajectoryPoints.isEmpty()) return@MapEffect
-                mv.mapboxMap.getStyle { style ->
-                    trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
-                        if (state == RocketState.PARACHUTE_DEPLOYED && idx%10 != 0) return@forEachIndexed
+//                mv.mapboxMap.getStyle { style ->
+//                    trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
+//                        if (state == RocketState.PARACHUTE_DEPLOYED && idx%10 != 0) return@forEachIndexed
+//
+//                        val lon = vec.getEntry(1)
+//                        val lat = vec.getEntry(0)
+//                        val alt = vec.getEntry(2)
+//
+//                        val modelId  = "redball-$idx"
+//                        val sourceId = "traj-src-$idx"
+//                        val layerId  = "traj-lyr-$idx"
+//
+//
+//                        // 3.1) add the GLB asset once
+//                        if (style.getLayer(modelId) == null) {
+//                            mv.mapboxMap.addModel(model(modelId) {
+//                                uri("asset://tiny_icosphere2.glb")
+//                            })
+//                        }
+//
+//                        // 3.2) add a GeoJSON source at exactly (lon,lat,alt)
+//                        if (style.getSource(sourceId) == null) {
+//                            style.addSource(geoJsonSource(sourceId) {
+//                                data(
+//                                    FeatureCollection.fromFeatures(arrayOf(
+//                                        Feature.fromGeometry(Point.fromLngLat(lon, lat, alt))
+//                                    )).toJson()
+//                                )
+//                            })
+//                        }
+//
+//                        // 3.3) add a ModelLayer, shifted up by altitude
+//                        if (style.getLayer(layerId) == null) {
+//                            style.addLayer(modelLayer(layerId, sourceId) {
+//                                modelId(modelId)
+//                                modelType(ModelType.COMMON_3D)
+//                                modelScale(listOf(5.0, 5.0, 5.0))
+//                                modelTranslation(listOf(0.0, 0.0, alt))
+//                                modelCastShadows(true)
+//                                modelReceiveShadows(true)
+//                            })
+//                        }
+//                    }
+//                }
+                trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
+                    if (state == RocketState.PARACHUTE_DEPLOYED && idx % 10 != 0) return@forEachIndexed
 
-                        val lon = vec.getEntry(1)
-                        val lat = vec.getEntry(0)
-                        val alt = vec.getEntry(2)
+                    val lon = vec.getEntry(1)
+                    val lat = vec.getEntry(0)
+                    val alt = vec.getEntry(2)
 
-                        val modelId  = "redball-$idx"
-                        val sourceId = "traj-src-$idx"
-                        val layerId  = "traj-lyr-$idx"
+                    val modelId = "redball-$idx"
+                    val sourceId = "traj-src-$idx"
+                    val layerId = "traj-lyr-$idx"
 
-                        // 3.1) add the GLB asset once
-                        if (style.getLayer(modelId) == null) {
-                            mv.mapboxMap.addModel(model(modelId) {
+                    mv.mapboxMap.getStyle { style ->
+                        // Add the GLB model if not already added
+                        if (!style.styleLayers.any { it.id == modelId }) {
+                            style.addModel(model(modelId) {
                                 uri("asset://tiny_icosphere2.glb")
                             })
                         }
 
-                        // 3.2) add a GeoJSON source at exactly (lon,lat,alt)
-                        if (style.getSource(sourceId) == null) {
+                        // Add the GeoJSON source if not already added
+                        if (!style.styleSources.any { it.id == sourceId }) {
                             style.addSource(geoJsonSource(sourceId) {
                                 data(
-                                    FeatureCollection.fromFeatures(arrayOf(
-                                        Feature.fromGeometry(Point.fromLngLat(lon, lat, alt))
-                                    )).toJson()
+                                    FeatureCollection.fromFeatures(
+                                        listOf(
+                                            Feature.fromGeometry(Point.fromLngLat(lon, lat, alt))
+                                        )
+                                    ).toJson()
                                 )
                             })
                         }
 
-                        // 3.3) add a ModelLayer, shifted up by altitude
-                        if (style.getLayer(layerId) == null) {
+                        // Add the ModelLayer if not already added
+                        if (!style.styleLayers.any { it.id == layerId }) {
                             style.addLayer(modelLayer(layerId, sourceId) {
                                 modelId(modelId)
                                 modelType(ModelType.COMMON_3D)
@@ -221,6 +269,12 @@ fun MapView(
                                 modelCastShadows(true)
                                 modelReceiveShadows(true)
                             })
+                            // Log layer addition
+                            if (style.styleLayers.any { it.id == layerId }) {
+                                println("ModelLayer $layerId added successfully.")
+                            } else {
+                                println("Failed to add ModelLayer $layerId.")
+                            }
                         }
                     }
                 }
