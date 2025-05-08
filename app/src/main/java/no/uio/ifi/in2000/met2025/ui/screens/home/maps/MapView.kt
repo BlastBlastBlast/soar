@@ -59,6 +59,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
+import no.uio.ifi.in2000.met2025.domain.RocketState
 import no.uio.ifi.in2000.met2025.ui.screens.home.calculateBearing
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
@@ -82,7 +83,7 @@ fun MapView(
     onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {},
     onSiteElevation: (Int, Double) -> Unit,
     // Trajectory integration
-    trajectoryPoints: List<Pair<RealVector, Double>>, // sim points: (lat,lon,altAboveLaunchDatum)
+    trajectoryPoints: List<Triple<RealVector, Double, RocketState>>, // sim points: (lat,lon,altAboveLaunchDatum)
     isAnimating: Boolean,
     onAnimationEnd: () -> Unit
 ) {
@@ -181,7 +182,9 @@ fun MapView(
             MapEffect(trajectoryPoints) { mv ->
                 if (trajectoryPoints.isEmpty()) return@MapEffect
                 mv.mapboxMap.getStyle { style ->
-                    trajectoryPoints.forEachIndexed { idx, (vec, _) ->
+                    trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
+                        if (state == RocketState.PARACHUTE_DEPLOYED && idx%10 != 0) return@forEachIndexed
+
                         val lon = vec.getEntry(1)
                         val lat = vec.getEntry(0)
                         val alt = vec.getEntry(2)

@@ -20,6 +20,14 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.EARTH_RADIUS
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNIVERSAL_GAS_CONSTANT
 import kotlin.math.cos
 
+enum class RocketState {
+    ON_LAUNCH_RAIL,
+    THRUSTING,
+    FREE_FLIGHT,
+    PARACHUTE_DEPLOYED,
+    LANDED
+}
+
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
 ) {
@@ -65,7 +73,7 @@ class TrajectoryCalculator(
         parachuteCrossSectionalArea: Double,    // m^2
         parachuteDragCoefficient: Double,       // dimensionless
         timeOfLaunch: Instant = Instant.now()   // time of launch
-    ): Result<List<Pair<RealVector, Double>>> {
+    ): Result<List<Triple<RealVector, Double, RocketState>>> {
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: initial position: $initialPosition")
 
@@ -102,8 +110,8 @@ class TrajectoryCalculator(
             timeAfterLaunch: Double,
             coefficientOfDrag: Double,
             areaOfCrossSection: Double,
-            result: SimpleLinkedList<Pair<RealVector, Double>>
-        ): Result<SimpleLinkedList<Pair<RealVector, Double>>> {
+            result: SimpleLinkedList<Triple<RealVector, Double, RocketState>>
+        ): Result<SimpleLinkedList<Triple<RealVector, Double, RocketState>>> {
 
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: timeAfterLaunch: $timeAfterLaunch")
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: current velocity: $currentVelocity")
@@ -132,6 +140,9 @@ class TrajectoryCalculator(
                 (position - initialPosition).norm <= launchRailLength
             }
 
+            val airDensity = 100.0 * airValues.pressure * EARTH_AIR_MOLAR_MASS / ((airValues.temperature + CELSIUS_TO_KELVIN) * UNIVERSAL_GAS_CONSTANT)
+            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
+
             val newVelocity = rungeKutta4(
                 initialVector = currentVelocity,
                 time = timeAfterLaunch,
@@ -143,10 +154,7 @@ class TrajectoryCalculator(
                         incrementedVelocity - windVector
                     }
 
-                    val airDensity = 100.0 * airValues.pressure * EARTH_AIR_MOLAR_MASS / ((airValues.temperature + CELSIUS_TO_KELVIN) * UNIVERSAL_GAS_CONSTANT)
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
-
-                    val dragForce = -0.5 * (crossSectionalArea * dragCoefficient * airDensity * velocityWithWind.norm * velocityWithWind)
+                    val dragForce = -0.5 * (areaOfCrossSection * coefficientOfDrag * airDensity * velocityWithWind.norm * velocityWithWind)
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: dragForce: $dragForce")
 
                     val (thrustVector, burnProgress) = if (incrementedTime >= burnTime) {
@@ -159,6 +167,8 @@ class TrajectoryCalculator(
                     val massAtIncrement = wetMass * (1 - burnProgress) + dryMass * burnProgress
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: massAtIncrement: $massAtIncrement")
 
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: acceleration from drag: ${dragForce / massAtIncrement}")
+
                     (dragForce + thrustVector) / massAtIncrement +
                         if (onLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
                 }
@@ -170,21 +180,30 @@ class TrajectoryCalculator(
                 time = timeAfterLaunch,
                 stepSize = stepSize,
                 derivative = { _, incrementedPosition ->
-                    currentVelocity - if (onLaunchRail(incrementedPosition)) zeroVector else windVector
+                    currentVelocity - if (onLaunchRail(incrementedPosition)) windVector else zeroVector
                 }
             )
+
+            val nextGeoPositionTriple = enuToGeo(newPosition)
+            val nextGeoPosition = ArrayRealVector(
+                doubleArrayOf(nextGeoPositionTriple.first, nextGeoPositionTriple.second, nextGeoPositionTriple.third)
+            )
+
+            val rocketState = when {
+                onLaunchRail(currentPosition) -> RocketState.ON_LAUNCH_RAIL
+                timeAfterLaunch < burnTime -> RocketState.THRUSTING
+                newVelocity[2] > 0 -> RocketState.FREE_FLIGHT
+                newVelocity[2] <= 0 && newPosition[2] > enuStart[2] -> RocketState.PARACHUTE_DEPLOYED
+                else -> RocketState.LANDED
+            }
+
+            val currentState = Triple(nextGeoPosition, newVelocity.norm, rocketState)
+
+            result += currentState
 
             return if (newPosition[2] < enuStart[2]) {
                 Result.success(result)
             } else {
-                val nextGeoPositionTriple = enuToGeo(newPosition)
-                val nextGeoPosition = ArrayRealVector(
-                    doubleArrayOf(nextGeoPositionTriple.first, nextGeoPositionTriple.second, nextGeoPositionTriple.third)
-                )
-                val newPositionWithSpeed = Pair(nextGeoPosition, newVelocity.norm)
-
-                result += newPositionWithSpeed
-
                 if (currentVelocity[2] >= 0 && newVelocity[2] <= 0) {
                     calculateTrajectoryRecursive(
                         currentPosition = newPosition,
@@ -213,7 +232,7 @@ class TrajectoryCalculator(
             timeAfterLaunch = 0.0,
             coefficientOfDrag = dragCoefficient,
             areaOfCrossSection = crossSectionalArea,
-            result = SimpleLinkedList(Pair(initialPosition, 0.0))
+            result = SimpleLinkedList(Triple(initialPosition, 0.0, RocketState.ON_LAUNCH_RAIL))
         ).fold(
             onSuccess = { it },
             onFailure = { return Result.failure(it) }

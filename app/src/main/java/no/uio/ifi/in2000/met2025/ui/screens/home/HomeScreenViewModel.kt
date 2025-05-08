@@ -21,6 +21,7 @@ import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
 import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
+import no.uio.ifi.in2000.met2025.domain.RocketState
 import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
@@ -74,8 +75,8 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    private val _trajectoryPoints = MutableStateFlow<List<Pair<RealVector, Double>>>(emptyList())
-    val trajectoryPoints: StateFlow<List<Pair<RealVector, Double>>> = _trajectoryPoints
+    private val _trajectoryPoints = MutableStateFlow<List<Triple<RealVector, Double, RocketState>>>(emptyList())
+    val trajectoryPoints: StateFlow<List<Triple<RealVector, Double, RocketState>>> = _trajectoryPoints
 
     var isAnimating      by mutableStateOf(false)
     var isTrajectoryMode by mutableStateOf(false)
@@ -243,6 +244,7 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
+    /*
     fun loadMockTrajectory() {
         val baseLat = 59.9431
         val baseLon = 10.7185
@@ -273,9 +275,10 @@ class HomeScreenViewModel @Inject constructor(
         isAnimating      = true
         isTrajectoryMode = true
     }
+     */
 
-    fun startTrajectory(){/* noop */}
-    /*
+//    fun startTrajectory(){/* noop */}
+
     /** Start the trajectory using the currently selected config */
     fun startTrajectory() {
         viewModelScope.launch {
@@ -287,7 +290,7 @@ class HomeScreenViewModel @Inject constructor(
             val (lat, lon) = _coordinates.value
             val elev       = launchSitesRepository.getLastVisitedElevation()
             val initial    = ArrayRealVector(doubleArrayOf(lat, lon, elev))
-            val traj: List<Pair<RealVector, Double>> = TrajectoryCalculator(isobaricInterpolator)
+            val traj: List<Triple<RealVector, Double, RocketState>> = TrajectoryCalculator(isobaricInterpolator)
             // 3) Run the physics‐based sim
                 .calculateTrajectory(
                     initialPosition = initial,
@@ -312,7 +315,6 @@ class HomeScreenViewModel @Inject constructor(
             isTrajectoryMode = true
         }
     }
- */
 
     fun onTrajectoryComplete() {
         isAnimating      = false
