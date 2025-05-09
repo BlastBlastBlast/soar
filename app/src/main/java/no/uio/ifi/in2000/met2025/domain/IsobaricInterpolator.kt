@@ -234,14 +234,14 @@ class IsobaricInterpolator(
                     )
 
                     val windSpeed = forecastDataValues.windSpeed
-                    val windFromDirection = Angle(forecastDataValues.windFromDirection)
+                    val windInDirection = Angle((forecastDataValues.windFromDirection + 180.0) % 360.0)
 
                     CartesianIsobaricValues(
                         altitude = forecastData.altitude,
                         pressure = groundPressure,
                         temperature = forecastDataValues.airTemperature,
-                        windXComponent = cos(windFromDirection) * windSpeed,
-                        windYComponent = sin(windFromDirection) * windSpeed
+                        windXComponent = cos(windInDirection) * windSpeed,
+                        windYComponent = sin(windInDirection) * windSpeed
                     )
                 }
                 else -> {
@@ -282,9 +282,9 @@ class IsobaricInterpolator(
                     CartesianIsobaricValues(
                         altitude = altitude,
                         pressure = pressure.toDouble(),
-                        temperature = gribVector.temperature.toDouble() - CELSIUS_TO_KELVIN,
-                        windXComponent = gribVector.uComponentWind.toDouble(),
-                        windYComponent = gribVector.vComponentWind.toDouble()
+                        temperature = gribVector.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
+                        windXComponent = gribVector.vComponentWind.toDouble(),                  // positive v is south to north, positive x corresponds to positive lat
+                        windYComponent = gribVector.uComponentWind.toDouble()                   // positive u is west to east, positive y corresponds to positive lon
                     )
                 }
             }.also {
