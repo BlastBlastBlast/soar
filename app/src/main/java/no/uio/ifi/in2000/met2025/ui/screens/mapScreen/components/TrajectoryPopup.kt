@@ -37,6 +37,7 @@ import kotlin.math.roundToInt
 fun TrajectoryPopup(
     show: Boolean,
     lastVisited: LaunchSite?,
+    currentSite: LaunchSite?,
     rocketConfigs: List<RocketConfig>,
     selectedConfig: RocketConfig?,
     onSelectConfig: (RocketConfig) -> Unit,
@@ -96,27 +97,38 @@ fun TrajectoryPopup(
                             shape = RoundedCornerShape(2.dp)
                         )
                 )
-                if (lastVisited != null) {
+                val name : String = when (currentSite?.name) {
+                    null -> "Location: "
+                    else -> "${currentSite.name}: "
+                }
+                Row() {
+                    if (lastVisited != null) {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.semantics {
+                                contentDescription = "Last visited Launch Site: $name"
+                            }
+                        )
+                    }
                     Text(
-                        text = lastVisited.name,
+                        text = lastVisited
+                            ?.let { "%.4f, %.4f".format(it.latitude, it.longitude) }
+                            ?: "No location yet",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.semantics {
-                            contentDescription = "Last visited Launch Site: ${lastVisited.name}"
+                            contentDescription =
+                                lastVisited
+                                    ?.let {
+                                        "Last visited at %.4f latitude, %.4f longitude".format(
+                                            it.latitude,
+                                            it.longitude
+                                        )
+                                    }
+                                    ?: "No location yet"
                         }
                     )
                 }
-                Text(
-                    text = lastVisited
-                        ?.let { "Current: %.4f, %.4f".format(it.latitude, it.longitude) }
-                        ?: "No location yet",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.semantics {
-                        contentDescription =
-                            lastVisited
-                                ?.let { "Last visited at %.4f latitude, %.4f longitude".format(it.latitude, it.longitude) }
-                                ?: "No location yet"
-                    }
-                )
 
                 // Grid of buttons (2 columns)
                 // 2) Carousel right here:

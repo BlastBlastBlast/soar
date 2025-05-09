@@ -77,10 +77,10 @@ class WeatherViewModel @Inject constructor(
 
     val validSunTimesMap = mutableMapOf<String, ValidSunTimes>()
 
-     private val _currentSite: StateFlow<LaunchSite?> =
-             launchSiteRepository.getActiveSite().stateIn(
-                 viewModelScope, SharingStarted.Eagerly, null
-             )
+    private val _currentSite: StateFlow<LaunchSite?> =
+        launchSiteRepository.getActiveSite().stateIn(
+            viewModelScope, SharingStarted.Eagerly, null
+        )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
 
 
