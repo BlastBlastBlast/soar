@@ -17,7 +17,7 @@ import org.junit.Test
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.WeatherConfigRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
-import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
@@ -43,7 +43,7 @@ class WeatherViewModelTest {
         val locationForecastRepository = LocationForecastRepository(LocationForecastDataSource(mockClient))
 
         val weatherConfigRepository = WeatherConfigRepository(FakeConfigProfileDao())
-        val launchSitesRepository = LaunchSitesRepository(FakeLaunchSiteDAO())
+        val launchSiteRepository = LaunchSiteRepository(FakeLaunchSiteDAO())
         val isobaricRepository = IsobaricRepository(
             isobaricDataSource,
             FakeGribDataDAO(),
@@ -55,7 +55,7 @@ class WeatherViewModelTest {
         viewModel = WeatherViewModel(
             locationForecastRepository,
             weatherConfigRepository,
-            launchSitesRepository,
+            launchSiteRepository,
             weatherModel,
             sunriseRepository
         )

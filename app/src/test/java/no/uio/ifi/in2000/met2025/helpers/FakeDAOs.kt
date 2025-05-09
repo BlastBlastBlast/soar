@@ -13,28 +13,28 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 
 class FakeConfigProfileDao : ConfigProfileDAO {
     // Implement only needed DAO functions with dummy returns
-    override suspend fun insertConfigProfile(weatherConfig: WeatherConfig) {
+    override suspend fun insertWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override suspend fun updateConfigProfile(weatherConfig: WeatherConfig) {
+    override suspend fun updateWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override suspend fun deleteConfigProfile(weatherConfig: WeatherConfig) {
+    override suspend fun deleteWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override fun getAllConfigProfiles(): Flow<List<WeatherConfig>> {
+    override fun getAllWeatherConfigs(): Flow<List<WeatherConfig>> {
         return flowOf(emptyList())
     }
 
-    override fun getDefaultConfigProfile(): Flow<WeatherConfig?> {
+    override fun getDefaultWeatherConfig(): Flow<WeatherConfig?> {
         return flowOf(null)
     }
 
-    override fun getConfigProfile(configId: Int): Flow<WeatherConfig?> {
+    override fun getWeatherConfig(configId: Int): Flow<WeatherConfig?> {
         return flowOf(null)
     }
 
-    override fun getAllConfigProfileNames(): Flow<List<String>> {
+    override fun getAllWeatherConfigNames(): Flow<List<String>> {
         return flowOf(emptyList())
     }
 }

@@ -27,7 +27,7 @@ class ConfigViewModel @Inject constructor(
     }
 
     //–– 1) LIST FLOWS ––
-    val weatherConfigs: Flow<List<WeatherConfig>> = weatherRepo.getAllConfigProfiles()
+    val weatherConfigs: Flow<List<WeatherConfig>> = weatherRepo.getAllWeatherConfigs()
     val rocketConfigs:  Flow<List<RocketConfig>>  = rocketRepo.getAllRocketConfigs()
 
     //–– 2) NAME LISTS FOR DUPLICATE‐CHECKS ––
@@ -38,7 +38,7 @@ class ConfigViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            weatherRepo.getAllConfigProfileNames()
+            weatherRepo.getAllWeatherConfigNames()
                 .collect { _weatherNames.value = it }
         }
         viewModelScope.launch {
@@ -56,17 +56,17 @@ class ConfigViewModel @Inject constructor(
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
     fun saveWeatherConfig(cfg: WeatherConfig) = viewModelScope.launch {
-        weatherRepo.insertConfigProfile(cfg)
+        weatherRepo.insertWeatherConfig(cfg)
         _updateStatus.value = UpdateStatus.Success
     }
 
     fun updateWeatherConfig(cfg: WeatherConfig) = viewModelScope.launch {
-        weatherRepo.updateConfigProfile(cfg)
+        weatherRepo.updateWeatherConfig(cfg)
         _updateStatus.value = UpdateStatus.Success
     }
 
     fun deleteWeatherConfig(cfg: WeatherConfig) = viewModelScope.launch {
-        weatherRepo.deleteConfigProfile(cfg)
+        weatherRepo.deleteWeatherConfig(cfg)
     }
 
     fun checkWeatherNameAvailability(name: String) {

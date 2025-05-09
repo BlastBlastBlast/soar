@@ -9,31 +9,31 @@ class WeatherConfigRepository @Inject constructor(
     private val configProfileDAO: ConfigProfileDAO
 ) {
 
-    suspend fun insertConfigProfile(weatherConfig: WeatherConfig) {
-        configProfileDAO.insertConfigProfile(weatherConfig)
+    suspend fun insertWeatherConfig(weatherConfig: WeatherConfig) {
+        configProfileDAO.insertWeatherConfig(weatherConfig)
     }
 
-    suspend fun updateConfigProfile(weatherConfig: WeatherConfig) {
-        configProfileDAO.updateConfigProfile(weatherConfig)
+    suspend fun updateWeatherConfig(weatherConfig: WeatherConfig) {
+        configProfileDAO.updateWeatherConfig(weatherConfig)
     }
 
-    suspend fun deleteConfigProfile(weatherConfig: WeatherConfig) {
-        configProfileDAO.deleteConfigProfile(weatherConfig)
+    suspend fun deleteWeatherConfig(weatherConfig: WeatherConfig) {
+        configProfileDAO.deleteWeatherConfig(weatherConfig)
     }
 
-    fun getAllConfigProfiles(): Flow<List<WeatherConfig>> {
-        return configProfileDAO.getAllConfigProfiles()
+    fun getAllWeatherConfigs(): Flow<List<WeatherConfig>> {
+        return configProfileDAO.getAllWeatherConfigs()
     }
 
-    fun getDefaultConfigProfile(): Flow<WeatherConfig?> {
-        return configProfileDAO.getDefaultConfigProfile()
+    fun getDefaultWeatherConfig(): Flow<WeatherConfig?> {
+        return configProfileDAO.getDefaultWeatherConfig()
     }
 
     fun getWeatherConfig(configId: Int): Flow<WeatherConfig?> {
-        return configProfileDAO.getConfigProfile(configId)
+        return configProfileDAO.getWeatherConfig(configId)
     }
 
-    fun getAllConfigProfileNames(): Flow<List<String>> {
-        return configProfileDAO.getAllConfigProfileNames()
+    fun getAllWeatherConfigNames(): Flow<List<String>> {
+        return configProfileDAO.getAllWeatherConfigNames()
     }
 }

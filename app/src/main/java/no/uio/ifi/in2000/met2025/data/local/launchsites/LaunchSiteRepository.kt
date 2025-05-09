@@ -1,9 +1,7 @@
 package no.uio.ifi.in2000.met2025.data.local.launchsites
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -13,7 +11,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 import javax.inject.Inject
 
-class LaunchSitesRepository @Inject constructor(
+class LaunchSiteRepository @Inject constructor(
     private val launchSiteDAO: LaunchSiteDAO
 ){
     fun getCurrentCoordinates(

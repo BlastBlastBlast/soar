@@ -11,22 +11,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class LaunchSiteViewModel @Inject constructor(
-    private val launchSitesRepository: LaunchSitesRepository
+    private val launchSiteRepository: LaunchSiteRepository
 ) : ViewModel() {
 
     // Flow of all saved launch sites.
-    val launchSites: Flow<List<LaunchSite>> = launchSitesRepository.getAll()
+    val launchSites: Flow<List<LaunchSite>> = launchSiteRepository.getAll()
 
     // Flow for "Last Visited" temporary site.
-    val tempLaunchSite: Flow<LaunchSite?> = launchSitesRepository.getLastVisitedTempSite()
+    val tempLaunchSite: Flow<LaunchSite?> = launchSiteRepository.getLastVisitedTempSite()
 
     // Flow for "New Marker" temporary site.
-    val newMarkerTempSite: Flow<LaunchSite?> = launchSitesRepository.getNewMarkerTempSite()
+    val newMarkerTempSite: Flow<LaunchSite?> = launchSiteRepository.getNewMarkerTempSite()
 
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
@@ -41,7 +41,7 @@ class LaunchSiteViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            launchSitesRepository.getAllLaunchSiteNames().collect { names ->
+            launchSiteRepository.getAllLaunchSiteNames().collect { names ->
                 _launchSiteNames.value = names
             }
         }
@@ -52,11 +52,11 @@ class LaunchSiteViewModel @Inject constructor(
         viewModelScope.launch {
             val currentTempSite = tempLaunchSite.firstOrNull()
             if (currentTempSite == null) {
-                launchSitesRepository.insert(
+                launchSiteRepository.insert(
                     LaunchSite(latitude = latitude, longitude = longitude, name = "Last Visited")
                 )
             } else {
-                launchSitesRepository.update(
+                launchSiteRepository.update(
                     currentTempSite.copy(latitude = latitude, longitude = longitude)
                 )
             }
@@ -68,11 +68,11 @@ class LaunchSiteViewModel @Inject constructor(
         viewModelScope.launch {
             val currentNewMarker = newMarkerTempSite.firstOrNull()
             if (currentNewMarker == null) {
-                launchSitesRepository.insert(
+                launchSiteRepository.insert(
                     LaunchSite(latitude = latitude, longitude = longitude, name = "New Marker")
                 )
             } else {
-                launchSitesRepository.update(
+                launchSiteRepository.update(
                     currentNewMarker.copy(latitude = latitude, longitude = longitude)
                 )
             }
@@ -82,13 +82,13 @@ class LaunchSiteViewModel @Inject constructor(
     // Permanently add a launch site.
     fun addLaunchSite(latitude: Double, longitude: Double, name: String) {
         viewModelScope.launch {
-            launchSitesRepository.insert(LaunchSite(latitude = latitude, longitude = longitude, name = name))
+            launchSiteRepository.insert(LaunchSite(latitude = latitude, longitude = longitude, name = name))
         }
     }
 
     fun deleteLaunchSite(site: LaunchSite) {
         viewModelScope.launch {
-            launchSitesRepository.deleteSite(site)
+            launchSiteRepository.deleteSite(site)
         }
     }
 
@@ -97,14 +97,14 @@ class LaunchSiteViewModel @Inject constructor(
             try {
                 // Create an updated LaunchSite instance.
                 // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
-                val exists = launchSitesRepository.checkIfSiteExists(launchSite.name)
+                val exists = launchSiteRepository.checkIfSiteExists(launchSite.name)
                 if (exists && launchSite.name != name) {
                     _updateStatus.value =
                         UpdateStatus.Error("Launch site with this name already exists")
                 } else {
                     // Use your repository's update function.
                     if (launchSite.name != name) {
-                        launchSitesRepository.update(launchSite)
+                        launchSiteRepository.update(launchSite)
                         _updateStatus.value = UpdateStatus.Success(launchSite.uid)
                     }
                 }

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
-import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
@@ -30,7 +30,7 @@ import java.time.Instant
 // MapScreenViewModel.kt
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
-    private val launchSitesRepository: LaunchSitesRepository,
+    private val launchSiteRepository: LaunchSiteRepository,
     private val rocketConfigRepository: RocketConfigRepository,
     private val isobaricInterpolator: IsobaricInterpolator
 ) : ViewModel() {
@@ -109,7 +109,7 @@ class MapScreenViewModel @Inject constructor(
     init {
         // 1) Load all launch sites
         viewModelScope.launch {
-            launchSitesRepository.getAll().collect { sites ->
+            launchSiteRepository.getAll().collect { sites ->
                 _launchSites.value = sites
                 _uiState.value = MapScreenUiState.Success(
                     launchSites = sites,
@@ -134,22 +134,22 @@ class MapScreenViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val tempSite = launchSitesRepository.getNewMarkerTempSite().firstOrNull()
+            val tempSite = launchSiteRepository.getNewMarkerTempSite().firstOrNull()
             val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
             updateCoordinates(newCoords.first, newCoords.second)
         }
         viewModelScope.launch {
-            launchSitesRepository.getNewMarkerTempSite().collect { site ->
+            launchSiteRepository.getNewMarkerTempSite().collect { site ->
                 _newMarker.value = site
             }
         }
         viewModelScope.launch {
-            launchSitesRepository.getLastVisitedTempSite().collect { site ->
+            launchSiteRepository.getLastVisitedTempSite().collect { site ->
                 _lastVisited.value = site
             }
         }
         viewModelScope.launch {
-            if (launchSitesRepository.checkIfSiteExists("New Marker")) {
+            if (launchSiteRepository.checkIfSiteExists("New Marker")) {
                 _newMarkerStatus.value = true
             }
         }
@@ -174,7 +174,7 @@ class MapScreenViewModel @Inject constructor(
     fun updateLastVisited(lat: Double, lon: Double, elevation: Double?) {
         viewModelScope.launch {
             try {
-                val exists = launchSitesRepository.checkIfSiteExists("Last Visited")
+                val exists = launchSiteRepository.checkIfSiteExists("Last Visited")
                 val site = LaunchSite(
                     uid = lastVisited.value?.uid ?: 0,
                     latitude = lat,
@@ -183,9 +183,9 @@ class MapScreenViewModel @Inject constructor(
                     elevation = elevation   // now nullable column
                 )
                 if (exists && lastVisited.value != null) {
-                    launchSitesRepository.update(site)
+                    launchSiteRepository.update(site)
                 } else {
-                    launchSitesRepository.insert(site)
+                    launchSiteRepository.insert(site)
                 }
             } catch (e: SQLiteConstraintException) {
                 _uiState.value = MapScreenUiState.Error(
@@ -198,7 +198,7 @@ class MapScreenViewModel @Inject constructor(
     fun updateNewMarker(lat: Double, lon: Double, elevation: Double?) {
         viewModelScope.launch {
             try {
-                val exists = launchSitesRepository.checkIfSiteExists("New Marker")
+                val exists = launchSiteRepository.checkIfSiteExists("New Marker")
                 val site = LaunchSite(
                     uid = newMarker.value?.uid ?: 0,
                     latitude = lat,
@@ -207,9 +207,9 @@ class MapScreenViewModel @Inject constructor(
                     elevation = elevation
                 )
                 if (exists && newMarker.value != null) {
-                    launchSitesRepository.update(site)
+                    launchSiteRepository.update(site)
                 } else {
-                    launchSitesRepository.insert(site)
+                    launchSiteRepository.insert(site)
                 }
             } catch (e: Exception) {
                 _uiState.value =
@@ -221,14 +221,14 @@ class MapScreenViewModel @Inject constructor(
     /** Change edit/add APIs to accept nullable elevation too */
     fun editLaunchSite(siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) {
         viewModelScope.launch {
-            val exists = launchSitesRepository.checkIfSiteExists(name)
+            val exists = launchSiteRepository.checkIfSiteExists(name)
             if (exists) {
-                if (name != launchSitesRepository.getSiteById(siteId)?.name) {
+                if (name != launchSiteRepository.getSiteById(siteId)?.name) {
                     _updateStatus.value =
                         UpdateStatus.Error("Launch site with this name already exists")
                 }
             } else {
-                launchSitesRepository.update(
+                launchSiteRepository.update(
                     LaunchSite(
                         uid = siteId,
                         latitude = lat,
@@ -286,7 +286,7 @@ class MapScreenViewModel @Inject constructor(
 
             // 2) Build the initial position from your center coords + elevation
             val (lat, lon) = _coordinates.value
-            val elev       = launchSitesRepository.getLastVisitedElevation()
+            val elev       = launchSiteRepository.getLastVisitedElevation()
             val initial    = ArrayRealVector(doubleArrayOf(lat, lon, elev))
             val traj: List<Triple<RealVector, Double, RocketState>> = TrajectoryCalculator(isobaricInterpolator)
             // 3) Run the physics‐based sim
@@ -333,7 +333,7 @@ class MapScreenViewModel @Inject constructor(
     fun addLaunchSite(lat: Double, lon: Double, elevation: Double?, name: String) {
         viewModelScope.launch {
             try {
-                launchSitesRepository.insert(
+                launchSiteRepository.insert(
                     LaunchSite(latitude = lat, longitude = lon, elevation = elevation, name = name)
                 )
                 _updateStatus.value = UpdateStatus.Success
@@ -358,7 +358,7 @@ class MapScreenViewModel @Inject constructor(
 
     fun updateSiteElevation(siteId: Int, elevation: Double) {
         viewModelScope.launch {
-            launchSitesRepository.updateElevation(siteId, elevation)
+            launchSiteRepository.updateElevation(siteId, elevation)
         }
     }
 

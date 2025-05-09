@@ -87,29 +87,29 @@ interface GribUpdatedDAO {
 interface ConfigProfileDAO {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertConfigProfile(cfg: WeatherConfig)
+    suspend fun insertWeatherConfig(cfg: WeatherConfig)
 
     @Update
-    suspend fun updateConfigProfile(cfg: WeatherConfig)
+    suspend fun updateWeatherConfig(cfg: WeatherConfig)
 
     @Delete
-    suspend fun deleteConfigProfile(cfg: WeatherConfig)
+    suspend fun deleteWeatherConfig(cfg: WeatherConfig)
 
     @Query("SELECT * FROM config_profiles ORDER BY name")
-    fun getAllConfigProfiles(): Flow<List<WeatherConfig>>
+    fun getAllWeatherConfigs(): Flow<List<WeatherConfig>>
 
     @Query("SELECT * FROM config_profiles WHERE is_default = 1 LIMIT 1")
-    fun getDefaultConfigProfile(): Flow<WeatherConfig?>
+    fun getDefaultWeatherConfig(): Flow<WeatherConfig?>
 
     @Query("SELECT * FROM config_profiles WHERE id = :configId LIMIT 1")
-    fun getConfigProfile(configId: Int): Flow<WeatherConfig?>
+    fun getWeatherConfig(configId: Int): Flow<WeatherConfig?>
 
     /**
      * Room will map each row’s single “name” column into a String in the list.
      * Adding ORDER BY guarantees a stable sort if you care.
      */
     @Query("SELECT name FROM config_profiles ORDER BY name")
-    fun getAllConfigProfileNames(): Flow<List<String>>
+    fun getAllWeatherConfigNames(): Flow<List<String>>
 }
 
 @Dao

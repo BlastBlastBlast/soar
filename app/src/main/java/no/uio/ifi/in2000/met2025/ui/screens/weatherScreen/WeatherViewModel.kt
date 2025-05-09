@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.WeatherConfigRepository
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
-import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
+import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricDataResult
@@ -30,7 +30,7 @@ import javax.inject.Inject
 class WeatherViewModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
     private val weatherConfigRepository: WeatherConfigRepository,
-    private val launchSitesRepository: LaunchSitesRepository,
+    private val launchSiteRepository: LaunchSiteRepository,
     private val weatherModel: WeatherModel,
     private val sunriseRepository: SunriseRepository
 ) : ViewModel() {
@@ -78,35 +78,35 @@ class WeatherViewModel @Inject constructor(
     val validSunTimesMap = mutableMapOf<String, ValidSunTimes>()
 
      private val _currentSite: StateFlow<LaunchSite?> =
-             launchSitesRepository.getActiveSite().stateIn(
+             launchSiteRepository.getActiveSite().stateIn(
                  viewModelScope, SharingStarted.Eagerly, null
              )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
 
 
-    val launchSites = launchSitesRepository.getAll()
+    val launchSites = launchSiteRepository.getAll()
 
     init {
         // Initialize configuration profiles.
         viewModelScope.launch {
-            val currentConfigs = weatherConfigRepository.getAllConfigProfiles().first()
+            val currentConfigs = weatherConfigRepository.getAllWeatherConfigs().first()
             if (currentConfigs.none { it.isDefault }) {
-                weatherConfigRepository.insertConfigProfile(DefaultWeatherParameters.instance)
+                weatherConfigRepository.insertWeatherConfig(DefaultWeatherParameters.instance)
             }
         }
         viewModelScope.launch {
-            weatherConfigRepository.getDefaultConfigProfile().collect { defaultConfig ->
+            weatherConfigRepository.getDefaultWeatherConfig().collect { defaultConfig ->
                 _activeConfig.value = defaultConfig ?: DefaultWeatherParameters.instance
             }
         }
         viewModelScope.launch {
-            weatherConfigRepository.getAllConfigProfiles().collect { list ->
+            weatherConfigRepository.getAllWeatherConfigs().collect { list ->
                 _configList.value = list
             }
         }
         // Continuously collect the current coordinates from the repository.
         viewModelScope.launch {
-            launchSitesRepository
+            launchSiteRepository
                 .getCurrentCoordinates(defaultCoordinates = Pair(59.942, 10.726))
                 .collect { newCoordinates ->
                     _coordinates.value = newCoordinates
@@ -128,14 +128,14 @@ class WeatherViewModel @Inject constructor(
     fun updateCoordinates(lat: Double, lon: Double) {
         viewModelScope.launch {
             // Use the repository function to get the "Last Visited" site.
-            val lastVisitedSite = launchSitesRepository.getLastVisitedTempSite().first()
+            val lastVisitedSite = launchSiteRepository.getLastVisitedTempSite().first()
             if (lastVisitedSite != null) {
                 // Overwrite by updating the existing record.
                 val updatedSite = lastVisitedSite.copy(latitude = lat, longitude = lon)
-                launchSitesRepository.update(updatedSite)
+                launchSiteRepository.update(updatedSite)
             } else {
                 // If not found, insert a new record.
-                launchSitesRepository.insert(
+                launchSiteRepository.insert(
                     LaunchSite(
                         name = "Last Visited",
                         latitude = lat,
