@@ -25,8 +25,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigScreen
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigListScreen
-import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigEditScreen
-import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.WeatherConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.WeatherConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreenViewModel
 
 /**
@@ -107,7 +107,7 @@ fun NavigationGraph(
 
         // — Config List —
         composable(WeatherConfigList.route) {
-            ConfigListScreen(
+            WeatherConfigListScreen(
                 onEditConfig   = { cfg ->
                     navController.navigateSingleTopTo(WeatherConfigEdit.createRoute(cfg.id))
                 },
@@ -134,8 +134,8 @@ fun NavigationGraph(
                 .getWeatherConfig(id)
                 .collectAsState(initial = null)
 
-            ConfigEditScreen(
-                config         = config,
+            WeatherConfigEditScreen(
+                weatherConfig         = config,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

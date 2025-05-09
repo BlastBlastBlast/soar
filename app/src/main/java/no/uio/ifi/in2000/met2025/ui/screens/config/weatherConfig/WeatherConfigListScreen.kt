@@ -34,13 +34,13 @@ import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 
 
 @Composable
-fun ConfigListScreen(
+fun WeatherConfigListScreen(
     viewModel: ConfigViewModel = hiltViewModel(),
     onEditConfig: (WeatherConfig) -> Unit,
     onAddConfig: () -> Unit,
     onSelectConfig: (WeatherConfig) -> Unit
 ) {
-    val configList by viewModel.weatherConfigs.collectAsState(initial = emptyList())
+    val weatherConfigList by viewModel.weatherConfigs.collectAsState(initial = emptyList())
 
     Box(
         Modifier
@@ -85,12 +85,12 @@ fun ConfigListScreen(
                     contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(configList) { config ->
-                        ConfigListItem(
-                            config    = config,
-                            onClick   = { onSelectConfig(config) },
-                            onEdit    = { onEditConfig(config) },
-                            onDelete  = { viewModel.deleteWeatherConfig(config) }
+                    items(weatherConfigList) { weatherConfig ->
+                        WeatherConfigListItem(
+                            weatherConfig    = weatherConfig,
+                            onClick   = { onSelectConfig(weatherConfig) },
+                            onEdit    = { onEditConfig(weatherConfig) },
+                            onDelete  = { viewModel.deleteWeatherConfig(weatherConfig) }
                         )
                     }
                 }
