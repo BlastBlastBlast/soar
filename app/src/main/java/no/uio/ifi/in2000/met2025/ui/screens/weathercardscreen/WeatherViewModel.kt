@@ -25,9 +25,9 @@ import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
 
-// WeatherCardViewModel.kt
+// WeatherViewModel.kt
 @HiltViewModel
-class WeatherCardViewmodel @Inject constructor(
+class WeatherViewModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
     private val configProfileRepository: ConfigProfileRepository,
     private val launchSitesRepository: LaunchSitesRepository,
@@ -35,14 +35,14 @@ class WeatherCardViewmodel @Inject constructor(
     private val sunriseRepository: SunriseRepository
 ) : ViewModel() {
 
-    sealed class WeatherCardUiState {
-        object Idle : WeatherCardUiState()
-        object Loading : WeatherCardUiState()
+    sealed class WeatherUiState {
+        object Idle : WeatherUiState()
+        object Loading : WeatherUiState()
         data class Success(
             val forecastItems: List<ForecastDataItem>,
             val sunTimes: Map<String, ValidSunTimes> = emptyMap()
-        ) : WeatherCardUiState()
-        data class Error(val message: String) : WeatherCardUiState()
+        ) : WeatherUiState()
+        data class Error(val message: String) : WeatherUiState()
     }
 
     sealed class AtmosphericWindUiState {
@@ -52,8 +52,8 @@ class WeatherCardViewmodel @Inject constructor(
         data class Error(val message: String) : AtmosphericWindUiState()
     }
 
-    private val _uiState = MutableStateFlow<WeatherCardUiState>(WeatherCardUiState.Idle)
-    val uiState: StateFlow<WeatherCardUiState> = _uiState
+    private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Idle)
+    val uiState: StateFlow<WeatherUiState> = _uiState
 
     private val _windState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
     val windState: StateFlow<AtmosphericWindUiState> = _windState
@@ -153,7 +153,7 @@ class WeatherCardViewmodel @Inject constructor(
 
     fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) {
         viewModelScope.launch {
-            _uiState.value = WeatherCardUiState.Loading
+            _uiState.value = WeatherUiState.Loading
             val result = locationForecastRepository.getTimeZoneAdjustedForecast(lat, lon, timeSpanInHours)
             result.fold(
                 onSuccess = { forecastData ->
@@ -170,13 +170,13 @@ class WeatherCardViewmodel @Inject constructor(
                         sunTimesMap[date] = sunTimes
                     }
 
-                    _uiState.value = WeatherCardUiState.Success(
+                    _uiState.value = WeatherUiState.Success(
                         forecastItems = forecastItems,
                         sunTimes = sunTimesMap
                     )
                 },
                 onFailure = { throwable ->
-                    _uiState.value = WeatherCardUiState.Error(throwable.message ?: "Unknown error")
+                    _uiState.value = WeatherUiState.Error(throwable.message ?: "Unknown error")
                 }
             )
         }

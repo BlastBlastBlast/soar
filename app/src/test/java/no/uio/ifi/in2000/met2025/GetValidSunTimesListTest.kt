@@ -12,7 +12,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherViewModel
 import org.junit.Test
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
@@ -29,9 +29,9 @@ import no.uio.ifi.in2000.met2025.fakes.FakeLaunchSiteDAO
 import no.uio.ifi.in2000.met2025.helpers.exampleJson
 import org.junit.Before
 
-class WeatherCardViewmodelTest {
+class WeatherViewModelTest {
 
-    private lateinit var viewModel: WeatherCardViewmodel
+    private lateinit var viewModel: WeatherViewModel
 
     @Before
     fun setup() {
@@ -52,7 +52,7 @@ class WeatherCardViewmodelTest {
 
         val weatherModel = WeatherModel(locationForecastRepository, isobaricRepository)
 
-        viewModel = WeatherCardViewmodel(
+        viewModel = WeatherViewModel(
             locationForecastRepository,
             configProfileRepository,
             launchSitesRepository,

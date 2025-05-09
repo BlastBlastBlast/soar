@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components
 
-import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,11 +22,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
 import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
 

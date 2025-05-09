@@ -46,7 +46,7 @@ fun NavigationGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
     homeScreenViewModel: HomeScreenViewModel,
-    weatherCardViewModel: WeatherCardViewmodel,
+    weatherCardViewModel: WeatherViewModel,
     settingsViewModel: SettingsViewModel,
 ) {
     NavHost(
@@ -81,7 +81,7 @@ fun NavigationGraph(
                 weatherCardViewModel.loadForecast(lat, lon)
             }
 
-            WeatherCardScreen(
+            WeatherScreen(
                 viewModel     = weatherCardViewModel,
                 navController = navController
             )

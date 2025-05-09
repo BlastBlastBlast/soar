@@ -44,7 +44,6 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
-import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.ConfigMenuOverlay
@@ -56,8 +55,8 @@ import java.time.ZonedDateTime
 
 
 @Composable
-fun WeatherCardScreen(
-    viewModel: WeatherCardViewmodel = hiltViewModel(),
+fun WeatherScreen(
+    viewModel: WeatherViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -198,19 +197,19 @@ fun WeatherCardScreen(
 
 @Composable
 fun ScreenContent(
-    uiState: WeatherCardViewmodel.WeatherCardUiState,
+    uiState: WeatherViewModel.WeatherUiState,
     coordinates: Pair<Double, Double>,
     config: ConfigProfile,
     filterActive: Boolean,
     hoursToShow: Float,
     selectedStatuses: Set<LaunchStatus>,
     currentSite: LaunchSite?,
-    viewModel: WeatherCardViewmodel,
+    viewModel: WeatherViewModel,
     isSunFilterActive: Boolean
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
+    if (uiState is WeatherViewModel.WeatherUiState.Success) {
         val forecastItems = uiState.forecastItems
 
         val forecastByDay: Map<String, List<ForecastDataItem>> =
@@ -329,8 +328,8 @@ fun ScreenContent(
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
             when (uiState) {
-                is WeatherCardViewmodel.WeatherCardUiState.Loading -> item { WeatherLoadingSpinner() }
-                is WeatherCardViewmodel.WeatherCardUiState.Error -> item {
+                is WeatherViewModel.WeatherUiState.Loading -> item { WeatherLoadingSpinner() }
+                is WeatherViewModel.WeatherUiState.Error -> item {
                     Text(
                         text = "Feil: ${uiState.message}",
                         style = MaterialTheme.typography.headlineSmall

@@ -39,10 +39,9 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon.Dra
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
+import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherViewModel
 import java.time.Instant
 
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -77,7 +76,7 @@ fun HourlyExpandableCard(
     coordinates: Pair<Double, Double>,
     config: ConfigProfile,
     modifier: Modifier = Modifier,
-    viewModel: WeatherCardViewmodel
+    viewModel: WeatherViewModel
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isobaricDataMap by viewModel.isobaricData.collectAsState()
@@ -115,7 +114,7 @@ fun HourlyExpandableCard(
                         Instant.parse(forecastItem.time)
                             .closestIsobaricDataWindowBefore()
                     ]) {
-                        is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
+                        is WeatherViewModel.AtmosphericWindUiState.Success -> {
                             Icon(
                                 painter = painterResource(id = R.drawable.yes_grib_real),
                                 contentDescription = "Grib files fetched",
