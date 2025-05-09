@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
+import no.uio.ifi.in2000.met2025.domain.RocketState
 import no.uio.ifi.in2000.met2025.ui.screens.home.maps.MapView
 import org.apache.commons.math3.linear.RealVector
 
@@ -27,7 +28,7 @@ fun MapContainer(
     onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit,
     onSiteElevation: (Int, Double) -> Unit,
 
-    trajectoryPoints: List<Pair<RealVector, Double>>,
+    trajectoryPoints: List<Triple<RealVector, Double, RocketState>>,
     isAnimating: Boolean,
     onAnimationEnd: () -> Unit
 ) {

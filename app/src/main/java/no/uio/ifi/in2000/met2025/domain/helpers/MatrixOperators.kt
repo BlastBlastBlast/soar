@@ -37,7 +37,7 @@ operator fun RealMatrix.get(row: Int, column: Int): Double = getEntry(row, colum
 operator fun RealMatrix.times(vector: RealVector): RealVector = operate(vector)
 
 // vector matrix multiplication operator
-operator fun RealVector.times(matrix: RealMatrix): RealVector = matrix.operate(this)
+operator fun RealVector.times(matrix: RealMatrix): RealVector = matrix.transpose().operate(this)
 
 // matrix multiplication operator
 operator fun RealMatrix.times(other: RealMatrix): RealMatrix = multiply(other)
