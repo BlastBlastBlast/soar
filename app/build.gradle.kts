@@ -122,27 +122,11 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
-    implementation("org.apache.commons:commons-math3:3.6.1")
-
     //netcdf and dependencies
     implementation(libs.cdm.core)// Core library
     implementation(libs.grib) // GRIB1 & GRIB2 support
     implementation(libs.guava.v3100android)
     implementation(libs.listenablefuture)
-
-//    constraints {
-//        implementation("com.google.guava:guava:31.0.1-android")
-//        implementation("com.google.code.findbugs:jsr305:3.0.2")
-//        implementation("com.google.guava:listenablefuture:1.0")
-//    }
-
-    // ND4J CPU Backend for linear algebra
-//    implementation(libs.nd4j.native.platform) {
-//        exclude(group = "com.google.guava", module = "guava")
-//        //exclude(group = "org.nd4j", module = "protobuf")
-//        exclude(group = "com.google.code.findbugs", module = "jsr305")
-//        exclude(group = "com.google.guava", module = "listenablefuture")
-//    }
 
     //system ui control
     implementation(libs.accompanist.systemuicontroller)

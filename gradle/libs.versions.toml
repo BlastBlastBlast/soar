@@ -30,9 +30,6 @@ ktorClientMock = "3.1.0"
 slf4jSimple = "2.0.7"
 kotlinTest = "2.1.20"
 kotlinxCoroutinesTest = "1.7.3"
-multikCore = "0.2.3"
-multikDefault = "0.2.3"
-nd4jNativePlatform = "1.0.0-M2.1"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -73,9 +70,6 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorCli
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
-multik-core = { module = "org.jetbrains.kotlinx:multik-core", version.ref = "multikCore" }
-multik-default = { module = "org.jetbrains.kotlinx:multik-default", version.ref = "multikDefault" }
-nd4j-native-platform = { module = "org.nd4j:nd4j-native-platform", version.ref = "nd4jNativePlatform" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

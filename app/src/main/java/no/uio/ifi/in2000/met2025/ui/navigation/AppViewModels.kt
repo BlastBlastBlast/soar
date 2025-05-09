@@ -2,17 +2,17 @@ package no.uio.ifi.in2000.met2025.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmodel
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreenViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 
 /**
  * A simple holder for all of your top-level navigation view-models.
  */
 data class AppViewModels(
-    val home: HomeScreenViewModel,
-    val weather: WeatherCardViewmodel,
-    val settings: SettingsViewModel
+    val maps: MapScreenViewModel,
+    val weather: WeatherViewModel,
+    val configs: ConfigViewModel
 )
 
 /**
@@ -20,13 +20,13 @@ data class AppViewModels(
  */
 @Composable
 fun provideAppViewModels(): AppViewModels {
-    val home       = hiltViewModel<HomeScreenViewModel>()
-    val weather    = hiltViewModel<WeatherCardViewmodel>()
-    val settings   = hiltViewModel<SettingsViewModel>()
+    val maps       = hiltViewModel<MapScreenViewModel>()
+    val weather    = hiltViewModel<WeatherViewModel>()
+    val configs   = hiltViewModel<ConfigViewModel>()
 
     return AppViewModels(
-        home = home,
+        maps = maps,
         weather = weather,
-        settings = settings,
+        configs = configs,
     )
 }

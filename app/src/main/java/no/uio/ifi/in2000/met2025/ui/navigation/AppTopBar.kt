@@ -30,14 +30,14 @@ fun AppTopBar(
         ?.route
 
     val title = when {
-        currentRoute == Screen.Home.route                               -> "Map"
+        currentRoute == Screen.Maps.route                               -> "Map"
         currentRoute == Screen.LaunchSite.route                         -> "Launch Sites"
         currentRoute?.startsWith("weather/") == true                    -> "Weather"
-        currentRoute == Screen.RocketConfigList.route                   -> "Rocket Profiles"
-        currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Profile"
-        currentRoute == Screen.ConfigList.route                         -> "Weather Settings"
-        currentRoute?.startsWith("config_edit") == true                 -> "Edit Weather Settings"
-        currentRoute == Screen.Settings.route                           -> "Settings"
+        currentRoute == Screen.RocketConfigList.route                   -> "Rocket Configs"
+        currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Config"
+        currentRoute == Screen.WeatherConfigList.route                         -> "Weather Configs"
+        currentRoute?.startsWith("weather_edit") == true                 -> "Edit Weather Configs"
+        currentRoute == Screen.Configs.route                           -> "Config"
         else                                                             -> ""
     }
 

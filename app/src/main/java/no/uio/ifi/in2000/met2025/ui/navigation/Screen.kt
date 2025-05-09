@@ -9,18 +9,16 @@ object DoubleNavType : NavType<Double>(isNullableAllowed = false) {
     override fun put(bundle: Bundle, key: String, value: Double) = bundle.putDouble(key, value)
 }
 
-// in no.uio.ifi.in2000.met2025.ui.navigation.Screen.kt
-
 sealed class Screen(val route: String) {
-    data object Home               : Screen("home")
+    data object Maps               : Screen("maps")
     data object Weather            : Screen("weather/{lat}/{lon}") {
         fun createRoute(lat: Double, lon: Double) = "weather/$lat/$lon"
     }
     data object LaunchSite         : Screen("launch_site")
-    data object Settings           : Screen("settings")
-    data object ConfigList         : Screen("config_list")
-    data object ConfigEdit         : Screen("config_edit/{configId}") {
-        fun createRoute(id: Int) = "config_edit/$id"
+    data object Configs           : Screen("settings")
+    data object WeatherConfigList         : Screen("weather_list")
+    data object WeatherConfigEdit         : Screen("weather_edit/{weatherId}") {
+        fun createRoute(id: Int) = "weather_edit/$id"
     }
     data object RocketConfigList   : Screen("rocket_list")
     data object RocketConfigEdit   : Screen("rocket_edit/{rocketName}/{rocketId}") {

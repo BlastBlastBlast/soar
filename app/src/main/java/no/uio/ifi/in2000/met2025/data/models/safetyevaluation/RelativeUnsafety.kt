@@ -1,6 +1,6 @@
 package no.uio.ifi.in2000.met2025.data.models.safetyevaluation
 
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.toConfigList
@@ -13,7 +13,7 @@ fun relativeUnsafety(value: Double?, threshold: Double): Double? {
     return value / threshold
 }
 
-fun relativeUnsafety(config: ConfigProfile, forecastDataItem: ForecastDataItem? = null, isobaricData: IsobaricData? = null): Double? {
+fun relativeUnsafety(config: WeatherConfig, forecastDataItem: ForecastDataItem? = null, isobaricData: IsobaricData? = null): Double? {
     val forecastList = forecastDataItem?.toConfigList(config) ?: emptyList()
     val isobaricList = isobaricData?.toConfigList(config) ?: emptyList()
     val valueThresholdList = (forecastList + isobaricList).filter { (_, _, enabled) -> enabled }

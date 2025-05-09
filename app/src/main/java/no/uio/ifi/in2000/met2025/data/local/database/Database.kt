@@ -6,18 +6,16 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 import androidx.room.Index
-import no.uio.ifi.in2000.met2025.data.models.Angle
-import java.sql.Types.NULL
 
 @Database(
-    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
-    version = 9
+    entities = [LaunchSite::class, GribData::class, GribUpdated::class, WeatherConfig::class, RocketConfig::class],
+    version = 10
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
     abstract fun gribDataDao(): GribDataDAO
     abstract fun gribUpdatedDao(): GribUpdatedDAO
-    abstract fun configProfileDao(): ConfigProfileDAO
+    abstract fun WeatherConfigDao(): WeatherConfigDao
     abstract fun rocketConfigDao(): RocketConfigDao
 }
 
@@ -55,8 +53,8 @@ data class GribUpdated(
     @PrimaryKey() val time: String,
 )
 
-@Entity(tableName = "config_profiles")
-data class ConfigProfile(
+@Entity(tableName = "weather_config")
+data class WeatherConfig(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
     @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,
@@ -89,7 +87,7 @@ data class ConfigProfile(
 )
 
 @Entity(
-    tableName = "rocket_configurations",
+    tableName = "rocket_config",
     indices = [Index(value = ["name"], unique = true)]
 )
 data class RocketConfig(

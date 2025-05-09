@@ -16,7 +16,7 @@
         android:label="SOAR"
         android:roundIcon="@drawable/soarlogo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.In2000_met2025_team21"
+        android:theme="@style/SOAR_Theme"
         tools:targetApi="31">
 
 
@@ -24,7 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.In2000_met2025_team21">
+            android:theme="@style/SOAR_Theme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

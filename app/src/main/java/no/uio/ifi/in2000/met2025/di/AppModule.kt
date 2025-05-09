@@ -17,7 +17,7 @@ import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.local.database.AppDatabase
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfigDao
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
@@ -165,7 +165,7 @@ object DatabaseModule {
     fun provideGribUpdatedDao(db: AppDatabase): GribUpdatedDAO = db.gribUpdatedDao()
 
     @Provides
-    fun provideConfigProfileDao(db: AppDatabase): ConfigProfileDAO = db.configProfileDao()
+    fun provideConfigProfileDao(db: AppDatabase): WeatherConfigDao = db.WeatherConfigDao()
 
     @Provides
     fun provideRocketConfigDao(db: AppDatabase): RocketConfigDao = db.rocketConfigDao()
