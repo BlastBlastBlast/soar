@@ -13,6 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
@@ -39,7 +44,10 @@ fun RocketConfigCarousel(
         state = listState,
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .semantics(mergeDescendants = false) {
+                contentDescription = "Carousel of rocket configurations"
+            },
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
@@ -51,7 +59,12 @@ fun RocketConfigCarousel(
             Card(
                 modifier  = Modifier
                     .width(160.dp)
-                    .clickable { onSelectConfig(cfg) },
+                    .clickable { onSelectConfig(cfg) }
+                    .semantics {
+                        role = Role.Button
+                        stateDescription = if (isSelected) "Selected" else "Not selected"
+                        contentDescription = "Select rocket profile ${cfg.name}"
+                    },
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = if (isSelected) 8.dp else 2.dp
                 ),

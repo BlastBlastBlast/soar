@@ -26,6 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
@@ -54,6 +58,10 @@ fun LaunchSitesMenuOverlay(
             .fillMaxSize()
             .background(Black.copy(alpha = 0.3f))
             .padding(bottom = bottomBarHeight)
+            .semantics {
+                role = Role.Button
+                contentDescription = "Dismiss launch sites menu by clicking outside"
+            }
             .clickable(
                 onClick = onDismiss,
                 indication = null,
@@ -65,8 +73,9 @@ fun LaunchSitesMenuOverlay(
             visible = true,
             enter   = expandVertically(expandFrom = Alignment.Bottom, animationSpec = tween(300)) + fadeIn(tween(300)),
             exit    = shrinkVertically(shrinkTowards = Alignment.Bottom, animationSpec = tween(300)) + fadeOut(tween(300)),
-            modifier = modifier
-        ) {
+            modifier = modifier.semantics {
+                contentDescription = "Launch sites list"
+            }        ) {
             Surface(
                 modifier        = Modifier
                     .widthIn(max = maxSurfaceWidth, min = minWidth)

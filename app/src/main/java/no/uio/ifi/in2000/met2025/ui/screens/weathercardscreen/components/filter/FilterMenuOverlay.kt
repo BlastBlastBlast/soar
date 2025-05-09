@@ -21,6 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.theme.Black
@@ -36,6 +40,8 @@ fun FilterMenuOverlay(
     modifier: Modifier = Modifier,
     selectedStatuses: Set<LaunchStatus>,
     onStatusToggled: (LaunchStatus) -> Unit,
+    isSunFilterActive: Boolean,
+    onToggleSunFilter: () -> Unit
 ) {
     val bottomBarHeight = 56.dp
 
@@ -45,6 +51,10 @@ fun FilterMenuOverlay(
             .fillMaxSize()
             .background(Black.copy(alpha = 0.3f))
             .padding(bottom = bottomBarHeight)
+            .semantics {
+                role = Role.Button
+                contentDescription = "Dismiss launch sites menu by clicking outside"
+            }
             .clickable(
                 onClick = onDismiss,
                 indication = null,
@@ -56,7 +66,9 @@ fun FilterMenuOverlay(
             visible = true,
             enter   = expandVertically(expandFrom = Alignment.Bottom, animationSpec = tween(300)) + fadeIn(tween(300)),
             exit    = shrinkVertically(shrinkTowards = Alignment.Bottom, animationSpec = tween(300)) + fadeOut(tween(300)),
-            modifier = modifier
+            modifier = modifier.semantics {
+                contentDescription = "Filter menu overlay"
+            }
         ) {
             Surface(
                 modifier        = Modifier
@@ -95,6 +107,13 @@ fun FilterMenuOverlay(
                         selectedStatuses = selectedStatuses,
                         onStatusToggled = onStatusToggled,
                         modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    SunriseFilter(
+                        isSunFilterActive = isSunFilterActive,
+                        onToggleSunFilter = onToggleSunFilter,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
                     )
                 }
             }

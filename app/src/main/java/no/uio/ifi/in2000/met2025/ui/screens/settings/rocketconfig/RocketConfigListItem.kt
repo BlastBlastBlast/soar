@@ -18,6 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
@@ -37,7 +41,14 @@ fun RocketConfigItem(
         modifier        = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics {
+                role = Role.Button
+                contentDescription = buildString {
+                    append("Configuration ${rocketConfig.name}. ")
+                    if (rocketConfig.isDefault) append("Default configuration.")
+                }
+            },
         color           = MaterialTheme.colorScheme.primary,
         tonalElevation  = 2.dp,
         shadowElevation = 4.dp,
@@ -66,14 +77,22 @@ fun RocketConfigItem(
             }
             Row {
                 if (!rocketConfig.isDefault) {
-                    IconButton(onClick = onEdit) {
+                    IconButton(onClick = onEdit,
+                        modifier = Modifier.semantics {
+                        role = Role.Button
+                        contentDescription = "Edit ${rocketConfig.name}"
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit",
                             tint = IconGreen
                         )
                     }
-                    IconButton(onClick = onDelete) {
+                    IconButton(onClick = onDelete,
+                        modifier = Modifier.semantics {
+                            role = Role.Button
+                            contentDescription = "Delete ${rocketConfig.name}"
+                        }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete",

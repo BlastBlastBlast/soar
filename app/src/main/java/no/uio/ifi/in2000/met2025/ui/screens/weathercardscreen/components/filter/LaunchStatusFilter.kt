@@ -12,7 +12,7 @@ data class LaunchStatusFilter(
     val allowedLaunchStatuses: Set<LaunchStatus> = setOf(
         LaunchStatus.SAFE,
         LaunchStatus.CAUTION,
-        //LaunchStatus.DISABLED
+        LaunchStatus.UNSAFE
     )
 )
 

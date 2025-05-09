@@ -36,20 +36,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.style.TextAlign
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
+import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.WeatherLoadingSpinner
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.LaunchStatusFilter
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.forecastPassesFilter
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.config.ConfigMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.SegmentedBottomBar
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.filter.FilterMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.site.LaunchSitesMenuOverlay
 import java.time.Instant
-
+import java.time.ZonedDateTime
 
 
 @Composable
@@ -68,6 +71,7 @@ fun WeatherCardScreen(
     var isConfigMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isFilterMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isLaunchMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var isSunFilterActive by rememberSaveable { mutableStateOf(false) }
     var selectedStatuses by remember { mutableStateOf(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION, LaunchStatus.UNSAFE)) }
     val sitesForOverlay = remember(launchSites) {
         val allButLastVisited = launchSites.filter { it.name != "Last Visited" }
@@ -94,7 +98,9 @@ fun WeatherCardScreen(
                 filterActive = filterActive,
                 hoursToShow = hoursToShow,
                 currentSite = currentSite,
-                viewModel = viewModel
+                selectedStatuses = selectedStatuses,
+                viewModel = viewModel,
+                isSunFilterActive = isSunFilterActive
             )
             // Segmented Bottom Bar with three buttons.
             SegmentedBottomBar(
@@ -158,6 +164,8 @@ fun WeatherCardScreen(
                         else
                             selectedStatuses + status
                     },
+                    isSunFilterActive = isSunFilterActive,
+                    onToggleSunFilter = { isSunFilterActive = !isSunFilterActive },
                     onDismiss = { isFilterMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -195,25 +203,52 @@ fun ScreenContent(
     config: ConfigProfile,
     filterActive: Boolean,
     hoursToShow: Float,
+    selectedStatuses: Set<LaunchStatus>,
     currentSite: LaunchSite?,
-    viewModel: WeatherCardViewmodel
+    viewModel: WeatherCardViewmodel,
+    isSunFilterActive: Boolean
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     if (uiState is WeatherCardViewmodel.WeatherCardUiState.Success) {
         val forecastItems = uiState.forecastItems
-        val filteredItems = forecastItems.let { allItems ->
-            if (filterActive)
-                allItems.filter {
-                    forecastPassesFilter(
-                        it,
-                        config,
-                        LaunchStatusFilter(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION))
-                    )
-                }
-            else allItems
-        }.take(hoursToShow.toInt())
+
         val forecastByDay: Map<String, List<ForecastDataItem>> =
+            forecastItems.groupBy { it.time.substring(0, 10) }
+
+        val filteredItems = forecastItems
+            .filter { item ->
+                if (isSunFilterActive) {
+                    val zonedTime = try {
+                        ZonedDateTime.parse(item.time).toInstant()
+                    } catch (e: Exception) {
+                        return@filter false
+                    }
+
+                    val sunTimeForDay = uiState.sunTimes[item.time.substring(0, 10)] ?: return@filter false
+
+                    val afterEarliest = zonedTime.isAfter(sunTimeForDay.earliestRocket)
+                    val beforeLatest = zonedTime.isBefore(sunTimeForDay.latestRocket)
+
+                    if (!(afterEarliest && beforeLatest)) return@filter false
+                }
+
+                val state = evaluateLaunchConditions(item, config)
+                if (!filterActive) {
+                    if (state !is ParameterState.Available) return@filter true
+                    val status = launchStatus(state.relativeUnsafety)
+                    return@filter status in selectedStatuses
+                }
+
+                if (state !is ParameterState.Available) return@filter false
+                val status = launchStatus(state.relativeUnsafety)
+
+                if (status == LaunchStatus.UNSAFE) return@filter false
+
+                return@filter status in selectedStatuses
+            }
+            .take(hoursToShow.toInt())
+        val filteredByDay: Map<String, List<ForecastDataItem>> =
             filteredItems.groupBy { it.time.substring(0, 10) }
         val sortedDays = forecastByDay.keys.sorted()
         val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
@@ -241,6 +276,7 @@ fun ScreenContent(
                     ) { page ->
                         val date = sortedDays[page]
                         val dailyForecastItems = forecastByDay[date] ?: emptyList()
+                        val hourlyFilteredItems = filteredByDay[date] ?: emptyList()
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -262,15 +298,29 @@ fun ScreenContent(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            dailyForecastItems.forEach { forecastItem ->
-                                HourlyExpandableCard(
-                                    forecastItem = forecastItem,
-                                    coordinates = coordinates,
-                                    config = config,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    viewModel = viewModel
+                            if (hourlyFilteredItems.isEmpty()) {
+                                Text(
+                                    text = "No results for selected filter",
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    textAlign = TextAlign.Center
                                 )
+                            } else {
+                                hourlyFilteredItems.forEach { forecastItem ->
+                                    HourlyExpandableCard(
+                                        forecastItem = forecastItem,
+                                        coordinates = coordinates,
+                                        config = config,
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        viewModel = viewModel
+                                    )
+                                }
                             }
+
+                            Spacer(modifier = Modifier.height(50.dp))
                         }
                     }
                 }

@@ -12,6 +12,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 
 
 @Composable
@@ -20,13 +25,14 @@ fun SectionCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    // define your corner‐shape once
     val shape = RoundedCornerShape(8.dp)
 
     ElevatedCard(
-        modifier  = modifier
-            // draw a 1dp black stroke around the card
-            .border(1.dp, MaterialTheme.colorScheme.primary, shape),
+        modifier = modifier
+            .border(1.dp, MaterialTheme.colorScheme.primary, shape)
+            .semantics {
+                contentDescription = "$title section"
+            },
         shape     = shape,
         colors    = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -39,7 +45,10 @@ fun SectionCard(
                 text       = title,
                 style      = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.onSurface
+                color      = MaterialTheme.colorScheme.onSurface,
+                modifier   = Modifier.semantics {
+                    heading()
+                }
             )
             Spacer(Modifier.height(8.dp))
             content()

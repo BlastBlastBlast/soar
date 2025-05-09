@@ -43,22 +43,30 @@ import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherCardViewmod
 import java.time.Instant
 
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun WindDirectionIcon(windDirection: Double?) {
     if (windDirection == null) {
         return
     }
-    val arrowPainter = painterResource(id = R.drawable.up_arrow)
-    val rotation = (windDirection + 180) % 360
+    val arrowPainter = painterResource(id = R.drawable.windicator)
 
     Image(
         painter = arrowPainter,
         contentDescription = "Wind Direction",
         modifier = Modifier
             .size(24.dp)
-            .graphicsLayer(rotationZ = rotation.toFloat()),
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+            .graphicsLayer(rotationZ = windDirection.toFloat())
+            .semantics { role = Role.Image }
+        ,
+        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
     )
 }
 
@@ -77,6 +85,10 @@ fun HourlyExpandableCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .semantics {
+                role = Role.Button
+                contentDescription = if (expanded) "Collapse details" else "Expand details"
+            }
             .clickable { expanded = !expanded },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary,   // Card background is warm orange.
@@ -86,7 +98,8 @@ fun HourlyExpandableCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .semantics { heading() },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -105,7 +118,7 @@ fun HourlyExpandableCard(
                         is WeatherCardViewmodel.AtmosphericWindUiState.Success -> {
                             Icon(
                                 painter = painterResource(id = R.drawable.yes_grib_real),
-                                contentDescription = "Altitude",
+                                contentDescription = "Grib files fetched",
                                 modifier = Modifier.size(48.dp),
                                 //tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -114,19 +127,21 @@ fun HourlyExpandableCard(
                                 forecast = forecastItem,
                                 isobaricData.isobaricData,
                                 modifier = Modifier.size(38.dp)
+                                    .semantics { contentDescription = "Status icon" }
                             )
                         }
                         else -> {
                             Icon(
                                 painter = painterResource(id = R.drawable.no_grib_real),
-                                contentDescription = "No Altitude",
+                                contentDescription = "Grib not fetched",
                                 modifier = Modifier.size(48.dp),
-                                //tint = MaterialTheme.colorScheme.onPrimary
                             )
                             LaunchStatusIndicator(
                                 config = config,
                                 forecast = forecastItem,
-                                modifier = Modifier.size(38.dp),
+                                modifier = Modifier.size(38.dp)
+                                    .semantics { contentDescription = "Status Icon" }
+                                ,
                             )
                         }
                     }
@@ -136,18 +151,23 @@ fun HourlyExpandableCard(
 
             Text(
                 text = "Temperature: ${forecastItem.values.airTemperature}°C",
+                modifier = Modifier.semantics {
+                    contentDescription = "Temperature ${forecastItem.values.airTemperature} degrees Celsius"
+                },
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
             )
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
 
-            AnimatedVisibility(visible = expanded) {
+            AnimatedVisibility(visible = expanded, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+            ) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     val evaluations = evaluateParameterConditions(forecastItem, config)
                     evaluations.forEach { evaluation ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = 4.dp)
+                                .semantics { contentDescription = "${evaluation.label}: ${evaluation.value}" },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
@@ -192,7 +212,7 @@ fun HourlyExpandableCard(
                             } else {
                                 LaunchStatusIcon(
                                     state = evaluation.state,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(24.dp).semantics { contentDescription = "Evaluation icon" }
                                 )
                             }
                         }

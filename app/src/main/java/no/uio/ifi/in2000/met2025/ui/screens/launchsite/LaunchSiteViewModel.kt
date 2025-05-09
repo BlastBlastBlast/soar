@@ -1,6 +1,7 @@
 
 package no.uio.ifi.in2000.met2025.ui.screens.launchsite
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -93,15 +94,22 @@ class LaunchSiteViewModel @Inject constructor(
 
     fun updateLaunchSite(launchSite: LaunchSite, name: String) {
         viewModelScope.launch {
-            // Create an updated LaunchSite instance.
-            // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
-            val exists = launchSitesRepository.checkIfSiteExists(launchSite.name)
-            if (exists && launchSite.name != name) {
-                _updateStatus.value = UpdateStatus.Error("Launch site with this name already exists")
-            } else {
-                // Use your repository's update function.
-                launchSitesRepository.update(launchSite)
-                _updateStatus.value = UpdateStatus.Success(launchSite.uid)
+            try {
+                // Create an updated LaunchSite instance.
+                // Assuming your LaunchSite data class has properties: uid, name, latitude, longitude.
+                val exists = launchSitesRepository.checkIfSiteExists(launchSite.name)
+                if (exists && launchSite.name != name) {
+                    _updateStatus.value =
+                        UpdateStatus.Error("Launch site with this name already exists")
+                } else {
+                    // Use your repository's update function.
+                    if (launchSite.name != name) {
+                        launchSitesRepository.update(launchSite)
+                        _updateStatus.value = UpdateStatus.Success(launchSite.uid)
+                    }
+                }
+            } catch (e: SQLiteConstraintException) {
+                _updateStatus.value = UpdateStatus.Error("SQL Error: ${e.message}")
             }
         }
     }

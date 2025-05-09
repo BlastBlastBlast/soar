@@ -10,32 +10,43 @@ import androidx.compose.ui.Modifier
 import no.uio.ifi.in2000.met2025.ui.theme.LocalAppCursorColor
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.ImeAction
 
+
+// File: ui/common/AppOutlinedTextField.kt
 
 @Composable
 fun AppOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    label: @Composable (() -> Unit)? = null,
+    labelText: String,                     // changed from @Composable label to plain text
     singleLine: Boolean = true,
     enabled: Boolean = true,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
 ) {
     val selectionColors = TextSelectionColors(
         handleColor     = WarmOrange,
         backgroundColor = WarmOrange.copy(alpha = 0.4f)
     )
-
     val keyboardController = LocalSoftwareKeyboardController.current
 
     OutlinedTextField(
         value         = value,
         onValueChange = onValueChange,
-        modifier      = modifier,
-        label         = label,
+        modifier      = modifier
+            .semantics {
+                contentDescription = labelText
+                stateDescription = if (value.isBlank()) "Empty" else value
+            },
+        label         = { Text(labelText) },
         singleLine    = singleLine,
         enabled       = enabled,
         readOnly      = readOnly,
@@ -51,9 +62,8 @@ fun AppOutlinedTextField(
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(
-            onDone = {
-                keyboardController?.hide()
-            }
+            onDone = { keyboardController?.hide() }
         )
     )
 }
+

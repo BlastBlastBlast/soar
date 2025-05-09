@@ -25,6 +25,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
@@ -61,7 +66,9 @@ fun RocketConfigListScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                         .background(WarmOrange, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .semantics { heading() }
+                    ,
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -98,7 +105,11 @@ fun RocketConfigListScreen(
                     onClick    = onAddRocketConfig,
                     modifier   = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Add new rocket configuration"
+                        },
                     colors     = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
                         contentColor   = MaterialTheme.colorScheme.onPrimary
