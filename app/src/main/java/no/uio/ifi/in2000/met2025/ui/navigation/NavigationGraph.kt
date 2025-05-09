@@ -17,8 +17,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.*
-import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreen
+import no.uio.ifi.in2000.met2025.ui.screens.launchSiteScreen.LaunchSiteScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.*
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigScreen
@@ -27,6 +27,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigEdit
 import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigListScreen
 import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigEditScreen
 import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreenViewModel
 
 /**
  * Navigate to [route] in the normal way, but if the
@@ -45,21 +46,21 @@ fun NavHostController.navigateSingleTopTo(route: String) {
 fun NavigationGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    homeScreenViewModel: HomeScreenViewModel,
+    mapScreenViewModel: MapScreenViewModel,
     weatherCardViewModel: WeatherViewModel,
     configViewModel: ConfigViewModel,
 ) {
     NavHost(
         navController    = navController,
-        startDestination = Home.route,
+        startDestination = Maps.route,
         modifier         = Modifier
             .padding(innerPadding)
             .windowInsetsPadding(WindowInsets.ime)
     ) {
         // — Home —
-        composable(Home.route) {
-            HomeScreen(
-                viewModel = homeScreenViewModel,
+        composable(Maps.route) {
+            MapScreen(
+                viewModel = mapScreenViewModel,
                 onNavigateToWeather = { lat, lon ->
                     navController.navigateSingleTopTo(Weather.createRoute(lat, lon))
                 },
@@ -93,10 +94,10 @@ fun NavigationGraph(
         }
 
         // — Settings (NEW) —
-        composable(Settings.route) {
+        composable(Configs.route) {
             ConfigScreen(
                 onWeatherConfigsClick = {
-                    navController.navigateSingleTopTo(ConfigList.route)
+                    navController.navigateSingleTopTo(WeatherConfigList.route)
                 },
                 onRocketConfigsClick = {
                     navController.navigateSingleTopTo(RocketConfigList.route)
@@ -105,13 +106,13 @@ fun NavigationGraph(
         }
 
         // — Config List —
-        composable(ConfigList.route) {
+        composable(WeatherConfigList.route) {
             ConfigListScreen(
                 onEditConfig   = { cfg ->
-                    navController.navigateSingleTopTo(ConfigEdit.createRoute(cfg.id))
+                    navController.navigateSingleTopTo(WeatherConfigEdit.createRoute(cfg.id))
                 },
                 onAddConfig    = {
-                    navController.navigateSingleTopTo(ConfigEdit.createRoute(-1))
+                    navController.navigateSingleTopTo(WeatherConfigEdit.createRoute(-1))
                 },
                 onSelectConfig = { cfg ->
                     weatherCardViewModel.setActiveConfig(cfg)
@@ -122,13 +123,13 @@ fun NavigationGraph(
 
         // — Config Edit —
         composable(
-            route     = ConfigEdit.route,
-            arguments = listOf(navArgument("configId") {
+            route     = WeatherConfigEdit.route,
+            arguments = listOf(navArgument("weatherId") {
                 type         = NavType.IntType
                 defaultValue = -1
             })
         ) { back ->
-            val id by remember { mutableStateOf(back.arguments?.getInt("configId") ?: -1) }
+            val id by remember { mutableStateOf(back.arguments?.getInt("weatherId") ?: -1) }
             val config by configViewModel
                 .getWeatherConfig(id)
                 .collectAsState(initial = null)

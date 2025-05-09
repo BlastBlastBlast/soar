@@ -24,16 +24,16 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 
 @Composable
 fun RocketConfigCarousel(
-    configs: List<RocketConfig>,
+    rocketConfigs: List<RocketConfig>,
     selectedConfig: RocketConfig?,
     onSelectConfig: (RocketConfig) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
 
-    LaunchedEffect(selectedConfig, configs) {
+    LaunchedEffect(selectedConfig, rocketConfigs) {
         selectedConfig?.let { sel ->
-            val index = configs.indexOfFirst { it.id == sel.id }
+            val index = rocketConfigs.indexOfFirst { it.id == sel.id }
             if (index >= 0) {
                 listState.animateScrollToItem(index)
             }
@@ -52,7 +52,7 @@ fun RocketConfigCarousel(
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(
-            items = configs,
+            items = rocketConfigs,
             key   = { it.id }
         ) { cfg ->
             val isSelected = cfg.id == selectedConfig?.id

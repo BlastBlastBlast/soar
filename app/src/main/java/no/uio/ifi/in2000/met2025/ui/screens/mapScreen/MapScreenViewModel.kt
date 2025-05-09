@@ -29,21 +29,21 @@ import java.time.Instant
 
 // MapScreenViewModel.kt
 @HiltViewModel
-class HomeScreenViewModel @Inject constructor(
+class MapScreenViewModel @Inject constructor(
     private val launchSitesRepository: LaunchSitesRepository,
     private val rocketConfigRepository: RocketConfigRepository,
     private val isobaricInterpolator: IsobaricInterpolator
 ) : ViewModel() {
 
-    sealed class HomeScreenUiState {
-        object Loading : HomeScreenUiState()
+    sealed class MapScreenUiState {
+        object Loading : MapScreenUiState()
         data class Success(
             val launchSites: List<LaunchSite>,
             val apiKeyAvailable: Boolean,
             val isOnline: Boolean
-        ) : HomeScreenUiState()
+        ) : MapScreenUiState()
 
-        data class Error(val message: String) : HomeScreenUiState()
+        data class Error(val message: String) : MapScreenUiState()
     }
 
     /** All configs, sorted so the default (isDefault=1) comes first */
@@ -79,8 +79,8 @@ class HomeScreenViewModel @Inject constructor(
     var isAnimating      by mutableStateOf(false)
     var isTrajectoryMode by mutableStateOf(false)
 
-    private val _uiState = MutableStateFlow<HomeScreenUiState>(HomeScreenUiState.Loading)
-    val uiState: StateFlow<HomeScreenUiState> = _uiState
+    private val _uiState = MutableStateFlow<MapScreenUiState>(MapScreenUiState.Loading)
+    val uiState: StateFlow<MapScreenUiState> = _uiState
 
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
@@ -111,7 +111,7 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             launchSitesRepository.getAll().collect { sites ->
                 _launchSites.value = sites
-                _uiState.value = HomeScreenUiState.Success(
+                _uiState.value = MapScreenUiState.Success(
                     launchSites = sites,
                     apiKeyAvailable = true,
                     isOnline = true
@@ -188,7 +188,7 @@ class HomeScreenViewModel @Inject constructor(
                     launchSitesRepository.insert(site)
                 }
             } catch (e: SQLiteConstraintException) {
-                _uiState.value = HomeScreenUiState.Error(
+                _uiState.value = MapScreenUiState.Error(
                     "${e.message ?: "Unknown error"} for Last Visited"
                 )
             }
@@ -213,7 +213,7 @@ class HomeScreenViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.value =
-                    HomeScreenUiState.Error("Error saving marker elevation: ${e.message}")
+                    MapScreenUiState.Error("Error saving marker elevation: ${e.message}")
             }
         }
     }

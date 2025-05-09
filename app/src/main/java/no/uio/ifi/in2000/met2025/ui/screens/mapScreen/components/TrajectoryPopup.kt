@@ -37,18 +37,16 @@ import kotlin.math.roundToInt
 fun TrajectoryPopup(
     show: Boolean,
     lastVisited: LaunchSite?,
-    configs: List<RocketConfig>,              // ← all configs
-    selectedConfig: RocketConfig?,            // ← current default
-    onSelectConfig: (RocketConfig) -> Unit,   // ← tap a new default
+    rocketConfigs: List<RocketConfig>,
+    selectedConfig: RocketConfig?,
+    onSelectConfig: (RocketConfig) -> Unit,
     onClose: () -> Unit,
     onStartTrajectory: () -> Unit,
     onClearTrajectory: () -> Unit,
     onEditConfigs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Track vertical drag offset
     var offsetY by remember { mutableStateOf(0f) }
-    // Threshold to trigger dismiss (e.g. 100dp)
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
 
     AnimatedVisibility(
@@ -115,7 +113,7 @@ fun TrajectoryPopup(
                 // Grid of buttons (2 columns)
                 // 2) Carousel right here:
                 RocketConfigCarousel(
-                    configs        = configs,
+                    rocketConfigs  = rocketConfigs,
                     selectedConfig = selectedConfig,
                     onSelectConfig = onSelectConfig,
                     modifier       = Modifier

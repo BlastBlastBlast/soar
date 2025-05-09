@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -23,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -38,13 +36,13 @@ fun AppDrawer(
     val currentRoute = backStack?.destination?.route
 
     val infoTitle = when {
-        currentRoute == Screen.Home.route                               -> "Map"
+        currentRoute == Screen.Maps.route                               -> "Map"
         currentRoute?.startsWith("weather/") == true                    -> "Weather"
         currentRoute == Screen.RocketConfigList.route                   -> "Rocket Profiles"
         currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Profile"
-        currentRoute == Screen.ConfigList.route                         -> "Weather Settings"
-        currentRoute?.startsWith("config_edit") == true                 -> "Edit Weather Settings"
-        currentRoute == Screen.Settings.route                           -> "Settings"
+        currentRoute == Screen.WeatherConfigList.route                         -> "Weather Settings"
+        currentRoute?.startsWith("weather_edit") == true                 -> "Edit Weather Settings"
+        currentRoute == Screen.Configs.route                           -> "Settings"
         currentRoute == Screen.LaunchSite.route                         -> "Launch Sites"
         else                                                            -> "Help"
     }
@@ -125,9 +123,9 @@ fun AppDrawer(
             Column(Modifier.padding(horizontal = 8.dp)) {
                 NavigationDrawerItem(
                     label    = { Text("Map") },
-                    selected = currentRoute == Screen.Home.route,
+                    selected = currentRoute == Screen.Maps.route,
                     onClick  = {
-                        navController.navigateSingleTopTo(Screen.Home.route)
+                        navController.navigateSingleTopTo(Screen.Maps.route)
                         closeDrawer()
                     },
                     modifier = Modifier
@@ -170,9 +168,9 @@ fun AppDrawer(
                 )
                 NavigationDrawerItem(
                     label    = { Text("Weather Settings") },
-                    selected = currentRoute == Screen.ConfigList.route,
+                    selected = currentRoute == Screen.WeatherConfigList.route,
                     onClick  = {
-                        navController.navigateSingleTopTo(Screen.ConfigList.route)
+                        navController.navigateSingleTopTo(Screen.WeatherConfigList.route)
                         closeDrawer()
                     },
                     modifier = Modifier
@@ -184,17 +182,17 @@ fun AppDrawer(
                         }
                 )
                 NavigationDrawerItem(
-                    label    = { Text("Settings") },
-                    selected = currentRoute == Screen.Settings.route,
+                    label    = { Text("Config") },
+                    selected = currentRoute == Screen.Configs.route,
                     onClick  = {
-                        navController.navigateSingleTopTo(Screen.Settings.route)
+                        navController.navigateSingleTopTo(Screen.Configs.route)
                         closeDrawer()
                     },
                     modifier = Modifier
                         .padding(NavigationDrawerItemDefaults.ItemPadding)
                         .semantics {
                             role = Role.Button
-                            contentDescription = "Navigate to Settings"
+                            contentDescription = "Navigate to Config"
                             stateDescription = if (selected) "Selected" else "Not selected"
                         }
                 )

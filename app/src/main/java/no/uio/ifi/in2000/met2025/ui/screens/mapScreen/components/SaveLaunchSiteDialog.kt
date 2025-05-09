@@ -6,7 +6,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.HomeScreenViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreenViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
@@ -26,10 +26,10 @@ fun SaveLaunchSiteDialog(
     onNameChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    updateStatus: HomeScreenViewModel.UpdateStatus
+    updateStatus: MapScreenViewModel.UpdateStatus
 ) {
     // only allow dismiss when there's no error
-    val canDismiss = updateStatus !is HomeScreenViewModel.UpdateStatus.Error
+    val canDismiss = updateStatus !is MapScreenViewModel.UpdateStatus.Error
 
     AlertDialog(
         onDismissRequest = {
@@ -43,7 +43,7 @@ fun SaveLaunchSiteDialog(
         title = {
             CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
                 Text(
-                    text = if (updateStatus is HomeScreenViewModel.UpdateStatus.Error)
+                    text = if (updateStatus is MapScreenViewModel.UpdateStatus.Error)
                         "Name Already Exists" else "Save Launch Site",
                     modifier = Modifier.semantics { heading() },
                     style = AppTypography.headlineSmall
@@ -66,7 +66,7 @@ fun SaveLaunchSiteDialog(
                         modifier      = Modifier.fillMaxWidth()
                             .semantics { contentDescription = "Launch site name input field" }
                     )
-                    if (updateStatus is HomeScreenViewModel.UpdateStatus.Error) {
+                    if (updateStatus is MapScreenViewModel.UpdateStatus.Error) {
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text  = updateStatus.message,

@@ -142,7 +142,7 @@ fun WeatherScreen(
                     onConfigSelected = { selectedConfig ->
                         viewModel.setActiveConfig(selectedConfig)
                     },
-                    onNavigateToEditConfigs = { navController.navigate(Screen.ConfigList.route) },
+                    onNavigateToEditConfigs = { navController.navigate(Screen.WeatherConfigList.route) },
                     onDismiss = { isConfigMenuExpanded = false },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

@@ -53,14 +53,14 @@ import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    viewModel: HomeScreenViewModel = hiltViewModel(),
+fun MapScreen(
+    viewModel: MapScreenViewModel = hiltViewModel(),
     onNavigateToWeather: (Double, Double) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     when (uiState) {
-        is HomeScreenViewModel.HomeScreenUiState.Loading -> {
+        is MapScreenViewModel.MapScreenUiState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
                     modifier = Modifier.semantics {
@@ -70,8 +70,8 @@ fun HomeScreen(
             }
         }
 
-        is HomeScreenViewModel.HomeScreenUiState.Error -> {
-            val msg = (uiState as HomeScreenViewModel.HomeScreenUiState.Error).message
+        is MapScreenViewModel.MapScreenUiState.Error -> {
+            val msg = (uiState as MapScreenViewModel.MapScreenUiState.Error).message
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     "Error: $msg", color = MaterialTheme.colorScheme.error,
@@ -83,7 +83,7 @@ fun HomeScreen(
             }
         }
 
-        is HomeScreenViewModel.HomeScreenUiState.Success -> {
+        is MapScreenViewModel.MapScreenUiState.Success -> {
             val coords by viewModel.coordinates.collectAsState()
             val launchSites by viewModel.launchSites.collectAsState()
             val updateStatus by viewModel.updateStatus.collectAsState()
@@ -219,7 +219,7 @@ fun HomeScreen(
                         TrajectoryPopup(
                             show = true,
                             lastVisited = viewModel.lastVisited.collectAsState().value,
-                            configs = configs,                    // ← pass list
+                            rocketConfigs = configs,                    // ← pass list
                             selectedConfig = selectedCfg,                // ← pass default
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
@@ -369,7 +369,7 @@ fun HomeScreen(
                         )
                     }
                     LaunchedEffect(updateStatus) {
-                        if (updateStatus is HomeScreenViewModel.UpdateStatus.Success) {
+                        if (updateStatus is MapScreenViewModel.UpdateStatus.Success) {
                             showSaveDialog = false
                             savedMarkerCoordinates = null
                             launchSiteName = ""

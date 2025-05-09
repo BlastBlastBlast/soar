@@ -46,7 +46,7 @@ fun ConfigScreen(
                 .background(MaterialTheme.colorScheme.primary)
                 .semantics {
                     role = Role.Button
-                    contentDescription = "Navigate to Weather config"
+                    contentDescription = "Navigate to Weather Config"
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -59,7 +59,7 @@ fun ConfigScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Weather configs",
+                    text = "Weather Configs",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
@@ -75,7 +75,7 @@ fun ConfigScreen(
                 .background(MaterialTheme.colorScheme.secondary)
                 .semantics {
                     role = Role.Button
-                    contentDescription = "Navigate to Rocket config"
+                    contentDescription = "Navigate to Rocket Config"
                 },
             contentAlignment = Alignment.Center
         ) {
