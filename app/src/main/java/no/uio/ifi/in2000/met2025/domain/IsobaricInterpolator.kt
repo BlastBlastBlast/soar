@@ -33,7 +33,21 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import java.time.Instant
 import kotlin.math.ceil
 
-
+/**
+ * Responsible for interpolating isobaric values (temperature, wind speed, etc.) at a given location and time.
+ * It uses two variations of Catmull-Rom spline interpolation to interpolate between at minimum 64 points in a 3D space.
+ * To interpolate vertically, the class finds four points stacked vertically at consecutive pressure levels (potentially with one at ground level, where pressure varies).
+ * These four vertically stacked points are then interpolated between to find the isobaric values at the desired altitude.
+ * Each of the four points in the vertical stack is calculated by first creating a 2D surface from 16 points at the same pressure level, using 2D Catmull-Rom spline interpolation.
+ *
+ * Surfaces are represented as lambdas that take two fractional parts (latitude and longitude) and return the isobaric values at that point.
+ *
+ * The class caches the control points of the interpolation to avoid redundant calculations.
+ * It also indexes each saved control point and surface to make look-up easier.
+ *
+ * @param locationForecastRepository Repository for location forecast data.
+ * @param isobaricRepository Repository for isobaric data.
+ */
 class IsobaricInterpolator(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
@@ -60,6 +74,16 @@ class IsobaricInterpolator(
     private val maxLatIndex = ceil((MAX_LATITUDE - MIN_LATITUDE) * RESOLUTION).toInt()
     private val maxLonIndex = ceil((MAX_LONGITUDE - MIN_LONGITUDE) * RESOLUTION).toInt()
 
+    // The number of API calls made to fetch forecast data, mainly for debugging purposes.
+    private var howManyAPICalls = 0
+
+    /**
+     * Retrieves the isobaric values at a given position and time.
+     *
+     * @param position The position (latitude, longitude, altitude) to retrieve values for.
+     * @param time The time to retrieve values for.
+     * @return A Result containing the interpolated isobaric values or an error.
+     */
     suspend fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
         if (gribMap == null) {
             when (val gribDataResult = isobaricRepository.getIsobaricGribData(time)) {
@@ -72,8 +96,6 @@ class IsobaricInterpolator(
             }
         }
 
-        //assert(isWithinBounds(position[0], position[1])) { "Coordinates are outside the permitted bounds" }
-
         return getValuesAtAppropriateLevel(
             isobaricIndex = lastVisitedIsobaricIndex ?: 0,
             coordinates = position,
@@ -81,6 +103,19 @@ class IsobaricInterpolator(
         )
     }
 
+    /**
+     * Recursively finds the appropriate isobaric values for the given coordinates and time.
+     * This function attempts to find the correct isobaric level by checking the altitude against the lower and upper surfaces.
+     * If the altitude is below the lower surface, it checks the previous isobaric level.
+     * If the altitude is above the upper surface, it checks the next isobaric level.
+     * If the altitude is within the range, it interpolates the isobaric values from four points that lie on the two surfaces below and the two above the given coordinates.
+     * These four points all share the same latitude and longitude, but have different altitudes.
+     *
+     * @param isobaricIndex The current isobaric index to check.
+     * @param coordinates The coordinates (latitude, longitude, altitude) to check.
+     * @param time The time to check.
+     * @return A Result containing the interpolated isobaric values or an error.
+     */
     private tailrec suspend fun getValuesAtAppropriateLevel(
         isobaricIndex: Int,
         coordinates: RealVector,
@@ -160,6 +195,14 @@ class IsobaricInterpolator(
         }
     }
 
+    /**
+     * Retrieves the surface for the given indices and time.
+     * The surface is a function that takes two fractional parts (latitude and longitude) and returns the isobaric values at that point.
+     *
+     * @param indices The indices (latitude, longitude, pressure) to retrieve the surface for.
+     * @param time The time to retrieve the surface for.
+     * @return A Result containing the surface function or an error.
+     */
     private suspend fun getSurface(indices: List<Int>, time: Instant): Result<(Double, Double) -> CartesianIsobaricValues> {
 
         Log.i("IsobaricInterpolator", "getSurface: $indices")
@@ -183,8 +226,17 @@ class IsobaricInterpolator(
         )
     }
 
-    private var howManyAPICalls = 0
-
+    /**
+     * Retrieves the isobaric values at a given set of indices and time.
+     * The indices represent the latitude, longitude, and pressure level.
+     * This function checks if the indices are within bounds and handles out-of-bounds cases by extrapolating values.
+     * If the indices are within bounds, it calculates the isobaric values using data from LocationForecastRepository if the vertical index is 0 (ground level).
+     * Otherwise, it retrieves the values from the GRIB data and uses the values of the point below to calculate the altitude.
+     *
+     * @param indices The indices (latitude, longitude, pressure) to retrieve the values for.
+     * @param time The time to retrieve the values for.
+     * @return A Result containing the isobaric values or an error.
+     */
     private suspend fun getPoint(indices: List<Int>, time: Instant): Result<CartesianIsobaricValues> {
 
         Log.i("IsobaricInterpolator", "getPoint: $indices")
@@ -284,7 +336,7 @@ class IsobaricInterpolator(
                         pressure = pressure.toDouble(),
                         temperature = gribVector.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
                         windXComponent = -gribVector.uComponentWind.toDouble(),                  // this makes the drift of the rocket align with the wind data from the apis
-                        windYComponent = -gribVector.vComponentWind.toDouble()                   // not sure why
+                        windYComponent = -gribVector.vComponentWind.toDouble()                   //
                     )
                 }
             }.also {
@@ -294,6 +346,17 @@ class IsobaricInterpolator(
         )
     }
 
+    /**
+     * Handles out-of-bounds cases by extrapolating values.
+     * It retrieves two points (p1 and p2) and extrapolates a new point based on their values.
+     * The extrapolated point is then returned as a Result.
+     *
+     * @param indices The indices (latitude, longitude, pressure) to retrieve the points for.
+     * @param time The time to retrieve the points for.
+     * @param coordinate The coordinate index (0 for latitude, 1 for longitude, 2 for pressure).
+     * @param isLowerBound Indicates whether to handle the lower or upper bound case.
+     * @return A Result containing the extrapolated isobaric values or an error.
+     */
     private suspend fun handleOutOfBounds(
         indices: List<Int>,
         time: Instant,
@@ -340,6 +403,15 @@ class IsobaricInterpolator(
         )
     }
 
+    /**
+     * Creates a 2D interpolated surface from 16 control points at the same pressure level.
+     * The points are represented as a 4x4 array of CartesianIsobaricValues, where each array of 4 points (row) have the same latitude and different longitudes.
+     * Each column of 4 points has the same longitude and different latitudes.
+     * The function returns a lambda that takes two fractional parts (latitude and longitude) and returns the isobaric values at that point.
+     *
+     * @param points The four sets of points to create the surface from.
+     * @return A lambda that takes two fractional parts and returns the isobaric values at that point.
+     */
     private fun interpolatedSurface(points: Array<Array<CartesianIsobaricValues>>): (Double, Double) -> CartesianIsobaricValues {
         assert(points.size == 4) { "Need four sets of points to interpolate over" }
         points.forEach { assert(it.size == 4) { "Need four points to interpolate over" } }
@@ -369,13 +441,6 @@ class IsobaricInterpolator(
             val windX = latVector * catmullRomMatrix * windXMatrix * catmullRomMatrix.transpose() * lonVector
             val windY = latVector * catmullRomMatrix * windYMatrix * catmullRomMatrix.transpose() * lonVector
 
-//            Log.i("IsobaricInterpolator", "t0 = $t0, t1 = $t1")
-//            Log.i("IsobaricInterpolator", "altitudeMatrix = $altitudeMatrix")
-//            Log.i("IsobaricInterpolator", "temperatureMatrix = $temperatureMatrix")
-//            Log.i("IsobaricInterpolator", "windXMatrix = $windXMatrix")
-//            Log.i("IsobaricInterpolator", "windYMatrix = $windYMatrix")
-//            Log.i("IsobaricInterpolator", "Interpolated values: altitude = $altitude, temperature = $temperature, windX = $windX, windY = $windY")
-
             CartesianIsobaricValues(
                 altitude = altitude,
                 pressure = points[0][0].pressure,
@@ -386,6 +451,14 @@ class IsobaricInterpolator(
         }
     }
 
+    /**
+     * Interpolates the isobaric values at a given set of coordinates using four surfaces.
+     * The surfaces are represented as lambdas that take two fractional parts (latitude and longitude) and return the isobaric values at that point.
+     *
+     * @param coordinates The coordinates (latitude, longitude, altitude) to interpolate at.
+     * @param surfaces The four surfaces to interpolate over.
+     * @return The interpolated isobaric values.
+     */
     private fun interpolate(coordinates: RealVector, surfaces: List<(Double, Double) -> CartesianIsobaricValues>): CartesianIsobaricValues {
         assert(coordinates.dimension == 3) { "Not a coordinate vector of dimension 3" }
         assert(surfaces.size == 4) { "Need four surfaces to interpolate over" }
@@ -442,7 +515,12 @@ class IsobaricInterpolator(
  * The interpolation approximates a function f where f(ti) = pi for each i.
  *
  * The function returns a vector with the same dimension as the pi's.
- **/
+ *
+ * @param t The value to interpolate at.
+ * @param points A list of four control points, each represented as a RealVector.
+ * @return The interpolated value at t.
+ * @throws IllegalArgumentException if the number of points is not 4 or if t is not in the range [t1, t2].
+ */
 fun catmullRomInterpolation(t: Double, points: List<RealVector>): RealVector {
     assert(points.size == 4) { "Need four points to execute hermite spline interpolation" }
 
