@@ -20,8 +20,8 @@ import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
 
 @Composable
-fun ConfigListItem(
-    config: WeatherConfig,
+fun WeatherConfigListItem(
+    weatherConfig: WeatherConfig,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -36,8 +36,8 @@ fun ConfigListItem(
             .semantics {
                 role = Role.Button
                 contentDescription = buildString {
-                    append("${config.name} configuration. ")
-                    if (config.isDefault) append("Default configuration. ")
+                    append("${weatherConfig.name} configuration. ")
+                    if (weatherConfig.isDefault) append("Default configuration. ")
                     append("Tap to select.")
                 }
             },
@@ -54,16 +54,16 @@ fun ConfigListItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text  = config.name,
+                text  = weatherConfig.name,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Row {
-                if (!config.isDefault) {
+                if (!weatherConfig.isDefault) {
                     IconButton(onClick = onEdit,
                         modifier = Modifier.semantics {
                             role = Role.Button
-                            contentDescription = "Edit ${config.name}"
+                            contentDescription = "Edit ${weatherConfig.name}"
                         }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
@@ -74,7 +74,7 @@ fun ConfigListItem(
                     IconButton(onClick = onDelete,
                         modifier = Modifier.semantics {
                             role = Role.Button
-                            contentDescription = "Delete ${config.name}"
+                            contentDescription = "Delete ${weatherConfig.name}"
                         }) {
                         Icon(
                             imageVector = Icons.Default.Delete,

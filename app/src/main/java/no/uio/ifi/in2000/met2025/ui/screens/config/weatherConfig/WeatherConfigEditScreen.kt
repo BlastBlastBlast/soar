@@ -37,41 +37,41 @@ import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
-fun ConfigEditScreen(
-    config: WeatherConfig? = null,
+fun WeatherConfigEditScreen(
+    weatherConfig: WeatherConfig? = null,
     viewModel: ConfigViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val updateStatus by viewModel.updateStatus.collectAsState()
 
-    var configName               by remember(config) { mutableStateOf(config?.name ?: "") }
-    var groundWind               by remember(config) { mutableStateOf(config?.groundWindThreshold?.toString() ?: "8.6") }
-    var isEnabledGroundWind      by remember(config) { mutableStateOf(config?.isEnabledGroundWind ?: true) }
-    var airWind                  by remember(config) { mutableStateOf(config?.airWindThreshold?.toString() ?: "17.2") }
-    var isEnabledAirWind         by remember(config) { mutableStateOf(config?.isEnabledAirWind ?: true) }
-    var windShear                by remember(config) { mutableStateOf(config?.windShearSpeedThreshold?.toString() ?: "24.5") }
-    var isEnabledWindShear       by remember(config) { mutableStateOf(config?.isEnabledWindShear ?: true) }
-    var isEnabledWindDirection   by remember(config) { mutableStateOf(config?.isEnabledWindDirection ?: true) }
-    var overallCloud             by remember(config) { mutableStateOf(config?.cloudCoverThreshold?.toString() ?: "15.0") }
-    var isEnabledOverallCloud    by remember(config) { mutableStateOf(config?.isEnabledCloudCover ?: true) }
-    var highCloud                by remember(config) { mutableStateOf(config?.cloudCoverHighThreshold?.toString() ?: "15.0") }
-    var isEnabledHighCloud       by remember(config) { mutableStateOf(config?.isEnabledCloudCoverHigh ?: true) }
-    var medCloud                 by remember(config) { mutableStateOf(config?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
-    var isEnabledMedCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverMedium ?: true) }
-    var lowCloud                 by remember(config) { mutableStateOf(config?.cloudCoverLowThreshold?.toString() ?: "15.0") }
-    var isEnabledLowCloud        by remember(config) { mutableStateOf(config?.isEnabledCloudCoverLow ?: true) }
-    var fog                      by remember(config) { mutableStateOf(config?.fogThreshold?.toString() ?: "0.0") }
-    var isEnabledFog             by remember(config) { mutableStateOf(config?.isEnabledFog ?: true) }
-    var precip                   by remember(config) { mutableStateOf(config?.precipitationThreshold?.toString() ?: "0.0") }
-    var isEnabledPrecip          by remember(config) { mutableStateOf(config?.isEnabledPrecipitation ?: true) }
-    var humidity                 by remember(config) { mutableStateOf(config?.humidityThreshold?.toString() ?: "75.0") }
-    var isEnabledHumidity        by remember(config) { mutableStateOf(config?.isEnabledHumidity ?: true) }
-    var dewPoint                 by remember(config) { mutableStateOf(config?.dewPointThreshold?.toString() ?: "15.0") }
-    var isEnabledDewPoint        by remember(config) { mutableStateOf(config?.isEnabledDewPoint ?: true) }
-    var thunder                  by remember(config) { mutableStateOf(config?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
-    var isEnabledThunder         by remember(config) { mutableStateOf(config?.isEnabledProbabilityOfThunder ?: true) }
-    var altitude                 by remember(config) { mutableStateOf(config?.altitudeUpperBound?.toString() ?: "5000.0") }
-    var isEnabledAltitude        by remember(config) { mutableStateOf(config?.isEnabledAltitudeUpperBound ?: true) }
+    var configName               by remember(weatherConfig) { mutableStateOf(weatherConfig?.name ?: "") }
+    var groundWind               by remember(weatherConfig) { mutableStateOf(weatherConfig?.groundWindThreshold?.toString() ?: "8.6") }
+    var isEnabledGroundWind      by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledGroundWind ?: true) }
+    var airWind                  by remember(weatherConfig) { mutableStateOf(weatherConfig?.airWindThreshold?.toString() ?: "17.2") }
+    var isEnabledAirWind         by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledAirWind ?: true) }
+    var windShear                by remember(weatherConfig) { mutableStateOf(weatherConfig?.windShearSpeedThreshold?.toString() ?: "24.5") }
+    var isEnabledWindShear       by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledWindShear ?: true) }
+    var isEnabledWindDirection   by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledWindDirection ?: true) }
+    var overallCloud             by remember(weatherConfig) { mutableStateOf(weatherConfig?.cloudCoverThreshold?.toString() ?: "15.0") }
+    var isEnabledOverallCloud    by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledCloudCover ?: true) }
+    var highCloud                by remember(weatherConfig) { mutableStateOf(weatherConfig?.cloudCoverHighThreshold?.toString() ?: "15.0") }
+    var isEnabledHighCloud       by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledCloudCoverHigh ?: true) }
+    var medCloud                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.cloudCoverMediumThreshold?.toString() ?: "15.0") }
+    var isEnabledMedCloud        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledCloudCoverMedium ?: true) }
+    var lowCloud                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.cloudCoverLowThreshold?.toString() ?: "15.0") }
+    var isEnabledLowCloud        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledCloudCoverLow ?: true) }
+    var fog                      by remember(weatherConfig) { mutableStateOf(weatherConfig?.fogThreshold?.toString() ?: "0.0") }
+    var isEnabledFog             by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledFog ?: true) }
+    var precip                   by remember(weatherConfig) { mutableStateOf(weatherConfig?.precipitationThreshold?.toString() ?: "0.0") }
+    var isEnabledPrecip          by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledPrecipitation ?: true) }
+    var humidity                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.humidityThreshold?.toString() ?: "75.0") }
+    var isEnabledHumidity        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledHumidity ?: true) }
+    var dewPoint                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.dewPointThreshold?.toString() ?: "15.0") }
+    var isEnabledDewPoint        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledDewPoint ?: true) }
+    var thunder                  by remember(weatherConfig) { mutableStateOf(weatherConfig?.probabilityOfThunderThreshold?.toString() ?: "0.0") }
+    var isEnabledThunder         by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledProbabilityOfThunder ?: true) }
+    var altitude                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.altitudeUpperBound?.toString() ?: "5000.0") }
+    var isEnabledAltitude        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledAltitudeUpperBound ?: true) }
 
     val windSettings = listOf(
         SettingItem("Ground Wind Threshold", groundWind, { groundWind = it }, isEnabledGroundWind) { isEnabledGroundWind = it },
@@ -98,9 +98,9 @@ fun ConfigEditScreen(
         viewModel.checkWeatherNameAvailability(configName)
     }
 
-    ScreenContainer(title = if (config == null) "New Configuration" else "Edit Configuration") {
+    ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
         val isNameError = updateStatus is ConfigViewModel.UpdateStatus.Error &&
-                configName != config?.name
+                configName != weatherConfig?.name
 
         // Name
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
@@ -196,7 +196,7 @@ fun ConfigEditScreen(
         Button(
             onClick = {
                 val updated = WeatherConfig(
-                    id                             = config?.id ?: 0,
+                    id                             = weatherConfig?.id ?: 0,
                     name                           = configName,
                     groundWindThreshold            = groundWind.toDoubleOrNull()                ?: 8.6,
                     airWindThreshold               = airWind.toDoubleOrNull()                  ?: 17.2,
@@ -225,9 +225,9 @@ fun ConfigEditScreen(
                     altitudeUpperBound             = altitude.toDoubleOrNull()                 ?: 5000.0,
                     isEnabledWindShear             = isEnabledWindShear,
                     windShearSpeedThreshold        = windShear.toDoubleOrNull()                ?: 24.5,
-                    isDefault                      = config?.isDefault == true
+                    isDefault                      = weatherConfig?.isDefault == true
                 )
-                if (config == null) {
+                if (weatherConfig == null) {
                     viewModel.saveWeatherConfig(updated)
                 } else {
                     viewModel.updateWeatherConfig(updated)
