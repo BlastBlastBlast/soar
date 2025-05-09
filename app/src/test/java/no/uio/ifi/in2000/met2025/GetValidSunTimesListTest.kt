@@ -12,7 +12,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 import org.junit.Test
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource

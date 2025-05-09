@@ -19,7 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import no.uio.ifi.in2000.met2025.ui.screens.home.*
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.*
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.*
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsScreen
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel

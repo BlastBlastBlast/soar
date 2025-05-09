@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.WeatherViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 
 /**
  * A simple holder for all of your top-level navigation view-models.
