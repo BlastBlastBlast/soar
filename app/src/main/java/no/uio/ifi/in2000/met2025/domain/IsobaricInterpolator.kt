@@ -283,8 +283,8 @@ class IsobaricInterpolator(
                         altitude = altitude,
                         pressure = pressure.toDouble(),
                         temperature = gribVector.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
-                        windXComponent = gribVector.vComponentWind.toDouble(),                  // positive v is south to north, positive x corresponds to positive lat
-                        windYComponent = gribVector.uComponentWind.toDouble()                   // positive u is west to east, positive y corresponds to positive lon
+                        windXComponent = -gribVector.uComponentWind.toDouble(),                  // this makes the drift of the rocket align with the wind data from the apis
+                        windYComponent = -gribVector.vComponentWind.toDouble()                   // not sure why
                     )
                 }
             }.also {
