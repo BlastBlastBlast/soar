@@ -67,7 +67,7 @@ fun AppScaffold(
                 innerPadding                = innerPadding,
                 homeScreenViewModel         = vm.home,
                 weatherCardViewModel        = vm.weather,
-                settingsViewModel           = vm.settings,
+                configViewModel           = vm.settings,
             )
         }
     }

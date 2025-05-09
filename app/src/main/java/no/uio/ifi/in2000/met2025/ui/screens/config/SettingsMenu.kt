@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings
+package no.uio.ifi.in2000.met2025.ui.screens.config
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
-fun SettingsMenu(onSelect: (SettingType) -> Unit) {
+fun SettingsMenu(onSelect: (ConfigType) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -28,7 +28,7 @@ fun SettingsMenu(onSelect: (SettingType) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        listOf(SettingType.Weather, SettingType.Rocket).forEach { type ->
+        listOf(ConfigType.Weather, ConfigType.Rocket).forEach { type ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()

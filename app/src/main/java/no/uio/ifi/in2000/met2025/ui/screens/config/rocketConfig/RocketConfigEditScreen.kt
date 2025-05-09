@@ -1,5 +1,5 @@
 // File: RocketConfigEditScreen.kt
-package no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig
+package no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,13 +29,13 @@ import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.models.RocketParameterType
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun RocketConfigEditScreen(
     rocketParameters: RocketConfig? = null,
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: ConfigViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     // ➊ collect the rocket‐edit status
@@ -130,9 +130,9 @@ fun RocketConfigEditScreen(
                         labelText    = "Configuration Name",
                         modifier     = Modifier.fillMaxWidth()
                     )
-                    if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
+                    if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
                         Text(
-                            text = (updateStatus as SettingsViewModel.UpdateStatus.Error).message,
+                            text = (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 4.dp)
                         )
@@ -288,8 +288,8 @@ fun RocketConfigEditScreen(
                 ) {
                     Text("Save Rocket Configuration")
                 }
-                if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
-                    val err = (updateStatus as SettingsViewModel.UpdateStatus.Error).message
+                if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
+                    val err = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
                     Text(
                         text = err,
                         color = MaterialTheme.colorScheme.error,
@@ -310,7 +310,7 @@ fun RocketConfigEditScreen(
 
     // ➍ navigate back on success
     LaunchedEffect(updateStatus) {
-        if (updateStatus is SettingsViewModel.UpdateStatus.Success) {
+        if (updateStatus is ConfigViewModel.UpdateStatus.Success) {
             viewModel.resetRocketStatus()
             onNavigateBack()
         }

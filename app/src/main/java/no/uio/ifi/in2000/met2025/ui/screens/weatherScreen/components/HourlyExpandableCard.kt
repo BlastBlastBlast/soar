@@ -33,7 +33,7 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterC
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.R
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon.DrawableIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
@@ -74,7 +74,7 @@ fun WindDirectionIcon(windDirection: Double?) {
 fun HourlyExpandableCard(
     forecastItem: ForecastDataItem,
     coordinates: Pair<Double, Double>,
-    config: ConfigProfile,
+    weatherConfig: WeatherConfig,
     modifier: Modifier = Modifier,
     viewModel: WeatherViewModel
 ) {
@@ -122,7 +122,7 @@ fun HourlyExpandableCard(
                                 //tint = MaterialTheme.colorScheme.onPrimary
                             )
                             LaunchStatusIndicator(
-                                config = config,
+                                weatherConfig = weatherConfig,
                                 forecast = forecastItem,
                                 isobaricData.isobaricData,
                                 modifier = Modifier.size(38.dp)
@@ -136,7 +136,7 @@ fun HourlyExpandableCard(
                                 modifier = Modifier.size(48.dp),
                             )
                             LaunchStatusIndicator(
-                                config = config,
+                                weatherConfig = weatherConfig,
                                 forecast = forecastItem,
                                 modifier = Modifier.size(38.dp)
                                     .semantics { contentDescription = "Status Icon" }
@@ -160,7 +160,7 @@ fun HourlyExpandableCard(
             AnimatedVisibility(visible = expanded, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
             ) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    val evaluations = evaluateParameterConditions(forecastItem, config)
+                    val evaluations = evaluateParameterConditions(forecastItem, weatherConfig)
                     evaluations.forEach { evaluation ->
                         Row(
                             modifier = Modifier

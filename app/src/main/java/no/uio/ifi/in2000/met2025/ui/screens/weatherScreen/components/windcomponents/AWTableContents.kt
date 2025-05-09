@@ -25,7 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 @Composable
 fun AWTableContents(
     item: IsobaricData,
-    config: ConfigProfile,
+    config: WeatherConfig,
     showTime: Boolean = true,
 ) {
     val cardBackgroundColor = MaterialTheme.colorScheme.primary

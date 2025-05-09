@@ -6,11 +6,9 @@ import androidx.room.PrimaryKey
 import androidx.room.RoomDatabase
 import androidx.room.Database
 import androidx.room.Index
-import no.uio.ifi.in2000.met2025.data.models.Angle
-import java.sql.Types.NULL
 
 @Database(
-    entities = [LaunchSite::class, GribData::class, GribUpdated::class, ConfigProfile::class, RocketConfig::class],
+    entities = [LaunchSite::class, GribData::class, GribUpdated::class, WeatherConfig::class, RocketConfig::class],
     version = 9
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -56,7 +54,7 @@ data class GribUpdated(
 )
 
 @Entity(tableName = "config_profiles")
-data class ConfigProfile(
+data class WeatherConfig(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String,
     @ColumnInfo(name = "ground_wind_threshold") val groundWindThreshold: Double = 8.6, // also threshold for windSpeedOfGust
     @ColumnInfo(name = "air_wind_threshold") val airWindThreshold: Double = 17.2,

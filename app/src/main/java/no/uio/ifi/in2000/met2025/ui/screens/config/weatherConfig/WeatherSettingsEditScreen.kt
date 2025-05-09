@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings
+package no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,20 +26,20 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSwitch
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.ScreenContainer
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.SectionCard
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.SettingItem
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common.SettingRow
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common.ScreenContainer
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common.SectionCard
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common.SettingItem
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common.SettingRow
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun ConfigEditScreen(
-    config: ConfigProfile? = null,
-    viewModel: SettingsViewModel = hiltViewModel(),
+    config: WeatherConfig? = null,
+    viewModel: ConfigViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val updateStatus by viewModel.updateStatus.collectAsState()
@@ -99,7 +99,7 @@ fun ConfigEditScreen(
     }
 
     ScreenContainer(title = if (config == null) "New Configuration" else "Edit Configuration") {
-        val isNameError = updateStatus is SettingsViewModel.UpdateStatus.Error &&
+        val isNameError = updateStatus is ConfigViewModel.UpdateStatus.Error &&
                 configName != config?.name
 
         // Name
@@ -116,7 +116,7 @@ fun ConfigEditScreen(
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
                 Text(
-                    (updateStatus as SettingsViewModel.UpdateStatus.Error).message,
+                    (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
                     color = Color.Red
                 )
             }
@@ -195,7 +195,7 @@ fun ConfigEditScreen(
         // Save button
         Button(
             onClick = {
-                val updated = ConfigProfile(
+                val updated = WeatherConfig(
                     id                             = config?.id ?: 0,
                     name                           = configName,
                     groundWindThreshold            = groundWind.toDoubleOrNull()                ?: 8.6,
@@ -245,8 +245,8 @@ fun ConfigEditScreen(
         ) {
             Text("Save Configuration")
         }
-        if (updateStatus is SettingsViewModel.UpdateStatus.Error) {
-            val msg = (updateStatus as SettingsViewModel.UpdateStatus.Error).message
+        if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
+            val msg = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
             Text(
                 text = msg,
                 color = Color.Red,
@@ -258,7 +258,7 @@ fun ConfigEditScreen(
         }
     }
     LaunchedEffect(updateStatus) {
-        if (updateStatus is SettingsViewModel.UpdateStatus.Success) {
+        if (updateStatus is ConfigViewModel.UpdateStatus.Success) {
             viewModel.resetWeatherStatus()
             onNavigateBack()
         }

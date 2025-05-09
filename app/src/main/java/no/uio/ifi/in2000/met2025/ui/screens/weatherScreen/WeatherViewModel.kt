@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.configprofiles.WeatherConfigRepository
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
@@ -20,7 +20,7 @@ import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.DefaultConfig
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.DefaultWeatherParameters
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -29,7 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
-    private val configProfileRepository: ConfigProfileRepository,
+    private val weatherConfigRepository: WeatherConfigRepository,
     private val launchSitesRepository: LaunchSitesRepository,
     private val weatherModel: WeatherModel,
     private val sunriseRepository: SunriseRepository
@@ -58,11 +58,11 @@ class WeatherViewModel @Inject constructor(
     private val _windState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
     val windState: StateFlow<AtmosphericWindUiState> = _windState
 
-    private val _activeConfig = MutableStateFlow<ConfigProfile?>(null)
-    val activeConfig: StateFlow<ConfigProfile?> = _activeConfig
+    private val _activeConfig = MutableStateFlow<WeatherConfig?>(null)
+    val activeConfig: StateFlow<WeatherConfig?> = _activeConfig
 
-    private val _configList = MutableStateFlow<List<ConfigProfile>>(emptyList())
-    val configList: StateFlow<List<ConfigProfile>> = _configList
+    private val _configList = MutableStateFlow<List<WeatherConfig>>(emptyList())
+    val configList: StateFlow<List<WeatherConfig>> = _configList
 
     // Default coordinates are used if no temp site exists.
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
@@ -89,18 +89,18 @@ class WeatherViewModel @Inject constructor(
     init {
         // Initialize configuration profiles.
         viewModelScope.launch {
-            val currentConfigs = configProfileRepository.getAllConfigProfiles().first()
+            val currentConfigs = weatherConfigRepository.getAllConfigProfiles().first()
             if (currentConfigs.none { it.isDefault }) {
-                configProfileRepository.insertConfigProfile(DefaultConfig.instance)
+                weatherConfigRepository.insertConfigProfile(DefaultWeatherParameters.instance)
             }
         }
         viewModelScope.launch {
-            configProfileRepository.getDefaultConfigProfile().collect { defaultConfig ->
-                _activeConfig.value = defaultConfig ?: DefaultConfig.instance
+            weatherConfigRepository.getDefaultConfigProfile().collect { defaultConfig ->
+                _activeConfig.value = defaultConfig ?: DefaultWeatherParameters.instance
             }
         }
         viewModelScope.launch {
-            configProfileRepository.getAllConfigProfiles().collect { list ->
+            weatherConfigRepository.getAllConfigProfiles().collect { list ->
                 _configList.value = list
             }
         }
@@ -147,7 +147,7 @@ class WeatherViewModel @Inject constructor(
     }
 
 
-    fun setActiveConfig(config: ConfigProfile) {
+    fun setActiveConfig(config: WeatherConfig) {
         _activeConfig.value = config
     }
 

@@ -31,14 +31,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
-fun ConfigMenuOverlay(
-    configList: List<ConfigProfile>,
-    onConfigSelected: (ConfigProfile) -> Unit,
+fun WeatherConfigOverlay(
+    configList: List<WeatherConfig>,
+    onConfigSelected: (WeatherConfig) -> Unit,
     onNavigateToEditConfigs: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
@@ -66,7 +66,7 @@ fun ConfigMenuOverlay(
                 AnimatedVisibility(
                 visible = true,
                 modifier = modifier.semantics {
-                    contentDescription = "Configuration selection menu"
+                    contentDescription = "Weather config selection menu"
                 },
                 enter = expandVertically(
                     expandFrom = Alignment.Bottom,
@@ -88,7 +88,7 @@ fun ConfigMenuOverlay(
                     shape           = RoundedCornerShape(12.dp)
                 ) {
                     Column {
-                        EditConfigsMenuItem(
+                        EditWeatherConfig(
                             onClick = {
                                 onNavigateToEditConfigs()
                                 onDismiss()
@@ -110,8 +110,8 @@ fun ConfigMenuOverlay(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 for (cfg in pair) {
-                                    ConfigMenuItem(
-                                        config            = cfg,
+                                    WeatherConfigItem(
+                                        weatherConfig            = cfg,
                                         onConfigSelected  = {
                                             onConfigSelected(it)
                                             onDismiss()

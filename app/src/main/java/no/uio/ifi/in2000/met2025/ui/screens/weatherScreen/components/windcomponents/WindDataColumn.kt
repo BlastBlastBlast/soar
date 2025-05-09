@@ -24,7 +24,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
@@ -33,7 +33,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 
 @Composable
-fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearColor: Color) {
+fun WindDataColumn(isobaricData: IsobaricData, config: WeatherConfig, windShearColor: Color) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(

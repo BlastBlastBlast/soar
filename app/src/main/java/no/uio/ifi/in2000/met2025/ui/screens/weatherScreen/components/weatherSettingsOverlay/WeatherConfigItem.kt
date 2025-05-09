@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -31,7 +31,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 
 @Composable
-fun EditConfigsMenuItem(
+fun EditWeatherConfig(
     onClick: () -> Unit,
     enabled: Boolean,
     modifier: Modifier = Modifier
@@ -48,8 +48,8 @@ fun EditConfigsMenuItem(
             .semantics {
                 role = Role.Button
                 contentDescription =
-                    if (enabled) "Edit configurations"
-                    else       "Edit configurations (disabled)"
+                    if (enabled) "Edit profiles"
+                    else       "Edit profiles (disabled)"
             },
         shape     = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(
@@ -69,7 +69,7 @@ fun EditConfigsMenuItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Edit Configs",
+                "Edit profiles",
                 fontSize   = 14.sp,
                 style      = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
@@ -85,9 +85,9 @@ fun EditConfigsMenuItem(
 }
 
 @Composable
-fun ConfigMenuItem(
-    config: ConfigProfile,
-    onConfigSelected: (ConfigProfile) -> Unit,
+fun WeatherConfigItem(
+    weatherConfig: WeatherConfig,
+    onConfigSelected: (WeatherConfig) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -98,10 +98,10 @@ fun ConfigMenuItem(
         modifier  = modifier
             .widthIn(min = minWidth, max = maxWidth)
             .animateContentSize(tween(200))
-            .clickable { onConfigSelected(config) }
+            .clickable { onConfigSelected(weatherConfig) }
             .semantics {
                 role = Role.Button
-                contentDescription = "Select configuration ${config.name}"
+                contentDescription = "Select weather config ${weatherConfig.name}"
             },
         shape     = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(
@@ -121,7 +121,7 @@ fun ConfigMenuItem(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                config.name,
+                weatherConfig.name,
                 fontSize   = 14.sp,
                 style      = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold

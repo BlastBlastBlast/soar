@@ -3,7 +3,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFil
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 
@@ -18,7 +18,7 @@ data class LaunchStatusFilter(
 
 fun forecastPassesFilter(
     forecastItem: ForecastDataItem,
-    config: ConfigProfile,
+    config: WeatherConfig,
     filter: LaunchStatusFilter
 ): Boolean {
     val state = evaluateLaunchConditions(forecastItem, config)

@@ -21,12 +21,12 @@ import no.uio.ifi.in2000.met2025.ui.screens.home.*
 import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.*
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigEditScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigListScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigEditScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigListScreen
 
 /**
  * Navigate to [route] in the normal way, but if the
@@ -47,7 +47,7 @@ fun NavigationGraph(
     innerPadding: PaddingValues,
     homeScreenViewModel: HomeScreenViewModel,
     weatherCardViewModel: WeatherViewModel,
-    settingsViewModel: SettingsViewModel,
+    configViewModel: ConfigViewModel,
 ) {
     NavHost(
         navController    = navController,
@@ -94,7 +94,7 @@ fun NavigationGraph(
 
         // — Settings (NEW) —
         composable(Settings.route) {
-            SettingsScreen(
+            ConfigScreen(
                 onWeatherConfigsClick = {
                     navController.navigateSingleTopTo(ConfigList.route)
                 },
@@ -129,7 +129,7 @@ fun NavigationGraph(
             })
         ) { back ->
             val id by remember { mutableStateOf(back.arguments?.getInt("configId") ?: -1) }
-            val config by settingsViewModel
+            val config by configViewModel
                 .getWeatherConfig(id)
                 .collectAsState(initial = null)
 
@@ -169,7 +169,7 @@ fun NavigationGraph(
         ) { back ->
             val rocketId   = back.arguments?.getInt("rocketId") ?: -1
             val rocketName = back.arguments?.getString("rocketName") ?: ""
-            val rocketParams by settingsViewModel
+            val rocketParams by configViewModel
                 .getRocketConfig(rocketId)
                 .collectAsState(initial = null)
 

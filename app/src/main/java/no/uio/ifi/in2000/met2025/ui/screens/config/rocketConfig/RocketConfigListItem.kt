@@ -1,12 +1,20 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings
+package no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,19 +23,20 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
 
 @Composable
-fun ConfigListItem(
-    config: ConfigProfile,
+fun RocketConfigItem(
+    rocketConfig: RocketConfig,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     val shape = RoundedCornerShape(8.dp)
 
+    // Each item on pure white primary
     Surface(
         modifier        = Modifier
             .fillMaxWidth()
@@ -36,9 +45,8 @@ fun ConfigListItem(
             .semantics {
                 role = Role.Button
                 contentDescription = buildString {
-                    append("${config.name} configuration. ")
-                    if (config.isDefault) append("Default configuration. ")
-                    append("Tap to select.")
+                    append("Configuration ${rocketConfig.name}. ")
+                    if (rocketConfig.isDefault) append("Default configuration.")
                 }
             },
         color           = MaterialTheme.colorScheme.primary,
@@ -50,21 +58,30 @@ fun ConfigListItem(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.CenterVertically
         ) {
-            Text(
-                text  = config.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text  = rocketConfig.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                if (rocketConfig.isDefault) {
+                    Text(
+                        text  = "Default Configuration",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
             Row {
-                if (!config.isDefault) {
+                if (!rocketConfig.isDefault) {
                     IconButton(onClick = onEdit,
                         modifier = Modifier.semantics {
-                            role = Role.Button
-                            contentDescription = "Edit ${config.name}"
-                        }) {
+                        role = Role.Button
+                        contentDescription = "Edit ${rocketConfig.name}"
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit",
@@ -74,7 +91,7 @@ fun ConfigListItem(
                     IconButton(onClick = onDelete,
                         modifier = Modifier.semantics {
                             role = Role.Button
-                            contentDescription = "Delete ${config.name}"
+                            contentDescription = "Delete ${rocketConfig.name}"
                         }) {
                         Icon(
                             imageVector = Icons.Default.Delete,

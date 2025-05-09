@@ -52,7 +52,7 @@ fun SegmentedBottomBar(
                 .fillMaxHeight()
                 .clickable { onLaunchClick() }.semantics {
                     role = Role.Tab
-                    contentDescription = "Launch"
+                    contentDescription = "Change launch site"
                 },
             contentAlignment = Alignment.Center,
         ) {
@@ -105,7 +105,7 @@ fun SegmentedBottomBar(
                 .clickable { onConfigClick() }
                 .semantics {
                     role = Role.Tab
-                    contentDescription = "Configure profile"
+                    contentDescription = "Configure weather settings"
                 },
             contentAlignment = Alignment.Center
         ) {

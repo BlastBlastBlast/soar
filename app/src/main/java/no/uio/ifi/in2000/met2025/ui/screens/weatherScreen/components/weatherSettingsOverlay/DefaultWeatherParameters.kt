@@ -1,9 +1,9 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay
 
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 
-object DefaultConfig {
-    val instance = ConfigProfile(
+object DefaultWeatherParameters {
+    val instance = WeatherConfig(
         name = "Default",
         groundWindThreshold = 8.6,
         airWindThreshold = 17.2,

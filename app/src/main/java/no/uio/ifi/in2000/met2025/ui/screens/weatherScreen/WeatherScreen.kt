@@ -37,7 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
@@ -46,9 +46,9 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchCond
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.ConfigMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.WeatherConfigOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SegmentedBottomBar
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.FilterMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.WeatherFilterOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay.LaunchSitesMenuOverlay
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -93,7 +93,7 @@ fun WeatherScreen(
             ScreenContent(
                 uiState = uiState,
                 coordinates = coordinates,
-                config = activeConfig!!,
+                weatherConfig = activeConfig!!,
                 filterActive = filterActive,
                 hoursToShow = hoursToShow,
                 currentSite = currentSite,
@@ -137,7 +137,7 @@ fun WeatherScreen(
             )
             // Configuration Overlay.
             if (isConfigMenuExpanded) {
-                ConfigMenuOverlay(
+                WeatherConfigOverlay(
                     configList = configList,
                     onConfigSelected = { selectedConfig ->
                         viewModel.setActiveConfig(selectedConfig)
@@ -151,7 +151,7 @@ fun WeatherScreen(
             }
             // Filter Overlay.
             if (isFilterMenuExpanded) {
-                FilterMenuOverlay(
+                WeatherFilterOverlay(
                     isFilterActive = filterActive,
                     onToggleFilter = { filterActive = !filterActive },
                     hoursToShow = hoursToShow,
@@ -190,7 +190,7 @@ fun WeatherScreen(
             }
         }
     } else {
-        Text("Loading configuration...", style = MaterialTheme.typography.bodyMedium)
+        Text("Loading weather profile...", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -199,7 +199,7 @@ fun WeatherScreen(
 fun ScreenContent(
     uiState: WeatherViewModel.WeatherUiState,
     coordinates: Pair<Double, Double>,
-    config: ConfigProfile,
+    weatherConfig: WeatherConfig,
     filterActive: Boolean,
     hoursToShow: Float,
     selectedStatuses: Set<LaunchStatus>,
@@ -232,7 +232,7 @@ fun ScreenContent(
                     if (!(afterEarliest && beforeLatest)) return@filter false
                 }
 
-                val state = evaluateLaunchConditions(item, config)
+                val state = evaluateLaunchConditions(item, weatherConfig)
                 if (!filterActive) {
                     if (state !is ParameterState.Available) return@filter true
                     val status = launchStatus(state.relativeUnsafety)
@@ -312,7 +312,7 @@ fun ScreenContent(
                                     HourlyExpandableCard(
                                         forecastItem = forecastItem,
                                         coordinates = coordinates,
-                                        config = config,
+                                        weatherConfig = weatherConfig,
                                         modifier = Modifier.padding(vertical = 8.dp),
                                         viewModel = viewModel
                                     )

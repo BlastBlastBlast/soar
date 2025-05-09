@@ -31,7 +31,7 @@ import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
-fun FilterMenuOverlay(
+fun WeatherFilterOverlay(
     isFilterActive: Boolean,
     onToggleFilter: () -> Unit,
     hoursToShow: Float,

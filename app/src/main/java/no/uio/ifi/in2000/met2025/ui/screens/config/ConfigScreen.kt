@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings
+package no.uio.ifi.in2000.met2025.ui.screens.config
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SettingsScreen(
+fun ConfigScreen(
     modifier: Modifier = Modifier,
     onWeatherConfigsClick: () -> Unit,
     onRocketConfigsClick: () -> Unit
@@ -46,7 +46,7 @@ fun SettingsScreen(
                 .background(MaterialTheme.colorScheme.primary)
                 .semantics {
                     role = Role.Button
-                    contentDescription = "Navigate to Weather Settings"
+                    contentDescription = "Navigate to Weather config"
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -59,7 +59,7 @@ fun SettingsScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Weather Settings",
+                    text = "Weather configs",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onPrimary
                 )
@@ -75,7 +75,7 @@ fun SettingsScreen(
                 .background(MaterialTheme.colorScheme.secondary)
                 .semantics {
                     role = Role.Button
-                    contentDescription = "Navigate to Rocket Configs"
+                    contentDescription = "Navigate to Rocket config"
                 },
             contentAlignment = Alignment.Center
         ) {

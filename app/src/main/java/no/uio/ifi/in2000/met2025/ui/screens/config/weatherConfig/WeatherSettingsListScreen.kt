@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings
+package no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,15 +30,15 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 
 
 @Composable
 fun ConfigListScreen(
-    viewModel: SettingsViewModel = hiltViewModel(),
-    onEditConfig: (ConfigProfile) -> Unit,
+    viewModel: ConfigViewModel = hiltViewModel(),
+    onEditConfig: (WeatherConfig) -> Unit,
     onAddConfig: () -> Unit,
-    onSelectConfig: (ConfigProfile) -> Unit
+    onSelectConfig: (WeatherConfig) -> Unit
 ) {
     val configList by viewModel.weatherConfigs.collectAsState(initial = emptyList())
 

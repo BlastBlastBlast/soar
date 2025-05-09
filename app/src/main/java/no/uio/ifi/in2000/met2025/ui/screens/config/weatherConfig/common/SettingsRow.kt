@@ -1,14 +1,10 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common
+package no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.SemanticsProperties.StateDescription
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField

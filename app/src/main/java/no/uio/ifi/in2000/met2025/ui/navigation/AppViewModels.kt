@@ -3,7 +3,7 @@ package no.uio.ifi.in2000.met2025.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 
 /**
@@ -12,7 +12,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 data class AppViewModels(
     val home: HomeScreenViewModel,
     val weather: WeatherViewModel,
-    val settings: SettingsViewModel
+    val settings: ConfigViewModel
 )
 
 /**
@@ -22,7 +22,7 @@ data class AppViewModels(
 fun provideAppViewModels(): AppViewModels {
     val home       = hiltViewModel<HomeScreenViewModel>()
     val weather    = hiltViewModel<WeatherViewModel>()
-    val settings   = hiltViewModel<SettingsViewModel>()
+    val settings   = hiltViewModel<ConfigViewModel>()
 
     return AppViewModels(
         home = home,

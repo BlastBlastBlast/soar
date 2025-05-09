@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.common
+package no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common
 
 data class SettingItem(
     val label: String,

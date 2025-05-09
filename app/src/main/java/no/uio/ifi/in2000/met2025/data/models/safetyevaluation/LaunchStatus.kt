@@ -9,7 +9,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CAUTION_THRESHOLD
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNSAFE_THRESHOLD
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
@@ -76,11 +76,11 @@ fun LaunchStatusIcon(state: ParameterState, modifier: Modifier) {
 
 @Composable
 fun LaunchStatusIndicator(
-    config: ConfigProfile,
+    weatherConfig: WeatherConfig,
     forecast: ForecastDataItem? = null,
     isobaric: IsobaricData? = null,
     modifier: Modifier
 ) {
-    val state = evaluateLaunchConditions(config, forecast, isobaric)
+    val state = evaluateLaunchConditions(weatherConfig, forecast, isobaric)
     LaunchStatusIcon(state, modifier)
 }

@@ -7,7 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterCondition
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.TextStyle
 
 @Composable
 fun WindLayerRow(
-    config: ConfigProfile,
+    config: WeatherConfig,
     configParameter: ConfigParameter,
     altitude: Double?,
     windSpeed: Double?,

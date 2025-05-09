@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 import org.junit.Test
-import no.uio.ifi.in2000.met2025.data.local.configprofiles.ConfigProfileRepository
+import no.uio.ifi.in2000.met2025.data.local.configprofiles.WeatherConfigRepository
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSitesRepository
@@ -42,7 +42,7 @@ class WeatherViewModelTest {
         val sunriseRepository = SunriseRepository(SunriseDataSource(mockClient))
         val locationForecastRepository = LocationForecastRepository(LocationForecastDataSource(mockClient))
 
-        val configProfileRepository = ConfigProfileRepository(FakeConfigProfileDao())
+        val weatherConfigRepository = WeatherConfigRepository(FakeConfigProfileDao())
         val launchSitesRepository = LaunchSitesRepository(FakeLaunchSiteDAO())
         val isobaricRepository = IsobaricRepository(
             isobaricDataSource,
@@ -54,7 +54,7 @@ class WeatherViewModelTest {
 
         viewModel = WeatherViewModel(
             locationForecastRepository,
-            configProfileRepository,
+            weatherConfigRepository,
             launchSitesRepository,
             weatherModel,
             sunriseRepository
