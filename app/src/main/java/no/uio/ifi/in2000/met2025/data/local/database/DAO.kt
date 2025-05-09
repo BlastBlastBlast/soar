@@ -51,7 +51,7 @@ interface LaunchSiteDAO {
     SELECT * FROM LaunchSite
     WHERE latitude  = :lat
       AND longitude = :lon
-      AND name NOT IN ('Last Visited', 'New Marker')
+      AND name NOT IN ('Last Visited')
     LIMIT 1
   """
     )

@@ -103,7 +103,15 @@ fun TrajectoryPopup(
                             shape = RoundedCornerShape(2.dp)
                         )
                 )
-
+                if (lastVisited != null) {
+                    Text(
+                        text = lastVisited.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Last visited Launch Site: ${lastVisited.name}"
+                        }
+                    )
+                }
                 Text(
                     text = lastVisited
                         ?.let { "Current: %.4f, %.4f".format(it.latitude, it.longitude) }
