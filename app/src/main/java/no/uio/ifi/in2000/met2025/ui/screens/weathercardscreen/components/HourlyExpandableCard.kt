@@ -56,18 +56,17 @@ fun WindDirectionIcon(windDirection: Double?) {
     if (windDirection == null) {
         return
     }
-    val arrowPainter = painterResource(id = R.drawable.up_arrow)
-    val rotation = (windDirection + 180) % 360
+    val arrowPainter = painterResource(id = R.drawable.windicator)
 
     Image(
         painter = arrowPainter,
         contentDescription = "Wind Direction",
         modifier = Modifier
             .size(24.dp)
-            .graphicsLayer(rotationZ = rotation.toFloat())
+            .graphicsLayer(rotationZ = windDirection.toFloat())
             .semantics { role = Role.Image }
         ,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
     )
 }
 

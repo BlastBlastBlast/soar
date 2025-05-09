@@ -159,11 +159,10 @@ class WeatherModel @Inject constructor(
                 ),
                 airTemperature = airTemperature - CELSIUS_TO_KELVIN,
                 windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
-                windFromDirection = Math.toDegrees(
-                    atan2(uComponentWind, vComponentWind)
+                windFromDirection = (Math.toDegrees(
+                    atan2(uComponentWind, vComponentWind)) + 180) % 360
                 )
             )
-                    )
         )
     }
 

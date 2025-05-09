@@ -52,7 +52,6 @@ fun LaunchSiteItem(
     var latitudeText by remember { mutableStateOf(site.latitude.toString()) }
     var longitudeText by remember { mutableStateOf(site.longitude.toString()) }
     val coroutineScope = rememberCoroutineScope()
-    val isSpecialMarker = site.name == "New Marker"
     val orangeStripHeight = 16.dp
     val cornerShape = RoundedCornerShape(8.dp)
 
@@ -207,75 +206,3 @@ fun LaunchSiteItem(
         }
     }
 }
-
-
-                    /*
-                    Column {
-                        AppOutlinedTextField(
-                            value = name,
-                            onValueChange = {
-                                name = it
-                                viewModel.checkNameAvailability(it)
-                            },
-                            label = { Text("Name") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        AppOutlinedTextField(
-                            value = latitudeText,
-                            onValueChange = { latitudeText = it },
-                            label = { Text("Lat") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        AppOutlinedTextField(
-                            value = longitudeText,
-                            onValueChange = { longitudeText = it },
-                            label = { Text("Lon") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            IconButton(onClick = {
-                                val newLat = latitudeText.toDoubleOrNull()
-                                val newLon = longitudeText.toDoubleOrNull()
-                                if (newLat == site.latitude && newLon == site.longitude && name == site.name) {
-                                    isEditing = false
-                                } else if (newLat != null && newLon != null && name.isNotBlank()) {
-                                    onEdit(
-                                        LaunchSite(
-                                            uid = site.uid,
-                                            latitude = newLat,
-                                            longitude = newLon,
-                                            name = name
-                                        )
-                                    )
-                                }
-                            }) {
-                                Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
-                            }
-                            IconButton(onClick = {
-                                name = site.name
-                                latitudeText = site.latitude.toString()
-                                longitudeText = site.longitude.toString()
-                                isEditing = false
-                            }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cancel", tint = IconRed)
-                            }
-                            if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
-                                Text(
-                                    text = updateStatus.message,
-                                    color = Color.Red
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-*/
