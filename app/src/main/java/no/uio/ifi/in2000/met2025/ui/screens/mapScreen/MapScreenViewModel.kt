@@ -91,6 +91,12 @@ class MapScreenViewModel @Inject constructor(
     private val _lastVisited = MutableStateFlow<LaunchSite?>(null)
     val lastVisited: StateFlow<LaunchSite?> = _lastVisited
 
+    private val _currentSite: StateFlow<LaunchSite?> =
+        launchSiteRepository.getActiveSite().stateIn(
+            viewModelScope, SharingStarted.Eagerly, null
+        )
+    val currentSite: StateFlow<LaunchSite?> = _currentSite
+
     private val _newMarker = MutableStateFlow<LaunchSite?>(null)
     val newMarker: StateFlow<LaunchSite?> = _newMarker
 

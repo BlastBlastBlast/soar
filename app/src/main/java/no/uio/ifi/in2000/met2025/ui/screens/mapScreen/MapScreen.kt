@@ -59,6 +59,53 @@ fun MapScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val coords by viewModel.coordinates.collectAsState()
+    val launchSites by viewModel.launchSites.collectAsState()
+    val updateStatus by viewModel.updateStatus.collectAsState()
+    val newMarker by viewModel.newMarker.collectAsState()
+    val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
+    var savedMarkerCoordinates by rememberSaveable {
+        mutableStateOf<Pair<Double, Double>?>(
+            null
+        )
+    }
+
+    val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
+    val isAnimating = viewModel.isAnimating
+    var showTrajectorySheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var showSaveDialog by rememberSaveable { mutableStateOf(false) }
+
+    var launchSiteName by rememberSaveable { mutableStateOf("") }
+    var isEditingMarker by rememberSaveable { mutableStateOf(false) }
+    var editingMarkerId by rememberSaveable { mutableStateOf(0) }
+    var showAnnotations by rememberSaveable { mutableStateOf(true) }
+    var coordsString by rememberSaveable { mutableStateOf("") }
+    var parseError by rememberSaveable { mutableStateOf<String?>(null) }
+    val currentSite by viewModel.currentSite.collectAsState()
+    val rocketConfigs by viewModel.rocketConfigList.collectAsState()
+    val selectedCfg by viewModel.selectedConfig.collectAsState()
+    var showTrajectoryPopup by remember { mutableStateOf(false) }
+
+    val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
+        viewModel.onMarkerPlaced(
+            lat = pt.latitude(),
+            lon = pt.longitude(),
+            elevation = elev
+        )
+        launchSiteName = "New Marker"
+    }
+
+
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            center(Point.fromLngLat(coords.second, coords.first))
+            zoom(12.0); pitch(0.0); bearing(0.0)
+        }
+    }
+
     when (uiState) {
         is MapScreenViewModel.MapScreenUiState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -84,52 +131,7 @@ fun MapScreen(
         }
 
         is MapScreenViewModel.MapScreenUiState.Success -> {
-            val coords by viewModel.coordinates.collectAsState()
-            val launchSites by viewModel.launchSites.collectAsState()
-            val updateStatus by viewModel.updateStatus.collectAsState()
-            val newMarker by viewModel.newMarker.collectAsState()
-            val newMarkerStatus by viewModel.newMarkerStatus.collectAsState()
-            var savedMarkerCoordinates by rememberSaveable {
-                mutableStateOf<Pair<Double, Double>?>(
-                    null
-                )
-            }
 
-            val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
-            val isAnimating = viewModel.isAnimating
-            var showTrajectorySheet by remember { mutableStateOf(false) }
-            val sheetState = rememberModalBottomSheetState()
-            val scope = rememberCoroutineScope()
-            var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
-            var showSaveDialog by rememberSaveable { mutableStateOf(false) }
-
-            var launchSiteName by rememberSaveable { mutableStateOf("") }
-            var isEditingMarker by rememberSaveable { mutableStateOf(false) }
-            var editingMarkerId by rememberSaveable { mutableStateOf(0) }
-            var showAnnotations by rememberSaveable { mutableStateOf(true) }
-            var coordsString by rememberSaveable { mutableStateOf("") }
-            var parseError by rememberSaveable { mutableStateOf<String?>(null) }
-            val lastVisitedSite by viewModel.lastVisited.collectAsState()
-            val trajectory3D by viewModel.trajectoryPoints.collectAsState()
-            val configs by viewModel.rocketConfigList.collectAsState()
-            val selectedCfg by viewModel.selectedConfig.collectAsState()
-            var showTrajectoryPopup by remember { mutableStateOf(false) }
-            val makeTraj by remember { derivedStateOf { viewModel.isTrajectoryMode } }
-            val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
-                viewModel.onMarkerPlaced(
-                    lat = pt.latitude(),
-                    lon = pt.longitude(),
-                    elevation = elev
-                )
-                launchSiteName = "New Marker"
-            }
-
-            val mapViewportState = rememberMapViewportState {
-                setCameraOptions {
-                    center(Point.fromLngLat(coords.second, coords.first))
-                    zoom(12.0); pitch(0.0); bearing(0.0)
-                }
-            }
 
             LaunchedEffect(showTrajectorySheet) {
                 if (showTrajectorySheet) sheetState.show() else sheetState.hide()
@@ -219,7 +221,8 @@ fun MapScreen(
                         TrajectoryPopup(
                             show = true,
                             lastVisited = viewModel.lastVisited.collectAsState().value,
-                            rocketConfigs = configs,                    // ← pass list
+                            currentSite = currentSite,
+                            rocketConfigs = rocketConfigs,                    // ← pass list
                             selectedConfig = selectedCfg,                // ← pass default
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },

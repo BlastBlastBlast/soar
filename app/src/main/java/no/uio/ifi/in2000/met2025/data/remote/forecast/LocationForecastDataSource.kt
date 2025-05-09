@@ -17,7 +17,7 @@ class LocationForecastDataSource @Inject constructor(
             // Format latitude and longitude to 2 decimal places
             val formattedLat = lat.toBigDecimal().setScale(2, RoundingMode.HALF_UP).toDouble()
             val formattedLon = lon.toBigDecimal().setScale(2, RoundingMode.HALF_UP).toDouble()
-            val requestUrl = "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=$formattedLat&lon=$formattedLon"
+            val requestUrl = "https://in2000.api.met.no/weatherapi/locationforecast/2.0/complete?lat=$formattedLat&lon=$formattedLon"
 
             // Optional: set or override headers here if needed.
             Result.success(httpClient.get {
