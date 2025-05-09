@@ -3,7 +3,7 @@ package no.uio.ifi.in2000.met2025.fakes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfigDao
 import no.uio.ifi.in2000.met2025.data.local.database.GribData
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdated
@@ -11,7 +11,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 
-class FakeConfigProfileDao : ConfigProfileDAO {
+class FakeWeatherConfigDao : WeatherConfigDao {
     // Implement only needed DAO functions with dummy returns
     override suspend fun insertWeatherConfig(weatherConfig: WeatherConfig) {
     }

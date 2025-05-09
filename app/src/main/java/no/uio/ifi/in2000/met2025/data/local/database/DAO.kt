@@ -84,7 +84,7 @@ interface GribUpdatedDAO {
 }
 
 @Dao
-interface ConfigProfileDAO {
+interface WeatherConfigDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertWeatherConfig(cfg: WeatherConfig)
@@ -95,20 +95,20 @@ interface ConfigProfileDAO {
     @Delete
     suspend fun deleteWeatherConfig(cfg: WeatherConfig)
 
-    @Query("SELECT * FROM config_profiles ORDER BY name")
+    @Query("SELECT * FROM weather_config ORDER BY name")
     fun getAllWeatherConfigs(): Flow<List<WeatherConfig>>
 
-    @Query("SELECT * FROM config_profiles WHERE is_default = 1 LIMIT 1")
+    @Query("SELECT * FROM weather_config WHERE is_default = 1 LIMIT 1")
     fun getDefaultWeatherConfig(): Flow<WeatherConfig?>
 
-    @Query("SELECT * FROM config_profiles WHERE id = :configId LIMIT 1")
-    fun getWeatherConfig(configId: Int): Flow<WeatherConfig?>
+    @Query("SELECT * FROM weather_config WHERE id = :weatherId LIMIT 1")
+    fun getWeatherConfig(weatherId: Int): Flow<WeatherConfig?>
 
     /**
      * Room will map each row’s single “name” column into a String in the list.
      * Adding ORDER BY guarantees a stable sort if you care.
      */
-    @Query("SELECT name FROM config_profiles ORDER BY name")
+    @Query("SELECT name FROM weather_config ORDER BY name")
     fun getAllWeatherConfigNames(): Flow<List<String>>
 }
 
@@ -124,25 +124,25 @@ interface RocketConfigDao {
     @Delete
     suspend fun deleteRocketConfig(rc: RocketConfig)
 
-    @Query("SELECT * FROM rocket_configurations ORDER BY name")
+    @Query("SELECT * FROM rocket_config ORDER BY name")
     fun getAllRocketConfigs(): Flow<List<RocketConfig>>
 
-    @Query("SELECT name FROM rocket_configurations")
+    @Query("SELECT name FROM rocket_config")
     fun getAllRocketConfigNames(): Flow<List<String>>
 
-    @Query("SELECT * FROM rocket_configurations WHERE id = :rocketId LIMIT 1")
+    @Query("SELECT * FROM rocket_config WHERE id = :rocketId LIMIT 1")
     fun getRocketConfig(rocketId: Int): Flow<RocketConfig?>
 
-    @Query("SELECT * FROM rocket_configurations WHERE is_default = 1 LIMIT 1")
+    @Query("SELECT * FROM rocket_config WHERE is_default = 1 LIMIT 1")
     fun getDefaultRocketConfig(): Flow<RocketConfig?>
 
-    @Query("SELECT * FROM rocket_configurations WHERE name = :name LIMIT 1")
+    @Query("SELECT * FROM rocket_config WHERE name = :name LIMIT 1")
     fun getRocketConfigByName(name: String): Flow<RocketConfig?>
 
-    @Query("UPDATE rocket_configurations SET is_default = 0")
+    @Query("UPDATE rocket_config SET is_default = 0")
     suspend fun clearDefaultFlags()
 
-    @Query("UPDATE rocket_configurations SET is_default = 1 WHERE id = :rocketId")
+    @Query("UPDATE rocket_config SET is_default = 1 WHERE id = :rocketId")
     suspend fun setDefaultFlag(rocketId: Int)
 
     @Transaction

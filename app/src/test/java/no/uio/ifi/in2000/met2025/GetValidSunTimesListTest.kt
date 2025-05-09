@@ -22,7 +22,7 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.fakes.FakeConfigProfileDao
+import no.uio.ifi.in2000.met2025.fakes.FakeWeatherConfigDao
 import no.uio.ifi.in2000.met2025.fakes.FakeGribDataDAO
 import no.uio.ifi.in2000.met2025.fakes.FakeGribUpdatedDAO
 import no.uio.ifi.in2000.met2025.fakes.FakeLaunchSiteDAO
@@ -42,7 +42,7 @@ class WeatherViewModelTest {
         val sunriseRepository = SunriseRepository(SunriseDataSource(mockClient))
         val locationForecastRepository = LocationForecastRepository(LocationForecastDataSource(mockClient))
 
-        val weatherConfigRepository = WeatherConfigRepository(FakeConfigProfileDao())
+        val weatherConfigRepository = WeatherConfigRepository(FakeWeatherConfigDao())
         val launchSiteRepository = LaunchSiteRepository(FakeLaunchSiteDAO())
         val isobaricRepository = IsobaricRepository(
             isobaricDataSource,
