@@ -20,7 +20,7 @@ import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.DefaultWeatherParameters
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay.DefaultWeatherParameters
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -151,7 +151,7 @@ class WeatherViewModel @Inject constructor(
         _activeConfig.value = config
     }
 
-    fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 72) {
+    fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 120) {
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
             val result = locationForecastRepository.getTimeZoneAdjustedForecast(lat, lon, timeSpanInHours)

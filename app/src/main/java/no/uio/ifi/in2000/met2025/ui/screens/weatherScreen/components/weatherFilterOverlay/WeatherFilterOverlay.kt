@@ -84,7 +84,6 @@ fun WeatherFilterOverlay(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier            = Modifier.padding(vertical = 16.dp)
                 ) {
-                    // 2a) toggle row
                     FilterToggleValid(
                         isActive = isFilterActive,
                         onClick  = {
@@ -94,13 +93,12 @@ fun WeatherFilterOverlay(
                             .padding(horizontal = 16.dp)
                     )
 
-                    // 2b) slider row
-                    FilterSliderHours(
-                        hoursToShow    = hoursToShow,
-                        onHoursChanged = onHoursChanged,
-                        modifier       = Modifier
-                            .padding(horizontal = 16.dp)
-                    )
+                   // FilterSliderHours(
+                   //     hoursToShow    = hoursToShow,
+                   //     onHoursChanged = onHoursChanged,
+                   //     modifier       = Modifier
+                   //         .padding(horizontal = 16.dp)
+                   // )
 
                     //launch status row
                     LaunchStatusToggleRow(

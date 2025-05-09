@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay
 
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 

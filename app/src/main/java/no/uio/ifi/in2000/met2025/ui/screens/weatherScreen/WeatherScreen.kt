@@ -46,7 +46,7 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchCond
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.WeatherConfigOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay.WeatherConfigOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SegmentedBottomBar
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.WeatherFilterOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay.LaunchSitesMenuOverlay
@@ -95,7 +95,7 @@ fun WeatherScreen(
                 coordinates = coordinates,
                 weatherConfig = activeConfig!!,
                 filterActive = filterActive,
-                hoursToShow = hoursToShow,
+                //hoursToShow = hoursToShow,
                 currentSite = currentSite,
                 selectedStatuses = selectedStatuses,
                 viewModel = viewModel,
@@ -201,7 +201,7 @@ fun ScreenContent(
     coordinates: Pair<Double, Double>,
     weatherConfig: WeatherConfig,
     filterActive: Boolean,
-    hoursToShow: Float,
+    //hoursToShow: Float,
     selectedStatuses: Set<LaunchStatus>,
     currentSite: LaunchSite?,
     viewModel: WeatherViewModel,
@@ -246,7 +246,7 @@ fun ScreenContent(
 
                 return@filter status in selectedStatuses
             }
-            .take(hoursToShow.toInt())
+            //.take(hoursToShow.toInt())
         val filteredByDay: Map<String, List<ForecastDataItem>> =
             filteredItems.groupBy { it.time.substring(0, 10) }
         val sortedDays = forecastByDay.keys.sorted()

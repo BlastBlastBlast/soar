@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
