@@ -20,7 +20,7 @@ import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.config.DefaultConfig
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.DefaultConfig
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject

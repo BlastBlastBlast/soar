@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.filter
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay
 
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem

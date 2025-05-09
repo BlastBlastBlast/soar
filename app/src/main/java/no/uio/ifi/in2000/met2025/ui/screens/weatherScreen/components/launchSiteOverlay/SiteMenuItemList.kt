@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.site
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues

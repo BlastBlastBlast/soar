@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.filter
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth

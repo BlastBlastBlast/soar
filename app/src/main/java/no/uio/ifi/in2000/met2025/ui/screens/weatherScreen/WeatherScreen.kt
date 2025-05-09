@@ -46,10 +46,10 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchCond
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.config.ConfigMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherSettingsOverlay.ConfigMenuOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SegmentedBottomBar
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.filter.FilterMenuOverlay
-import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.site.LaunchSitesMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.FilterMenuOverlay
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay.LaunchSitesMenuOverlay
 import java.time.Instant
 import java.time.ZonedDateTime
 
