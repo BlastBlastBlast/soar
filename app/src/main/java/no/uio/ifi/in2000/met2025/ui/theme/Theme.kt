@@ -40,7 +40,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun In2000_met2025_team21Theme(
+fun SOAR_Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true, // Use dynamic color if available.
     content: @Composable () -> Unit

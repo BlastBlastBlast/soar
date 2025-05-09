@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.navigation
+package no.uio.ifi.in2000.met2025
 
 import androidx.compose.runtime.Composable
 import no.uio.ifi.in2000.met2025.ui.navigation.AppScaffold
