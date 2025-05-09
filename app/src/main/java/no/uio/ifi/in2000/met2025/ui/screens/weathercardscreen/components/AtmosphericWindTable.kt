@@ -18,6 +18,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.components.windcomponents.AWTableContents
@@ -47,7 +54,11 @@ fun AtmosphericWindTable(
                 onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = "Get isobaric wind data for $time at ${coordinates.first}, ${coordinates.second}"
+                    },
                 shape = RoundedCornerShape(6.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
@@ -62,7 +73,10 @@ fun AtmosphericWindTable(
             Box(
                 modifier = Modifier
                     .padding(top = 8.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth().semantics {
+                    liveRegion = LiveRegionMode.Assertive
+                    contentDescription = "Loading isobaric wind data"
+                },
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
@@ -72,13 +86,21 @@ fun AtmosphericWindTable(
             Column {
                 Text(
                     text = "Error loading isobaric data: ${effectiveState.message}",
+                    modifier = Modifier.semantics {
+                        liveRegion = LiveRegionMode.Assertive
+                        contentDescription = "Error loading isobaric data: ${effectiveState.message}"
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Button(
                     onClick = { viewModel.loadIsobaricData(coordinates.first, coordinates.second, time) },
                     modifier = Modifier
                         .padding(top = 8.dp)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Retry loading isobaric data"
+                        },
                     shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
                 ) {
@@ -95,8 +117,14 @@ fun AtmosphericWindTable(
                     style = MaterialTheme.typography.bodyMedium)
             } else {
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
-                Text("Atmospheric Wind Data", color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                Text(
+                    text  = "Atmospheric Wind Data",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                        .padding(vertical = 4.dp)
+                        .semantics { heading() }
+                )
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.primary)
                 AWTableContents(effectiveState.isobaricData, config!!)
             }

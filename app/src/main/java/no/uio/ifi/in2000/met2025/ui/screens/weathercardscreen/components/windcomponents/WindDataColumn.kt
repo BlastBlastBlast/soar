@@ -18,6 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
@@ -37,6 +41,10 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
             .fillMaxWidth()
             .padding(top = 8.dp)
             .clickable { expanded = !expanded }
+            .semantics {
+                role = Role.Button
+                contentDescription = if (expanded) "Collapse wind layers" else "Expand wind layers"
+            }
     ) {
         Column {
             Icon(
@@ -46,6 +54,8 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer(rotationZ = if (expanded) 0f else 180f)
+                    .semantics { role = Role.Image }
+
             )
 
             val pressureValues = isobaricData.valuesAtLayer.keys.sorted()
@@ -56,6 +66,15 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
                         .fillMaxWidth()
                         .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                         .padding(4.dp)
+                        .semantics {
+                            contentDescription = "At ${layer} hPa: " +
+                                    "wind ${isobaricData.valuesAtLayer[layer]?.windSpeed} m/s at " +
+                                    "${isobaricData.valuesAtLayer[layer]?.windFromDirection}°, " +
+                                    "shear (next) ${if (index < displayedValues.size - 1) windShearSpeed(
+                                        isobaricData.valuesAtLayer[layer]!!,
+                                        isobaricData.valuesAtLayer[displayedValues[index + 1]]!!
+                                    ).roundToDecimals(1) else "N/A" } m/s"
+                        }
                 ) {
                     WindLayerRow(
                         config = config,
@@ -89,6 +108,17 @@ fun WindDataColumn(isobaricData: IsobaricData, config: ConfigProfile, windShearC
                                 .padding(vertical = 4.dp)
                                 .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .padding(horizontal = 4.dp, vertical = 4.dp)
+                                .semantics {
+                                    contentDescription = "Wind shear between ${layer} hPa and ${displayedValues[index + 1]} hPa: " +
+                                            "${windShearSpeed(
+                                                isobaricData.valuesAtLayer[layer]!!,
+                                                isobaricData.valuesAtLayer[displayedValues[index + 1]]!!
+                                            ).roundToDecimals(1)} m/s at " +
+                                            "${windShearDirection(
+                                                isobaricData.valuesAtLayer[layer]!!,
+                                                isobaricData.valuesAtLayer[displayedValues[index + 1]]!!
+                                            ).floorModDouble(360).roundToDecimals(1)}°"
+                                }
                         ) {
                             WindLayerRow(
                                 config = config,

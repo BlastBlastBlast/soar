@@ -17,6 +17,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
@@ -33,14 +37,18 @@ fun WeatherLoadingSpinner(modifier: Modifier = Modifier) {
         )
     )
 
-    // Center the loader in the available space.
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .semantics {
+                liveRegion = LiveRegionMode.Assertive
+                contentDescription = "Loading weather data"
+            },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.WbSunny,
-            contentDescription = "Loading weather data",
+            contentDescription = null, // handled by the Box semantics
             modifier = Modifier
                 .size(64.dp)
                 .rotate(rotation),
@@ -48,3 +56,4 @@ fun WeatherLoadingSpinner(modifier: Modifier = Modifier) {
         )
     }
 }
+

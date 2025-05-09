@@ -34,9 +34,17 @@ import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import no.uio.ifi.in2000.met2025.ui.theme.DarkerPrimary
 import no.uio.ifi.in2000.met2025.ui.theme.IconGrey
+import ucar.nc2.ft2.coverage.SubsetParams.time
 
 
 @Composable
@@ -54,7 +62,12 @@ fun AWTableContents(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { expanded = !expanded },
+            .clickable { expanded = !expanded }
+            .semantics {
+                role = Role.Button
+                contentDescription = if (expanded) "Collapse wind data table"
+                else "Expand wind data table"
+            },
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(corner = CornerSize(8.dp))
     ) {
@@ -66,12 +79,17 @@ fun AWTableContents(
                         AWTimeDisplay(
                             time = formatZuluTimeToLocal(item.time) + " - " + formatZuluTimeToLocal(Instant.parse(item.time).plus(2, ChronoUnit.HOURS).plus(59, ChronoUnit.MINUTES).toString()),
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            // semantics in class file
                         )
                     }
-                    LaunchStatusIcon(evaluateLaunchConditions(item, config), modifier = Modifier.size(24.dp))
+                    LaunchStatusIcon(evaluateLaunchConditions(item, config), modifier = Modifier.size(24.dp).semantics {
+                        role = Role.Image
+                        contentDescription = "Launch status: ${evaluateLaunchConditions(item, config)}" }
+                    )
                 }
 
-                AnimatedVisibility(visible = expanded) {
+                AnimatedVisibility(visible = expanded, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                ) {
 
                     Column {
                         HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.onPrimary)
@@ -83,6 +101,7 @@ fun AWTableContents(
                             windDirectionText = "Wind Direction",
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .semantics { heading() }
                                 .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .padding(vertical = 4.dp),
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
@@ -95,6 +114,7 @@ fun AWTableContents(
                             windDirectionText = "Wind Shear Direction",
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .semantics { contentDescription = "Shear data header row" }
                                 .padding(vertical = 4.dp)
                                 .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .background(

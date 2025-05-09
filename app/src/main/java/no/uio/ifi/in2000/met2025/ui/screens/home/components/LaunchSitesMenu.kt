@@ -36,6 +36,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -56,7 +60,6 @@ fun LaunchSitesMenu(
     val maxWidth      = screenWidth * 0.5f
     val maxHeight     = screenHeight * 0.5f
 
-    // build list with "New Marker" first
     val items = buildList<LaunchSite> {
         launchSites.find { it.name == "New Marker" }?.let(::add)
         addAll(launchSites.filter { it.name != "New Marker" })
@@ -66,7 +69,10 @@ fun LaunchSitesMenu(
         modifier = modifier
             .padding(8.dp)
             .heightIn(max = maxHeight)
-            .verticalScroll(rememberScrollState()), // scroll if too tall
+            .verticalScroll(rememberScrollState())
+            .semantics(mergeDescendants = false) {
+                contentDescription = "List of saved launch sites"
+            },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         items.forEachIndexed { idx, site ->
@@ -85,7 +91,13 @@ fun LaunchSitesMenu(
                     modifier  = Modifier
                         .widthIn(min = minWidth, max = maxWidth)
                         .animateContentSize(tween(200))
-                        .clickable { onSiteSelected(site) },
+                        .clickable { onSiteSelected(site) }
+                        .semantics {
+                            role = Role.Button
+                            contentDescription =
+                                "${if (site.name=="New Marker") "Last Marker" else site.name}, " +
+                                        "latitude %.4f, longitude %.4f".format(site.latitude, site.longitude)
+                        },
                     shape     = RoundedCornerShape(8.dp),
                     elevation = CardDefaults.elevatedCardElevation(
                         defaultElevation = 2.dp,
@@ -120,8 +132,6 @@ fun LaunchSitesMenu(
                     }
                 }
             }
-
-            // add 8.dp space after every card
             Spacer(Modifier.height(8.dp))
         }
     }

@@ -8,6 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 
@@ -29,7 +33,10 @@ fun WeatherNavigationButton(
                 Toast.makeText(context, "Please enter valid coordinates", Toast.LENGTH_SHORT).show()
             }
         },
-        modifier = modifier,
+        modifier = modifier.semantics {
+            contentDescription = "Navigate to weather for current coordinates"
+            role = Role.Button
+        },
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
     ) {
