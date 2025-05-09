@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.home.maps
+package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -28,14 +28,9 @@ import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.extension.compose.rememberMapState
-import com.mapbox.maps.extension.compose.style.LongValue
-import com.mapbox.maps.extension.compose.style.StringValue
-import com.mapbox.maps.extension.compose.style.sources.generated.rememberRasterDemSourceState
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.modelLayer
 import com.mapbox.maps.extension.style.layers.generated.skyLayer
-import com.mapbox.maps.extension.style.layers.generated.symbolLayer
-import com.mapbox.maps.extension.style.layers.getLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.ModelType
 import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
 import com.mapbox.maps.extension.style.layers.properties.generated.SkyType
@@ -45,7 +40,6 @@ import com.mapbox.maps.extension.style.projection.generated.projection
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.rasterDemSource
-import com.mapbox.maps.extension.style.sources.getSource
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.terrain.generated.terrain
 import com.mapbox.maps.plugin.PuckBearing
@@ -61,10 +55,7 @@ import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.RocketState
-import no.uio.ifi.in2000.met2025.ui.screens.home.calculateBearing
-import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
-import kotlin.rem
 
 
 // FIXME: CHECK NULL POINTER EXCEPTION WHEN PLACING FIRST MARKER

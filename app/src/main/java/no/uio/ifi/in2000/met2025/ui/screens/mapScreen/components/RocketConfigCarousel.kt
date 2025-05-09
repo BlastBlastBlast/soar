@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.home.components
+package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

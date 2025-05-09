@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.home
+package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.compose.runtime.getValue
@@ -10,7 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,9 +26,8 @@ import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
 import javax.inject.Inject
 import java.time.Instant
-import kotlin.math.sin
 
-// HomeScreenViewModel.kt
+// MapScreenViewModel.kt
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val launchSitesRepository: LaunchSitesRepository,

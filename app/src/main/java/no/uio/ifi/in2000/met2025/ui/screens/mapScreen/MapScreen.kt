@@ -1,5 +1,5 @@
-// HomeScreen.kt
-package no.uio.ifi.in2000.met2025.ui.screens.home
+// MapScreen.kt
+package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -25,10 +25,10 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesButton
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.LaunchSitesMenu
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.SaveLaunchSiteDialog
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.WeatherNavigationButton
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchSitesButton
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchSitesMenu
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.SaveLaunchSiteDialog
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.WeatherNavigationButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
@@ -38,10 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
 import no.uio.ifi.in2000.met2025.ui.common.LatLonDisplay
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.MapContainer
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -52,8 +49,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
-import no.uio.ifi.in2000.met2025.ui.screens.home.components.TrajectoryPopup
-import no.uio.ifi.in2000.met2025.ui.screens.home.maps.MapView
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

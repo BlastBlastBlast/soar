@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.home.components
+package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.RocketState
-import no.uio.ifi.in2000.met2025.ui.screens.home.maps.MapView
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapView
 import org.apache.commons.math3.linear.RealVector
 
 @Composable

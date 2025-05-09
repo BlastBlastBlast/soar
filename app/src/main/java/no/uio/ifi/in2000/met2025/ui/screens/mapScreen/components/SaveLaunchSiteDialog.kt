@@ -1,13 +1,12 @@
 // SaveLaunchSiteDialog.kt
-package no.uio.ifi.in2000.met2025.ui.screens.home.components
+package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import no.uio.ifi.in2000.met2025.ui.screens.home.HomeScreenViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.HomeScreenViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
