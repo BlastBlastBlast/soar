@@ -39,7 +39,7 @@ fun AppScaffold(
     // gesturesEnabled = true when:
     //  • we’re not on Home (allow drag-to-open), OR
     //  • drawer is already open (always allow drag-to-close)
-    val gesturesEnabled = (currentRoute != Screen.Home.route) || drawerState.isOpen
+    val gesturesEnabled = (currentRoute != Screen.Maps.route) || drawerState.isOpen
 
     ModalNavigationDrawer(
         drawerState     = drawerState,
@@ -65,9 +65,9 @@ fun AppScaffold(
             NavigationGraph(
                 navController               = navController,
                 innerPadding                = innerPadding,
-                homeScreenViewModel         = vm.home,
+                mapScreenViewModel         = vm.maps,
                 weatherCardViewModel        = vm.weather,
-                settingsViewModel           = vm.settings,
+                configViewModel           = vm.configs,
             )
         }
     }

@@ -1,0 +1,27 @@
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay
+
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
+
+
+data class LaunchStatusFilter(
+    val allowedLaunchStatuses: Set<LaunchStatus> = setOf(
+        LaunchStatus.SAFE,
+        LaunchStatus.CAUTION,
+        LaunchStatus.UNSAFE
+    )
+)
+
+fun forecastPassesFilter(
+    forecastItem: ForecastDataItem,
+    config: WeatherConfig,
+    filter: LaunchStatusFilter
+): Boolean {
+    val state = evaluateLaunchConditions(forecastItem, config)
+    return state is ParameterState.Available && launchStatus(state.relativeUnsafety) in filter.allowedLaunchStatuses
+//state is ParameterState.Disabled || (state is ParameterState.Enabled && state.relativeUnsafety < UNSAFE_THRESHOLD)
+}

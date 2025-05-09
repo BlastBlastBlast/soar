@@ -17,16 +17,17 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import no.uio.ifi.in2000.met2025.ui.screens.home.*
-import no.uio.ifi.in2000.met2025.ui.screens.launchsite.LaunchSiteScreen
-import no.uio.ifi.in2000.met2025.ui.screens.weathercardscreen.*
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreen
+import no.uio.ifi.in2000.met2025.ui.screens.launchSiteScreen.LaunchSiteScreen
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.*
 import no.uio.ifi.in2000.met2025.ui.navigation.Screen.*
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.SettingsViewModel
-import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigEditScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.rocketconfig.RocketConfigListScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigEditScreen
-import no.uio.ifi.in2000.met2025.ui.screens.settings.weathersettings.ConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
+import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig.RocketConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigEditScreen
+import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.ConfigListScreen
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreenViewModel
 
 /**
  * Navigate to [route] in the normal way, but if the
@@ -45,21 +46,21 @@ fun NavHostController.navigateSingleTopTo(route: String) {
 fun NavigationGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    homeScreenViewModel: HomeScreenViewModel,
-    weatherCardViewModel: WeatherCardViewmodel,
-    settingsViewModel: SettingsViewModel,
+    mapScreenViewModel: MapScreenViewModel,
+    weatherCardViewModel: WeatherViewModel,
+    configViewModel: ConfigViewModel,
 ) {
     NavHost(
         navController    = navController,
-        startDestination = Home.route,
+        startDestination = Maps.route,
         modifier         = Modifier
             .padding(innerPadding)
             .windowInsetsPadding(WindowInsets.ime)
     ) {
         // — Home —
-        composable(Home.route) {
-            HomeScreen(
-                viewModel = homeScreenViewModel,
+        composable(Maps.route) {
+            MapScreen(
+                viewModel = mapScreenViewModel,
                 onNavigateToWeather = { lat, lon ->
                     navController.navigateSingleTopTo(Weather.createRoute(lat, lon))
                 },
@@ -81,7 +82,7 @@ fun NavigationGraph(
                 weatherCardViewModel.loadForecast(lat, lon)
             }
 
-            WeatherCardScreen(
+            WeatherScreen(
                 viewModel     = weatherCardViewModel,
                 navController = navController
             )
@@ -93,10 +94,10 @@ fun NavigationGraph(
         }
 
         // — Settings (NEW) —
-        composable(Settings.route) {
-            SettingsScreen(
+        composable(Configs.route) {
+            ConfigScreen(
                 onWeatherConfigsClick = {
-                    navController.navigateSingleTopTo(ConfigList.route)
+                    navController.navigateSingleTopTo(WeatherConfigList.route)
                 },
                 onRocketConfigsClick = {
                     navController.navigateSingleTopTo(RocketConfigList.route)
@@ -105,13 +106,13 @@ fun NavigationGraph(
         }
 
         // — Config List —
-        composable(ConfigList.route) {
+        composable(WeatherConfigList.route) {
             ConfigListScreen(
                 onEditConfig   = { cfg ->
-                    navController.navigateSingleTopTo(ConfigEdit.createRoute(cfg.id))
+                    navController.navigateSingleTopTo(WeatherConfigEdit.createRoute(cfg.id))
                 },
                 onAddConfig    = {
-                    navController.navigateSingleTopTo(ConfigEdit.createRoute(-1))
+                    navController.navigateSingleTopTo(WeatherConfigEdit.createRoute(-1))
                 },
                 onSelectConfig = { cfg ->
                     weatherCardViewModel.setActiveConfig(cfg)
@@ -122,14 +123,14 @@ fun NavigationGraph(
 
         // — Config Edit —
         composable(
-            route     = ConfigEdit.route,
-            arguments = listOf(navArgument("configId") {
+            route     = WeatherConfigEdit.route,
+            arguments = listOf(navArgument("weatherId") {
                 type         = NavType.IntType
                 defaultValue = -1
             })
         ) { back ->
-            val id by remember { mutableStateOf(back.arguments?.getInt("configId") ?: -1) }
-            val config by settingsViewModel
+            val id by remember { mutableStateOf(back.arguments?.getInt("weatherId") ?: -1) }
+            val config by configViewModel
                 .getWeatherConfig(id)
                 .collectAsState(initial = null)
 
@@ -169,7 +170,7 @@ fun NavigationGraph(
         ) { back ->
             val rocketId   = back.arguments?.getInt("rocketId") ?: -1
             val rocketName = back.arguments?.getString("rocketName") ?: ""
-            val rocketParams by settingsViewModel
+            val rocketParams by configViewModel
                 .getRocketConfig(rocketId)
                 .collectAsState(initial = null)
 

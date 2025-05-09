@@ -2,8 +2,8 @@ package no.uio.ifi.in2000.met2025.fakes
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfigDao
 import no.uio.ifi.in2000.met2025.data.local.database.GribData
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdated
@@ -11,30 +11,30 @@ import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
 
-class FakeConfigProfileDao : ConfigProfileDAO {
+class FakeWeatherConfigDao : WeatherConfigDao {
     // Implement only needed DAO functions with dummy returns
-    override suspend fun insertConfigProfile(configProfile: ConfigProfile) {
+    override suspend fun insertWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override suspend fun updateConfigProfile(configProfile: ConfigProfile) {
+    override suspend fun updateWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override suspend fun deleteConfigProfile(configProfile: ConfigProfile) {
+    override suspend fun deleteWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override fun getAllConfigProfiles(): Flow<List<ConfigProfile>> {
+    override fun getAllWeatherConfigs(): Flow<List<WeatherConfig>> {
         return flowOf(emptyList())
     }
 
-    override fun getDefaultConfigProfile(): Flow<ConfigProfile?> {
+    override fun getDefaultWeatherConfig(): Flow<WeatherConfig?> {
         return flowOf(null)
     }
 
-    override fun getConfigProfile(configId: Int): Flow<ConfigProfile?> {
+    override fun getWeatherConfig(configId: Int): Flow<WeatherConfig?> {
         return flowOf(null)
     }
 
-    override fun getAllConfigProfileNames(): Flow<List<String>> {
+    override fun getAllWeatherConfigNames(): Flow<List<String>> {
         return flowOf(emptyList())
     }
 }

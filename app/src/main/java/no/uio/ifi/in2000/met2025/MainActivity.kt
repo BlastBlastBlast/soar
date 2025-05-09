@@ -8,8 +8,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import dagger.hilt.android.AndroidEntryPoint
-import no.uio.ifi.in2000.met2025.ui.navigation.App
-import no.uio.ifi.in2000.met2025.ui.theme.In2000_met2025_team21Theme
+import no.uio.ifi.in2000.met2025.ui.theme.SOAR_Theme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -18,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val isDark = remember { mutableStateOf(false) }
-            In2000_met2025_team21Theme(darkTheme = isDark.value) {
+            SOAR_Theme(darkTheme = isDark.value) {
                 App(
                     darkTheme  = isDark.value,
                     toggleTheme = {

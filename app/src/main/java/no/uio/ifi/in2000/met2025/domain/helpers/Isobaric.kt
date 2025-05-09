@@ -1,10 +1,10 @@
 package no.uio.ifi.in2000.met2025.domain.helpers
 
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 
 
-fun IsobaricData.toConfigList(config: ConfigProfile): List<Triple<Double, Double, Boolean>> {
+fun IsobaricData.toConfigList(config: WeatherConfig): List<Triple<Double, Double, Boolean>> {
     val relevantLayers = valuesAtLayer.keys.reversed()
         .takeLastWhile {
             valuesAtLayer[it]!!.altitude <= config.altitudeUpperBound
