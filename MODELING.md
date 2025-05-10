@@ -1,22 +1,12 @@
+# Weather Screen
 ```mermaid
 sequenceDiagram
     autonumber
     participant User
     participant WeatherUI as WeatherScreen
-    participant BottomBar as SegmentedBottomBar
     participant WeatherVM as WeatherViewModel
-    participant NavCtrl as NavController
-    participant Domain
     participant ConfigRepo as WeatherConfigRepository
-    participant LocRepo as LocationForecastRepository
-    participant LaunchRepo as LaunchSiteRepository
-    participant SunriseRepo as SunriseRepository
-    participant GRIBRepo as IsobaricRepository
-    participant ForecastDS as LocationForecastDataSource
-    participant IsobaricDS as IsobaricDataSource
-    participant RoomDB as LaunchSiteDatabase
 
-    %% Initial navigation & config load
     User->>WeatherUI: navigateTo("weather/...")  
     activate WeatherUI
     WeatherUI->>WeatherVM: collectDefaultWeatherConfig  
@@ -27,8 +17,17 @@ sequenceDiagram
     deactivate ConfigRepo
     WeatherVM-->>WeatherUI: activeWeatherConfig  
     deactivate WeatherVM
+```
 
-    %% Coordinates & forecast load
+```mermaid
+sequenceDiagram
+    autonumber
+    participant WeatherUI as WeatherScreen
+    participant WeatherVM as WeatherViewModel
+    participant LocRepo as LocationForecastRepository
+    participant ForecastDS as LocationForecastDataSource
+    participant SunriseRepo as SunriseRepository
+
     WeatherUI->>WeatherVM: collectCoordinates  
     WeatherVM-->>WeatherUI: coordinates(lat,lon)  
     WeatherUI->>WeatherVM: loadForecast(lat,lon)  
@@ -47,8 +46,23 @@ sequenceDiagram
     end
     WeatherVM-->>WeatherUI: uiState = Success  
     deactivate WeatherVM
+```
+```mermaid
+    sequenceDiagram
+    autonumber
+    participant User
+    participant BottomBar as SegmentedBottomBar
+    participant WeatherUI as WeatherScreen
+    participant WeatherVM as WeatherViewModel
+    participant LaunchRepo as LaunchSiteRepository
+    participant RoomDB as LaunchSiteDatabase
+    participant LocRepo as LocationForecastRepository
+    participant ForecastDS as LocationForecastDataSource
+    participant SunriseRepo as SunriseRepository
+    participant Domain
+    participant GRIBRepo as IsobaricRepository
+    participant IsobaricDS as IsobaricDataSource
 
-    %% Segmented Bottom Bar interactions
     alt Launch button
         User->>BottomBar: click Launch  
         BottomBar->>WeatherUI: onLaunchClick()  
@@ -64,6 +78,7 @@ sequenceDiagram
             LaunchRepo-->>WeatherVM: done  
             deactivate LaunchRepo
             WeatherVM-->>WeatherUI: coordinatesUpdated  
+
             WeatherUI->>WeatherVM: loadForecast(site.lat,site.lon)  
             activate WeatherVM
             WeatherVM->>LocRepo: getTimeZoneAdjustedForecast(site.lat,site.lon,120h)  
@@ -79,6 +94,7 @@ sequenceDiagram
                 deactivate SunriseRepo
             end
             WeatherVM-->>WeatherUI: uiState = Success  
+
             WeatherUI->>WeatherVM: loadIsobaricData(site.lat,site.lon,now)  
             activate WeatherVM
             WeatherVM->>Domain: getCurrentIsobaricData(site.lat,site.lon,now)  
@@ -97,17 +113,32 @@ sequenceDiagram
             deactivate WeatherVM
         end
     end
+```
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant BottomBar as SegmentedBottomBar
+    participant WeatherUI as WeatherScreen
+    participant WeatherVM as WeatherViewModel
+    participant NavCtrl as NavController
 
     alt Filter button
         User->>BottomBar: click Filter  
         BottomBar->>WeatherUI: onFilterClick()  
         WeatherUI->>WeatherUI: toggleFilterOverlay  
+
         %% User adjusts filters
         User->>WeatherUI: onToggleFilter()  
+        WeatherUI->>WeatherUI: setFilterActive  
         User->>WeatherUI: onHoursChanged(hours)  
+        WeatherUI->>WeatherUI: setHoursToShow(hours)  
         User->>WeatherUI: onStatusToggled(status)  
+        WeatherUI->>WeatherUI: updateSelectedStatuses(status)  
         User->>WeatherUI: onToggleSunFilter()  
-        %% Apply and re-render with filters
+        WeatherUI->>WeatherUI: setSunFilterActive  
+
+        %% Apply and re-render
         WeatherUI->>WeatherUI: applyFiltersToForecast()  
         WeatherUI->>WeatherUI: renderDailyForecast & renderHourlyForecast  
     end
@@ -128,10 +159,21 @@ sequenceDiagram
             deactivate WeatherVM
         end
     end
+```
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant WeatherUI as WeatherScreen
+    participant WeatherVM as WeatherViewModel
+    participant Domain
+    participant GRIBRepo as IsobaricRepository
+    participant IsobaricDS as IsobaricDataSource
+    participant ForecastDS as LocationForecastDataSource
 
-    %% Hourly card expand & isobaric data flow
     User->>WeatherUI: onHourlyCardClick(time)  
     WeatherUI->>WeatherUI: setHourlyCardExpanded(time,true)  
+
     alt no isobaric data for time
         WeatherUI->>WeatherUI: showGetIsobaricDataButton(time)  
         User->>WeatherUI: onGetIsobaricDataClick(time)  
@@ -151,6 +193,7 @@ sequenceDiagram
         deactivate Domain
         WeatherVM-->>WeatherUI: atmosphericWindStateSuccess(time,data)  
         deactivate WeatherVM
+
     else loading
         WeatherUI->>WeatherUI: showIsobaricLoading(time)  
     else error
@@ -164,5 +207,4 @@ sequenceDiagram
     WeatherUI->>Domain: calculateWindShear(isobaricData)  
     Domain-->>WeatherUI: shearValues  
     WeatherUI->>WeatherUI: renderAWTableContents(parameterStatesList, shearValues)  
-
 ```
