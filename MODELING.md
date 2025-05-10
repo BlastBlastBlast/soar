@@ -132,23 +132,29 @@ sequenceDiagram
     activate VM
     VM->>RocketRepo: getDefaultRocketConfig()  
     RocketRepo-->>VM: config  
+
     VM->>Domain: calculateTrajectory(initialPosition, config)  
     activate Domain
 
-    loop for each simulation step
-        Domain->>GRIBRepo: getIsobaricGribData(time)  
-        activate GRIBRepo
-        GRIBRepo->>IsobaricDS: fetchIsobaricGribData(time)  
-        IsobaricDS-->>GRIBRepo: ByteArray  
-        GRIBRepo-->>Domain: GribDataMap  
-        deactivate GRIBRepo
+    %% 4a) Pre-fetch full GRIB map once
+    Domain->>GRIBRepo: fetchAllIsobaricGribData(timeRange)  
+    activate GRIBRepo
+    GRIBRepo->>IsobaricDS: fetchIsobaricGribData(timeRange)  
+    IsobaricDS-->>GRIBRepo: ByteArray  
+    GRIBRepo-->>Domain: gribDataMap  
+    deactivate GRIBRepo
 
-        Domain->>LocRepo: getForecastData(lat,lon,time)  
-        activate LocRepo
-        LocRepo->>ForecastDS: fetchForecastData(lat,lon)  
-        ForecastDS-->>LocRepo: ForecastDataResponse  
-        LocRepo-->>Domain: ForecastData  
-        deactivate LocRepo
+    %% 4b) Loop simulation steps, reusing GRIB map
+    loop for each simulation step
+        Domain->>Domain: interpolateWind(gribDataMap, position)
+        alt if quadrant boundary crossed
+            Domain->>LocRepo: getForecastData(lat,lon,currentTime)  
+            activate LocRepo
+            LocRepo->>ForecastDS: fetchForecastData(lat,lon)  
+            ForecastDS-->>LocRepo: ForecastDataResponse  
+            LocRepo-->>Domain: forecastData  
+            deactivate LocRepo
+        end
     end
 
     Domain-->>VM: trajectoryPoints  
