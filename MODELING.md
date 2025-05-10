@@ -1695,3 +1695,68 @@ direction LR
     DatabaseModule ..> RocketConfigDao : provideRocketConfigDao()
 
 ```
+
+### Domain - Trajectory Calculation & Weather Parsing
+```mermaid
+classDiagram
+direction TB
+    class WeatherModel {
+	    - locationForecastRepository: LocationForecastRepository
+	    - isobaricRepository: IsobaricRepository
+	    + getCurrentIsobaricData(lat: Double, lon: Double, time: Instant) : IsobaricDataResult
+    }
+
+    class IsobaricInterpolator {
+	    - locationForecastRepository: LocationForecastRepository
+	    - isobaricRepository: IsobaricRepository
+	    + getCartesianIsobaricValues(position: RealVector, time: Instant) : Result&lt;CartesianIsobaricValues&gt;
+    }
+
+    class TrajectoryCalculator {
+	    - isobaricInterpolator: IsobaricInterpolator
+	    + calculateTrajectory(
+	    initialPosition: RealVector,
+	    launchAzimuthInDegrees: Double,
+	    launchPitchInDegrees: Double,
+	    launchRailLength: Double,
+	    wetMass: Double,
+	    dryMass: Double,
+	    burnTime: Double,
+	    thrust: Double,
+	    stepSize: Double,
+	    crossSectionalArea: Double,
+	    dragCoefficient: Double,
+	    parachuteCrossSectionalArea: Double,
+	    parachuteDragCoefficient: Double,
+	    ): Result~List~Triple~RealVector, Double, RocketState~~~
+	    timeOfLaunch: Instant = Instant.now()
+    }
+
+    class LocationForecastRepository {
+    }
+
+    class IsobaricRepository {
+    }
+
+    class RealVector {
+    }
+
+    class RocketState {
+	    + ON_LAUNCH_RAIL
+	    + THRUSTING
+	    + FREE_FLIGHT
+	    + PARACHUTE_DEPLOYED
+	    + LANDED
+    }
+
+	<<enum>> RocketState
+
+    WeatherModel --> LocationForecastRepository : uses
+    WeatherModel --> IsobaricRepository : uses
+    IsobaricInterpolator --> LocationForecastRepository : uses
+    IsobaricInterpolator --> IsobaricRepository : uses
+    TrajectoryCalculator --> IsobaricInterpolator : uses
+    TrajectoryCalculator --> RealVector : uses
+    TrajectoryCalculator --> RocketState : uses
+
+```
