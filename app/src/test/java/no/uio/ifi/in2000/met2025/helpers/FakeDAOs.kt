@@ -22,19 +22,19 @@ class FakeWeatherConfigDao : WeatherConfigDao {
     override suspend fun deleteWeatherConfig(weatherConfig: WeatherConfig) {
     }
 
-    override fun getAllWeatherConfigs(): Flow<List<WeatherConfig>> {
+    override fun findAllWeatherConfigs(): Flow<List<WeatherConfig>> {
         return flowOf(emptyList())
     }
 
-    override fun getDefaultWeatherConfig(): Flow<WeatherConfig?> {
+    override fun findDefaultWeatherConfig(): Flow<WeatherConfig?> {
         return flowOf(null)
     }
 
-    override fun getWeatherConfig(configId: Int): Flow<WeatherConfig?> {
+    override fun findWeatherConfig(configId: Int): Flow<WeatherConfig?> {
         return flowOf(null)
     }
 
-    override fun getAllWeatherConfigNames(): Flow<List<String>> {
+    override fun findAllWeatherConfigNames(): Flow<List<String>> {
         return flowOf(emptyList())
     }
 }
@@ -46,7 +46,7 @@ class FakeLaunchSiteDAO : LaunchSiteDAO {
     override suspend fun delete(site: LaunchSite) {
     }
 
-    override fun getAll(): Flow<List<LaunchSite>> {
+    override fun findAll(): Flow<List<LaunchSite>> {
         return flowOf(emptyList())
     }
 
@@ -57,11 +57,11 @@ class FakeLaunchSiteDAO : LaunchSiteDAO {
     override suspend fun update(sites: LaunchSite) {
     }
 
-    override fun getLastVisitedTempSite(tempName: String): Flow<LaunchSite?> {
+    override fun findLastVisitedTempSite(tempName: String): Flow<LaunchSite?> {
         return flowOf(null)
     }
 
-    override fun getNewMarkerTempSite(tempName: String): Flow<LaunchSite?> {
+    override fun findNewMarkerTempSite(tempName: String): Flow<LaunchSite?> {
         return flowOf(null)
     }
 
@@ -69,7 +69,7 @@ class FakeLaunchSiteDAO : LaunchSiteDAO {
         return null
     }
 
-    override fun getAllLaunchSiteNames(): Flow<List<String>> {
+    override fun findAllLaunchSiteNames(): Flow<List<String>> {
         return flowOf(emptyList())
     }
 
@@ -81,7 +81,7 @@ class FakeGribDataDAO : GribDataDAO {
     override suspend fun insert(gribFile: GribData) {
     }
 
-    override suspend fun getByTimestamp(timestamp: String): GribData? {
+    override suspend fun findByTimestamp(timestamp: String): GribData? {
         return null
     }
 
@@ -96,7 +96,7 @@ class FakeGribUpdatedDAO : GribUpdatedDAO {
     override suspend fun delete() {
     }
 
-    override suspend fun getUpdated(): String? {
+    override suspend fun findUpdated(): String? {
         return null
     }
 }

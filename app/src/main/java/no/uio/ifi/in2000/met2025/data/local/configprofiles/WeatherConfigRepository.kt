@@ -22,18 +22,18 @@ class WeatherConfigRepository @Inject constructor(
     }
 
     fun getAllWeatherConfigs(): Flow<List<WeatherConfig>> {
-        return weatherConfigDao.getAllWeatherConfigs()
+        return weatherConfigDao.findAllWeatherConfigs()
     }
 
     fun getDefaultWeatherConfig(): Flow<WeatherConfig?> {
-        return weatherConfigDao.getDefaultWeatherConfig()
+        return weatherConfigDao.findDefaultWeatherConfig()
     }
 
     fun getWeatherConfig(configId: Int): Flow<WeatherConfig?> {
-        return weatherConfigDao.getWeatherConfig(configId)
+        return weatherConfigDao.findWeatherConfig(configId)
     }
 
     fun getAllWeatherConfigNames(): Flow<List<String>> {
-        return weatherConfigDao.getAllWeatherConfigNames()
+        return weatherConfigDao.findAllWeatherConfigNames()
     }
 }
