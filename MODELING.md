@@ -169,7 +169,7 @@ sequenceDiagram
     VM-->>MapScreen: coordinatesUpdated  
     deactivate VM
     MapScreen->>MapView: easeTo(center=site)
-    ```
+```
 
 ### MapScreen - MapView and Location selection and Trajectory Loading
 ```mermaid
