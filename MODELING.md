@@ -173,10 +173,6 @@ sequenceDiagram
 
 ### MapScreen - MapView and Location selection and Trajectory Loading
 ```mermaid
----
-config:
-  theme: neo-dark
----
 sequenceDiagram
     autonumber
     participant User
