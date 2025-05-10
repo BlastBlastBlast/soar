@@ -1,4 +1,11 @@
+> **Disclaimer**  
+> The following diagrams are intended to illustrate the conceptual architecture and flow of data within the main components of the app, specifically the `WeatherScreen`, `MapScreen`, and `ConfigScreens`, and their interaction with backend systems.  
+> Please note:
+> - The diagrams are based on the current design and may not reflect future changes or refactorings.
+> - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
+
 # Weather Screen
+### Weather Screen Navigation and initialization
 ```mermaid
 sequenceDiagram
     autonumber
@@ -41,7 +48,68 @@ sequenceDiagram
     end
     WeatherVM-->>WeatherUI: uiState = Success  
     deactivate WeatherVM
+
+    %% Render forecast cards
+    WeatherUI->>WeatherUI: renderDailyForecastCards  
+    WeatherUI->>WeatherUI: renderHourlyExpandableCards  
+
+    %% Hourly card initial state
+    User->>WeatherUI: clickExpandHourlyCard(time)  
+    WeatherUI->>WeatherUI: toggleHourlyCardExpanded(time)  
+    WeatherUI->>WeatherUI: showGetIsobaricDataButton(time) 
 ```
+
+### Weather Screen - Hourly Card and Isobaric Data rendering
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant WeatherUI as WeatherScreen
+    participant WeatherVM as WeatherViewModel
+    participant Domain
+    participant GRIBRepo as IsobaricRepository
+    participant IsobaricDS as IsobaricDataSource
+    participant ForecastDS as LocationForecastDataSource
+
+    User->>WeatherUI: onHourlyCardClick(time)  
+    WeatherUI->>WeatherUI: setHourlyCardExpanded(time,true)  
+
+    alt no isobaric data for time
+        WeatherUI->>WeatherUI: showGetIsobaricDataButton(time)  
+        User->>WeatherUI: onGetIsobaricDataClick(time)  
+        WeatherUI->>WeatherVM: loadIsobaricData(lat,lon,time)  
+        activate WeatherVM
+        WeatherVM->>Domain: getCurrentIsobaricData(lat,lon,time)  
+        activate Domain
+        Domain->>GRIBRepo: getIsobaricGribData(time)  
+        activate GRIBRepo
+        GRIBRepo->>IsobaricDS: fetchIsobaricGribData(uri)  
+        IsobaricDS-->>GRIBRepo: ByteArray  
+        GRIBRepo-->>Domain: GribDataMap  
+        deactivate GRIBRepo
+        Domain->>ForecastDS: fetchForecastData(lat,lon)  
+        ForecastDS-->>Domain: ForecastDataResponse  
+        Domain-->>WeatherVM: isobaricDataResult  
+        deactivate Domain
+        WeatherVM-->>WeatherUI: atmosphericWindStateSuccess(time,data)  
+        deactivate WeatherVM
+
+    else loading
+        WeatherUI->>WeatherUI: showIsobaricLoading(time)  
+    else error
+        WeatherUI->>WeatherUI: showIsobaricError(time)  
+    end
+
+    %% Display wind data table
+    WeatherUI->>WeatherUI: renderAtmosphericWindTable(time)  
+    WeatherUI->>Domain: evaluateConditions(config, forecastItem, isobaricData)  
+    Domain-->>WeatherUI: parameterStatesList  
+    WeatherUI->>Domain: calculateWindShear(isobaricData)  
+    Domain-->>WeatherUI: shearValues  
+    WeatherUI->>WeatherUI: renderAWTableContents(parameterStatesList, shearValues)  
+```
+
+### Segmented Bottom Bar interactions
 ```mermaid
     sequenceDiagram
     autonumber
@@ -148,51 +216,4 @@ sequenceDiagram
         end
     end
 ```
-```mermaid
-sequenceDiagram
-    autonumber
-    participant User
-    participant WeatherUI as WeatherScreen
-    participant WeatherVM as WeatherViewModel
-    participant Domain
-    participant GRIBRepo as IsobaricRepository
-    participant IsobaricDS as IsobaricDataSource
-    participant ForecastDS as LocationForecastDataSource
 
-    User->>WeatherUI: onHourlyCardClick(time)  
-    WeatherUI->>WeatherUI: setHourlyCardExpanded(time,true)  
-
-    alt no isobaric data for time
-        WeatherUI->>WeatherUI: showGetIsobaricDataButton(time)  
-        User->>WeatherUI: onGetIsobaricDataClick(time)  
-        WeatherUI->>WeatherVM: loadIsobaricData(lat,lon,time)  
-        activate WeatherVM
-        WeatherVM->>Domain: getCurrentIsobaricData(lat,lon,time)  
-        activate Domain
-        Domain->>GRIBRepo: getIsobaricGribData(time)  
-        activate GRIBRepo
-        GRIBRepo->>IsobaricDS: fetchIsobaricGribData(uri)  
-        IsobaricDS-->>GRIBRepo: ByteArray  
-        GRIBRepo-->>Domain: GribDataMap  
-        deactivate GRIBRepo
-        Domain->>ForecastDS: fetchForecastData(lat,lon)  
-        ForecastDS-->>Domain: ForecastDataResponse  
-        Domain-->>WeatherVM: isobaricDataResult  
-        deactivate Domain
-        WeatherVM-->>WeatherUI: atmosphericWindStateSuccess(time,data)  
-        deactivate WeatherVM
-
-    else loading
-        WeatherUI->>WeatherUI: showIsobaricLoading(time)  
-    else error
-        WeatherUI->>WeatherUI: showIsobaricError(time)  
-    end
-
-    %% Display wind data table
-    WeatherUI->>WeatherUI: renderAtmosphericWindTable(time)  
-    WeatherUI->>Domain: evaluateConditions(config, forecastItem, isobaricData)  
-    Domain-->>WeatherUI: parameterStatesList  
-    WeatherUI->>Domain: calculateWindShear(isobaricData)  
-    Domain-->>WeatherUI: shearValues  
-    WeatherUI->>WeatherUI: renderAWTableContents(parameterStatesList, shearValues)  
-```
