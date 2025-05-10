@@ -4,6 +4,10 @@
 > - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
 # Map Screen
 ### App launch -> MapScreen
+* **App launch & navigation setup:** When the user opens the app, `MainActivity.onCreate()` sets the Compose content to `App()`, which wraps everything in `AppScaffold` (app-wide theming) and then instantiates the `NavigationGraph` with `"maps"` as the start destination—so the `NavHostController` immediately shows `MapScreen` with its ViewModel and navigation callbacks.
+* **MapScreen initialization & data load:** As soon as `MapScreen` is composed, it calls `viewModel.loadLaunchSites()`, which asks `LaunchSitesRepository` to fetch all sites via the Room DAO (`queryAllLaunchSites()`), and the resulting list is emitted back to the screen as `uiState = Success(launchSitesList)`.
+* **MapView composition:** Once the launch-sites data is available, `MapScreen` composes its `MapView`, passing in the current map center and the loaded `launchSites`, so the map can render markers immediately.
+
 ```mermaid
 sequenceDiagram
     autonumber
