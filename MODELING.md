@@ -49,6 +49,7 @@ sequenceDiagram
     participant BottomBar as SegmentedBottomBar
     participant WeatherUI as WeatherScreen
     participant WeatherVM as WeatherViewModel
+    participant NavCtrl as NavController
     participant LaunchRepo as LaunchSiteRepository
     participant RoomDB as LaunchSiteDatabase
     participant LocRepo as LocationForecastRepository
@@ -57,6 +58,44 @@ sequenceDiagram
     participant Domain
     participant GRIBRepo as IsobaricRepository
     participant IsobaricDS as IsobaricDataSource
+
+    %% Segmented Bottom Bar interactions (Config, Filter, then Launch)
+    alt Config button
+        User->>BottomBar: click Config  
+        BottomBar->>WeatherUI: onConfigClick()  
+        WeatherUI->>WeatherUI: toggleConfigOverlay  
+        alt navigate to WeatherConfigList
+            WeatherUI->>NavCtrl: navigate(WeatherConfigList)  
+            activate NavCtrl
+            NavCtrl-->>User: show WeatherConfigListScreen  
+            deactivate NavCtrl
+        else select WeatherConfig
+            WeatherUI->>WeatherVM: setActiveWeatherConfig(config)  
+            activate WeatherVM
+            WeatherVM-->>WeatherUI: activeWeatherConfigUpdated  
+            deactivate WeatherVM
+        end
+    end
+
+    alt Filter button
+        User->>BottomBar: click Filter  
+        BottomBar->>WeatherUI: onFilterClick()  
+        WeatherUI->>WeatherUI: toggleFilterOverlay  
+
+        %% User adjusts filters
+        User->>WeatherUI: onToggleFilter()  
+        WeatherUI->>WeatherUI: setFilterActive  
+        User->>WeatherUI: onHoursChanged(hours)  
+        WeatherUI->>WeatherUI: setHoursToShow(hours)  
+        User->>WeatherUI: onStatusToggled(status)  
+        WeatherUI->>WeatherUI: updateSelectedStatuses(status)  
+        User->>WeatherUI: onToggleSunFilter()  
+        WeatherUI->>WeatherUI: setSunFilterActive  
+
+        %% Apply and re-render
+        WeatherUI->>WeatherUI: applyFiltersToForecast()  
+        WeatherUI->>WeatherUI: renderDailyForecast & renderHourlyForecast  
+    end
 
     alt Launch button
         User->>BottomBar: click Launch  
@@ -105,52 +144,6 @@ sequenceDiagram
             Domain-->>WeatherVM: isobaricDataResult  
             deactivate Domain
             WeatherVM-->>WeatherUI: atmosphericWindStateSuccess(now,data)  
-            deactivate WeatherVM
-        end
-    end
-```
-```mermaid
-sequenceDiagram
-    autonumber
-    participant User
-    participant BottomBar as SegmentedBottomBar
-    participant WeatherUI as WeatherScreen
-    participant WeatherVM as WeatherViewModel
-    participant NavCtrl as NavController
-
-    alt Filter button
-        User->>BottomBar: click Filter  
-        BottomBar->>WeatherUI: onFilterClick()  
-        WeatherUI->>WeatherUI: toggleFilterOverlay  
-
-        %% User adjusts filters
-        User->>WeatherUI: onToggleFilter()  
-        WeatherUI->>WeatherUI: setFilterActive  
-        User->>WeatherUI: onHoursChanged(hours)  
-        WeatherUI->>WeatherUI: setHoursToShow(hours)  
-        User->>WeatherUI: onStatusToggled(status)  
-        WeatherUI->>WeatherUI: updateSelectedStatuses(status)  
-        User->>WeatherUI: onToggleSunFilter()  
-        WeatherUI->>WeatherUI: setSunFilterActive  
-
-        %% Apply and re-render
-        WeatherUI->>WeatherUI: applyFiltersToForecast()  
-        WeatherUI->>WeatherUI: renderDailyForecast & renderHourlyForecast  
-    end
-
-    alt Config button
-        User->>BottomBar: click Config  
-        BottomBar->>WeatherUI: onConfigClick()  
-        WeatherUI->>WeatherUI: toggleConfigOverlay  
-        alt navigate to WeatherConfigList
-            WeatherUI->>NavCtrl: navigate(WeatherConfigList)  
-            activate NavCtrl
-            NavCtrl-->>User: show WeatherConfigListScreen  
-            deactivate NavCtrl
-        else select WeatherConfig
-            WeatherUI->>WeatherVM: setActiveWeatherConfig(config)  
-            activate WeatherVM
-            WeatherVM-->>WeatherUI: activeWeatherConfigUpdated  
             deactivate WeatherVM
         end
     end
