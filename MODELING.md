@@ -1335,6 +1335,7 @@ classDiagram
     WeatherConfigListScreen --> WeatherConfigListItem : composes
     RocketConfigListScreen  --> RocketConfigItem       : composes
 ```
+
 ## Navigation
 ```mermaid
 classDiagram
@@ -1417,140 +1418,141 @@ classDiagram
     Screen <|-- RocketConfigList
     Screen <|-- RocketConfigEdit
 ```
+
 ## Datasources and repositories
 ```mermaid
 classDiagram
-    class WeatherModel {
-        - locationForecastRepository: LocationForecastRepository
-        - isobaricRepository: IsobaricRepository
-        + getCurrentIsobaricData(lat: Double, lon: Double,
-        time: Instant
-        ): IsobaricDataResult
+    %% Sunrise API
+    class SunriseDataSource {
+        + fetchSunriseData(
+            lat: Double,
+            lon: Double,
+            date: String,
+            offset: String = "+01:00"
+        ) : Result<SunriseResponse>
     }
 
-    class LocationForecastRepository {
-        - locationForecastDataSource: LocationForecastDataSource
-        + getForecastData(lat: Double,
-        lon: Double,
-        timeSpanInHours: Int,
-        time: Instant?,
-        frequencyInHours: Int,
-        cacheResponse: Boolean
-        ): Result&lt;ForecastData&gt;
-        + getTimeZoneAdjustedForecast(lat: Double,
-        lon: Double,
-        timeSpanInHours: Int
-        ): Result&lt;ForecastData&gt;
+    class SunriseRepository {
+        - sunriseDataSource: SunriseDataSource
+        + getSunTimes(
+            lat: Double,
+            lon: Double,
+            date: String,
+            offset: String = "+00:00"
+        ) : Result<SunriseResponse>
+        + getValidSunTimes(
+            lat: Double,
+            lon: Double,
+            date: String,
+            offset: String = "+00:00"
+        ) : ValidSunTimes
     }
-    class LocationForecastDataSource {
-        + fetchForecastDataResponse(lat: Double,
-        lon: Double
-        ): Result&lt;ForecastDataResponse&gt;
+
+    %% Isobaric GRIB API
+    class IsobaricDataSource {
+        + fetchIsobaricGribData(uri: String) : Result<ByteArray>
+        + fetchAvailabilityData() : Result<GribAvailabilityResponse>
     }
-    
+
     class IsobaricRepository {
         - isobaricDataSource: IsobaricDataSource
         - gribDAO: GribDataDAO
         - updatedDAO: GribUpdatedDAO
-        + getIsobaricGribData(timeSlot: Instant): GribDataResult
-        + isGribDataAvailable(time: Instant): Boolean
-    }
-    class IsobaricDataSource {
-        + fetchIsobaricGribData(uri: String): Result&lt;ByteArray&gt;
-        + fetchAvailabilityData(): Result&lt;GribAvailabilityResponse&gt;
-    }
-    
-    class WeatherConfigRepository {
-        - weatherConfigDao: WeatherConfigDao
-        + insertWeatherConfig(cfg: WeatherConfig): Unit
-        + updateWeatherConfig(cfg: WeatherConfig): Unit
-        + deleteWeatherConfig(cfg: WeatherConfig): Unit
-        + getAllWeatherConfigs(): Flow&lt;List&lt;WeatherConfig&gt;&gt;
-        + getDefaultWeatherConfig(): Flow&lt;WeatherConfig?&gt;
-        + getWeatherConfig(configId: Int): Flow&lt;WeatherConfig?&gt;
-        + getAllWeatherConfigNames(): Flow&lt;List&lt;String&gt;&gt;
-    }
-    class LaunchSiteRepository {
-        - launchSiteDAO: LaunchSiteDAO
-        + getCurrentCoordinates(defaultCoordinates: Pair&lt;Double, Double&gt;): Flow&lt;Pair&lt;Double, Double&gt;&gt;
-        + getActiveSite(): Flow&lt;LaunchSite?&gt;
-        + insert(site: LaunchSite): Unit
-        + deleteSite(site: LaunchSite): Unit
-        + getSiteById(id: Int): LaunchSite?
-        + getAll(): Flow&lt;List&lt;LaunchSite&gt;&gt;
-        + update(site: LaunchSite): Unit
-        + getLastVisitedTempSite(): Flow&lt;LaunchSite?&gt;
-        + getLastVisitedElevation(): Double
-        + getNewMarkerTempSite(): Flow&lt;LaunchSite?&gt;
-        + checkIfSiteExists(name: String): Boolean
-        + getAllLaunchSiteNames(): Flow&lt;List&lt;String&gt;&gt;
-        + updateElevation(uid: Int, elevation: Double): Unit
-    }
-    class RocketConfigRepository {
-        - rocketConfigDao: RocketConfigDao
-        + insertRocketConfig(rc: RocketConfig): Unit
-        + updateRocketConfig(rc: RocketConfig): Unit
-        + deleteRocketConfig(rc: RocketConfig): Unit
-        + getAllRocketConfigs(): Flow&lt;List&lt;RocketConfig&gt;&gt;
-        + getDefaultRocketConfig(): Flow&lt;RocketConfig?&gt;
-        + getRocketConfig(rocketId: Int): Flow&lt;RocketConfig?&gt;
-        + setDefaultRocketConfig(rocketId: Int): Unit
-        + getAllRocketConfigNames(): Flow&lt;List&lt;String&gt;&gt;
+        + getIsobaricGribData(timeSlot: Instant) : GribDataResult
+        + isGribDataAvailable(time: Instant) : Boolean
     }
 
+    %% Location Forecast API
+    class LocationForecastDataSource {
+        + fetchForecastDataResponse(lat: Double, lon: Double) : Result<ForecastDataResponse>
+    }
+
+    class LocationForecastRepository {
+        - locationForecastDataSource: LocationForecastDataSource
+        + getForecastData(
+            lat: Double,
+            lon: Double,
+            timeSpanInHours: Int = 0,
+            time: Instant? = null,
+            frequencyInHours: Int = 1,
+            cacheResponse: Boolean = true
+        ) : Result<ForecastData>
+        + getTimeZoneAdjustedForecast(
+            lat: Double,
+            lon: Double,
+            timeSpanInHours: Int
+        ) : Result<ForecastData>
+    }
+
+    %% Weather model orchestration
+    class WeatherModel {
+        - locationForecastRepository: LocationForecastRepository
+        - isobaricRepository: IsobaricRepository
+        + getCurrentIsobaricData(
+            lat: Double,
+            lon: Double,
+            time: Instant
+        ) : IsobaricDataResult
+    }
+
+    %% Data persistence
     class AppDatabase {
-        + launchSiteDao(): LaunchSiteDAO
-        + gribDataDao(): GribDataDAO
-        + gribUpdatedDao(): GribUpdatedDAO
-        + WeatherConfigDao(): WeatherConfigDao
-        + rocketConfigDao(): RocketConfigDao
+        + launchSiteDao() : LaunchSiteDAO
+        + gribDataDao() : GribDataDAO
+        + gribUpdatedDao() : GribUpdatedDAO
+        + WeatherConfigDao() : WeatherConfigDao
+        + rocketConfigDao() : RocketConfigDao
     }
 
     class LaunchSiteDAO {
-        + insert(site: LaunchSite): Unit
-        + delete(site: LaunchSite): Unit
-        + findAll(): Flow&lt;List&lt;LaunchSite&gt;&gt;
-        + findSiteById(id: Int): LaunchSite?
-        + update(site: LaunchSite): Unit
-        + findLastVisitedTempSite(tempName: String = "Last Visited"): Flow&lt;LaunchSite?&gt;
-        + findNewMarkerTempSite(tempName: String = "New Marker"): Flow&lt;LaunchSite?&gt;
-        + checkIfSiteExists(name: String): LaunchSite?
-        + findAllLaunchSiteNames(): Flow&lt;List&lt;String&gt;&gt;
-        + updateElevation(uid: Int, elevation: Double): Unit
-    }
-    class GribDataDAO {
-        + insert(gribFile: GribData): Unit
-        + findByTimestamp(timestamp: String): GribData?
-        + clearAll(): Unit
-    }
-    class GribUpdatedDAO {
-        + insert(vararg gribUpdated: GribUpdated): Unit
-        + delete(): Unit
-        + findUpdated(): String?
-    }
-    class WeatherConfigDao {
-        + insertWeatherConfig(cfg: WeatherConfig): Unit
-        + updateWeatherConfig(cfg: WeatherConfig): Unit
-        + deleteWeatherConfig(cfg: WeatherConfig): Unit
-        + findAllWeatherConfigs(): Flow&lt;List&lt;WeatherConfig&gt;&gt;
-        + findDefaultWeatherConfig(): Flow&lt;WeatherConfig?&gt;
-        + findWeatherConfig(weatherId: Int): Flow&lt;WeatherConfig?&gt;
-        + findAllWeatherConfigNames(): Flow&lt;List&lt;String&gt;&gt;
-    }
-    class RocketConfigDao {
-        + insertRocketConfig(rc: RocketConfig): Unit
-        + updateRocketConfig(rc: RocketConfig): Unit
-        + deleteRocketConfig(rc: RocketConfig): Unit
-        + findAllRocketConfigs(): Flow&lt;List&lt;RocketConfig&gt;&gt;
-        + findAllRocketConfigNames(): Flow&lt;List&lt;String&gt;&gt;
-        + findRocketConfig(rocketId: Int): Flow&lt;RocketConfig?&gt;
-        + findDefaultRocketConfig(): Flow&lt;RocketConfig?&gt;
-        + findRocketConfigByName(name: String): Flow&lt;RocketConfig?&gt;
-        + clearDefaultFlags(): Unit
-        + setDefaultFlag(rocketId: Int): Unit
-        + setDefaultRocketConfig(rocketId: Int): Unit
+        + insert(site: LaunchSite) : Unit
+        + delete(site: LaunchSite) : Unit
+        + findAll() : Flow<List<LaunchSite>>
+        + findSiteById(id: Int) : LaunchSite?
+        + update(site: LaunchSite) : Unit
+        + findLastVisitedTempSite(tempName: String = "Last Visited") : Flow<LaunchSite?>
+        + findNewMarkerTempSite(tempName: String = "New Marker") : Flow<LaunchSite?>
+        + checkIfSiteExists(name: String) : LaunchSite?
+        + findAllLaunchSiteNames() : Flow<List<String>>
+        + updateElevation(uid: Int, elevation: Double) : Unit
     }
 
+    class GribDataDAO {
+        + insert(gribFile: GribData) : Unit
+        + findByTimestamp(timestamp: String) : GribData?
+        + clearAll() : Unit
+    }
+
+    class GribUpdatedDAO {
+        + insert(vararg gribUpdated: GribUpdated) : Unit
+        + delete() : Unit
+        + findUpdated() : String?
+    }
+
+    class WeatherConfigDao {
+        + insertWeatherConfig(cfg: WeatherConfig) : Unit
+        + updateWeatherConfig(cfg: WeatherConfig) : Unit
+        + deleteWeatherConfig(cfg: WeatherConfig) : Unit
+        + findAllWeatherConfigs() : Flow<List<WeatherConfig>>
+        + findDefaultWeatherConfig() : Flow<WeatherConfig?>
+        + findWeatherConfig(weatherId: Int) : Flow<WeatherConfig?>
+        + findAllWeatherConfigNames() : Flow<List<String>>
+    }
+
+    class RocketConfigDao {
+        + insertRocketConfig(rc: RocketConfig) : Unit
+        + updateRocketConfig(rc: RocketConfig) : Unit
+        + deleteRocketConfig(rc: RocketConfig) : Unit
+        + findAllRocketConfigs() : Flow<List<RocketConfig>>
+        + findAllRocketConfigNames() : Flow<List<String>>
+        + findRocketConfig(rocketId: Int) : Flow<RocketConfig?>
+        + findDefaultRocketConfig() : Flow<RocketConfig?>
+        + clearDefaultFlags() : Unit
+        + setDefaultFlag(rocketId: Int) : Unit
+        + setDefaultRocketConfig(rocketId: Int) : Unit
+    }
+
+    %% Domain entities
     class LaunchSite {
         + uid: Int
         + latitude: Double
@@ -1575,28 +1577,121 @@ classDiagram
     }
 
     %% Relationships
-    WeatherModel        --> LocationForecastRepository    : uses
-    WeatherModel        --> IsobaricRepository            : uses
+    SunriseRepository           --> SunriseDataSource         : uses
+    IsobaricRepository          --> IsobaricDataSource        : uses
+    LocationForecastRepository  --> LocationForecastDataSource: uses
 
-    IsobaricRepository  --> IsobaricDataSource            : uses
-    IsobaricRepository  --> GribDataDAO                   : uses
-    IsobaricRepository  --> GribUpdatedDAO                : uses
+    WeatherModel                --> LocationForecastRepository: uses
+    WeatherModel                --> IsobaricRepository        : uses
 
-    LocationForecastRepository --> LocationForecastDataSource : uses
+    AppDatabase                 o-- LaunchSiteDAO
+    AppDatabase                 o-- GribDataDAO
+    AppDatabase                 o-- GribUpdatedDAO
+    AppDatabase                 o-- WeatherConfigDao
+    AppDatabase                 o-- RocketConfigDao
 
-    WeatherConfigRepository   --> WeatherConfigDao       : uses
-    LaunchSiteRepository      --> LaunchSiteDAO          : uses
-    RocketConfigRepository    --> RocketConfigDao        : uses
+    LaunchSiteDAO               --> LaunchSite               : uses
+    GribDataDAO                 --> GribData                 : uses
+    GribUpdatedDAO              --> GribUpdated              : uses
+    WeatherConfigDao            --> WeatherConfig            : uses
+    RocketConfigDao             --> RocketConfig             : uses
 
-    AppDatabase o-- LaunchSiteDAO
-    AppDatabase o-- GribDataDAO
-    AppDatabase o-- GribUpdatedDAO
-    AppDatabase o-- WeatherConfigDao
-    AppDatabase o-- RocketConfigDao
+```
 
-    LaunchSiteDAO       --> LaunchSite      : uses
-    GribDataDAO         --> GribData        : uses
-    GribUpdatedDAO      --> GribUpdated     : uses
-    WeatherConfigDao    --> WeatherConfig   : uses
-    RocketConfigDao     --> RocketConfig    : uses
+## Dependency Injection
+```mermaid
+classDiagram
+direction LR
+    class AppModule {
+	    + provideJsonClient() : HttpClient
+	    + provideGribClient() : HttpClient
+	    + provideLocationForecastDataSource(client: HttpClient) : LocationForecastDataSource
+	    + provideSunriseDataSource(client: HttpClient) : SunriseDataSource
+	    + provideLocationForecastRepository(ds: LocationForecastDataSource) : LocationForecastRepository
+	    + provideIsobaricDataSource(gribClient: HttpClient, jsonClient: HttpClient) : IsobaricDataSource
+	    + provideIsobaricRepository(ds: IsobaricDataSource, gribDAO: GribDataDAO, gribUpdatedDAO: GribUpdatedDAO) : IsobaricRepository
+	    + provideSunriseRepository(ds: SunriseDataSource) : SunriseRepository
+	    + provideWeatherModel(lfRepo: LocationForecastRepository, isoRepo: IsobaricRepository) : WeatherModel
+	    + provideRocketConfigRepository(rcDao: RocketConfigDao) : RocketConfigRepository
+	    + provideIsobaricInterpolator(lfRepo: LocationForecastRepository, isoRepo: IsobaricRepository) : IsobaricInterpolator
+    }
+
+    class DatabaseModule {
+	    + provideDatabase(ctx: Context) : AppDatabase
+	    + provideLaunchSiteDao(db: AppDatabase) : LaunchSiteDAO
+	    + provideGribDataDao(db: AppDatabase) : GribDataDAO
+	    + provideGribUpdatedDao(db: AppDatabase) : GribUpdatedDAO
+	    + provideWeatherConfigDao(db: AppDatabase) : WeatherConfigDao
+	    + provideRocketConfigDao(db: AppDatabase) : RocketConfigDao
+    }
+
+    class HttpClient {
+    }
+
+    class LocationForecastDataSource {
+    }
+
+    class SunriseDataSource {
+    }
+
+    class LocationForecastRepository {
+    }
+
+    class IsobaricDataSource {
+    }
+
+    class IsobaricRepository {
+    }
+
+    class SunriseRepository {
+    }
+
+    class WeatherModel {
+    }
+
+    class RocketConfigRepository {
+    }
+
+    class IsobaricInterpolator {
+    }
+
+    class AppDatabase {
+    }
+
+    class LaunchSiteDAO {
+    }
+
+    class GribDataDAO {
+    }
+
+    class GribUpdatedDAO {
+    }
+
+    class WeatherConfigDao {
+    }
+
+    class RocketConfigDao {
+    }
+
+	<<Module>> AppModule
+	<<Module>> DatabaseModule
+
+    AppModule ..> HttpClient : provideJsonClient()
+    AppModule ..> HttpClient : provideGribClient()
+    AppModule ..> LocationForecastDataSource : provideLocationForecastDataSource()
+    AppModule ..> SunriseDataSource : provideSunriseDataSource()
+    AppModule ..> LocationForecastRepository : provideLocationForecastRepository()
+    AppModule ..> IsobaricDataSource : provideIsobaricDataSource()
+    AppModule ..> IsobaricRepository : provideIsobaricRepository()
+    AppModule ..> SunriseRepository : provideSunriseRepository()
+    AppModule ..> WeatherModel : provideWeatherModel()
+    AppModule ..> RocketConfigRepository : provideRocketConfigRepository()
+    AppModule ..> IsobaricInterpolator : provideIsobaricInterpolator()
+    DatabaseModule ..> AppDatabase : provideDatabase()
+    DatabaseModule ..> LaunchSiteDAO : provideLaunchSiteDao()
+    DatabaseModule ..> GribDataDAO : provideGribDataDao()
+    DatabaseModule ..> GribUpdatedDAO : provideGribUpdatedDao()
+    DatabaseModule ..> WeatherConfigDao : provideWeatherConfigDao()
+    DatabaseModule ..> RocketConfigDao : provideRocketConfigDao()
+
 ```
