@@ -144,16 +144,28 @@ sequenceDiagram
     GRIBRepo-->>Domain: gribDataMap  
     deactivate GRIBRepo
 
-    %% 4b) Loop simulation steps, reusing GRIB map
-    loop for each simulation step
+    %% 4b) Initial forecast grid around launch: 16 calls
+    loop initial grid (16 points)
+        Domain->>LocRepo: getForecastData(lat₀+dx, lon₀+dy, startTime)  
+        activate LocRepo
+        LocRepo->>ForecastDS: fetchForecastData(lat₀+dx, lon₀+dy)  
+        ForecastDS-->>LocRepo: ForecastDataResponse  
+        LocRepo-->>Domain: forecastData  
+        deactivate LocRepo
+    end
+
+    %% 4c) Simulation steps with quadrant‐based extra calls
+    loop simulation steps
         Domain->>Domain: interpolateWind(gribDataMap, position)
         alt if quadrant boundary crossed
-            Domain->>LocRepo: getForecastData(lat,lon,currentTime)  
-            activate LocRepo
-            LocRepo->>ForecastDS: fetchForecastData(lat,lon)  
-            ForecastDS-->>LocRepo: ForecastDataResponse  
-            LocRepo-->>Domain: forecastData  
-            deactivate LocRepo
+            loop quadrant forecasts (4 points)
+                Domain->>LocRepo: getForecastData(lat,lon,currentTime)  
+                activate LocRepo
+                LocRepo->>ForecastDS: fetchForecastData(lat,lon)  
+                ForecastDS-->>LocRepo: ForecastDataResponse  
+                LocRepo-->>Domain: forecastData  
+                deactivate LocRepo
+            end
         end
     end
 
