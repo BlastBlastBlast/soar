@@ -1335,3 +1335,85 @@ classDiagram
     WeatherConfigListScreen --> WeatherConfigListItem : composes
     RocketConfigListScreen  --> RocketConfigItem       : composes
 ```
+## Navigation
+```mermaid
+classDiagram
+    class AppViewModels {
+        + maps: MapScreenViewModel
+        + weather: WeatherViewModel
+        + configs: ConfigViewModel
+    }
+
+    class AppScaffold {
+        + AppScaffold(darkTheme: Boolean,
+        toggleTheme: () -> Unit
+        ) : Unit
+    }
+
+    class AppDrawer {
+        + AppDrawer(navController: NavHostController,
+        closeDrawer: () -> Unit
+        ) : Unit
+    }
+
+    class AppTopBar {
+        + AppTopBar(navController: NavHostController,
+        currentThemeDark: Boolean,
+        onToggleTheme: () -> Unit,
+        onOpenDrawer: () -> Unit
+        ) : Unit
+    }
+
+    class NavigationGraph {
+        + NavigationGraph(
+            navController: NavHostController,
+            innerPadding: PaddingValues,
+            mapScreenViewModel: MapScreenViewModel,
+            weatherCardViewModel: WeatherViewModel,
+            configViewModel: ConfigViewModel
+        ) : Unit
+    }
+
+    class Screen {
+        <<sealed>>
+        + route: String
+    }
+    class Maps          
+    class Weather       {createRoute(lat: Double, lon: Double) : String }
+    class LaunchSite    
+    class Configs      
+    class WeatherConfigList 
+    class WeatherConfigEdit {+ createRoute(weatherId: Int) : String }
+    class RocketConfigList  
+    class RocketConfigEdit  {+ createRoute(rocketName: String, rocketId: Int) : String }
+
+    class NavHostController
+
+    %% Composition & usage
+    AppScaffold       --> AppDrawer            : composes
+    AppScaffold       --> AppTopBar            : composes
+    AppScaffold       --> NavigationGraph      : composes
+    AppScaffold       --> AppViewModels        : uses
+
+    AppDrawer         --> NavHostController    : uses
+    AppDrawer         --> Screen               : uses
+
+    AppTopBar         --> NavHostController    : uses
+    AppTopBar         --> Screen               : uses
+
+    NavigationGraph   --> NavHostController    : uses
+    AppViewModels   --> MapScreenViewModel   : initializes
+    AppViewModels   --> WeatherViewModel     : initializes
+    AppViewModels   --> ConfigViewModel      : initializes
+    NavigationGraph   --> Screen               : navigates
+
+    %% Screen hierarchy
+    Screen <|-- Maps
+    Screen <|-- Weather
+    Screen <|-- LaunchSite
+    Screen <|-- Configs
+    Screen <|-- WeatherConfigList
+    Screen <|-- WeatherConfigEdit
+    Screen <|-- RocketConfigList
+    Screen <|-- RocketConfigEdit
+```
