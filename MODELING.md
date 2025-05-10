@@ -845,3 +845,132 @@ sequenceDiagram
     %% 4) Navigate back on success
     EditUI->>NavCtrl: navigateBack()  
 ```
+
+# Class diagrams
+```mermaid
+classDiagram
+    class MapScreenViewModel {
+        <<HiltViewModel>>
+        - launchSiteRepository: LaunchSiteRepository
+        - rocketConfigRepository: RocketConfigRepository
+        - isobaricInterpolator: IsobaricInterpolator
+        + uiState: StateFlow<MapScreenUiState>
+        + coordinates: StateFlow<Pair<Double, Double>>
+        + launchSites: StateFlow<List<LaunchSite>>
+        + selectedConfig: StateFlow<RocketConfig?>
+        + trajectoryPoints: StateFlow<List<Triple<RealVector, Double, RocketState>>>
+        + startTrajectory(): Unit
+        + clearTrajectory(): Unit
+        + selectConfig(cfg: RocketConfig): Unit
+        + updateCoordinates(lat: Double, lon: Double): Unit
+        + updateLastVisited(lat: Double, lon: Double, elevation: Double?): Unit
+        + updateNewMarker(lat: Double, lon: Double, elevation: Double?): Unit
+        + editLaunchSite(id: Int, lat: Double, lon: Double, elevation: Double?, name: String): Unit
+        + addLaunchSite(lat: Double, lon: Double, elevation: Double?, name: String): Unit
+        + geocodeAddress(address: String): Pair<Double, Double>?
+        + updateSiteElevation(id: Int, elevation: Double): Unit
+    }
+
+    class MapScreen {
+        + MapScreen(
+            viewModel: MapScreenViewModel,
+            onNavigateToWeather(lat: Double, lon: Double)
+          ): Unit
+    }
+
+    class MapView {
+        + MapView(
+            centerLat: Double, centerLon: Double,
+            newMarker: LaunchSite?, hasNewMarker: Boolean,
+            launchSites: List<LaunchSite>,
+            mapViewportState: MapViewportState,
+            onMapLongClick(pt: Point, elevation: Double?),
+            onMarkerClick(pt: Point, elevation: Double?),
+            onMarkerLongPress(pt: Point, elevation: Double?),
+            onSavedMarkerLongPress(site: LaunchSite),
+            onLaunchSiteClick(site: LaunchSite),
+            onSiteElevation(id: Int, elevation: Double),
+            trajectoryPoints: List<Triple<RealVector, Double, RocketState>>,
+            isAnimating: Boolean,
+            onAnimationEnd()
+          ): Unit
+    }
+
+    class TrajectoryPopup {
+        + TrajectoryPopup(
+            visible: Boolean,
+            lastVisited: LaunchSite?,
+            currentSite: LaunchSite?,
+            rocketConfigs: List<RocketConfig>,
+            selectedConfig: RocketConfig?,
+            onSelectConfig(cfg: RocketConfig),
+            onStartTrajectory(),
+            onClearTrajectory(),
+            onEditConfigs(),
+            onClose()
+          ): Unit
+    }
+
+    class MarkerLabel {
+        + MarkerLabel(
+            name: String,
+            latText: String,
+            lonText: String,
+            elevationText: String?,
+            loadingElevation: Boolean,
+            onClick(),
+            onDoubleClick(),
+            onLongPress()
+          ): Unit
+    }
+
+    class SaveLaunchSiteDialog {
+        + SaveLaunchSiteDialog(
+            launchSiteName: String,
+            onNameChange(name: String),
+            onConfirm(),
+            onDismiss(),
+            updateStatus: MapScreenViewModel.UpdateStatus
+          ): Unit
+    }
+
+    class LaunchSitesButton {
+        + LaunchSitesButton(onClick())
+    }
+
+    class LaunchSitesMenu {
+        + LaunchSitesMenu(
+            sites: List<LaunchSite>,
+            onSiteSelected(site: LaunchSite)
+          )
+    }
+
+    class RocketConfigCarousel {
+        + RocketConfigCarousel(
+            configs: List<RocketConfig>,
+            selected: RocketConfig?,
+            onSelectConfig(cfg: RocketConfig)
+          )
+    }
+
+    class WeatherNavigationButton {
+        + WeatherNavigationButton(
+            latInput: String,
+            lonInput: String,
+            onNavigate(lat: Double, lon: Double),
+            context: Context
+          )
+    }
+
+    %% Relationships
+    MapScreenViewModel <|.. MapScreen        : uses
+    MapScreen --> MapView                   : composes
+    MapScreen --> TrajectoryPopup           : composes
+    MapScreen --> SaveLaunchSiteDialog      : composes
+    MapScreen --> LaunchSitesButton         : composes
+    LaunchSitesButton --> LaunchSitesMenu   : composes
+    TrajectoryPopup --> RocketConfigCarousel      : composes
+    MapScreen --> WeatherNavigationButton   : composes
+    MapView --> MarkerLabel                 : composes
+
+```
