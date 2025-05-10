@@ -510,4 +510,289 @@ sequenceDiagram
         end
     end
 ```
+# Rocket Config
+### Rocket Config List Screen
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant ConfigListUI as RocketConfigListScreen
+    participant VM as ConfigViewModel
+    participant Repo as RocketConfigRepository
+    participant DAO as RocketConfigDao
+    participant DB as RoomDatabase
+    participant NavCtrl as NavHostController
 
+    %% 1) Screen initialization: load all configs
+    User->>ConfigListUI: navigateTo(RocketConfigList)  
+    activate ConfigListUI
+    ConfigListUI->>VM: collect rocketConfigs  
+    activate VM
+    VM->>Repo: getAllRocketConfigs()  
+    activate Repo
+    Repo->>DAO: findAllRocketConfigs()  
+    activate DAO
+    DAO->>DB: SELECT * FROM rocket_config  
+    DB-->>DAO: list<RocketConfig>  
+    DAO-->>Repo: list<RocketConfig>  
+    deactivate DAO
+    Repo-->>VM: list<RocketConfig>  
+    deactivate Repo
+    VM-->>ConfigListUI: rocketConfigs  
+    deactivate VM
+    deactivate ConfigListUI
+
+    %% 2) User selects a config to make default
+    alt User taps a non-default config
+        User->>ConfigListUI: selectConfig(cfg)  
+        ConfigListUI->>VM: setDefaultRocketConfig(cfg.id)  
+        activate VM
+        VM->>Repo: setDefaultRocketConfig(cfg.id)  
+        activate Repo
+        Repo->>DAO: setDefaultRocketConfig(cfg.id)  
+        activate DAO
+        DAO->>DB: UPDATE rocket_config SET is_default=0  
+        DB-->>DAO: OK  
+        DAO->>DB: UPDATE rocket_config SET is_default=1 WHERE id=cfg.id  
+        DB-->>DAO: OK  
+        DAO-->>Repo: done  
+        deactivate DAO
+        Repo-->>VM: done  
+        deactivate Repo
+        VM-->>ConfigListUI: defaultConfigUpdated  
+        ConfigListUI->>NavCtrl: navigateBack()
+        deactivate VM
+    end
+
+    %% 3) User deletes a config
+    alt User taps delete on cfg
+        User->>ConfigListUI: deleteConfig(cfg)  
+        ConfigListUI->>VM: deleteRocketConfig(cfg)  
+        activate VM
+        VM->>Repo: deleteRocketConfig(cfg)  
+        activate Repo
+        Repo->>DAO: deleteRocketConfig(cfg)  
+        activate DAO
+        DAO->>DB: DELETE FROM rocket_config WHERE id=cfg.id  
+        DB-->>DAO: OK  
+        DAO->>Repo: done  
+        deactivate DAO
+        Repo-->>VM: done  
+        deactivate Repo
+        VM-->>ConfigListUI: rocketConfigsUpdated  
+        deactivate VM
+    end
+
+    %% 4) User adds a new config
+    alt User taps “+”
+        User->>ConfigListUI: clickAdd  
+        ConfigListUI->>NavCtrl: navigate(RocketConfigEdit, rocketParameters=null)  
+    end
+```
+
+### Rocket Config Edit Screen
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant EditUI as RocketConfigEditScreen
+    participant VM as ConfigViewModel
+    participant Repo as RocketConfigRepository
+    participant DAO as RocketConfigDao
+    participant DB as RoomDatabase
+    participant NavCtrl as NavHostController
+
+    %% 1) Screen init: editing or creating
+    User->>EditUI: navigateTo(RocketConfigEdit[rocketParameters?])  
+    activate EditUI
+    EditUI->>VM: collect rocketUpdateStatus  
+    activate VM
+    VM-->>EditUI: updateStatus  
+    deactivate VM
+    deactivate EditUI
+
+    %% 2) Name uniqueness check
+    loop as user types name
+        EditUI->>VM: checkRocketNameAvailability(name)  
+        activate VM
+        VM->>Repo: getAllRocketConfigNames()  
+        activate Repo
+        Repo->>DAO: findAllRocketConfigNames()  
+        activate DAO
+        DAO->>DB: SELECT name FROM rocket_config  
+        DB-->>DAO: list<String>  
+        DAO-->>Repo: list<String>  
+        deactivate DAO
+        Repo-->>VM: list<String>  
+        deactivate Repo
+        VM-->>EditUI: availabilityStatus  
+        deactivate VM
+    end
+
+    %% 3) User taps “Save Rocket Configuration”
+    User->>EditUI: clickSave  
+    EditUI->>VM: saveOrUpdateRocketConfig(rc)  
+    activate VM
+    alt creating new
+        VM->>Repo: insertRocketConfig(rc)  
+    else updating existing
+        VM->>Repo: updateRocketConfig(rc)  
+    end
+    activate Repo
+    Repo->>DAO: insertRocketConfig(rc) or updateRocketConfig(rc)  
+    activate DAO
+    DAO->>DB: INSERT or UPDATE rocket_config  
+    DB-->>DAO: OK  
+    DAO-->>Repo: done  
+    deactivate DAO
+    Repo-->>VM: done  
+    deactivate Repo
+    VM-->>EditUI: updateStatus = Success  
+    deactivate VM
+
+    %% 4) Navigate back on success
+    EditUI->>NavCtrl: navigateBack()  
+```
+
+# Weather Config
+### Weather Config List Screen
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant ListUI as WeatherConfigListScreen
+    participant VM as ConfigViewModel
+    participant Repo as WeatherConfigRepository
+    participant DAO as WeatherConfigDao
+    participant DB as RoomDatabase
+    participant NavCtrl as NavController
+
+    %% 1) Screen initialization: load all weather configs
+    User->>ListUI: navigateTo(WeatherConfigList)  
+    activate ListUI
+    ListUI->>VM: collect weatherConfigs  
+    activate VM
+    VM->>Repo: getAllWeatherConfigs()  
+    activate Repo
+    Repo->>DAO: findAllWeatherConfigs()
+    activate DAO
+    DAO->>DB: SELECT * FROM weather_config
+    DB-->>DAO: list<WeatherConfig>  
+    DAO-->>Repo: list<WeatherConfig>  
+    deactivate DAO
+    Repo-->>VM: list<WeatherConfig>  
+    deactivate Repo
+    VM-->>ListUI: weatherConfigs  
+    deactivate VM
+    deactivate ListUI
+
+    %% 2) User selects a config to make default
+    alt User taps a non-default config
+        User->>ListUI: selectConfig(cfg)  
+        ListUI->>VM: setDefaultWeatherConfig(cfg.id)  
+        activate VM
+        VM->>Repo: setDefaultWeatherConfig(cfg.id)  
+        activate Repo
+        Repo->>DAO: findDefaultWeatherConfig() + setDefaultRocketConfig implementation 
+        activate DAO
+        DAO->>DB: UPDATE weather_config SET is_default=0 
+        DB-->>DAO: OK  
+        DAO->>DB: UPDATE weather_config SET is_default=1 WHERE id=cfg.id 
+        DB-->>DAO: OK  
+        DAO-->>Repo: done  
+        deactivate DAO
+        Repo-->>VM: done  
+        deactivate Repo
+        VM-->>ListUI: defaultConfigUpdated  
+        ListUI->>NavCtrl: navigateBack()  
+        deactivate VM
+    end
+
+    %% 3) User deletes a config
+    alt User taps delete on cfg
+        User->>ListUI: deleteConfig(cfg)  
+        ListUI->>VM: deleteWeatherConfig(cfg)  
+        activate VM
+        VM->>Repo: deleteWeatherConfig(cfg)  
+        activate Repo
+        Repo->>DAO: deleteWeatherConfig(cfg)  
+        activate DAO
+        DAO->>DB: DELETE FROM 
+        DB-->>DAO: OK  
+        DAO->>Repo: done  
+        deactivate DAO
+        Repo->>VM: done  
+        deactivate Repo
+        VM-->>ListUI: weatherConfigsUpdated  
+        deactivate VM
+    end
+
+    %% 4) User adds a new config
+    alt User taps “+”
+        User->>ListUI: clickAdd  
+        ListUI->>NavCtrl: navigate(WeatherConfigEdit, weatherConfig=null)  
+    end
+```
+
+### Weather Config Edit Screen
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant EditUI as WeatherConfigEditScreen
+    participant VM as ConfigViewModel
+    participant Repo as WeatherConfigRepository
+    participant DAO as WeatherConfigDao
+    participant DB as RoomDatabase
+    participant NavCtrl as NavController
+
+    %% 1) Screen init: editing or creating
+    User->>EditUI: navigateTo(WeatherConfigEdit[config?])  
+    activate EditUI
+    EditUI->>VM: collect weatherUpdateStatus  
+    activate VM
+    VM-->>EditUI: updateStatus  
+    deactivate VM
+
+    %% 2) Name uniqueness check
+    loop as user types name
+        EditUI->>VM: checkWeatherNameAvailability(name)  
+        activate VM
+        VM->>Repo: getAllWeatherConfigNames()  
+        activate Repo
+        Repo->>DAO: findAllWeatherConfigNames() :contentReference[oaicite:11]{index=11}:contentReference[oaicite:12]{index=12}  
+        activate DAO
+        DAO->>DB: SELECT name FROM weather_config ORDER BY name :contentReference[oaicite:13]{index=13}:contentReference[oaicite:14]{index=14}  
+        DB-->>DAO: list<String>  
+        DAO-->>Repo: list<String>  
+        deactivate DAO
+        Repo-->>VM: list<String>  
+        deactivate Repo
+        VM-->>EditUI: availabilityStatus  
+        deactivate VM
+    end
+
+    %% 3) User taps “Save Configuration”
+    User->>EditUI: clickSave  
+    EditUI->>VM: saveOrUpdateWeatherConfig(cfg)  
+    activate VM
+    alt creating new
+        VM->>Repo: insertWeatherConfig(cfg)  
+    else updating existing
+        VM->>Repo: updateWeatherConfig(cfg)  
+    end
+    activate Repo
+    Repo->>DAO: insertWeatherConfig(cfg) or updateWeatherConfig(cfg)  
+    activate DAO
+    DAO->>DB: INSERT or UPDATE weather_config :contentReference[oaicite:15]{index=15}:contentReference[oaicite:16]{index=16}  
+    DB-->>DAO: OK  
+    DAO->>Repo: done  
+    deactivate DAO
+    Repo-->>VM: done  
+    deactivate Repo
+    VM-->>EditUI: updateStatus = Success  
+    deactivate VM
+
+    %% 4) Navigate back on success
+    EditUI->>NavCtrl: navigateBack()  
+```
