@@ -59,21 +59,26 @@ sequenceDiagram
 
 ### MapScreen - MapView and Location selection and Trajectory Loading
 ```mermaid
+---
+config:
+  theme: neo-dark
+---
 sequenceDiagram
     autonumber
     participant User
     participant MapScreen
-    participant VM as MapScreenViewModel
-    participant LaunchRepo as LaunchSiteRepository
-    participant RoomDB as LaunchSiteDatabase
-    participant LocRepo as LocationForecastRepository
-    participant ForecastDS as LocationForecastDataSource
-    participant SunriseRepo as SunriseRepository
-    participant RocketRepo as RocketConfigRepository
-    participant Domain as TrajectoryCalculator
     participant MapView
     participant Mapbox as MapboxMap
+    participant VM as MapScreenViewModel
     participant NavCtrl as NavController
+    participant Domain as TrajectoryCalculator
+    participant LaunchRepo as LaunchSiteRepository
+    participant RocketRepo as RocketConfigRepository
+    participant LocRepo as LocationForecastRepository
+    participant GRIBRepo as IsobaricRepository
+    participant ForecastDS as LocationForecastDataSource
+    participant IsobaricDS as IsobaricDataSource
+    participant RoomDB as LaunchSiteDatabase
 
     %% 1) Initialization: load launch sites
     User->>MapScreen: onCreate/compose  
@@ -128,14 +133,33 @@ sequenceDiagram
     VM->>RocketRepo: getDefaultRocketConfig()  
     RocketRepo-->>VM: config  
     VM->>Domain: calculateTrajectory(initialPosition, config)  
+    activate Domain
+
+    loop for each simulation step
+        Domain->>GRIBRepo: getIsobaricGribData(time)  
+        activate GRIBRepo
+        GRIBRepo->>IsobaricDS: fetchIsobaricGribData(time)  
+        IsobaricDS-->>GRIBRepo: ByteArray  
+        GRIBRepo-->>Domain: GribDataMap  
+        deactivate GRIBRepo
+
+        Domain->>LocRepo: getForecastData(lat,lon,time)  
+        activate LocRepo
+        LocRepo->>ForecastDS: fetchForecastData(lat,lon)  
+        ForecastDS-->>LocRepo: ForecastDataResponse  
+        LocRepo-->>Domain: ForecastData  
+        deactivate LocRepo
+    end
+
     Domain-->>VM: trajectoryPoints  
+    deactivate Domain
     VM-->>MapScreen: trajectoryPoints  
     deactivate VM
 
     %% 5) Render trajectory
     MapScreen->>MapView: updateTrajectory(trajectoryPoints)  
     activate MapView
-    loop each point
+    loop each point in trajectoryPoints
         MapView->>Mapbox: addSource(id, geoJson(point))  
         MapView->>Mapbox: addLayer(id, modelLayer with translationZ)  
     end
