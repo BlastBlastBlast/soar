@@ -31,7 +31,7 @@ class LaunchSiteRepository @Inject constructor(
             .mapLatest { placeholder ->
                 placeholder?.let {
                     withContext(Dispatchers.IO) {
-                        launchSiteDAO.getSiteByCoordinates(it.latitude, it.longitude)
+                        launchSiteDAO.findSiteByCoordinates(it.latitude, it.longitude)
                     }
                 }
             }
@@ -46,11 +46,11 @@ class LaunchSiteRepository @Inject constructor(
     }
 
     suspend fun getSiteById(id: Int): LaunchSite? {
-        return launchSiteDAO.getSiteById(id)
+        return launchSiteDAO.findSiteById(id)
     }
 
     fun getAll(): Flow<List<LaunchSite>> {
-        return launchSiteDAO.getAll()
+        return launchSiteDAO.findAll()
     }
 
     suspend fun update(sites: LaunchSite) {
@@ -58,15 +58,15 @@ class LaunchSiteRepository @Inject constructor(
     }
 
     fun getLastVisitedTempSite(): Flow<LaunchSite?> {
-        return launchSiteDAO.getLastVisitedTempSite()
+        return launchSiteDAO.findLastVisitedTempSite()
     }
 
     suspend fun getLastVisitedElevation(): Double {
-        return launchSiteDAO.getLastVisitedTempSite().firstOrNull()?.elevation ?: 0.0
+        return launchSiteDAO.findLastVisitedTempSite().firstOrNull()?.elevation ?: 0.0
     }
 
     fun getNewMarkerTempSite(): Flow<LaunchSite?> {
-        return launchSiteDAO.getNewMarkerTempSite()
+        return launchSiteDAO.findNewMarkerTempSite()
     }
 
     suspend fun checkIfSiteExists(name : String) : Boolean {
@@ -74,7 +74,7 @@ class LaunchSiteRepository @Inject constructor(
     }
 
     fun getAllLaunchSiteNames() : Flow<List<String>> {
-        return launchSiteDAO.getAllLaunchSiteNames()
+        return launchSiteDAO.findAllLaunchSiteNames()
     }
 
     suspend fun updateElevation(uid: Int, elevation: Double) =
