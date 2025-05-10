@@ -6,7 +6,11 @@ sequenceDiagram
     participant WeatherUI as WeatherScreen
     participant WeatherVM as WeatherViewModel
     participant ConfigRepo as WeatherConfigRepository
+    participant LocRepo as LocationForecastRepository
+    participant ForecastDS as LocationForecastDataSource
+    participant SunriseRepo as SunriseRepository
 
+    %% Initial navigation & config load
     User->>WeatherUI: navigateTo("weather/...")  
     activate WeatherUI
     WeatherUI->>WeatherVM: collectDefaultWeatherConfig  
@@ -17,17 +21,8 @@ sequenceDiagram
     deactivate ConfigRepo
     WeatherVM-->>WeatherUI: activeWeatherConfig  
     deactivate WeatherVM
-```
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant WeatherUI as WeatherScreen
-    participant WeatherVM as WeatherViewModel
-    participant LocRepo as LocationForecastRepository
-    participant ForecastDS as LocationForecastDataSource
-    participant SunriseRepo as SunriseRepository
-
+    %% Coordinates & forecast load
     WeatherUI->>WeatherVM: collectCoordinates  
     WeatherVM-->>WeatherUI: coordinates(lat,lon)  
     WeatherUI->>WeatherVM: loadForecast(lat,lon)  
