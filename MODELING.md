@@ -1221,3 +1221,117 @@ classDiagram
     WeatherFilterOverlay ..> SunriseFilter          : uses
 
 ```
+
+### Configuration classes
+```mermaid
+classDiagram
+    class ConfigViewModel {
+        <<HiltViewModel>>
+        - weatherRepo: WeatherConfigRepository
+        - rocketRepo: RocketConfigRepository
+        + weatherConfigs: Flow&lt;List&lt;WeatherConfig&gt;&gt;
+        + rocketConfigs: Flow&lt;List&lt;RocketConfig&gt;&gt;
+        + weatherNames: StateFlow&lt;List&lt;String&gt;&gt;
+        + rocketNames: StateFlow&lt;List&lt;String&gt;&gt;
+        + getWeatherConfig(id: Int): Flow&lt;WeatherConfig?&gt;
+        + getRocketConfig(id: Int): Flow&lt;RocketConfig?&gt;
+        + updateStatus: StateFlow&lt;ConfigViewModel.UpdateStatus&gt;
+        + rocketUpdateStatus: StateFlow&lt;ConfigViewModel.UpdateStatus&gt;
+        + saveWeatherConfig(cfg: WeatherConfig): Unit
+        + updateWeatherConfig(cfg: WeatherConfig): Unit
+        + deleteWeatherConfig(cfg: WeatherConfig): Unit
+        + checkWeatherNameAvailability(name: String): Unit
+        + resetWeatherStatus(): Unit
+        + saveRocketConfig(rc: RocketConfig): Unit
+        + updateRocketConfig(rc: RocketConfig): Unit
+        + deleteRocketConfig(rc: RocketConfig): Unit
+        + checkRocketNameAvailability(name: String): Unit
+        + resetRocketStatus(): Unit
+    }
+
+    class ConfigType {
+        <<sealed>>
+        - route: String
+        - label: String
+    }
+    class ConfigTypeWeather {
+        <<object>>
+    }
+    class ConfigTypeRocket {
+        <<object>>
+    }
+
+    class ConfigScreen {
+        + ConfigScreen(
+            modifier: Modifier = Modifier,
+            onWeatherConfigsClick: () -> Unit,
+            onRocketConfigsClick: () -> Unit
+        ): Unit
+    }
+
+    class WeatherConfigListScreen {
+        + WeatherConfigListScreen(
+            viewModel: ConfigViewModel = hiltViewModel(),
+            onEditConfig: (WeatherConfig) -> Unit,
+            onAddConfig: () -> Unit,
+            onSelectConfig: (WeatherConfig) -> Unit
+        ): Unit
+    }
+    class WeatherConfigListItem {
+        + WeatherConfigListItem(
+            weatherConfig: WeatherConfig,
+            onClick: () -> Unit,
+            onEdit: () -> Unit,
+            onDelete: () -> Unit
+        ): Unit
+    }
+    class WeatherConfigEditScreen {
+        + WeatherConfigEditScreen(
+            weatherConfig: WeatherConfig? = null,
+            viewModel: ConfigViewModel = hiltViewModel(),
+            onNavigateBack: () -> Unit
+        ): Unit
+    }
+
+    class RocketConfigListScreen {
+        + RocketConfigListScreen(
+            viewModel: ConfigViewModel = hiltViewModel(),
+            onEditRocketConfig: (RocketConfig) -> Unit,
+            onAddRocketConfig: () -> Unit,
+            onSelectRocketConfig: (RocketConfig) -> Unit
+        ): Unit
+    }
+    class RocketConfigItem {
+        + RocketConfigItem(
+            rocketConfig: RocketConfig,
+            onClick: () -> Unit,
+            onEdit: () -> Unit,
+            onDelete: () -> Unit
+        ): Unit
+    }
+    class RocketConfigEditScreen {
+        + RocketConfigEditScreen(
+            rocketParameters: RocketConfig? = null,
+            viewModel: ConfigViewModel = hiltViewModel(),
+            onNavigateBack: () -> Unit
+        ): Unit
+    }
+
+    %% Inheritance
+    ConfigType <|-- ConfigTypeWeather
+    ConfigType <|-- ConfigTypeRocket
+
+    %% Usage
+    ConfigViewModel <|.. WeatherConfigListScreen : uses
+    ConfigViewModel <|.. WeatherConfigEditScreen : uses
+    ConfigViewModel <|.. RocketConfigListScreen  : uses
+    ConfigViewModel <|.. RocketConfigEditScreen  : uses
+
+    %% Navigation
+    ConfigScreen --> WeatherConfigListScreen    : navigates
+    ConfigScreen --> RocketConfigListScreen     : navigates
+
+    %% Composition
+    WeatherConfigListScreen --> WeatherConfigListItem : composes
+    RocketConfigListScreen  --> RocketConfigItem       : composes
+```
