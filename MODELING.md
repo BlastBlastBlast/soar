@@ -1,10 +1,9 @@
 > **Disclaimer**  
 > The following diagrams are intended to illustrate the conceptual architecture and flow of data within the main components of the app, specifically the `WeatherScreen`, `MapScreen`, and `ConfigScreens`, and their interaction with backend systems.  
-> Please note:
 > - The diagrams are based on the current design and may not reflect future changes or refactorings.
 > - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
 # Map Screen
-### App launch
+### App launch -> MapScreen
 ```mermaid
 sequenceDiagram
     autonumber
@@ -22,13 +21,13 @@ sequenceDiagram
     %% 1) App launch & navigation setup
     User->>MainActivity: launchApp  
     activate MainActivity
-    MainActivity->>MainActivity: onCreate :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}  
+    MainActivity->>MainActivity: onCreate() 
     MainActivity-->>MainActivity: setContent { App() }  
     MainActivity->>App: compose(darkTheme,toggleTheme)  
     activate App
-    App->>AppScaffold: AppScaffold(darkTheme,toggleTheme) :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}  
+    App->>AppScaffold: AppScaffold(darkTheme,toggleTheme)
     activate AppScaffold
-    AppScaffold->>NavHost: NavigationGraph(navController,…) :contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}  
+    AppScaffold->>NavHost: NavigationGraph(navController,…) 
     activate NavHost
     NavHost->>NavController: NavHost(startDestination=maps)  
     activate NavController
@@ -56,6 +55,121 @@ sequenceDiagram
     MapScreen-->>MapScreen: compose MapView(center, launchSites)  
     deactivate MapScreen
 ```
+
+### MapScreen - MarkerAnnotation and LaunchSite handling
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant MapView
+    participant MapScreen
+    participant SaveDialog as SaveLaunchSiteDialog
+    participant LSButton as LaunchSitesButton
+    participant LSM as LaunchSitesMenu
+    participant VM as MapScreenViewModel
+    participant Repo as LaunchSiteRepository
+    participant DAO as LaunchSiteDAO
+    participant DB as RoomDatabase
+
+
+    %% 1) Map long-press: placeholder creation only
+    User->>MapView: onMapLongClick(lat,lon)  
+    MapView->>MapScreen: onMarkerPlaced(lat,lon)  
+    MapScreen->>VM: onMarkerPlaced(lat,lon,null)  
+    activate VM
+    VM->>Repo: updateLastVisited(lat,lon,null)  
+    activate Repo
+    Repo->>DAO: checkIfSiteExists("Last Visited")
+    DAO->>DB: SELECT * FROM LaunchSite WHERE name="Last Visited"
+    DB-->>DAO: maybeLaunchSite
+    alt exists
+        DAO->>DB: UPDATE LaunchSite SET latitude=lat, longitude=lon
+    else
+        DAO->>DB: INSERT LaunchSite("Last Visited", lat, lon)
+    end
+    DAO-->>Repo: done
+    deactivate Repo
+
+    VM->>Repo: updateNewMarker(lat,lon,null)  
+    activate Repo
+    Repo->>DAO: checkIfSiteExists("New Marker")
+    DAO->>DB: SELECT * FROM LaunchSite WHERE name="New Marker"
+    DB-->>DAO: maybeLaunchSite
+    alt exists
+        DAO->>DB: UPDATE LaunchSite SET latitude=lat, longitude=lon
+    else
+        DAO->>DB: INSERT LaunchSite("New Marker", lat, lon)
+    end
+    DAO-->>Repo: done
+    Repo-->>VM: done
+    deactivate Repo
+
+    VM-->>MapScreen: newMarkerReady=true  
+    deactivate VM
+
+    %% 2) Save dialog triggered separately by user
+    User->>MapScreen: onSaveDialogRequested()  
+    MapScreen->>SaveDialog: showFor("New Marker")  
+    SaveDialog-->>User: render dialog
+
+    alt User confirms save
+        User->>SaveDialog: onConfirm(siteName)  
+        SaveDialog->>MapScreen: onSaveConfirm(siteName)  
+        MapScreen->>VM: addLaunchSite(siteName,lat,lon)  
+        activate VM
+        VM->>Repo: insert(LaunchSite(siteName,lat,lon))  
+        activate Repo
+        Repo->>DAO: insert LaunchSite(name,lat,lon)
+        DAO->>DB: INSERT LaunchSite entity
+        DB-->>DAO: OK
+        DAO-->>Repo: done
+        Repo-->>VM: done
+        deactivate Repo
+        VM-->>MapScreen: saveSuccess  
+        deactivate VM
+        MapScreen->>SaveDialog: hide()
+    end
+
+    %% 3) Double-click existing marker updates Last Visited and centers map
+    User->>MapView: onMarkerDoubleClick(site)  
+    MapView->>MapScreen: onSavedMarkerAnnotationClick(site)  
+    MapScreen->>VM: updateCoordinates(site.lat,site.lon)  
+    activate VM
+    VM->>Repo: updateLastVisited(site.lat,site.lon,null)  
+    activate Repo
+    Repo->>DAO: update LaunchSite("Last Visited")  
+    DAO->>DB: UPDATE LaunchSite entity  
+    DB-->>DAO: OK  
+    DAO-->>Repo: done  
+    Repo-->>VM: done  
+    deactivate Repo
+    VM-->>MapScreen: coordinatesUpdated  
+    deactivate VM
+    MapScreen->>MapView: easeTo(center=site)
+
+    %% 4) Launch Sites menu selection updates Last Visited
+    User->>LSButton: click  
+    LSButton->>MapScreen: onLaunchSitesClicked()  
+    MapScreen->>MapScreen: toggleLaunchMenu  
+    MapScreen->>LSM: show(launchSites)  
+    LSM-->>User: render launch sites list
+
+    User->>LSM: selectSite(site)  
+    LSM->>MapScreen: onSiteSelected(site)  
+    MapScreen->>VM: updateCoordinates(site.lat,site.lon)  
+    activate VM
+    VM->>Repo: updateLastVisited(site.lat,site.lon,null)  
+    activate Repo
+    Repo->>DAO: update LaunchSite("Last Visited")  
+    DAO->>DB: UPDATE LaunchSite entity  
+    DB-->>DAO: OK  
+    DAO-->>Repo: done  
+    Repo-->>VM: done  
+    deactivate Repo
+    VM-->>MapScreen: coordinatesUpdated  
+    deactivate VM
+    MapScreen->>MapView: easeTo(center=site)
+    ```
 
 ### MapScreen - MapView and Location selection and Trajectory Loading
 ```mermaid
