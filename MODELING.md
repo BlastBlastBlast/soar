@@ -3,6 +3,148 @@
 > Please note:
 > - The diagrams are based on the current design and may not reflect future changes or refactorings.
 > - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
+# Map Screen
+### App launch
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant MainActivity
+    participant App
+    participant AppScaffold
+    participant NavHost as NavigationGraph
+    participant NavController as NavHostController
+    participant MapScreen
+    participant ViewModel as MapScreenViewModel
+    participant LaunchRepo as LaunchSitesRepository
+    participant RoomDB as LaunchSiteDatabase
+
+    %% 1) App launch & navigation setup
+    User->>MainActivity: launchApp  
+    activate MainActivity
+    MainActivity->>MainActivity: onCreate :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}  
+    MainActivity-->>MainActivity: setContent { App() }  
+    MainActivity->>App: compose(darkTheme,toggleTheme)  
+    activate App
+    App->>AppScaffold: AppScaffold(darkTheme,toggleTheme) :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}  
+    activate AppScaffold
+    AppScaffold->>NavHost: NavigationGraph(navController,…) :contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5}  
+    activate NavHost
+    NavHost->>NavController: NavHost(startDestination=maps)  
+    activate NavController
+    NavController-->>NavHost: invoke composable(Maps.route)  
+    NavHost-->>MapScreen: compose MapScreen(viewModel, onNavigateToWeather)  
+    deactivate NavController
+    deactivate NavHost
+    deactivate AppScaffold
+    deactivate App
+
+    %% 2) MapScreen initialization and data load
+    activate MapScreen
+    MapScreen->>ViewModel: loadLaunchSites()  
+    activate ViewModel
+    ViewModel->>LaunchRepo: getAllLaunchSites()  
+    activate LaunchRepo
+    LaunchRepo->>RoomDB: queryAllLaunchSites()  
+    RoomDB-->>LaunchRepo: launchSitesList  
+    LaunchRepo-->>ViewModel: launchSitesList  
+    deactivate LaunchRepo
+    ViewModel-->>MapScreen: uiState = Success(launchSitesList)  
+    deactivate ViewModel
+
+    %% 3) Compose MapView and request forecast if needed
+    MapScreen-->>MapScreen: compose MapView(center, launchSites)  
+    deactivate MapScreen
+```
+
+### MapScreen - MapView and Location selection and Trajectory Loading
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant MapScreen
+    participant VM as MapScreenViewModel
+    participant LaunchRepo as LaunchSiteRepository
+    participant RoomDB as LaunchSiteDatabase
+    participant LocRepo as LocationForecastRepository
+    participant ForecastDS as LocationForecastDataSource
+    participant SunriseRepo as SunriseRepository
+    participant RocketRepo as RocketConfigRepository
+    participant Domain as TrajectoryCalculator
+    participant MapView
+    participant Mapbox as MapboxMap
+    participant NavCtrl as NavController
+
+    %% 1) Initialization: load launch sites
+    User->>MapScreen: onCreate/compose  
+    activate MapScreen
+    MapScreen->>VM: loadLaunchSites()  
+    activate VM
+    VM->>LaunchRepo: getAllLaunchSites()  
+    LaunchRepo->>RoomDB: queryAllLaunchSites()  
+    RoomDB-->>LaunchRepo: launchSitesList  
+    LaunchRepo-->>VM: launchSitesList  
+    VM-->>MapScreen: uiState(launchSites)  
+    deactivate VM
+
+    %% 2) MapView setup
+    MapScreen->>MapView: initialize(center, launchSites)  
+    activate MapView
+    MapView->>Mapbox: loadStyle(styleUrl + terrain + sky)  
+    Mapbox-->>MapView: styleLoaded  
+    deactivate MapView
+
+    %% 3) Trajectory popup flow
+    User->>MapScreen: clickTrajectoryFAB()  
+    MapScreen->>MapScreen: showTrajectoryPopup  
+
+    alt select rocket config
+        User->>MapScreen: onSelectConfig(cfg)  
+        MapScreen->>VM: setSelectedConfig(cfg)  
+        activate VM
+        VM-->>MapScreen: selectedConfig  
+        deactivate VM
+    end
+    alt edit configs
+        User->>MapScreen: onEditConfigs()  
+        MapScreen->>NavCtrl: navigate(RocketConfigList)  
+        activate NavCtrl
+        NavCtrl-->>User: showConfigListScreen  
+        deactivate NavCtrl
+    end
+    alt clear trajectory
+        User->>MapScreen: onClearTrajectory()  
+        MapScreen->>VM: clearTrajectory()  
+        activate VM
+        VM-->>MapScreen: trajectoryCleared  
+        deactivate VM
+        MapScreen->>MapView: clearTrajectoryLayers()  
+    end
+
+    %% 4) User starts trajectory
+    User->>MapScreen: onStartTrajectory()  
+    MapScreen->>VM: startTrajectory(initialPosition)  
+    activate VM
+    VM->>RocketRepo: getDefaultRocketConfig()  
+    RocketRepo-->>VM: config  
+    VM->>Domain: calculateTrajectory(initialPosition, config)  
+    Domain-->>VM: trajectoryPoints  
+    VM-->>MapScreen: trajectoryPoints  
+    deactivate VM
+
+    %% 5) Render trajectory
+    MapScreen->>MapView: updateTrajectory(trajectoryPoints)  
+    activate MapView
+    loop each point
+        MapView->>Mapbox: addSource(id, geoJson(point))  
+        MapView->>Mapbox: addLayer(id, modelLayer with translationZ)  
+    end
+    deactivate MapView
+
+    %% 6) Animate camera
+    MapView->>Mapbox: animateCameraAlong(trajectoryPoints)  
+    Mapbox-->>MapView: animationComplete  
+```
 
 # Weather Screen
 ### Weather Screen Navigation and initialization
