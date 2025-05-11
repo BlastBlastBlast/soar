@@ -55,7 +55,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 @Composable
 fun MapScreen(
     viewModel: MapScreenViewModel = hiltViewModel(),
-    onNavigateToWeather: (Double, Double) -> Unit
+    onNavigateToWeather: (Double, Double) -> Unit,
+    onNavigateToRocketConfig: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -233,7 +234,7 @@ fun MapScreen(
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },
-                            onEditConfigs = { },
+                            onEditConfigs = onNavigateToRocketConfig,
                             onClearTrajectory = {
                                 viewModel.clearTrajectory()
                                 showTrajectoryPopup = false

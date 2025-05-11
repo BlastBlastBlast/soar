@@ -57,13 +57,14 @@ fun NavigationGraph(
             .padding(innerPadding)
             .windowInsetsPadding(WindowInsets.ime)
     ) {
-        // — Home —
+        // — Map —
         composable(Maps.route) {
             MapScreen(
                 viewModel = mapScreenViewModel,
                 onNavigateToWeather = { lat, lon ->
                     navController.navigateSingleTopTo(Weather.createRoute(lat, lon))
                 },
+                onNavigateToRocketConfig = { navController.navigateSingleTopTo(RocketConfigList.route) }
             )
         }
 
