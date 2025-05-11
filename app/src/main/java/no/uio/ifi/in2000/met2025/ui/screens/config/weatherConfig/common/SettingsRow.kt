@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
+import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedNumberField
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSwitch
 
 @Composable
@@ -27,7 +27,7 @@ fun SettingRow(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AppOutlinedTextField(
+        AppOutlinedNumberField(
             value         = value,
             onValueChange = onValueChange,
             labelText     = label,

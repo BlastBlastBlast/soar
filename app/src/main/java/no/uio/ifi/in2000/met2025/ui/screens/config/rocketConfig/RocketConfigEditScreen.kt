@@ -29,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.models.RocketParameterType
+import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedNumberField
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
@@ -138,7 +139,7 @@ fun RocketConfigEditScreen(
                     }
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = launchAzimuth,
                         onValueChange= { launchAzimuth = it },
                         labelText    = "Launch Azimuth (°)",
@@ -146,7 +147,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = launchPitch,
                         onValueChange= { launchPitch = it },
                         labelText    = "Launch Pitch (°)",
@@ -154,7 +155,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = launchRailLength,
                         onValueChange= { launchRailLength = it },
                         labelText    = "Launch Rail Length (m)",
@@ -162,7 +163,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = wetMass,
                         onValueChange= { wetMass = it },
                         labelText    = "Wet Mass (kg)",
@@ -170,7 +171,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = dryMass,
                         onValueChange= { dryMass = it },
                         labelText    = "Dry Mass (kg)",
@@ -178,7 +179,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = burnTime,
                         onValueChange= { burnTime = it },
                         labelText    = "Burn Time (s)",
@@ -186,7 +187,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = thrust,
                         onValueChange= { thrust = it },
                         labelText    = "Thrust (N)",
@@ -194,7 +195,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = stepSize,
                         onValueChange= { stepSize = it },
                         labelText    = "Step Size (s)",
@@ -202,7 +203,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = crossSectionalArea,
                         onValueChange= { crossSectionalArea = it },
                         labelText    = "Cross-Sectional Area (m²)",
@@ -210,7 +211,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = dragCoefficient,
                         onValueChange= { dragCoefficient = it },
                         labelText    = "Drag Coefficient",
@@ -218,7 +219,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = parachuteCrossSectionalArea,
                         onValueChange= { parachuteCrossSectionalArea = it },
                         labelText    = "Parachute Cross-Sectional Area (m²)",
@@ -226,7 +227,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = parachuteDragCoefficient,
                         onValueChange= { parachuteDragCoefficient = it },
                         labelText    = "Parachute Drag Coefficient",
