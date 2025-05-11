@@ -9,12 +9,11 @@
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
 - [Usage](#usage)
-    - [Find Launch Windows](#Find Launch Windows)
+    - [Find Launch Windows](#Find-Launch-Windows)
     - [Trajectory Simulator](#trajectory-simulator)
 - [Navigation & UI](#navigation--ui)
 - [Known Issues](#known-issues)
 - [Acknowledgments](#acknowledgments)
-- [Contact](#contact)
 
 ---
 
