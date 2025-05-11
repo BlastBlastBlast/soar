@@ -43,6 +43,7 @@ fun WeatherConfigEditScreen(
     onNavigateBack: () -> Unit
 ) {
     val updateStatus by viewModel.updateStatus.collectAsState()
+    val weatherNames by viewModel.weatherNames.collectAsState()
 
     var configName               by remember(weatherConfig) { mutableStateOf(weatherConfig?.name ?: "") }
     var groundWind               by remember(weatherConfig) { mutableStateOf(weatherConfig?.groundWindThreshold?.toString() ?: "8.6") }
@@ -99,8 +100,7 @@ fun WeatherConfigEditScreen(
     }
 
     ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
-        val isNameError = updateStatus is ConfigViewModel.UpdateStatus.Error &&
-                configName != weatherConfig?.name
+        val isNameError = configName in weatherNames && configName != weatherConfig?.name
 
         // Name
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
@@ -233,6 +233,7 @@ fun WeatherConfigEditScreen(
                     viewModel.updateWeatherConfig(updated)
                 }
             },
+            enabled = !isNameError,
             modifier = Modifier.fillMaxWidth()
                 .semantics {
                     role = Role.Button
@@ -245,10 +246,10 @@ fun WeatherConfigEditScreen(
         ) {
             Text("Save Configuration")
         }
-        if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
+        if (isNameError) {
             val msg = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
             Text(
-                text = msg,
+                text = "A config named \"$configName\" allready exists",
                 color = Color.Red,
                 modifier = Modifier.semantics {
                     liveRegion = LiveRegionMode.Polite
