@@ -117,7 +117,6 @@ fun NavigationGraph(
                 },
                 onSelectConfig = { cfg ->
                     weatherCardViewModel.setActiveConfig(cfg)
-                    navController.popBackStack()
                 }
             )
         }
