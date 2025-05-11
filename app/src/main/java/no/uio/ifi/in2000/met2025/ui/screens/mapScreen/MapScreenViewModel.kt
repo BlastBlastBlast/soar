@@ -46,31 +46,15 @@ class MapScreenViewModel @Inject constructor(
         data class Error(val message: String) : MapScreenUiState()
     }
 
-    /** All configs, sorted so the default (isDefault=1) comes first */
-    val rocketConfigList: StateFlow<List<RocketConfig>> =
-        rocketConfigRepository
-            .getAllRocketConfigs()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
+    private val _rocketConfigList = MutableStateFlow<List<RocketConfig>>(emptyList())
+    val rocketConfigList: StateFlow<List<RocketConfig>> = _rocketConfigList
 
-    /** The one and only "default" config (or null if none yet) */
-    val selectedConfig: StateFlow<RocketConfig?> =
-        rocketConfigRepository
-            .getDefaultRocketConfig()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
-            )
+    private val _selectedConfig = MutableStateFlow<RocketConfig?>(null)
+    val selectedConfig: StateFlow<RocketConfig?> = _selectedConfig
 
     /** Call this when the user taps a config card */
     fun selectConfig(cfg: RocketConfig) {
-        viewModelScope.launch {
-            rocketConfigRepository.setDefaultRocketConfig(cfg.id)
-        }
+        _selectedConfig.value = cfg
     }
 
     private val _trajectoryPoints = MutableStateFlow<List<Triple<RealVector, Double, RocketState>>>(emptyList())
@@ -127,21 +111,24 @@ class MapScreenViewModel @Inject constructor(
                 )
             }
         }
-
         // 2) Ensure a default rocket config exists
         viewModelScope.launch {
-            val hasDefault = rocketConfigRepository.getDefaultRocketConfig().firstOrNull() != null
-            if (!hasDefault) {
-                rocketConfigRepository.insertRocketConfig(
-                    mapToRocketConfig(
-                        name      = "Default Rocket Config",
-                        values    = getDefaultRocketParameterValues(),
-                        isDefault = true
-                    )
+            val default = rocketConfigRepository.getDefaultRocketConfig().firstOrNull()
+            if (default == null) {
+                val defaultCfg = mapToRocketConfig(
+                    name = "Default Rocket Config",
+                    values = getDefaultRocketParameterValues(),
+                    isDefault = true
                 )
+                rocketConfigRepository.insertRocketConfig(defaultCfg)
+                _selectedConfig.value = defaultCfg
+            } else {
+                _selectedConfig.value = default
+            }
+            rocketConfigRepository.getAllRocketConfigs().collect { configs ->
+                _rocketConfigList.value = configs
             }
         }
-
         viewModelScope.launch {
             val tempSite = launchSiteRepository.getNewMarkerTempSite().firstOrNull()
             val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
