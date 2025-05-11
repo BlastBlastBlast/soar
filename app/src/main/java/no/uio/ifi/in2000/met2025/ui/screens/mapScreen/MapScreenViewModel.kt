@@ -46,31 +46,15 @@ class MapScreenViewModel @Inject constructor(
         data class Error(val message: String) : MapScreenUiState()
     }
 
-    /** All configs, sorted so the default (isDefault=1) comes first */
-    val rocketConfigList: StateFlow<List<RocketConfig>> =
-        rocketConfigRepository
-            .getAllRocketConfigs()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
+    private val _rocketConfigList = MutableStateFlow<List<RocketConfig>>(emptyList())
+    val rocketConfigList: StateFlow<List<RocketConfig>> = _rocketConfigList
 
-    /** The one and only "default" config (or null if none yet) */
-    val selectedConfig: StateFlow<RocketConfig?> =
-        rocketConfigRepository
-            .getDefaultRocketConfig()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
-            )
+    private val _selectedConfig = MutableStateFlow<RocketConfig?>(null)
+    val selectedConfig: StateFlow<RocketConfig?> = _selectedConfig
 
     /** Call this when the user taps a config card */
     fun selectConfig(cfg: RocketConfig) {
-        viewModelScope.launch {
-            rocketConfigRepository.setDefaultRocketConfig(cfg.id)
-        }
+        _selectedConfig.value = cfg
     }
 
     private val _trajectoryPoints = MutableStateFlow<List<Triple<RealVector, Double, RocketState>>>(emptyList())
@@ -103,6 +87,9 @@ class MapScreenViewModel @Inject constructor(
     private val _newMarkerStatus = MutableStateFlow(false)
     val newMarkerStatus: StateFlow<Boolean> = _newMarkerStatus
 
+    private val _launchSiteName = MutableStateFlow("")
+    val launchSiteName: StateFlow<String> = _launchSiteName
+
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         object Success : UpdateStatus()
@@ -124,21 +111,24 @@ class MapScreenViewModel @Inject constructor(
                 )
             }
         }
-
         // 2) Ensure a default rocket config exists
         viewModelScope.launch {
-            val hasDefault = rocketConfigRepository.getDefaultRocketConfig().firstOrNull() != null
-            if (!hasDefault) {
-                rocketConfigRepository.insertRocketConfig(
-                    mapToRocketConfig(
-                        name      = "Default Rocket Config",
-                        values    = getDefaultRocketParameterValues(),
-                        isDefault = true
-                    )
+            val default = rocketConfigRepository.getDefaultRocketConfig().firstOrNull()
+            if (default == null) {
+                val defaultCfg = mapToRocketConfig(
+                    name = "Default Rocket Config",
+                    values = getDefaultRocketParameterValues(),
+                    isDefault = true
                 )
+                rocketConfigRepository.insertRocketConfig(defaultCfg)
+                _selectedConfig.value = defaultCfg
+            } else {
+                _selectedConfig.value = default
+            }
+            rocketConfigRepository.getAllRocketConfigs().collect { configs ->
+                _rocketConfigList.value = configs
             }
         }
-
         viewModelScope.launch {
             val tempSite = launchSiteRepository.getNewMarkerTempSite().firstOrNull()
             val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
@@ -227,12 +217,12 @@ class MapScreenViewModel @Inject constructor(
     /** Change edit/add APIs to accept nullable elevation too */
     fun editLaunchSite(siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) {
         viewModelScope.launch {
-            val exists = launchSiteRepository.checkIfSiteExists(name)
-            if (exists) {
-                if (name != launchSiteRepository.getSiteById(siteId)?.name) {
+            val nameSite = launchSiteRepository.getSiteByName(name)
+            val exists = nameSite != null
+            val sameSite = nameSite?.uid == siteId
+            if (exists && !sameSite) {
                     _updateStatus.value =
                         UpdateStatus.Error("Launch site with this name already exists")
-                }
             } else {
                 launchSiteRepository.update(
                     LaunchSite(
@@ -339,10 +329,19 @@ class MapScreenViewModel @Inject constructor(
     fun addLaunchSite(lat: Double, lon: Double, elevation: Double?, name: String) {
         viewModelScope.launch {
             try {
-                launchSiteRepository.insert(
-                    LaunchSite(latitude = lat, longitude = lon, elevation = elevation, name = name)
-                )
-                _updateStatus.value = UpdateStatus.Success
+                if (name == "New Marker") {
+                    _updateStatus.value = UpdateStatus.Error("New Marker is not a valid name")
+                } else {
+                    launchSiteRepository.insert(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            elevation = elevation,
+                            name = name
+                        )
+                    )
+                    _updateStatus.value = UpdateStatus.Success
+                }
             } catch (e: SQLiteConstraintException) {
                 _updateStatus.value =
                     UpdateStatus.Error("Launch site with this name already exists")
@@ -354,52 +353,15 @@ class MapScreenViewModel @Inject constructor(
         _updateStatus.value = UpdateStatus.Idle
     }
 
-    fun geocodeAddress(address: String): Pair<Double, Double>? {
-        return if (address.contains("NYC", ignoreCase = true)) {
-            Pair(40.7128, -74.0060)
-        } else {
-            null
-        }
-    }
-
     fun updateSiteElevation(siteId: Int, elevation: Double) {
         viewModelScope.launch {
             launchSiteRepository.updateElevation(siteId, elevation)
         }
     }
 
-    /** Start the trajectory using the currently selected config */
-    /*fun startTrajectory() {
-        val cfg = _selectedConfig.value
-            ?: return  // optionally show an error “please pick a config first”
-
-        viewModelScope.launch {
-            // build initial “RealVector” from center + elevation
-            val (lat, lon) = coordinates.value
-            val elev = lastVisited.value?.elevation ?: 0.0
-            val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
-
-            trajectoryPoints = TrajectoryCalculator(isobaricInterpolator)
-                .calculateTrajectory(
-                    initialPosition = initial,
-                    launchAzimuth = cfg.launchAzimuth,
-                    launchPitch = cfg.launchPitch,
-                    launchRailLength = cfg.launchRailLength,
-                    wetMass = cfg.wetMass,
-                    dryMass = cfg.dryMass,
-                    burnTime = cfg.burnTime,
-                    thrust = cfg.thrust,
-                    stepSize = cfg.stepSize,
-                    crossSectionalArea = cfg.crossSectionalArea,
-                    dragCoefficient = cfg.dragCoefficient,
-                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient = cfg.parachuteDragCoefficient
-                )
-
-            isAnimating = true
-        }
-    */
-
+    fun updateLaunchSiteName(name: String) {
+        _launchSiteName.value = name
+    }
     /** Called when the user taps “⚙️ Rocket Configs” */
     fun showRocketConfigDialog() {
         // TODO: e.g. flip a StateFlow or send a UI‐event that your

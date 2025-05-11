@@ -23,7 +23,6 @@ class ConfigViewModel @Inject constructor(
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         object Success : UpdateStatus()
-        data class Error(val message: String) : UpdateStatus()
     }
 
     //–– 1) LIST FLOWS ––
@@ -69,14 +68,6 @@ class ConfigViewModel @Inject constructor(
         weatherRepo.deleteWeatherConfig(cfg)
     }
 
-    fun checkWeatherNameAvailability(name: String) {
-        _updateStatus.value = if (_weatherNames.value.contains(name)) {
-            UpdateStatus.Error("A config named \"$name\" already exists")
-        } else {
-            UpdateStatus.Idle
-        }
-    }
-
     fun resetWeatherStatus() {
         _updateStatus.value = UpdateStatus.Idle
     }
@@ -97,14 +88,6 @@ class ConfigViewModel @Inject constructor(
 
     fun deleteRocketConfig(rc: RocketConfig) = viewModelScope.launch {
         rocketRepo.deleteRocketConfig(rc)
-    }
-
-    fun checkRocketNameAvailability(name: String) {
-        _rocketUpdateStatus.value = if (_rocketNames.value.contains(name)) {
-            UpdateStatus.Error("A rocket config named \"$name\" already exists")
-        } else {
-            UpdateStatus.Idle
-        }
     }
 
     fun resetRocketStatus() {

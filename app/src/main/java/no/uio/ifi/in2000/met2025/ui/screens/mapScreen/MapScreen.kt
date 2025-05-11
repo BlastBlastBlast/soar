@@ -55,7 +55,8 @@ import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 @Composable
 fun MapScreen(
     viewModel: MapScreenViewModel = hiltViewModel(),
-    onNavigateToWeather: (Double, Double) -> Unit
+    onNavigateToWeather: (Double, Double) -> Unit,
+    onNavigateToRocketConfig: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -78,7 +79,7 @@ fun MapScreen(
     var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var showSaveDialog by rememberSaveable { mutableStateOf(false) }
 
-    var launchSiteName by rememberSaveable { mutableStateOf("") }
+    val launchSiteName by viewModel.launchSiteName.collectAsState()
     var isEditingMarker by rememberSaveable { mutableStateOf(false) }
     var editingMarkerId by rememberSaveable { mutableStateOf(0) }
     var showAnnotations by rememberSaveable { mutableStateOf(true) }
@@ -89,13 +90,13 @@ fun MapScreen(
     val selectedCfg by viewModel.selectedConfig.collectAsState()
     var showTrajectoryPopup by remember { mutableStateOf(false) }
 
-    val fakeLongClick: (Point, Double?) -> Unit = { pt, elev ->
+    val mapLongClick: (Point, Double?) -> Unit = { pt, elev ->
         viewModel.onMarkerPlaced(
             lat = pt.latitude(),
             lon = pt.longitude(),
             elevation = elev
         )
-        launchSiteName = "New Marker"
+        viewModel.updateLaunchSiteName("New Marker")
     }
 
 
@@ -143,14 +144,18 @@ fun MapScreen(
             }
 
 
-            Box(Modifier.fillMaxSize().semantics { contentDescription = "Home screen with map and controls" }
+            Box(Modifier
+                .fillMaxSize()
+                .semantics { contentDescription = "Home screen with map and controls" }
             ) {
-                Box(modifier = Modifier.matchParentSize().semantics {
-                            // Treat the map as an image with interactive markers
-                            role = Role.Image
-                            contentDescription =
-                                "Map view showing launch sites and your current position"
-                        }
+                Box(modifier = Modifier
+                    .matchParentSize()
+                    .semantics {
+                        // Treat the map as an image with interactive markers
+                        role = Role.Image
+                        contentDescription =
+                            "Map view showing launch sites and your current position"
+                    }
                 ) {
                     MapView(
                         center = coords,
@@ -160,7 +165,7 @@ fun MapScreen(
                         mapViewportState = mapViewportState,
                         modifier = Modifier.matchParentSize(),
                         showAnnotations = showAnnotations,
-                        onMapLongClick = fakeLongClick,
+                        onMapLongClick = mapLongClick,
                         onMarkerAnnotationClick = { pt, elev ->
                             viewModel.updateCoordinates(pt.latitude(), pt.longitude())
                             viewModel.updateLastVisited(pt.latitude(), pt.longitude(), elev)
@@ -169,7 +174,7 @@ fun MapScreen(
                             viewModel.updateCoordinates(pt.latitude(), pt.longitude())
                             viewModel.updateLastVisited(pt.latitude(), pt.longitude(), elev)
                             isEditingMarker = false
-                            launchSiteName = "New Marker"
+                            viewModel.updateLaunchSiteName("New Marker")
                             showSaveDialog = true
                         },
                         onLaunchSiteMarkerClick = { site ->
@@ -187,11 +192,11 @@ fun MapScreen(
                                 site.longitude,
                                 site.elevation
                             )
-                            isEditingMarker = true
                             editingMarkerId = site.uid
                             savedMarkerCoordinates = site.latitude to site.longitude
-                            launchSiteName = site.name
+                            viewModel.updateLaunchSiteName(site.name)
                             showSaveDialog = true
+                            isEditingMarker = true
                         },
                         onSiteElevation = { uid, elev ->
                             viewModel.updateSiteElevation(uid, elev)
@@ -206,7 +211,9 @@ fun MapScreen(
                             Icon(
                                 painter = painterResource(id = R.drawable.missile),
                                 contentDescription = null,
-                                modifier = Modifier.size(30.dp).padding(4.dp),
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .padding(4.dp),
                                 tint = Color.Black // Set the desired color here
                             )
                         },
@@ -227,7 +234,7 @@ fun MapScreen(
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },
-                            onEditConfigs = { },
+                            onEditConfigs = onNavigateToRocketConfig,
                             onClearTrajectory = {
                                 viewModel.clearTrajectory()
                                 showTrajectoryPopup = false
@@ -273,7 +280,10 @@ fun MapScreen(
                     }
 
                     LaunchSitesButton(
-                        Modifier.align(Alignment.BottomStart).padding(16.dp).size(90.dp),
+                        Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp)
+                            .size(90.dp),
                         onClick = { isMenuExpanded = !isMenuExpanded }
                     )
 
@@ -281,7 +291,8 @@ fun MapScreen(
                         visible = isMenuExpanded,
                         enter = expandVertically(tween(300)) + fadeIn(tween(300)),
                         exit = shrinkVertically(tween(300)) + fadeOut(tween(300)),
-                        modifier = Modifier.align(Alignment.BottomStart)
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
                             .padding(start = 16.dp, bottom = 100.dp)
                     ) {
                         LaunchSitesMenu(
@@ -308,10 +319,14 @@ fun MapScreen(
 
                     IconButton(
                         onClick = { showAnnotations = !showAnnotations },
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).size(36.dp)
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp)
+                            .size(36.dp)
                             .semantics {
                                 contentDescription = if (showAnnotations)
-                                    "Hide map annotations" else "Show map annotations" }
+                                    "Hide map annotations" else "Show map annotations"
+                            }
                     ) {
                         Icon(
                             imageVector = if (showAnnotations)
@@ -321,7 +336,10 @@ fun MapScreen(
                     }
 
                     WeatherNavigationButton(
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(90.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                            .size(90.dp),
                         latInput = coords.first.toString(),
                         lonInput = coords.second.toString(),
                         onNavigate = { lat, lon ->
@@ -335,13 +353,13 @@ fun MapScreen(
                         SaveLaunchSiteDialog(
                             launchSiteName = launchSiteName,
                             onNameChange = {
-                                launchSiteName = it
+                                viewModel.updateLaunchSiteName(it)
                                 viewModel.setUpdateStatusIdle()
                             },
                             onDismiss = {
                                 showSaveDialog = false
                                 savedMarkerCoordinates = null
-                                launchSiteName = ""
+                                viewModel.updateLaunchSiteName("")
                                 isEditingMarker = false
                                 viewModel.setUpdateStatusIdle()
                             },
@@ -353,11 +371,11 @@ fun MapScreen(
                                 }
                                 if (isEditingMarker) {
                                     viewModel.editLaunchSite(
-                                        editingMarkerId,
-                                        savedMarkerCoordinates!!.first,
-                                        savedMarkerCoordinates!!.second,
-                                        elev,
-                                        launchSiteName
+                                        siteId = editingMarkerId,
+                                        lat = savedMarkerCoordinates!!.first,
+                                        lon = savedMarkerCoordinates!!.second,
+                                        elevation = elev,
+                                        name = launchSiteName
                                     )
                                 } else {
                                     viewModel.addLaunchSite(
@@ -375,10 +393,13 @@ fun MapScreen(
                         if (updateStatus is MapScreenViewModel.UpdateStatus.Success) {
                             showSaveDialog = false
                             savedMarkerCoordinates = null
-                            launchSiteName = ""
-                            isEditingMarker = false
+                            viewModel.updateLaunchSiteName("")
+                            if (isEditingMarker) {
+                                isEditingMarker = false
+                            } else {
+                                viewModel.setNewMarkerStatusFalse()
+                            }
                             viewModel.setUpdateStatusIdle()
-                            viewModel.setNewMarkerStatusFalse()
                         }
                     }
                 }

@@ -24,6 +24,9 @@ interface LaunchSiteDAO {
     @Query("SELECT * FROM LaunchSite WHERE uid = :id LIMIT 1")
     suspend fun findSiteById(id: Int): LaunchSite?
 
+    @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
+    suspend fun findSiteByName(name: String): LaunchSite?
+
     @Update
     suspend fun update(sites: LaunchSite)
 

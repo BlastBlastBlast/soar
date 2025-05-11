@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -28,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.models.RocketParameterType
+import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedNumberField
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
@@ -40,6 +42,7 @@ fun RocketConfigEditScreen(
 ) {
     // ➊ collect the rocket‐edit status
     val updateStatus by viewModel.rocketUpdateStatus.collectAsState()
+    val rocketNames by viewModel.rocketNames.collectAsState()
 
     val defaultsMap = getDefaultRocketParameterValues().valueMap
 
@@ -69,11 +72,6 @@ fun RocketConfigEditScreen(
     var parachuteDragCoefficient by remember(rocketParameters) { mutableStateOf(rocketParameters?.parachuteDragCoefficient?.toString()
         ?: defaultsMap[RocketParameterType.PARACHUTE_DRAG_COEFFICIENT.name]?.toString() ?: "") }
 
-    // ➋ re-check name uniqueness
-    LaunchedEffect(name) {
-        viewModel.checkRocketNameAvailability(name)
-    }
-
     Box(
         Modifier
             .fillMaxSize()
@@ -96,6 +94,8 @@ fun RocketConfigEditScreen(
             shadowElevation = 8.dp,
             shape = RoundedCornerShape(12.dp)
         ) {
+
+            val isNameError = name in rocketNames && name != rocketParameters?.name
             Column(
                 Modifier
                     .fillMaxSize()
@@ -130,16 +130,16 @@ fun RocketConfigEditScreen(
                         labelText    = "Configuration Name",
                         modifier     = Modifier.fillMaxWidth()
                     )
-                    if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
+                    if (isNameError) {
                         Text(
-                            text = (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
+                            text = "Config name already exists",
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = launchAzimuth,
                         onValueChange= { launchAzimuth = it },
                         labelText    = "Launch Azimuth (°)",
@@ -147,7 +147,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = launchPitch,
                         onValueChange= { launchPitch = it },
                         labelText    = "Launch Pitch (°)",
@@ -155,7 +155,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = launchRailLength,
                         onValueChange= { launchRailLength = it },
                         labelText    = "Launch Rail Length (m)",
@@ -163,7 +163,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = wetMass,
                         onValueChange= { wetMass = it },
                         labelText    = "Wet Mass (kg)",
@@ -171,7 +171,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = dryMass,
                         onValueChange= { dryMass = it },
                         labelText    = "Dry Mass (kg)",
@@ -179,7 +179,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = burnTime,
                         onValueChange= { burnTime = it },
                         labelText    = "Burn Time (s)",
@@ -187,7 +187,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = thrust,
                         onValueChange= { thrust = it },
                         labelText    = "Thrust (N)",
@@ -195,7 +195,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = stepSize,
                         onValueChange= { stepSize = it },
                         labelText    = "Step Size (s)",
@@ -203,7 +203,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = crossSectionalArea,
                         onValueChange= { crossSectionalArea = it },
                         labelText    = "Cross-Sectional Area (m²)",
@@ -211,7 +211,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = dragCoefficient,
                         onValueChange= { dragCoefficient = it },
                         labelText    = "Drag Coefficient",
@@ -219,7 +219,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = parachuteCrossSectionalArea,
                         onValueChange= { parachuteCrossSectionalArea = it },
                         labelText    = "Parachute Cross-Sectional Area (m²)",
@@ -227,7 +227,7 @@ fun RocketConfigEditScreen(
                     )
                     Spacer(Modifier.height(8.dp))
 
-                    AppOutlinedTextField(
+                    AppOutlinedNumberField(
                         value        = parachuteDragCoefficient,
                         onValueChange= { parachuteDragCoefficient = it },
                         labelText    = "Parachute Drag Coefficient",
@@ -284,21 +284,31 @@ fun RocketConfigEditScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
                         contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    ),
+                    enabled = !isNameError && name.isNotBlank()
                 ) {
                     Text("Save Rocket Configuration")
                 }
-                if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
-                    val err = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
+                if (isNameError) {
                     Text(
-                        text = err,
+                        text = "Config name \"$name\" already exists",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .padding(top = 4.dp)
                             .semantics {
                                 liveRegion = LiveRegionMode.Polite
-                                contentDescription = err
+                                contentDescription = "Config name $name already exists"
                             }
+                    )
+                }
+                if (name.isBlank()) {
+                    Text(
+                        text = "Configuration Name field must not be empty",
+                        color = Color.Red,
+                        modifier = Modifier.semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            contentDescription = "Configuration Name field must not be empty"
+                        }
                     )
                 }
 

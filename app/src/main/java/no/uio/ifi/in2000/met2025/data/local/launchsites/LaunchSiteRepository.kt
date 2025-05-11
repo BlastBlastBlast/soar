@@ -49,6 +49,10 @@ class LaunchSiteRepository @Inject constructor(
         return launchSiteDAO.findSiteById(id)
     }
 
+    suspend fun getSiteByName(name: String): LaunchSite? {
+        return launchSiteDAO.findSiteByName(name)
+    }
+
     fun getAll(): Flow<List<LaunchSite>> {
         return launchSiteDAO.findAll()
     }

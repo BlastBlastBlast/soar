@@ -43,6 +43,7 @@ fun WeatherConfigEditScreen(
     onNavigateBack: () -> Unit
 ) {
     val updateStatus by viewModel.updateStatus.collectAsState()
+    val weatherNames by viewModel.weatherNames.collectAsState()
 
     var configName               by remember(weatherConfig) { mutableStateOf(weatherConfig?.name ?: "") }
     var groundWind               by remember(weatherConfig) { mutableStateOf(weatherConfig?.groundWindThreshold?.toString() ?: "8.6") }
@@ -94,13 +95,8 @@ fun WeatherConfigEditScreen(
         SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
     )
 
-    LaunchedEffect(configName) {
-        viewModel.checkWeatherNameAvailability(configName)
-    }
-
     ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
-        val isNameError = updateStatus is ConfigViewModel.UpdateStatus.Error &&
-                configName != weatherConfig?.name
+        val isNameError = configName in weatherNames && configName != weatherConfig?.name
 
         // Name
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
@@ -108,7 +104,6 @@ fun WeatherConfigEditScreen(
                 value         = configName,
                 onValueChange = {
                     configName = it
-                    viewModel.checkWeatherNameAvailability(it)
                 },
                 labelText    = "Name",
                 modifier = Modifier.fillMaxWidth()
@@ -116,7 +111,7 @@ fun WeatherConfigEditScreen(
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
                 Text(
-                    (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
+                    text = "A config named \"$configName\" already exists",
                     color = Color.Red
                 )
             }
@@ -233,6 +228,7 @@ fun WeatherConfigEditScreen(
                     viewModel.updateWeatherConfig(updated)
                 }
             },
+            enabled = !isNameError && configName.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
                 .semantics {
                     role = Role.Button
@@ -245,14 +241,23 @@ fun WeatherConfigEditScreen(
         ) {
             Text("Save Configuration")
         }
-        if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
-            val msg = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
+        if (isNameError) {
             Text(
-                text = msg,
+                text = "A config named \"$configName\" already exists",
                 color = Color.Red,
                 modifier = Modifier.semantics {
                     liveRegion = LiveRegionMode.Polite
-                    contentDescription = msg
+                    contentDescription = "A config named $configName already exists"
+                }
+            )
+        }
+        if (configName.isBlank()) {
+            Text(
+                text = "Configuration Name field must not be empty",
+                color = Color.Red,
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Configuration Name field must not be empty"
                 }
             )
         }
