@@ -95,10 +95,6 @@ fun WeatherConfigEditScreen(
         SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
     )
 
-    LaunchedEffect(configName) {
-        viewModel.checkWeatherNameAvailability(configName)
-    }
-
     ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
         val isNameError = configName in weatherNames && configName != weatherConfig?.name
 
@@ -108,7 +104,6 @@ fun WeatherConfigEditScreen(
                 value         = configName,
                 onValueChange = {
                     configName = it
-                    viewModel.checkWeatherNameAvailability(it)
                 },
                 labelText    = "Name",
                 modifier = Modifier.fillMaxWidth()

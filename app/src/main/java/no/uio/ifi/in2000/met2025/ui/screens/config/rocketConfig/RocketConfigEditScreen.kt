@@ -71,11 +71,6 @@ fun RocketConfigEditScreen(
     var parachuteDragCoefficient by remember(rocketParameters) { mutableStateOf(rocketParameters?.parachuteDragCoefficient?.toString()
         ?: defaultsMap[RocketParameterType.PARACHUTE_DRAG_COEFFICIENT.name]?.toString() ?: "") }
 
-    // ➋ re-check name uniqueness
-    LaunchedEffect(name) {
-        viewModel.checkRocketNameAvailability(name)
-    }
-
     Box(
         Modifier
             .fillMaxSize()
@@ -98,6 +93,8 @@ fun RocketConfigEditScreen(
             shadowElevation = 8.dp,
             shape = RoundedCornerShape(12.dp)
         ) {
+
+            val isNameError = name in rocketNames && name != rocketParameters?.name
             Column(
                 Modifier
                     .fillMaxSize()
@@ -124,7 +121,6 @@ fun RocketConfigEditScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                val isNameError = name in rocketNames && name != rocketParameters?.name
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     // --- all fields now use labelText + implicit semantics ---
                     AppOutlinedTextField(
