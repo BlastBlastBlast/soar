@@ -116,7 +116,7 @@ fun WeatherConfigEditScreen(
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
                 Text(
-                    (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
+                    text = "A config named \"$configName\" already exists",
                     color = Color.Red
                 )
             }
@@ -247,13 +247,12 @@ fun WeatherConfigEditScreen(
             Text("Save Configuration")
         }
         if (isNameError) {
-            val msg = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
             Text(
-                text = "A config named \"$configName\" allready exists",
+                text = "A config named \"$configName\" already exists",
                 color = Color.Red,
                 modifier = Modifier.semantics {
                     liveRegion = LiveRegionMode.Polite
-                    contentDescription = msg
+                    contentDescription = "A config named $configName already exists"
                 }
             )
         }
