@@ -314,44 +314,47 @@ fun MapView(
             // 6) Draw the “new” marker
             //Null check needed for first launch of app
             if (newMarkerStatus && newMarker != null) {
-                val icon = rememberIconImage(
-                    key = R.drawable.red_marker,
-                    painter = painterResource(R.drawable.red_marker)
-                )
-                val pt =
-                    temporaryMarker ?: Point.fromLngLat(newMarker.longitude, newMarker.latitude)
-                PointAnnotation(point = pt) { iconImage = icon }
-                if (showAnnotations) {
-                    ViewAnnotation(
-                        options = viewAnnotationOptions {
-                            geometry(pt)
-                            annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
-                            allowOverlap(true)
-                        }
-                    ) {
-                        MarkerLabel(
-                            name = newMarker.name,
-                            lat = "%.4f".format(pt.latitude()),
-                            lon = "%.4f".format(pt.longitude()),
-                            elevation = markerElevation?.let { "%.1f m".format(it) },
-                            isLoadingElevation = markerElevation == null,   // show spinner when null
-                            onClick = { onMarkerAnnotationClick(pt, markerElevation) },
-                            onLongPress = { onMarkerAnnotationLongPress(pt, markerElevation) },
-                            onDoubleClick = { scope.launch {
-                                mapViewportState.easeTo(
-                                    cameraOptions {
-                                        center(pt)
-                                        zoom(14.0)
-                                        pitch(0.0)
-                                        bearing(0.0)
-                                    },
-                                    MapAnimationOptions.mapAnimationOptions { duration(1000L) }
-                                )
+                key(newMarker.uid to newMarker.name) {
+                    val icon = rememberIconImage(
+                        key = R.drawable.red_marker,
+                        painter = painterResource(R.drawable.red_marker)
+                    )
+                    val pt =
+                        temporaryMarker ?: Point.fromLngLat(newMarker.longitude, newMarker.latitude)
+                    PointAnnotation(point = pt) { iconImage = icon }
+                    if (showAnnotations) {
+                        ViewAnnotation(
+                            options = viewAnnotationOptions {
+                                geometry(pt)
+                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
+                                allowOverlap(true)
                             }
-                                onLaunchSiteMarkerClick(newMarker)
-                            }
-                        )
+                        ) {
+                            MarkerLabel(
+                                name = newMarker.name,
+                                lat = "%.4f".format(pt.latitude()),
+                                lon = "%.4f".format(pt.longitude()),
+                                elevation = markerElevation?.let { "%.1f m".format(it) },
+                                isLoadingElevation = markerElevation == null,   // show spinner when null
+                                onClick = { onMarkerAnnotationClick(pt, markerElevation) },
+                                onLongPress = { onMarkerAnnotationLongPress(pt, markerElevation) },
+                                onDoubleClick = {
+                                    scope.launch {
+                                        mapViewportState.easeTo(
+                                            cameraOptions {
+                                                center(pt)
+                                                zoom(14.0)
+                                                pitch(0.0)
+                                                bearing(0.0)
+                                            },
+                                            MapAnimationOptions.mapAnimationOptions { duration(1000L) }
+                                        )
+                                    }
+                                    onLaunchSiteMarkerClick(newMarker)
+                                }
+                            )
 
+                        }
                     }
                 }
             }
@@ -369,35 +372,45 @@ fun MapView(
                     PointAnnotation(point = sitePoint) { iconImage = siteImage }
 
                     if (showAnnotations) {
-                        ViewAnnotation(
-                            options = viewAnnotationOptions {
-                                geometry(sitePoint)
-                                annotationAnchor { anchor(ViewAnnotationAnchor.BOTTOM).offsetY(60.0) }
-                                allowOverlap(true)
-                            }
-                        ) {
-                            MarkerLabel(
-                                name = site.name,
-                                lat = "%.4f".format(site.latitude),
-                                lon = "%.4f".format(site.longitude),
-                                elevation = site.elevation?.let { "%.1f m".format(it) } ?: "—",
-                                onClick = { /* tap‐noop */ },
-                                onDoubleClick = {
-                                    scope.launch {
-                                        mapViewportState.easeTo(
-                                            cameraOptions {
-                                                center(sitePoint)
-                                                zoom(14.0)
-                                                pitch(0.0)
-                                                bearing(0.0)
-                                            },
-                                            MapAnimationOptions.mapAnimationOptions { duration(1000L) }
+                        key(site.uid to site.name) {
+                            ViewAnnotation(
+                                options = viewAnnotationOptions {
+                                    geometry(sitePoint)
+                                    annotationAnchor {
+                                        anchor(ViewAnnotationAnchor.BOTTOM).offsetY(
+                                            60.0
                                         )
                                     }
-                                    onLaunchSiteMarkerClick(site)
-                                },
-                                onLongPress = { onSavedMarkerAnnotationLongPress(site) }
-                            )
+                                    allowOverlap(true)
+                                }
+                            ) {
+                                MarkerLabel(
+                                    name = site.name,
+                                    lat = "%.4f".format(site.latitude),
+                                    lon = "%.4f".format(site.longitude),
+                                    elevation = site.elevation?.let { "%.1f m".format(it) } ?: "—",
+                                    onClick = { /* tap‐noop */ },
+                                    onDoubleClick = {
+                                        scope.launch {
+                                            mapViewportState.easeTo(
+                                                cameraOptions {
+                                                    center(sitePoint)
+                                                    zoom(14.0)
+                                                    pitch(0.0)
+                                                    bearing(0.0)
+                                                },
+                                                MapAnimationOptions.mapAnimationOptions {
+                                                    duration(
+                                                        1000L
+                                                    )
+                                                }
+                                            )
+                                        }
+                                        onLaunchSiteMarkerClick(site)
+                                    },
+                                    onLongPress = { onSavedMarkerAnnotationLongPress(site) }
+                                )
+                            }
                         }
                     }
 
