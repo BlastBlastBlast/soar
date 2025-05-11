@@ -233,7 +233,7 @@ fun WeatherConfigEditScreen(
                     viewModel.updateWeatherConfig(updated)
                 }
             },
-            enabled = !isNameError,
+            enabled = !isNameError && configName.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
                 .semantics {
                     role = Role.Button
@@ -253,6 +253,16 @@ fun WeatherConfigEditScreen(
                 modifier = Modifier.semantics {
                     liveRegion = LiveRegionMode.Polite
                     contentDescription = "A config named $configName already exists"
+                }
+            )
+        }
+        if (configName.isBlank()) {
+            Text(
+                text = "Configuration Name field must not be empty",
+                color = Color.Red,
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Configuration Name field must not be empty"
                 }
             )
         }

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -40,6 +41,7 @@ fun RocketConfigEditScreen(
 ) {
     // ➊ collect the rocket‐edit status
     val updateStatus by viewModel.rocketUpdateStatus.collectAsState()
+    val rocketNames by viewModel.rocketNames.collectAsState()
 
     val defaultsMap = getDefaultRocketParameterValues().valueMap
 
@@ -122,6 +124,7 @@ fun RocketConfigEditScreen(
 
                 Spacer(Modifier.height(16.dp))
 
+                val isNameError = name in rocketNames && name != rocketParameters?.name
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     // --- all fields now use labelText + implicit semantics ---
                     AppOutlinedTextField(
@@ -130,9 +133,9 @@ fun RocketConfigEditScreen(
                         labelText    = "Configuration Name",
                         modifier     = Modifier.fillMaxWidth()
                     )
-                    if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
+                    if (isNameError) {
                         Text(
-                            text = (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
+                            text = "Config name already exists",
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 4.dp)
                         )
@@ -284,21 +287,31 @@ fun RocketConfigEditScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = WarmOrange,
                         contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    ),
+                    enabled = !isNameError && name.isNotBlank()
                 ) {
                     Text("Save Rocket Configuration")
                 }
-                if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
-                    val err = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
+                if (isNameError) {
                     Text(
-                        text = err,
+                        text = "Config name \"$name\" already exists",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .padding(top = 4.dp)
                             .semantics {
                                 liveRegion = LiveRegionMode.Polite
-                                contentDescription = err
+                                contentDescription = "Config name $name already exists"
                             }
+                    )
+                }
+                if (name.isBlank()) {
+                    Text(
+                        text = "Configuration Name field must not be empty",
+                        color = Color.Red,
+                        modifier = Modifier.semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            contentDescription = "Configuration Name field must not be empty"
+                        }
                     )
                 }
 
