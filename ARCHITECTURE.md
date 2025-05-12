@@ -1,3 +1,6 @@
+- [Introduction](#introduction)
+
+
 ## Introduction
 This document provides an overview of the chosen architecture, the structure of the project, and the coding practices that were followed, along with reasoning for the decisions made during development. It is intended for developers who will continue working on, maintaining, or extending the application.
 
