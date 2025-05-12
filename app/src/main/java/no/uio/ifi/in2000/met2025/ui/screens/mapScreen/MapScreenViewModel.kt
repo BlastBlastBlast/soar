@@ -191,6 +191,14 @@ class MapScreenViewModel @Inject constructor(
         }
     }
 
+    fun reloadScreen() {
+        _uiState.value = MapScreenUiState.Success(
+            launchSites = launchSites.value,
+            apiKeyAvailable = true,
+            isOnline = true
+        )
+    }
+
     fun updateNewMarker(lat: Double, lon: Double, elevation: Double?) {
         viewModelScope.launch {
             try {
@@ -276,37 +284,45 @@ class MapScreenViewModel @Inject constructor(
     /** Start the trajectory using the currently selected config */
     fun startTrajectory() {
         viewModelScope.launch {
-            // 1) Grab the current default/selected config
-            val cfg = selectedConfig.value
-                ?: return@launch    // nothing selected yet, bail
+            try {
+                // 1) Grab the current default/selected config
+                val cfg = selectedConfig.value
+                    ?: return@launch    // nothing selected yet, bail
 
-            // 2) Build the initial position from your center coords + elevation
-            val (lat, lon) = _coordinates.value
-            val elev       = launchSiteRepository.getLastVisitedElevation()
-            val initial    = ArrayRealVector(doubleArrayOf(lat, lon, elev))
-            val traj: List<Triple<RealVector, Double, RocketState>> = TrajectoryCalculator(isobaricInterpolator)
-            // 3) Run the physics‐based sim
-                .calculateTrajectory(
-                    initialPosition = initial,
-                    launchAzimuthInDegrees = cfg.launchAzimuth,
-                    launchPitchInDegrees = cfg.launchPitch,
-                    launchRailLength = cfg.launchRailLength,
-                    wetMass = cfg.wetMass,
-                    dryMass = cfg.dryMass,
-                    burnTime = cfg.burnTime,
-                    thrust = cfg.thrust,
-                    stepSize = cfg.stepSize,
-                    crossSectionalArea = cfg.crossSectionalArea,
-                    dragCoefficient = cfg.dragCoefficient,
-                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient = cfg.parachuteDragCoefficient,
-                    timeOfLaunch = Instant.now()
-                ).getOrThrow()
+                // 2) Build the initial position from your center coords + elevation
+                val (lat, lon) = _coordinates.value
+                val elev = launchSiteRepository.getLastVisitedElevation()
+                val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
+                val traj: List<Triple<RealVector, Double, RocketState>> =
+                    TrajectoryCalculator(isobaricInterpolator)
+                        // 3) Run the physics‐based sim
+                        .calculateTrajectory(
+                            initialPosition = initial,
+                            launchAzimuthInDegrees = cfg.launchAzimuth,
+                            launchPitchInDegrees = cfg.launchPitch,
+                            launchRailLength = cfg.launchRailLength,
+                            wetMass = cfg.wetMass,
+                            dryMass = cfg.dryMass,
+                            burnTime = cfg.burnTime,
+                            thrust = cfg.thrust,
+                            stepSize = cfg.stepSize,
+                            crossSectionalArea = cfg.crossSectionalArea,
+                            dragCoefficient = cfg.dragCoefficient,
+                            parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
+                            parachuteDragCoefficient = cfg.parachuteDragCoefficient,
+                            timeOfLaunch = Instant.now()
+                        ).getOrThrow()
 
-            // 4) Publish the points & kick off the camera animation
-            _trajectoryPoints.value = traj
-            isAnimating      = true
-            isTrajectoryMode = true
+                // 4) Publish the points & kick off the camera animation
+                _trajectoryPoints.value = traj
+                isAnimating = true
+                isTrajectoryMode = true
+            } catch (e: Exception) {
+                _uiState.value = MapScreenUiState.Error(
+                    "Something went wrong with the launch simulation. " +
+                            "Please check your internet connection and try again."
+                )
+            }
         }
     }
 
