@@ -31,10 +31,14 @@ The project is organized into distinct layers to promote modularity:
   - common/, navigation/, theme/: Shared UI components, navigation setup, and app-wide styling.
 
 ## Object-Oriented Principles
-- The codebase adheres to key object-oriented principles:
-  - **Low Coupling**: Components are isolated and communicate via interfaces. Hilt manages dependencies to decouple object creation from usage.
-  - **High Cohesion**: Each class and module has a clear, single responsibility. For example, WeatherModel exclusively handles weather logic, while all map interactions are contained within MapScreen.
-  - **Reusability**: Components like WeatherLoadingSpinner and DailyForecastCard are designed to be reused across multiple screens.
+The codebase is designed with strong adherence to low coupling, where clear separation of concerns ensures modules can evolve independently. As well as high cohesion, where each class or component has a single, well-defined responsibility. 
+Along with reusability where UI components such as WeatherLoadingSpinner, AppOutlineTextfield are designed for reuse across multiple screens if needed.
+
+**Low coupling** is achieved using Hilt, which injects repositories/data sources automatically, and by ensuring layers are isolated and communicate only through well-defined interfaces.
+
+**High cohesion** is made possible by folders and components that are organised by single responsibility. As an example, weather data is only in WeatherModel, whilst the map logic is within the MapScreen.
+
+The design patterns **MVVM** and **UDF** are consistently used along with the repository/data source pattern to separate networking and caching. 
 
 ## Design Patterns
 **MVVM (Model-View-ViewModel)**
