@@ -2,13 +2,13 @@
 This document provides an overview of the chosen architecture, the structure of the project, and the coding practices that were followed, along with reasoning for the decisions made during development. It is intended for developers who will continue working on, maintaining, or extending the application.
 
 
-## Architecture
+### Architecture
 The application follows the MVVM (Model-View-ViewModel) architecture, which promotes low coupling between components and high cohesion within modules. This structure improves testability, maintainability, and scalability.
 - **Model**: Contains business logic, data models, and handles both local and remote data sources.
 - **ViewModel**: Acts as a bridge between the Model and the View. It fetches and transforms data into UI-friendly formats and contains logic for UI interactions.
 - **View**: Consists of UI elements and screen components that observe the ViewModel and reactively update the user interface.
 
-## Project Structure
+### Project Structure
 The project is organized into distinct layers to promote modularity:
 
 **data/**
@@ -30,7 +30,7 @@ The project is organized into distinct layers to promote modularity:
   - screens/: Each screen (for example weatherScreen, mapScreen) has its own folder containing components and ViewModels.
   - common/, navigation/, theme/: Shared UI components, navigation setup, and app-wide styling.
 
-## Object-Oriented Principles
+### Object-Oriented Principles
 The codebase is designed with strong adherence to low coupling, where clear separation of concerns ensures modules can evolve independently. As well as high cohesion, where each class or component has a single, well-defined responsibility. 
 Along with reusability where UI components such as WeatherLoadingSpinner, AppOutlineTextfield are designed for reuse across multiple screens if needed.
 
@@ -40,7 +40,7 @@ Along with reusability where UI components such as WeatherLoadingSpinner, AppOut
 
 The design patterns **MVVM** and **UDF** are consistently used along with the repository/data source pattern to separate networking and caching. 
 
-## Design Patterns
+### Design Patterns
 **MVVM (Model-View-ViewModel)**
 - Used to separate the user interface, application logic, and data layers.
   - **Model (Data/Domain)**: Handles data storage, API communication, and domain-specific logic.
@@ -55,7 +55,7 @@ The design patterns **MVVM** and **UDF** are consistently used along with the re
 
 The benefits of these design patterns are easy debugging, a clear data flow and high modularity, which is why these have been chosen.
 
-## Technologies and Frameworks
+### Technologies and Frameworks
 - **Jetpack Compose**: Manages the entire UI layer.
 - **Hilt**: Dependency Injection framework that automatically provides and injects components.
 - **Ktor**: HTTP client used for fetching JSON and binary weather data.
@@ -64,13 +64,13 @@ The benefits of these design patterns are easy debugging, a clear data flow and 
 - **GRIB & NetCDF**: GRIB is a binary weather data format. The app uses NetCDF libraries to parse GRIB2 files into usable meteorological data.
 - **Coil**: Image loading and additional UI enhancements.
 
-## Architectural Details
+### Architectural Details
 - **MVVM**: ViewModels (for example WeatherViewModel) combine multiple data sources and manage screen state.
 - **Repository/DataSource**: For example, LocationForecastRepository handles caching and fetches data via LocationForecastDataSource using Ktor.
 - **GRIB Handling**: IsobaricRepository downloads GRIB2 files and parses them with NetCDF. Parsed data is stored in Room for efficient reuse.
 - **Compose + Mapbox**: UI is fully built using Jetpack Compose. Map-related features like markers and trajectory paths are handled using Mapbox Compose.
 
-## API Level
+### API Level
 - Minimum SDK: 26 (Android 8.0 Oreo)
 - Target SDK: 35 (latest available version)
 
