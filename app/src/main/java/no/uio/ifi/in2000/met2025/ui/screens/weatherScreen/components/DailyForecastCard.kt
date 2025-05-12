@@ -1,5 +1,11 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,11 +26,14 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.getWeatherIconRes
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.IntOffset
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
 import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
+import kotlin.math.roundToInt
 
 
 val weatherPriority = listOf(
@@ -105,19 +114,19 @@ fun getGradientForSymbol(symbolCode: String?): Brush {
         symbolCode.contains("clearsky") || symbolCode.contains("fair") ->
             Brush.verticalGradient(
                 colors = listOf(
-                    Color(0xFFFFF8E1), Color(0xFFFFCC80), Color(0xFFFFA726)
+                    Color(0xFFE3E3E3), Color(0xFF03A9F4), Color(0xFF26A1FF)
                 )
             )
 
 
         symbolCode.contains("partlycloudy") || symbolCode.contains("cloudy") ->
             Brush.verticalGradient(
-                colors = listOf(Color(0xFFCFD8DC), Color(0xFF90A4AE), Color(0xFF455A64))
+                colors = listOf(Color(0xFF9A9CA5), Color(0xFF5995AD), Color(0xFF81D4FA))
             )
 
         symbolCode.contains("rain") || symbolCode.contains("showers") ->
             Brush.verticalGradient(
-                colors = listOf(Color(0xFF81D4FA), Color(0xFF4FC3F7), Color(0xFF0288D1))
+                colors = listOf(Color(0xFFCFD8DC), Color(0xFF90A4AE), Color(0xFF455A64))
             )
 
         symbolCode.contains("snow") || symbolCode.contains("sleet") ->
@@ -187,6 +196,29 @@ fun DailyForecastCard(
         "Wind direction" to avgWindDirection?.let { "%.1f°".format(it) }
     )
 
+    // 1) Create a single infinite Transition
+    val infiniteTransition = rememberInfiniteTransition()
+
+    // 2) Animate an overlay alpha between 0f and 0.15f
+    val overlayAlpha by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    // 3) Animate the Y-offset for the bounce (–10dp to 10dp)
+    val bounceOffsetDp by infiniteTransition.animateFloat(
+        initialValue = -10f,
+        targetValue = 10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
     Card(
         modifier = modifier
             .width(260.dp)
@@ -202,10 +234,15 @@ fun DailyForecastCard(
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
+        // 4) Stack the gradient + a translucent white overlay
         Box(
             modifier = Modifier
-                .background(getGradientForSymbol(symbolCode))
                 .fillMaxWidth()
+                .background(getGradientForSymbol(symbolCode))
+                .then(Modifier
+                    .height(IntrinsicSize.Min)
+                    .background(Color.White.copy(alpha = overlayAlpha))
+                )
                 .padding(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -259,26 +296,33 @@ fun DailyForecastCard(
                         )
                     }
 
-                    // Weather icon or fallback
+                    // 5) Bouncing icon or fallback
                     if (symbolCode == null) {
                         Icon(
                             imageVector = Icons.Default.CloudOff,
                             contentDescription = "No weather data",
-                            tint = IconPurple,
-                            modifier = Modifier.size(130.dp)
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier
+                                .size(130.dp)
+                                .offset { IntOffset(0, bounceOffsetDp.roundToInt()) }
                         )
                     } else {
                         getWeatherIconRes(symbolCode)?.let { resId ->
                             Image(
                                 painter = painterResource(id = resId),
                                 contentDescription = getSymbolDescription(symbolCode),
-                                modifier = Modifier.size(130.dp)
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .size(130.dp)
+                                    .offset { IntOffset(0, bounceOffsetDp.roundToInt()) }
                             )
                         } ?: Icon(
                             imageVector = Icons.Default.CloudOff,
                             contentDescription = "Unknown symbol",
-                            tint = IconPurple,
-                            modifier = Modifier.size(130.dp)
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier
+                                .size(130.dp)
+                                .offset { IntOffset(0, bounceOffsetDp.roundToInt()) }
                         )
                     }
                 }
