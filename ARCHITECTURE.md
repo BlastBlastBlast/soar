@@ -5,7 +5,7 @@
   - [Low Coupling](#low-coupling)
   - [High Cohesion](#high-cohesion)
 - [Design Patterns](#design-patterns)
-  - [MVVM (Model-View-ViewModel)](#mvvm-(model-view-viewmodel))
+  - [MVVM (Model-View-ViewModel)](#mvvm(model-view-viewmodel))
   - [Repository Pattern](#repository-pattern)
   - [UDF (Unidirectional Data Flow)](#design-patterns---udf-(unidirectional-data-flow))
 - [Technologies and Frameworks](#technologies-and-frameworks)
