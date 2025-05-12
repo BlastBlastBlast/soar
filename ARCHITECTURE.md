@@ -47,12 +47,13 @@ The design patterns **MVVM** and **UDF** are consistently used along with the re
   - **ViewModel**: Connects the data to the UI by exposing observable state using StateFlow.
   - **View**: Observes ViewModel state and reacts to changes.
 
-## Repository Pattern
+**Repository Pattern**
 - Used to abstract and centralize data operations. Found in data/remote and data/local, it ensures that the rest of the app interacts with a clean API regardless of the data source.
 
-## UDF (Unidirectional Data Flow)
+**UDF (Unidirectional Data Flow)**
 - UI events are sent to the ViewModel. The ViewModel handles logic and updates the UI state, which the View observes. This ensures a predictable and maintainable flow of data.
-- The use of these patterns enables easy debugging, clear data flow, and high modularity.
+
+The benefits of these design patterns are easy debugging, a clear data flow and high modularity, which is why these have been chosen.
 
 ## Technologies and Frameworks
 - **Jetpack Compose**: Manages the entire UI layer.
