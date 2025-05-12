@@ -32,7 +32,8 @@ import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun ErrorScreen(
-    msg: String,
+    errorMsg: String,
+    buttonText: String,
     onReload: () -> Unit
 ) {
     Box(
@@ -47,13 +48,13 @@ fun ErrorScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Error: $msg",
+                text = "Error: $errorMsg",
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .padding(16.dp)
                     .semantics {
                         liveRegion = LiveRegionMode.Assertive
-                        contentDescription = "Error: $msg"
+                        contentDescription = "Error: $errorMsg"
                     }
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -74,11 +75,11 @@ fun ErrorScreen(
                 modifier = Modifier
                     .padding(horizontal = 8.dp, vertical = 4.dp)
                     .semantics {
-                        contentDescription = "Reload map"
+                        contentDescription = "$buttonText button"
                         role = Role.Button
                     }
             ) {
-                Text("Reload map")
+                Text(buttonText)
             }
         }
     }

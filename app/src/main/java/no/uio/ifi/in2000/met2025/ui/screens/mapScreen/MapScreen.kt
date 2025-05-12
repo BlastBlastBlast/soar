@@ -131,7 +131,10 @@ fun MapScreen(
 
         is MapScreenViewModel.MapScreenUiState.Error -> {
             val msg = (uiState as MapScreenViewModel.MapScreenUiState.Error).message
-            ErrorScreen(msg = msg, onReload = { viewModel.reloadScreen() })
+            ErrorScreen(
+                errorMsg = msg,
+                buttonText = "Reload Map",
+                onReload = { viewModel.reloadScreen() })
         }
 
         is MapScreenViewModel.MapScreenUiState.Success -> {
