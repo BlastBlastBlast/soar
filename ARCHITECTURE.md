@@ -1,5 +1,13 @@
 - [Introduction](#introduction)
-
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Object-Oriented Principles](#object-oriented-principles)
+- [Design Patterns](#design-patterns)
+- [Repository Pattern](#repository-pattern)
+- [UDF (Unidirectional Data Flow](#udf-(unidirectional-data-flow))
+- [Technologies and Frameworks](#technologies-and-frameworks)
+- [Architectural Details](#architectural-details)
+- [API Level](#api-level)
 
 ## Introduction
 This document provides an overview of the chosen architecture, the structure of the project, and the coding practices that were followed, along with reasoning for the decisions made during development. It is intended for developers who will continue working on, maintaining, or extending the application.
