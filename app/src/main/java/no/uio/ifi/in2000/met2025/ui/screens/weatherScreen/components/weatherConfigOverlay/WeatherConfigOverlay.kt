@@ -60,71 +60,69 @@ fun WeatherConfigOverlay(
                 interactionSource = remember { MutableInteractionSource() }
             )
     ) {
-        Box(
-            modifier = modifier
+            AnimatedVisibility(
+            visible = true,
+            modifier = modifier.semantics {
+                contentDescription = "Weather config selection menu"
+            },
+            enter = expandVertically(
+                expandFrom = Alignment.Bottom,
+                animationSpec = tween(300)
+            ) + fadeIn(tween(300)),
+            exit = shrinkVertically(
+                shrinkTowards = Alignment.Bottom,
+                animationSpec = tween(300)
+            ) + fadeOut(tween(300))
+        ) {
+            Surface(
+                modifier        = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .clickable(enabled = false) {},
+                color           = WarmOrange,
+                tonalElevation  = 4.dp,
+                shadowElevation = 8.dp,
+                shape           = RoundedCornerShape(12.dp)
             ) {
-                AnimatedVisibility(
-                visible = true,
-                modifier = modifier.semantics {
-                    contentDescription = "Weather config selection menu"
-                },
-                enter = expandVertically(
-                    expandFrom = Alignment.Bottom,
-                    animationSpec = tween(300)
-                ) + fadeIn(tween(300)),
-                exit = shrinkVertically(
-                    shrinkTowards = Alignment.Bottom,
-                    animationSpec = tween(300)
-                ) + fadeOut(tween(300))
-            ) {
-                Surface(
-                    modifier        = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .clickable(enabled = false) {},
-                    color           = WarmOrange,
-                    tonalElevation  = 4.dp,
-                    shadowElevation = 8.dp,
-                    shape           = RoundedCornerShape(12.dp)
-                ) {
-                    Column {
-                        EditWeatherConfig(
-                            onClick = {
-                                onNavigateToEditConfigs()
-                                onDismiss()
-                            },
-                            enabled = true,
-                            modifier = Modifier
-                                .padding(vertical = 4.dp)
-                                .align(Alignment.CenterHorizontally)
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
-                        Spacer(Modifier.height(4.dp))
+                Column {
+                    EditWeatherConfig(
+                        onClick = {
+                            onNavigateToEditConfigs()
+                            onDismiss()
+                        },
+                        enabled = true,
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                    Spacer(Modifier.height(4.dp))
 
-                        // two items per row
-                        configList.chunked(2).forEach { pair ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                for (cfg in pair) {
-                                    WeatherConfigItem(
-                                        weatherConfig            = cfg,
-                                        onConfigSelected  = {
-                                            onConfigSelected(it)
-                                            onDismiss()
-                                        },
-                                        modifier          = Modifier.weight(1f)
-                                    )
-                                }
-                                if (pair.size == 1) {
-                                    Spacer(Modifier.weight(1f))
-                                }
+                    // two items per row
+                    configList.chunked(2).forEach { pair ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            for (cfg in pair) {
+                                WeatherConfigItem(
+                                    weatherConfig = cfg,
+                                    onConfigSelected = {
+                                        onConfigSelected(it)
+                                        onDismiss()
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(vertical = 8.dp)
+                                )
                             }
-                            Spacer(Modifier.height(4.dp))
+                            if (pair.size == 1) {
+                                Spacer(Modifier.weight(1f))
+                            }
                         }
+                        Spacer(Modifier.height(4.dp))
                     }
                 }
             }

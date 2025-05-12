@@ -106,13 +106,19 @@ fun WeatherConfigEditScreen(
                     configName = it
                 },
                 labelText    = "Name",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                filterRegex = Regex("^.{0,14}\$") //avoids too long names
             )
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
                 Text(
                     text = "A config named \"$configName\" already exists",
                     color = Color.Red
+                )
+            } else if (configName.length == 14) {
+                Text(
+                    text = "Name length limit reached: 14 characters",
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
