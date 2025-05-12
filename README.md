@@ -9,7 +9,7 @@
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
 - [Usage](#usage)
-    - [Find Launch Windows](#Find-Launch-Windows)
+    - [Find Launch Windows](#find-launch-windows)
     - [Trajectory Simulator](#trajectory-simulator)
 - [Navigation & UI](#navigation--ui)
 - [Known Issues](#known-issues)
@@ -18,7 +18,10 @@
 ---
 
 ## Overview
-**SOAR** is an Android app built for Portalspace, a student organization at the University of Oslo(UiO) that makes and launches rockets. SOAR helps you pick safe launch windows by fetching and evaluating MET weather data at your chosen launch sites up to 5 km altitude, and lets you simulate your rocket’s flight trajectory in 3D.
+**SOAR** is an Android app developed as part of a University of Oslo student project, with the Portalspace rocketry club as our primary user group. Based on interviews and usability tests with Portalspace members, SOAR aims to help small‐scale rocketry teams:
+- Determine safe launch windows by fetching and evaluating MET weather data at chosen launch sites
+- Visualize hourly and daily weather summaries with “Safe / Caution / Unsafe” indicators
+- Simulate rocket flight trajectories in 3D based on configurable rocket parameters
 
 ---
 
@@ -108,20 +111,23 @@ cd team-21
 1. Log in to Devilry
 2. Download the SOAR.zip map for this project.
 3. Navigate to the directory you downloaded SOAR.zip to in terminal
-4.1 Unzip it with the commands below in bash for Unix:
-```bash
-unzip SOAR.zip -d SOAR
-cd SOAR
-```
-4.2Unzip it with the commands below in Windows PowerShell
-    - change the path if you want it installed somewhere other than C:\SOAR
-```cmd
-Expand-Archive SOAR.zip -DestinationPath C:\SOAR
-cd C:\SOAR
+4. Unzip the archive:
+    1. For Unix:  
+    Unzip it with the commands below in bash
+    ```bash
+    unzip SOAR.zip -d SOAR
+    cd SOAR
+    ```
+    2. For windows: 
+    Unzip it with the commands below in PowerShell 
+    - change the path if you want it installed somewhere other than C:\SOAR 
+    ```cmd
+    Expand-Archive SOAR.zip -DestinationPath C:\SOAR
+    cd C:\SOAR
 
-Example custom path:
-Expand-Archive SOAR.zip -DestinationPath C:\JohnDoe\Projects\SOAR
-```
+    Example custom path:
+    Expand-Archive SOAR.zip -DestinationPath C:\JohnDoe\Projects\SOAR
+    ```
 
    
 #### Import into Android Studio
@@ -136,22 +142,22 @@ Expand-Archive SOAR.zip -DestinationPath C:\JohnDoe\Projects\SOAR
 ## Usage
 
 ### Find Launch Windows
-1. On the **Map** screen, long-press to drop a marker.
-2. Long press the marker to save and name a launch site (or use “Last Marker”).
-3. Tap the **Weather** button in the bottom right corner to open the Weather screen for your chosen launch site.
+1. On the **Map** screen, long-press to place a marker.
+2. Long press the marker label to save and name the launch site.
+3. Click the **Forecast** button in the bottom right corner to open the forecast for your chosen launch site.
 4. Swipe horizontally between days.
 5. Swipe vertically to see more hourly cards with launch window viability evaluations.
-6. Expand any hourly card to see full Locationforecast data
-7. For any expanded hourly card, press the Get Isobaric Data button to fetch isobaric layers.
+6. Click any hourly card to expand it and see full Locationforecast data
+7. For any expanded hourly card, click the "Get Isobaric Data" button to fetch GRIB2 wind and temperature data.
     - This updates the launch window viability evaluation based on the additional data.
-8. Use the bottom bar to:
+9. Use the bottom bar to:
     - Swap active launch site
     - Filter Safe/Caution/Unsafe evaluations & sunrise/sunset windows
     - Switch or create new **Weather Configurations**
 
 ### Trajectory Simulator
 
-1. From the Map, tap the **Trajectory** button.
+1. From the Map click the **Trajectory** button.
 2. In the pop-up sheet at the bottom of the screen verify that you've chosen the correct launch site.
 3. Select (or edit) a rocket configuration
 4. Tap **Start Simulation** to plot 3D markers along the flight path.
@@ -162,20 +168,20 @@ Expand-Archive SOAR.zip -DestinationPath C:\JohnDoe\Projects\SOAR
 - **Top Bar & Drawer**
     - Logo in top-left opens left-drawer
     - Drawer links: Map, Weather, Configs, Launch Sites
-    - Contextual help panel at the bottom of the drawer with information about the active screen
+    - Contextual help panel at the bottom of the drawer with information about the current active screen
     - Icon in top right Switches between light and dark mode
 - **Map Screen Controls**
-    - Bottom-left: List all sites → center map on selection
-    - Bottom-right: Go to Weather screen
-    - Top: Manual coordinates entry field
+    - Bottom-left: Open an interactible menu of all your launch sites → center map on selection
+    - Bottom-right: Go to Weather screen for the currently selected launch site
+    - Top: Manual coordinates entry field → Places a marker when pressing done
     - Eye-icon: Toggle marker labels on/off
     - Trajectory button: Opens bottom sheet
     - Trajectory bottom sheet:
-        - Choose a rocket config for trajectory simulation
+        - Horizontally scrollable carousel for selecting rocket config for trajectory simulation
         - Edit Rocket Configs: navigates to the rocket config editor
         - Simulate trajectory: Starts a simulation for your chosen rocket config at your current launchsite.
 - **Weather Screen Controls**
-    - Scroll horizontally you change between days.
+    - Scroll horizontally to change between days.
     - Scroll vertically to see more hourly cards for the chosen day.
     - Hourly cards: Click to expand with more data
         - Get Isobaric Data: Click on an expanded card to display isobaric data
@@ -187,6 +193,9 @@ Expand-Archive SOAR.zip -DestinationPath C:\JohnDoe\Projects\SOAR
     - Press Weather Configs or Rocket Configs to go the the respective screen.
     - Press the Green pencil icon on a card to Edit the configuration profile.
     - Press the Red garbage bin icon on a card to delete the configuration profile.
+- **Error Screen**
+    - Displays custom error descriptions
+    - Reload button
 
 ---
 
