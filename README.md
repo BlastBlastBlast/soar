@@ -23,18 +23,19 @@
 ---
 
 ## Features
-- **Launch-site management**  
-  • Drop a marker on a Mapbox map (long-press) to grab coordinates and elevation  
-  • Save, name, and revisit any number of sites.
+- **Launch-site management**
+    - Drop a marker on a Mapbox map (long-press) to grab coordinates and elevation
+    - Save, name, delete and revisit any number of sites
 - **Weather evaluation**
-    - Hourly and daily summaries from MET Locationforecast
-    - Wind and temperature data up to 100hpa (about 16000m AMSL(above mean sea level))
-    - “Safe / Caution / Unsafe / No data” badges on each time slot
-    - Customizable safety thresholds for whats "Unsafe" via named configurations
+    - Daily and hourly summaries from MET Locationforecast
+    - Organized and detailed view of weather data
+        - Extensive data at ground level
+        - GRIB2 wind and temperature data up to 100hpa/~16000m AMSL(above mean sea level)
+    - “Safe / Caution / Unsafe / No data” evaluation badges on each hourly time slot
+    - Create and save easily switchable weather configurations, with custom threshold values for launch window evaluation
     - Flexible filtering
-        - Filter out only “Safe” windows (or any mix of Safe/Caution/Unsafe)
+        - Show only safe launch windows (or any mix of Safe/Caution/Unsafe)
         - Sunrise / sunset filtering (show only launch windows for which it's sunlight outside)
-        - Switch/edit configurations for weather-safety
 - **3D trajectory simulation**
     - Define and save configurations for rocket parameters (mass, thrust, drag, parachute, launch angles, etc..)
     - Easily switch between configurations for simulation
@@ -96,19 +97,32 @@ Follow these steps to get SOAR up and running on your machine. You can obtain th
 ### Installation
 
 #### Option 1: Clone from GitHub
+1. Navigate to your preferred directory in terminal
+2. Run the commands below:
 ```bash
 git clone https://github.uio.no/IN2000-V25/team-21
-cd SOAR
+cd team-21
 ```
 
 #### Option 2: Download ZIP from Devilry
 1. Log in to Devilry
 2. Download the SOAR.zip map for this project.
-3. Unzip it:
-4. ```bash
-   unzip SOAR.zip -d SOAR
-   cd SOAR
-   ```
+3. Navigate to the directory you downloaded SOAR.zip to in terminal
+4.1 Unzip it with the commands below in bash for Unix:
+```bash
+unzip SOAR.zip -d SOAR
+cd SOAR
+```
+4.2Unzip it with the commands below in Windows PowerShell
+    - change the path if you want it installed somewhere other than C:\SOAR
+```cmd
+Expand-Archive SOAR.zip -DestinationPath C:\SOAR
+cd C:\SOAR
+
+Example custom path:
+Expand-Archive SOAR.zip -DestinationPath C:\JohnDoe\Projects\SOAR
+```
+
    
 #### Import into Android Studio
 1. Launch Android Studio
