@@ -14,7 +14,7 @@
   - [MVVM](#mvvm)
   - [Repository/DataSource](#repository/datasource)
   - [GRIB Handling](#grib-handling)
-  - [Compose + Mapbox](#compose+mapbox)
+  - [Compose + Mapbox](#architectural-details---compose+mapbox)
 - [API Level](#api-level)
   - [Minimum SDK](#minimum-sdk)
   - [Target SDK](#target-sdk)
