@@ -103,6 +103,7 @@ fun AWTableContents(
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         )
 
+
                         // Static header row to label columns
                         WindLayerHeader(
                             altitudeText = " Wind Shear",
@@ -114,7 +115,7 @@ fun AWTableContents(
                                 .padding(vertical = 4.dp)
                                 .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .background(
-                                    color = windShearColor,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                     shape = RoundedCornerShape(0.dp)
                                 )
                                 .padding(top = 4.dp, bottom = 4.dp), // Add border and padding for visual offset
