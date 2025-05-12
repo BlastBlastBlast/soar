@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.SunIconsOverlayWithText
 import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
 import kotlin.math.roundToInt
 
@@ -161,6 +162,8 @@ data class WeatherInfoItem(
 @Composable
 fun DailyForecastCard(
     forecastItems: List<ForecastDataItem>,
+    sunrise: String = "--:--",
+    sunset:  String = "--:--",
     modifier: Modifier = Modifier
 ) {
     if (forecastItems.isEmpty()) return
@@ -246,20 +249,18 @@ fun DailyForecastCard(
                 .padding(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Date heading
                 Box(
                     modifier = Modifier
                         .wrapContentWidth()
                         .background(
                             color = MaterialTheme.colorScheme.primary,
                             shape = CutCornerShape(
-                                //topEnd = 32.dp,
                                 bottomEnd = 40.dp
                             )
                         )
                         .padding(
                             start = 12.dp,
-                            end = 32.dp,   // extra padding to balance the slant
+                            end = 32.dp,
                             top = 4.dp,
                             bottom = 4.dp
                         )
@@ -294,9 +295,13 @@ fun DailyForecastCard(
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1
                         )
+                        Spacer(Modifier.height(4.dp))
+                        SunIconsOverlayWithText(
+                            sunrise = sunrise,
+                            sunset  = sunset
+                        )
                     }
 
-                    // 5) Bouncing icon or fallback
                     if (symbolCode == null) {
                         Icon(
                             imageVector = Icons.Default.CloudOff,
