@@ -87,8 +87,8 @@ fun AppTopBar(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (currentThemeDark) R.drawable.sun_icon
-                        else               R.drawable.moon_icon
+                        if (currentThemeDark) R.drawable.light_mode
+                        else               R.drawable.dark_mode
                     ),
                     contentDescription = null,
                     tint = Color.White

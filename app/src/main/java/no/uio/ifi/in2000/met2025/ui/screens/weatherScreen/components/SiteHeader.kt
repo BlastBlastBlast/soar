@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

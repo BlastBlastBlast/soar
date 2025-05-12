@@ -1,10 +1,12 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -40,10 +42,17 @@ fun WeatherNavigationButton(
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.weather_icon),
-            contentDescription = "Navigate to Weather",
-            modifier = Modifier.size(50.dp)
-        )
+        Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(id = R.drawable.globe_weather),
+                contentDescription = "Navigate to Weather",
+                modifier = Modifier.size(60.dp)
+            )
+            Text(
+                text = "FORECAST",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
     }
 }

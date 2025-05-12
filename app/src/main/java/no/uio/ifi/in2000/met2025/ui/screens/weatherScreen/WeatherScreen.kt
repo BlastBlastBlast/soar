@@ -49,10 +49,13 @@ import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForeca
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay.WeatherConfigOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SegmentedBottomBar
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SiteHeader
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.WeatherFilterOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay.LaunchSitesMenuOverlay
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -226,7 +229,8 @@ fun ScreenContent(
                             return@filter false
                         }
 
-                        val sunTimeForDay = uiState.sunTimes[item.time.substring(0, 10)] ?: return@filter false
+                        val sunTimeForDay =
+                            uiState.sunTimes[item.time.substring(0, 10)] ?: return@filter false
 
                         val afterEarliest = zonedTime.isAfter(sunTimeForDay.earliestRocket)
                         val beforeLatest = zonedTime.isBefore(sunTimeForDay.latestRocket)
@@ -254,8 +258,6 @@ fun ScreenContent(
             val sortedDays = forecastByDay.keys.sorted()
             val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
 
-
-
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 16.dp)
@@ -278,6 +280,21 @@ fun ScreenContent(
                             val date = sortedDays[page]
                             val dailyForecastItems = forecastByDay[date] ?: emptyList()
                             val hourlyFilteredItems = filteredByDay[date] ?: emptyList()
+
+                            val fmt = DateTimeFormatter.ofPattern("HH:mm")
+                            val zone = ZoneId.of("Europe/Oslo")
+                            val sunTimesForDate = uiState.sunTimes[date]
+                            val sunriseText = sunTimesForDate
+                                ?.sunrise
+                                ?.atZone(zone)
+                                ?.format(fmt)
+                                ?: "--:--"
+                            val sunsetText = sunTimesForDate
+                                ?.sunset
+                                ?.atZone(zone)
+                                ?.format(fmt)
+                                ?: "--:--"
+
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -294,6 +311,8 @@ fun ScreenContent(
 
                                 DailyForecastCard(
                                     forecastItems = dailyForecastItems,
+                                    sunrise = sunriseText,
+                                    sunset = sunsetText,
                                     modifier = Modifier.fillMaxWidth()
                                 )
 
@@ -337,6 +356,5 @@ fun ScreenContent(
             )
         }
         else -> Unit
+        }
     }
-}
-
