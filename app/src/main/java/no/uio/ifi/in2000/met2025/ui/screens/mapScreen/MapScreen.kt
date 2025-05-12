@@ -7,6 +7,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -52,7 +57,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
+import no.uio.ifi.in2000.met2025.ui.theme.ErrorBackground
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,36 +131,7 @@ fun MapScreen(
 
         is MapScreenViewModel.MapScreenUiState.Error -> {
             val msg = (uiState as MapScreenViewModel.MapScreenUiState.Error).message
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center     // Center its ONE child
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,  // center text+button
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Error: $msg",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .semantics {
-                                liveRegion = LiveRegionMode.Assertive
-                                contentDescription = "Error: $msg"
-                            }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { viewModel.reloadScreen() },
-                        modifier = Modifier.semantics {
-                            contentDescription = "Reload map"
-                            role = Role.Button
-                        }
-                    ) {
-                        Text("Reload map")
-                    }
-                }
-            }
+            ErrorScreen(msg = msg, onReload = { viewModel.reloadScreen() })
         }
 
         is MapScreenViewModel.MapScreenUiState.Success -> {
