@@ -48,6 +48,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForeca
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay.WeatherConfigOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SegmentedBottomBar
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SiteHeader
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.WeatherFilterOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay.LaunchSitesMenuOverlay
 import java.time.Instant

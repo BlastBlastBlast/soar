@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
@@ -49,6 +50,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun WindDirectionIcon(windDirection: Double?) {
@@ -107,40 +109,53 @@ fun HourlyExpandableCard(
                     style = MaterialTheme.typography.headlineLarge,
                 )
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // read system theme once
+                    val isLightMode = LocalIsDarkTheme.current
+
                     when (val isobaricData = isobaricDataMap[
                         Instant.parse(forecastItem.time)
                             .closestIsobaricDataWindowBefore()
                     ]) {
                         is WeatherViewModel.AtmosphericWindUiState.Success -> {
                             Icon(
-                                painter = painterResource(id = R.drawable.yes_grib_real),
+                                painter = painterResource(
+                                    id = if (isLightMode)
+                                        R.drawable.grib_fetched_light
+                                    else
+                                        R.drawable.grib_fetched_dark
+                                ),
                                 contentDescription = "Grib files fetched",
-                                modifier = Modifier.size(48.dp),
-                                //tint = MaterialTheme.colorScheme.onPrimary
+                                modifier = Modifier.size(36.dp),
+                                tint = Color.Unspecified
                             )
                             LaunchStatusIndicator(
                                 weatherConfig = weatherConfig,
-                                forecast = forecastItem,
+                                forecast      = forecastItem,
                                 isobaricData.isobaricData,
-                                modifier = Modifier.size(38.dp)
+                                modifier = Modifier
+                                    .size(38.dp)
                                     .semantics { contentDescription = "Status icon" }
                             )
                         }
                         else -> {
                             Icon(
-                                painter = painterResource(id = R.drawable.no_grib_real),
+                                painter = painterResource(
+                                    id = if (isLightMode)
+                                        R.drawable.grib_not_fetched_light
+                                    else
+                                        R.drawable.grib_not_fetched_dark
+                                ),
                                 contentDescription = "Grib not fetched",
-                                modifier = Modifier.size(48.dp),
+                                modifier = Modifier.size(36.dp),
+                                tint = Color.Unspecified
                             )
                             LaunchStatusIndicator(
                                 weatherConfig = weatherConfig,
-                                forecast = forecastItem,
-                                modifier = Modifier.size(38.dp)
+                                forecast      = forecastItem,
+                                modifier = Modifier
+                                    .size(38.dp)
                                     .semantics { contentDescription = "Status Icon" }
-                                ,
                             )
                         }
                     }
