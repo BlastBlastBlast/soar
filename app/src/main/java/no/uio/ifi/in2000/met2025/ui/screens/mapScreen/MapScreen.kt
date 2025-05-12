@@ -7,10 +7,13 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -120,14 +123,35 @@ fun MapScreen(
 
         is MapScreenViewModel.MapScreenUiState.Error -> {
             val msg = (uiState as MapScreenViewModel.MapScreenUiState.Error).message
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    "Error: $msg", color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.semantics {
-                        liveRegion = LiveRegionMode.Assertive
-                        contentDescription = "Error: $msg"
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center     // Center its ONE child
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,  // center text+button
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Error: $msg",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .semantics {
+                                liveRegion = LiveRegionMode.Assertive
+                                contentDescription = "Error: $msg"
+                            }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { viewModel.reloadScreen() },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Reload map"
+                            role = Role.Button
+                        }
+                    ) {
+                        Text("Reload map")
                     }
-                )
+                }
             }
         }
 
@@ -224,6 +248,9 @@ fun MapScreen(
                             .padding(16.dp)
                     )
 
+                    /**
+                     * Bottom of screen popup from which you can start a launch simulation
+                     **/
                     if (showTrajectoryPopup) {
                         TrajectoryPopup(
                             show = true,
