@@ -1371,7 +1371,6 @@ classDiagram
     WeatherConfigListScreen --> WeatherConfigListItem : composes
     RocketConfigListScreen  --> RocketConfigItem       : composes
 ```
----
 
 ## Navigation
 ```mermaid
@@ -1455,7 +1454,6 @@ classDiagram
     Screen <|-- RocketConfigList
     Screen <|-- RocketConfigEdit
 ```
----
 
 ## Datasources and repositories
 ```mermaid
@@ -1634,7 +1632,6 @@ classDiagram
     WeatherConfigDao            --> WeatherConfig            : uses
     RocketConfigDao             --> RocketConfig             : uses
 ```
----
 
 ## Dependency Injection
 ```mermaid
@@ -1733,7 +1730,6 @@ direction LR
     DatabaseModule ..> RocketConfigDao : provideRocketConfigDao()
 
 ```
----
 
 ## Domain - Trajectory Calculation & Weather Parsing
 ```mermaid
