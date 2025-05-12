@@ -51,7 +51,7 @@ The design patterns **MVVM** and **UDF** are consistently used along with the re
 - Used to abstract and centralize data operations. Found in data/remote and data/local, it ensures that the rest of the app interacts with a clean API regardless of the data source.
 
 **UDF (Unidirectional Data Flow)**
-- UI events are sent to the ViewModel. The ViewModel handles logic and updates the UI state, which the View observes. This ensures a predictable and maintainable flow of data.
+- Data flows one way from the ViewModel to the UI. The ViewModel handles logic and updates the UI state, which the View observes. UI events are then sent back to the ViewModel. This ensures a predictable and maintainable flow of data.
 
 The benefits of these design patterns are easy debugging, a clear data flow and high modularity, which is why these have been chosen.
 
