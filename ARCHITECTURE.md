@@ -7,7 +7,7 @@
 - [Design Patterns](#design-patterns)
   - [MVVM (Model-View-ViewModel)](#introduction)
   - [Repository Pattern](#repository-pattern)
-  - [UDF (Unidirectional Data Flow)](#udf-(unidirectional-data-flow))
+  - [UDF (Unidirectional Data Flow)](#design-patterns---udf-(unidirectional-data-flow))
 - [Technologies and Frameworks](#technologies-and-frameworks)
 - [Architectural Details](#architectural-details)
   - [MVVM](#mvvm)
