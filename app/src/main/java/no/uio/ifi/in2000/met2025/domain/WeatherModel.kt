@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -158,11 +159,10 @@ class WeatherModel @Inject constructor(
                 ),
                 airTemperature = airTemperature - CELSIUS_TO_KELVIN,
                 windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
-                windFromDirection = Math.toDegrees(
-                    atan2(uComponentWind, vComponentWind)
+                windFromDirection = (Math.toDegrees(
+                    atan2(uComponentWind, vComponentWind)) + 180) % 360
                 )
             )
-                    )
         )
     }
 

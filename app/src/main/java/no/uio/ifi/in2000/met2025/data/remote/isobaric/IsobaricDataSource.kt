@@ -13,8 +13,7 @@ class IsobaricDataSource @Inject constructor(
     @Named("gribClient") private val gribClient: HttpClient,
     @Named("jsonClient") private val jsonClient: HttpClient
 ) {
-    private val gribUrl = "https://api.met.no/weatherapi/isobaricgrib/1.0/grib2?area=southern_norway"
-    private val availUrl = "https://api.met.no/weatherapi/isobaricgrib/1.0/available.json?type=grib2"
+    private val availUrl = "https://in2000.api.met.no/weatherapi/isobaricgrib/1.0/available.json?type=grib2"
 
     suspend fun fetchIsobaricGribData(uri: String): Result<ByteArray> {
         return try {

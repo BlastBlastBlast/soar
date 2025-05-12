@@ -32,9 +32,9 @@ android {
                 "META-INF/third-party-licenses/gretty/LICENSE",
                 "META-INF/third-party-licenses/NOAA_LICENSE"
             )
+            println("Exclusions: $excludes") // Debug log to verify exclusions
         }
     }
-
 
     buildTypes {
         release {
@@ -91,8 +91,11 @@ dependencies {
     // Icons
     implementation(libs.androidx.material.icons.extended)
 
-    //kotlin reflection
+    // kotlin reflection
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // apache commons
+    implementation(libs.commons.math3)
 
     // Removed logback dependency:
     // implementation(libs.logback.classic)
@@ -109,11 +112,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -125,11 +123,34 @@ dependencies {
     implementation(libs.guava.v3100android)
     implementation(libs.listenablefuture)
 
+    //system ui control
+    implementation(libs.accompanist.systemuicontroller)
+
+
     //database dependencies
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
+
+    //testing
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.slf4j.simple)
+    testImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.google.hilt.android.testing)
+    kspAndroidTest(libs.google.hilt.compiler)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    //coil
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
 }
 
 //TEST LINE

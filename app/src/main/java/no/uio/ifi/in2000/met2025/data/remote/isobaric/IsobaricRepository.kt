@@ -53,8 +53,8 @@ class IsobaricRepository @Inject constructor(
                     onFailure = { return GribDataResult.FetchingError }
                 )
             } else {
-                if (gribDAO.getByTimestamp(time.toString()) != null) {
-                    val isobaricData = gribDAO.getByTimestamp(time.toString())!!
+                if (gribDAO.findByTimestamp(time.toString()) != null) {
+                    val isobaricData = gribDAO.findByTimestamp(time.toString())!!
                     byteArray = isobaricData.data
                 } else {
                     val isobaricData: Result<ByteArray> =
@@ -76,7 +76,7 @@ class IsobaricRepository @Inject constructor(
         } else {
             val roundedTime = timeSlot.roundToNearest3Hour()
             if (roundedTime in gribMaps.keys) {return GribDataResult.Success(gribMaps[roundedTime]!!)}
-            val databaseCheck = gribDAO.getByTimestamp(roundedTime)
+            val databaseCheck = gribDAO.findByTimestamp(roundedTime)
             if (databaseCheck != null) {
                 val byteArray = databaseCheck.data
                 when (val res = parseGribData(byteArray, roundedTime)){
@@ -205,7 +205,7 @@ class IsobaricRepository @Inject constructor(
     }
 
     private suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
-        return availResponse.updated.toString() == updatedDAO.getUpdated()
+        return availResponse.updated.toString() == updatedDAO.findUpdated()
     }
 
     private fun restructureAvailabilityResponse(

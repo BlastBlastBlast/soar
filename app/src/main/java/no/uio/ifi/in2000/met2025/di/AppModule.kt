@@ -17,7 +17,7 @@ import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.met2025.data.local.database.AppDatabase
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfileDAO
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfigDao
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
 import no.uio.ifi.in2000.met2025.data.local.database.GribUpdatedDAO
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSiteDAO
@@ -27,6 +27,9 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastDataSource
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricDataSource
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
+import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
+import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseDataSource
+import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Named
 import javax.inject.Singleton
@@ -75,6 +78,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideSunriseDataSource(@Named("jsonClient") client: HttpClient): SunriseDataSource {
+        return SunriseDataSource(client)
+    }
+
+    @Provides
+    @Singleton
     fun provideLocationForecastRepository(
         dataSource: LocationForecastDataSource
     ): LocationForecastRepository {
@@ -102,6 +111,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideSunriseRepository(dataSource: SunriseDataSource): SunriseRepository {
+        return SunriseRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
     fun provideWeatherModel(
         locationForecastRepository: LocationForecastRepository,
         isobaricRepository: IsobaricRepository
@@ -113,6 +128,14 @@ object AppModule {
     @Singleton
     fun provideRocketConfigRepository(rocketParametersDao: RocketConfigDao): RocketConfigRepository =
         RocketConfigRepository(rocketParametersDao)
+
+    @Provides
+    @Singleton
+    fun provideIsobaricInterpolator(locationForecastRepository: LocationForecastRepository,
+        isobaricRepository: IsobaricRepository
+    ): IsobaricInterpolator {
+        return IsobaricInterpolator(locationForecastRepository, isobaricRepository)
+    }
 }
 
 
@@ -142,7 +165,7 @@ object DatabaseModule {
     fun provideGribUpdatedDao(db: AppDatabase): GribUpdatedDAO = db.gribUpdatedDao()
 
     @Provides
-    fun provideConfigProfileDao(db: AppDatabase): ConfigProfileDAO = db.configProfileDao()
+    fun provideConfigProfileDao(db: AppDatabase): WeatherConfigDao = db.WeatherConfigDao()
 
     @Provides
     fun provideRocketConfigDao(db: AppDatabase): RocketConfigDao = db.rocketConfigDao()

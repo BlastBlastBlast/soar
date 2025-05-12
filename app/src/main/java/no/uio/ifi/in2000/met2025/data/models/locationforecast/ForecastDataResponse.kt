@@ -83,7 +83,8 @@ data class Details(
 
 @Serializable
 data class NextHours(
-    val details: NextHoursDetails
+    val details: NextHoursDetails,
+    val summary: Summary? = null
 )
 
 @Serializable
@@ -92,3 +93,7 @@ data class NextHoursDetails(
     @SerialName("probability_of_thunder")   val probabilityOfThunder: Double? = null
 )
 
+@Serializable
+data class Summary(
+    @SerialName("symbol_code") val symbolCode: String
+)

@@ -129,6 +129,9 @@ obj/
 .cproject
 .settings/
 
+# Mac Specific
+.DS_Store
+
 # Mobile Tools for Java (J2ME)
 
 # Package Files #
@@ -159,4 +162,4 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
-# End of https://www.toptal.com/developers/gitignore/api/kotlin,androidstudio
+# End of https://www.toptal.com/developers/gitignore/api/kotlin,androidstudio*.logcat

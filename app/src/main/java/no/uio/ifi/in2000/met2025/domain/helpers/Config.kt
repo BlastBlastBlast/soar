@@ -3,11 +3,11 @@ package no.uio.ifi.in2000.met2025.domain.helpers
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import no.uio.ifi.in2000.met2025.R
-import no.uio.ifi.in2000.met2025.data.local.database.ConfigProfile
+import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
 
-fun ConfigProfile.threshold(parameter: ConfigParameter): Double
+fun WeatherConfig.threshold(parameter: ConfigParameter): Double
 = when (parameter) {
     ConfigParameter.GROUND_WIND -> groundWindThreshold
     ConfigParameter.AIR_WIND -> airWindThreshold
@@ -27,7 +27,7 @@ fun ConfigProfile.threshold(parameter: ConfigParameter): Double
     //else -> Double.MIN_VALUE
 }
 
-fun ConfigProfile.isEnabled(parameter: ConfigParameter): Boolean
+fun WeatherConfig.isEnabled(parameter: ConfigParameter): Boolean
 = when (parameter) {
     ConfigParameter.GROUND_WIND -> isEnabledGroundWind
     ConfigParameter.AIR_WIND -> isEnabledAirWind
@@ -47,7 +47,7 @@ fun ConfigProfile.isEnabled(parameter: ConfigParameter): Boolean
     //else -> false
 }
 
-fun ConfigProfile.thresholdsMap()
+fun WeatherConfig.thresholdsMap()
 = mapOf(
     ConfigParameter.GROUND_WIND to groundWindThreshold,
     ConfigParameter.AIR_WIND to airWindThreshold,
@@ -108,10 +108,10 @@ fun ConfigParameter.icon(): EvaluationIcon
     ConfigParameter.GROUND_WIND -> EvaluationIcon.DrawableIcon(R.drawable.wind)
     ConfigParameter.WIND_SPEED_OF_GUST -> EvaluationIcon.DrawableIcon(R.drawable.wind)
     ConfigParameter.WIND_DIRECTION -> EvaluationIcon.VectorIcon(Icons.Filled.ArrowDownward)
-    ConfigParameter.CLOUD_COVER -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
-    ConfigParameter.CLOUD_COVER_HIGH -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
-    ConfigParameter.CLOUD_COVER_MEDIUM -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
-    ConfigParameter.CLOUD_COVER_LOW -> EvaluationIcon.DrawableIcon(R.drawable.cloud)
+    ConfigParameter.CLOUD_COVER -> EvaluationIcon.DrawableIcon(R.drawable.cloud_filled)
+    ConfigParameter.CLOUD_COVER_HIGH -> EvaluationIcon.DrawableIcon(R.drawable.cloud_high)
+    ConfigParameter.CLOUD_COVER_MEDIUM -> EvaluationIcon.DrawableIcon(R.drawable.cloud_medium)
+    ConfigParameter.CLOUD_COVER_LOW -> EvaluationIcon.DrawableIcon(R.drawable.cloud_low)
     ConfigParameter.FOG -> EvaluationIcon.DrawableIcon(R.drawable.fog)
     ConfigParameter.PRECIPITATION -> EvaluationIcon.DrawableIcon(R.drawable.rain)
     ConfigParameter.HUMIDITY -> EvaluationIcon.DrawableIcon(R.drawable.humidity)

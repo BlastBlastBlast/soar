@@ -19,14 +19,20 @@ class RocketConfigRepository(private val rocketConfigDao: RocketConfigDao) {
     }
 
     fun getAllRocketConfigs(): Flow<List<RocketConfig>> {
-        return rocketConfigDao.getAllRocketConfigs()
+        return rocketConfigDao.findAllRocketConfigs()
     }
 
     fun getDefaultRocketConfig(): Flow<RocketConfig?> {
-        return rocketConfigDao.getDefaultRocketConfig()
+        return rocketConfigDao.findDefaultRocketConfig()
     }
 
     fun getRocketConfig(rocketId: Int): Flow<RocketConfig?> {
-        return rocketConfigDao.getRocketConfig(rocketId)
+        return rocketConfigDao.findRocketConfig(rocketId)
     }
+
+    suspend fun setDefaultRocketConfig(rocketId: Int) {
+        rocketConfigDao.setDefaultRocketConfig(rocketId)
+    }
+    fun getAllRocketConfigNames(): Flow<List<String>> =
+        rocketConfigDao.findAllRocketConfigNames()
 }
