@@ -141,7 +141,7 @@ fun MarkerLabel(
                         CircularProgressIndicator(
                             modifier = Modifier.size(fontSize.value.dp),
                             strokeWidth = (fontSize.value / 2).dp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 } else {

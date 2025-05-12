@@ -11,6 +11,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.CompositionLocalProvider
+import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun AppScaffold(
@@ -41,34 +43,36 @@ fun AppScaffold(
     //  • drawer is already open (always allow drag-to-close)
     val gesturesEnabled = (currentRoute != Screen.Maps.route) || drawerState.isOpen
 
-    ModalNavigationDrawer(
-        drawerState     = drawerState,
-        gesturesEnabled = gesturesEnabled,
-        modifier        = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
-        drawerContent   = {
-            AppDrawer(
-                navController = navController,
-                closeDrawer   = { scope.launch { drawerState.close() } }
-            )
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                AppTopBar(
-                    navController    = navController,
-                    currentThemeDark = darkTheme,
-                    onToggleTheme    = toggleTheme,
-                    onOpenDrawer     = { scope.launch { drawerState.open() } }
+    CompositionLocalProvider(LocalIsDarkTheme provides darkTheme) {
+        ModalNavigationDrawer(
+            drawerState     = drawerState,
+            gesturesEnabled = gesturesEnabled,
+            modifier        = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
+            drawerContent   = {
+                AppDrawer(
+                    navController = navController,
+                    closeDrawer   = { scope.launch { drawerState.close() } }
                 )
             }
-        ) { innerPadding ->
-            NavigationGraph(
-                navController               = navController,
-                innerPadding                = innerPadding,
-                mapScreenViewModel         = vm.maps,
-                weatherCardViewModel        = vm.weather,
-                configViewModel           = vm.configs,
-            )
+        ) {
+            Scaffold(
+                topBar = {
+                    AppTopBar(
+                        navController    = navController,
+                        currentThemeDark = darkTheme,
+                        onToggleTheme    = toggleTheme,
+                        onOpenDrawer     = { scope.launch { drawerState.open() } }
+                    )
+                }
+            ) { innerPadding ->
+                NavigationGraph(
+                    navController               = navController,
+                    innerPadding                = innerPadding,
+                    mapScreenViewModel         = vm.maps,
+                    weatherCardViewModel        = vm.weather,
+                    configViewModel           = vm.configs,
+                )
+            }
         }
     }
 }
