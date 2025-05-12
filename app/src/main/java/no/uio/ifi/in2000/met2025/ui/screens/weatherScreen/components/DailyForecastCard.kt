@@ -33,12 +33,14 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.getWeatherIconRes
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
+import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.SunIconsOverlayWithText
 import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
@@ -338,34 +340,81 @@ fun DailyForecastCard(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics {
-                                    contentDescription = "$label: ${value ?: "not available"}"
-                                },
+                                .semantics { contentDescription = "$label: ${value ?: "not available"}" },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             // left: icon + label
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val icon = when (label) {
-                                    "Cloud cover"    -> Icons.Filled.Cloud
-                                    "Precipitation"  -> Icons.Filled.InvertColors
-                                    "Fog"            -> Icons.Filled.Waves
-                                    "Humidity"       -> Icons.Filled.Opacity
-                                    "Dew point"      -> Icons.Filled.Thermostat
-                                    "Air wind"       -> Icons.Filled.Air
-                                    "Ground wind"    -> Icons.Filled.Air
-                                    "Wind direction" -> Icons.Filled.Navigation
-                                    else             -> Icons.Filled.CloudOff
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (label == "Wind direction" && avgWindDirection != null) {
+                                    Icon(
+                                        painter            = painterResource(id = R.drawable.windicator),
+                                        contentDescription = label,
+                                        tint               = Color.Unspecified,
+                                        modifier           = Modifier
+                                            .size(20.dp)
+                                            .graphicsLayer(rotationZ = avgWindDirection.toFloat())
+                                    )
+                                } else {
+                                    when (label) {
+                                        "Cloud cover" -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.Cloud,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Precipitation" -> {
+                                            Icon(
+                                                painter            = painterResource(id = R.drawable.water_droplet),
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Fog" -> {
+                                            Icon(
+                                                painter            = painterResource(id = R.drawable.fog),
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Humidity" -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.Opacity,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Dew point" -> {
+                                            Icon(
+                                                painter            = painterResource(id = R.drawable.dewpoint),
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Air wind", "Ground wind" -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.Air,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        else -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.CloudOff,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
                                 }
-
-                                Icon(
-                                    imageVector        = icon,
-                                    contentDescription = label,
-                                    tint               = Color.White,
-                                    modifier           = Modifier.size(20.dp)
-                                )
 
                                 Spacer(Modifier.width(8.dp))
 
