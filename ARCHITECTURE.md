@@ -1,5 +1,6 @@
 - [Introduction](#introduction)
 - [Architecture](#architecture)
+- [Architecture sketch/diagram](#architecture-sketch/diagram)
 - [Project Structure](#project-structure)
 - [Object-Oriented Principles](#object-oriented-principles)
   - [Low Coupling](#low-coupling)
@@ -49,6 +50,69 @@ The project is organized into distinct layers to promote modularity:
 - All UI code, built with Jetpack Compose. Organized by screens and shared components:
   - screens/: Each screen (for example weatherScreen, mapScreen) has its own folder containing components and ViewModels.
   - common/, navigation/, theme/: Shared UI components, navigation setup, and app-wide styling.
+
+### Architecture sketch/diagram
+```mermaid
+%%{init: {'flowchart': {'rankSpacing': 70}}}%%
+flowchart TB
+
+    %% -- UI-layer --
+    subgraph UI layer
+        direction TB
+        WeatherScreen[WeatherScreen] --> WeatherVM[WeatherViewModel]
+        MapScreen[MapScreen] <--> MapView[MapView]
+        MapScreen[MapScreen] --> MapScreenVM[MapScreenViewModel]
+        LaunchSiteScreen[LaunchSiteScreen] --> LaunchSiteVM[LaunchSiteViewModel]
+        ConfigScreen[ConfigScreen] --> ConfigVM[ConfigViewModel]
+        
+    end
+
+    %% -- Domain-layer --
+    subgraph Domain layer
+        direction TB
+        WeatherModel[WeatherModel]
+    end
+
+    %% -- Data-layer --
+    subgraph Data layer
+        direction TB
+        LocationForecastRepo[LocationForecastRepository] --> LocationForecastDS[LocationForecastDataSource]
+        IsobaricRepo[IsobaricRepository] --> IsobaricDS[IsobaricDataSource]
+        IsobaricRepo[IsobaricRepository] <--> GribDataDAO[GribDataDAO]
+        IsobaricDS[IsobaricDataSource] <--> GRIB[GRIB API]
+        IsobaricDS[IsobaricDataSource] <--> GRIBAA[GRIB Availability API]
+
+        MapView[MapView] --> MapboxAPI[Mapbox API]
+
+        LaunchSiteDAO[LaunchSiteDAO] --> MapScreenVM[MapScreenViewModel]
+        LaunchSiteDAO[LaunchSiteDAO] <--> AppDatabase[AppDatabase]
+
+        RocketConfigRepo[RocketConfigRepository]
+        RocketConfigRepo[RocketConfigRepository] --> RocketConfigDAO[RocketConfigDAO]
+        WeatherConfigRepo[WeatherConfigRepository]
+        WeatherConfigRepo[WeatherConfigRepository] --> WeatherConfigDAO[WeatherConfigDAO]
+        RocketConfigDAO[RocketConfigDAO] --> AppDatabase[AppDatabase]
+        WeatherConfigDAO[WeatherConfigDAO] --> AppDatabase[(AppDatabase)]
+        GribDataDAO[GribDataDAO] --> AppDatabase[(AppDatabase)]
+
+
+
+        LocationForecastDS -->|"retrieves data"| ForecastDataCloud[LocationForecast API]
+
+    end
+
+    %% -- Links for locally saved Launch Sites --
+    MapScreenVM -- "retrieves Launch Sites" --> LaunchSiteDAO
+    LaunchSiteVM -- "retrieves Launch Sites" --> LaunchSiteDAO
+    
+
+    %% -- Links for weather via Domain-layer --
+    WeatherVM -- "calls" --> WeatherModel
+    WeatherModel -- "retrieves Forecast Data" --> LocationForecastRepo
+    WeatherModel -- "retrieves Isobaric Data" --> IsobaricRepo
+    ConfigVM --> RocketConfigRepo
+    ConfigVM --> WeatherConfigRepo
+```
 
 ### Object-Oriented Principles
 The codebase is designed with strong adherence to low coupling, where clear separation of concerns ensures modules can evolve independently. As well as high cohesion, where each class or component has a single, well-defined responsibility. 
