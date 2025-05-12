@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.windcomponents
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -106,8 +107,12 @@ fun WindDataColumn(isobaricData: IsobaricData, config: WeatherConfig, windShearC
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                )
                                 .border(1.dp, MaterialTheme.colorScheme.onPrimary)
                                 .padding(horizontal = 4.dp, vertical = 4.dp)
+
                                 .semantics {
                                     contentDescription = "Wind shear between ${layer} hPa and ${displayedValues[index + 1]} hPa: " +
                                             "${windShearSpeed(
@@ -120,10 +125,9 @@ fun WindDataColumn(isobaricData: IsobaricData, config: WeatherConfig, windShearC
                                             ).floorModDouble(360).roundToDecimals(1)}°"
                                 }
                         ) {
-                            WindLayerRow(
+                            WindShearRow(
                                 config = config,
                                 configParameter = ConfigParameter.WIND_SHEAR_SPEED,
-                                altitude = null,
                                 windSpeed = windShearValue,
                                 windDirection = windShearDirection,
                                 modifier = Modifier.fillMaxWidth(),

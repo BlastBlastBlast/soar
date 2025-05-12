@@ -92,9 +92,9 @@ fun AWTableContents(
 
                         // Static header row to label columns
                         WindLayerHeader(
-                            altitudeText = "Altitude",
-                            windSpeedText = "Wind Speed",
-                            windDirectionText = "Wind Direction",
+                            altitudeText = "<Altitude>",
+                            windSpeedText = "<Wind Speed>",
+                            windDirectionText = "<Wind Direction>",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { heading() }
@@ -105,9 +105,9 @@ fun AWTableContents(
 
                         // Static header row to label columns
                         WindLayerHeader(
-                            altitudeText = "",
-                            windSpeedText = "Wind Shear Speed",
-                            windDirectionText = "Wind Shear Direction",
+                            altitudeText = " Wind Shear",
+                            windSpeedText = "<Wind Shear Speed>",
+                            windDirectionText = "<Wind Shear Direction>",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Shear data header row" }
