@@ -1,13 +1,29 @@
 - [Introduction](#introduction)
 - [Architecture](#architecture)
+  - [Model](#model)
+  - [ViewModel](#viewmodel)
+  - [View](#view)
 - [Project Structure](#project-structure)
+  - [data/](#data/)
+  - [di/](#di/)
+  - [domain/](#domain/)
+  - [ui/](#ui/)
 - [Object-Oriented Principles](#object-oriented-principles)
+  - [Low Coupling](#low-coupling)
+  - [High Cohesion](#high-cohesion)
 - [Design Patterns](#design-patterns)
-- [Repository Pattern](#repository-pattern)
-- [UDF (Unidirectional Data Flow](#udf-(unidirectional-data-flow))
+  - [MVVM (Model-View-ViewModel)](#introduction)
+  - [Repository Pattern](#repository-pattern)
+  - [UDF (Unidirectional Data Flow](#udf-(unidirectional-data-flow))
 - [Technologies and Frameworks](#technologies-and-frameworks)
 - [Architectural Details](#architectural-details)
+  - [MVVM](#mvvm)
+  - [Repository/DataSource](#repository/datasource)
+  - [GRIB Handling](#grib-handling)
+  - [Compose + Mapbox](#compose+mapbox)
 - [API Level](#api-level)
+  - [Minimum SDK](#minimum-sdk)
+  - [Target SDK](#target-sdk)
 
 ## Introduction
 This document provides an overview of the chosen architecture, the structure of the project, and the coding practices that were followed, along with reasoning for the decisions made during development. It is intended for developers who will continue working on, maintaining, or extending the application.
@@ -43,7 +59,7 @@ The project is organized into distinct layers to promote modularity:
 
 ### Object-Oriented Principles
 The codebase is designed with strong adherence to low coupling, where clear separation of concerns ensures modules can evolve independently. As well as high cohesion, where each class or component has a single, well-defined responsibility. 
-Along with reusability where UI components such as WeatherLoadingSpinner, AppOutlineTextfield are designed for reuse across multiple screens if needed.
+Along with reusability where UI components such as WeatherLoadingSpinner, AppOutLinedTextField are designed for reuse across multiple screens if needed.
 
 **Low coupling** is achieved using Hilt, which injects repositories/data sources automatically, and by ensuring layers are isolated and communicate only through well-defined interfaces.
 
@@ -82,8 +98,8 @@ The benefits of these design patterns are easy debugging, a clear data flow and 
 - **Compose + Mapbox**: UI is fully built using Jetpack Compose. Map-related features like markers and trajectory paths are handled using Mapbox Compose.
 
 ### API Level
-- Minimum SDK: 26 (Android 8.0 Oreo)
-- Target SDK: 35 (latest available version)
+- **Minimum SDK**: 26 (Android 8.0 Oreo)
+- **Target SDK**: 35 (latest available version)
 
 This ensures support for modern Android features while maintaining compatibility with a wide range of devices.
 
