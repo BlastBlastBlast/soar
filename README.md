@@ -30,16 +30,17 @@
     - Hourly and daily summaries from MET Locationforecast
     - Wind and temperature data up to 100hpa (about 16000m AMSL(above mean sea level))
     - “Safe / Caution / Unsafe / No data” badges on each time slot
-    - Customizable safety thresholds via named configurations
+    - Customizable safety thresholds for whats "Unsafe" via named configurations
     - Flexible filtering
         - Filter out only “Safe” windows (or any mix of Safe/Caution/Unsafe)
         - Sunrise / sunset filtering (show only launch windows for which it's sunlight outside)
-        - Switch/edit configurations for both weather-safety and rocket specs
+        - Switch/edit configurations for weather-safety
 - **3D trajectory simulation**
-    - Define rocket parameters (mass, thrust, drag, parachute, launch angles, etc..)
-    - Render 3D markers along the flight path at user-defined intervals, the caluclations are based on interpolated weather data from a minimum of 16 data points or more.
+    - Define and save configurations for rocket parameters (mass, thrust, drag, parachute, launch angles, etc..)
+    - Easily switch between configurations for simulation
+    - Render 3D markers along the flight path at user-defined intervals, the caluclations are based on your chosen rocket parameters and interpolated weather data from a minimum of 16 data points.
 - **Intuitive UI & navigation**
-    - Persistent top-bar + drawer menu for fast screening of maps, weather, configs & sites
+    - Persistent top-bar + drawer menu for fast navigation between map, weather, configs & sites
     - Context-sensitive info panel in the drawer
 
 ---
@@ -84,7 +85,9 @@ Follow these steps to get SOAR up and running on your machine. You can obtain th
 **Necessary minimums:**
 - **Java Development Kit (JDK)**: version 11 or newer
 - **Android Studio**: Arctic Fox (2020.3.1) or newer
-- **Android SDK**: Platform 35 installed or newer
+- **Android SDK**:
+    - **Compile SDK:** Platform 35 installed or newer
+    - **Minimum SDK:** 26 (Android 8.0 “Oreo”) 
 - **Mapbox Access Token & MET API Key:** For this delivery version of the project we've integrated our own tokens and API keys and trust you to not abuse them. For a public version of this app we would include instructions for setting up your own keys, and possibility to register a profile to hold your credentials for the API key and your mapbox token.
 
 **Recommendations:**
