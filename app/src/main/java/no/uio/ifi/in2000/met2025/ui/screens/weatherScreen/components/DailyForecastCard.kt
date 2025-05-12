@@ -14,7 +14,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.InvertColors
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Opacity
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.SunIconsOverlayWithText
@@ -333,22 +341,50 @@ fun DailyForecastCard(
                                 .semantics {
                                     contentDescription = "$label: ${value ?: "not available"}"
                                 },
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
+                            // left: icon + label
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val icon = when (label) {
+                                    "Cloud cover"    -> Icons.Filled.Cloud
+                                    "Precipitation"  -> Icons.Filled.InvertColors
+                                    "Fog"            -> Icons.Filled.Waves
+                                    "Humidity"       -> Icons.Filled.Opacity
+                                    "Dew point"      -> Icons.Filled.Thermostat
+                                    "Air wind"       -> Icons.Filled.Air
+                                    "Ground wind"    -> Icons.Filled.Air
+                                    "Wind direction" -> Icons.Filled.Navigation
+                                    else             -> Icons.Filled.CloudOff
+                                }
+
+                                Icon(
+                                    imageVector        = icon,
+                                    contentDescription = label,
+                                    tint               = Color.White,
+                                    modifier           = Modifier.size(20.dp)
+                                )
+
+                                Spacer(Modifier.width(8.dp))
+
+                                Text(
+                                    text  = label,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+
+                            // right: value
                             Text(
-                                text = label,
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Text(
-                                text = value ?: "DATA NOT AVAILABLE",
-                                color = if (value != null) Color.White else IconPurple,
-                                style = MaterialTheme.typography.labelMedium,
+                                text      = value ?: "DATA NOT AVAILABLE",
+                                color     = if (value != null) Color.White else IconPurple,
+                                style     = MaterialTheme.typography.labelMedium,
                                 fontWeight = if (value != null)
-                                    androidx.compose.ui.text.font.FontWeight.Bold
+                                    FontWeight.Bold
                                 else
-                                    androidx.compose.ui.text.font.FontWeight.Normal
+                                    FontWeight.Normal
                             )
                         }
                     }
