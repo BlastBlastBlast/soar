@@ -199,10 +199,7 @@ fun DailyForecastCard(
         "Wind direction" to avgWindDirection?.let { "%.1f°".format(it) }
     )
 
-    // 1) Create a single infinite Transition
     val infiniteTransition = rememberInfiniteTransition()
-
-    // 2) Animate an overlay alpha between 0f and 0.15f
     val overlayAlpha by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 0.15f,
@@ -212,7 +209,6 @@ fun DailyForecastCard(
         )
     )
 
-    // 3) Animate the Y-offset for the bounce (–10dp to 10dp)
     val bounceOffsetDp by infiniteTransition.animateFloat(
         initialValue = -10f,
         targetValue = 10f,
@@ -226,7 +222,6 @@ fun DailyForecastCard(
         modifier = modifier
             .width(260.dp)
             .semantics {
-                // Describe the entire card at once
                 contentDescription = buildString {
                     append("$dayLabel forecast: ${avgTemp.toInt()}°C, $description. ")
                     infoItems.forEach { (label, value) ->
@@ -237,15 +232,13 @@ fun DailyForecastCard(
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
-        // 4) Stack the gradient + a translucent white overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(getGradientForSymbol(symbolCode))
                 .then(Modifier
                     .height(IntrinsicSize.Min)
-                    .background(Color.White.copy(alpha = overlayAlpha))
-                )
+                    .background(Color.White.copy(alpha = overlayAlpha)))
                 .padding(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
