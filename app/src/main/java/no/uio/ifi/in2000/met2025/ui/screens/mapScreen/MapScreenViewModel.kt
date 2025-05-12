@@ -320,7 +320,8 @@ class MapScreenViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = MapScreenUiState.Error(
                     "Something went wrong with the launch simulation. " +
-                            "Please check your internet connection and try again."
+                            "The calculations use weather data fetched in real time, " +
+                            "so please check your internet connection and try again."
                 )
             }
         }
