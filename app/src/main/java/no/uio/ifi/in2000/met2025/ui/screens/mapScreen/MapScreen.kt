@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -170,11 +171,7 @@ fun MapScreen(
             /**
              * Clears the current trajectory data and forces the map style to reload.
              */
-            val handleClearTrajectory = {
-                viewModel.clearTrajectory()
-                styleReloadTrigger++
-                showTrajectoryPopup = false
-            }
+
 
             Box(Modifier
                 .fillMaxSize()
@@ -276,7 +273,10 @@ fun MapScreen(
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },
                             onEditConfigs = onNavigateToRocketConfig,
-                            onClearTrajectory = handleClearTrajectory,
+                            onClearTrajectory = {
+                                viewModel.clearTrajectory()
+                                styleReloadTrigger++
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
@@ -357,23 +357,32 @@ fun MapScreen(
                             }
                         )
                     }
-                    // Floating button to toggle the visibility of map annotations
-                    IconButton(
-                        onClick = { showAnnotations = !showAnnotations },
+                    Surface(
+                        tonalElevation = 0.dp,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface,
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
                             .padding(16.dp)
-                            .size(36.dp)
-                            .semantics {
-                                contentDescription = if (showAnnotations)
-                                    "Hide map annotations" else "Show map annotations"
-                            }
+                            .size(40.dp)
                     ) {
-                        Icon(
-                            imageVector = if (showAnnotations)
-                                Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = null
-                        )
+                        IconButton(
+                            onClick = { showAnnotations = !showAnnotations },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .align(Alignment.Center)
+                                .semantics {
+                                    contentDescription = if (showAnnotations)
+                                        "Hide map annotations" else "Show map annotations"
+                                }
+                        ) {
+                            Icon(
+                                imageVector = if (showAnnotations)
+                                    Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                     // Floating button to navigate to the weather screen
                     if (!showTrajectoryPopup) {
