@@ -1,0 +1,1 @@
+![Catmull-Rom Interpolation](images/catmull-rom-interpolation.svg)
