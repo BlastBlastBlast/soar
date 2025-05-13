@@ -36,19 +36,20 @@ fun SiteHeader(
             Column {
                 var displayName = "Location"
                 when (site?.name) {
-                    "New Marker" -> {
-                        launchSites.forEach() { listSite ->
-                            if (listSite.latitude == site.latitude && listSite.longitude == site.longitude) {
-                               displayName = listSite.name
-                            }
+                    "New Marker", "Last Visited" -> {
+                        val fourDecimalLat = "%.4f".format(site.latitude)
+                        val fourDecimalLon = "%.4f".format(site.longitude)
+                        val matching = launchSites.firstOrNull { listSite ->
+                            listSite.name != "New Marker" &&
+                            listSite.name != "Last Visited" &&
+                                    "%.4f".format(listSite.latitude)  == fourDecimalLat &&
+                                    "%.4f".format(listSite.longitude) == fourDecimalLon
                         }
+                        displayName = matching?.name
+                            ?: "New Marker"
                     }
-                    null -> {
-                        displayName = "Location"
-                    }
-                    else -> {
-                        displayName = site.name
-                    }
+                    null -> displayName = "Location"
+                    else -> displayName = site.name
                 }
                 Text(
                     text = displayName,

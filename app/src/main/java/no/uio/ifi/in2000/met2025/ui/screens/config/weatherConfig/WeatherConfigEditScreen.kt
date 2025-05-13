@@ -63,8 +63,8 @@ fun WeatherConfigEditScreen(
     var isEnabledLowCloud        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledCloudCoverLow ?: true) }
     var fog                      by remember(weatherConfig) { mutableStateOf(weatherConfig?.fogThreshold?.toString() ?: "0.0") }
     var isEnabledFog             by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledFog ?: true) }
-    var precip                   by remember(weatherConfig) { mutableStateOf(weatherConfig?.precipitationThreshold?.toString() ?: "0.0") }
-    var isEnabledPrecip          by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledPrecipitation ?: true) }
+    var precipitation            by remember(weatherConfig) { mutableStateOf(weatherConfig?.precipitationThreshold?.toString() ?: "0.0") }
+    var isEnabledPrecipitation   by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledPrecipitation ?: true) }
     var humidity                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.humidityThreshold?.toString() ?: "75.0") }
     var isEnabledHumidity        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledHumidity ?: true) }
     var dewPoint                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.dewPointThreshold?.toString() ?: "15.0") }
@@ -89,7 +89,7 @@ fun WeatherConfigEditScreen(
 
     val weatherSettings = listOf(
         SettingItem("Fog Threshold",              fog,     { fog     = it }, isEnabledFog)     { isEnabledFog     = it },
-        SettingItem("Precipitation Threshold",    precip,  { precip  = it }, isEnabledPrecip)  { isEnabledPrecip  = it },
+        SettingItem("Precipitation Threshold",    precipitation,  { precipitation  = it }, isEnabledPrecipitation)  { isEnabledPrecipitation  = it },
         SettingItem("Humidity Threshold",         humidity,{ humidity = it }, isEnabledHumidity){ isEnabledHumidity = it },
         SettingItem("Dew Point Threshold",        dewPoint,{ dewPoint = it }, isEnabledDewPoint){ isEnabledDewPoint = it },
         SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
@@ -218,8 +218,8 @@ fun WeatherConfigEditScreen(
                     isEnabledWindDirection         = isEnabledWindDirection,
                     isEnabledFog                   = isEnabledFog,
                     fogThreshold                   = fog.toDoubleOrNull()                     ?: 0.0,
-                    isEnabledPrecipitation         = isEnabledPrecip,
-                    precipitationThreshold         = precip.toDoubleOrNull()                  ?: 0.0,
+                    isEnabledPrecipitation         = isEnabledPrecipitation,
+                    precipitationThreshold         = precipitation.toDoubleOrNull()                  ?: 0.0,
                     isEnabledProbabilityOfThunder  = isEnabledThunder,
                     probabilityOfThunderThreshold  = thunder.toDoubleOrNull()                  ?: 0.0,
                     isEnabledAltitudeUpperBound    = isEnabledAltitude,
