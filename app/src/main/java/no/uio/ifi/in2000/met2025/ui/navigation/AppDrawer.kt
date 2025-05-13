@@ -63,7 +63,7 @@ fun AppDrawer(
                 "- Double click  a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
                 "- Open the rocket launch trajectory simulation menu by pressing the trajectory button."
 
-
+        //this has a bit of a unique display, and is therefore defined more in the actual method.
         "Weather" -> "Forecast screen:\n"
 
         "Rocket Profiles" -> "Rocket Profiles:\n" +
@@ -95,8 +95,8 @@ fun AppDrawer(
 
         "Edit Weather Settings" -> "Define which parameters is used for evaluating " +
                 "launch windows as safe or unsafe, and the thresholds for these.\n" +
-                "Data explanation:\n" +
-                ""
+                "- Change the thresholds by changing the values in the input fields.\n" +
+                "- Toggle on or off whether the parameters are used for evaluation."
 
         "Launch Sites" -> "Browse saved launch sites, edit names."
 
@@ -243,15 +243,6 @@ fun AppDrawer(
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
-            // 3) Info title as a heading
-//            Text(
-//                text = infoTitle,
-//                style = MaterialTheme.typography.titleMedium,
-//                modifier = Modifier
-//                    .padding(start = 16.dp, bottom = 4.dp)
-//                    .semantics { heading() }
-//            )
-
             if (infoTitle != "Weather") {
                 Column(
                     Modifier
@@ -265,6 +256,7 @@ fun AppDrawer(
                     Text(infoText)
                     Spacer(Modifier.height(8.dp))
                 }
+            //Weather screen appDrawer info field is defined here
             } else {
                 val isLightMode = LocalIsDarkTheme.current
                 Column(
@@ -284,7 +276,7 @@ fun AppDrawer(
                     InfoBlock(
                         text = "Wind blows from the direction indicated by the red end, " +
                                 "and towards the direction indicated by the white end.\n" +
-                                "The degrees express the cardinality of the red end.\n" +
+                                "The degrees express the cardinality of where the wind blows from.\n" +
                                 "0° = North \n90° = East \n180° = South \n270° = West",
                         iconRes = listOf(R.drawable.windicator),
                         contentDescription = "Wind Direction Pointer"
