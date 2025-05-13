@@ -9,6 +9,12 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * LaunchSiteDAO
+ * Defines CRUD (create, read, update, delete) operations and queries for LaunchSite entities.
+ * Includes special handling for placeholder sites ("Last Visited" and "New Marker")
+ * and a lookup by exact coordinates excluding those placeholders.
+ */
 
 @Dao
 interface LaunchSiteDAO {
@@ -61,6 +67,10 @@ interface LaunchSiteDAO {
     suspend fun findSiteByCoordinates(lat: Double, lon: Double): LaunchSite?
 }
 
+/**
+ * GribDataDAO
+ * Defines CRUD (create, read, update, delete) operations and queries for GribData entities.
+ */
 @Dao
 interface GribDataDAO {
     @Insert
@@ -73,6 +83,10 @@ interface GribDataDAO {
     suspend fun clearAll()
 }
 
+/**
+ * GribUpdatedDAO
+ * Defines CRUD (create, read, update, delete) operations and queries for GribUpdated entities.
+ */
 @Dao
 interface GribUpdatedDAO {
     @Insert
@@ -83,12 +97,17 @@ interface GribUpdatedDAO {
 
     @Query("SELECT * FROM GribUpdated LIMIT 1")
     suspend fun findUpdated(): String?
-
 }
 
+/**
+ * WeatherConfigDao
+ * Defines CRUD operations and queries for WeatherConfig entities.
+ */
 @Dao
 interface WeatherConfigDao {
-
+    /** OnConflictStrategy.ABORT added as an extra safety layer
+    * to avoid duplicate names in the database.
+    */
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertWeatherConfig(cfg: WeatherConfig)
 
@@ -108,16 +127,25 @@ interface WeatherConfigDao {
     fun findWeatherConfig(weatherId: Int): Flow<WeatherConfig?>
 
     /**
-     * Room will map each row’s single “name” column into a String in the list.
-     * Adding ORDER BY guarantees a stable sort if you care.
+     * Using ORDER BY name for simpler indexing of weather configs
+     * in the UI.
      */
     @Query("SELECT name FROM weather_config ORDER BY name")
     fun findAllWeatherConfigNames(): Flow<List<String>>
 }
 
+/**
+ * RocketConfigDao
+ * Defines CRUD (create, read, update, delete) operations and queries for RocketConfig entities.
+ */
+
 @Dao
 interface RocketConfigDao {
-    //TODO: CHECK IF REPLACE OR IGNORE
+
+    /**
+     * Using ORDER BY name for simpler indexing of rocket configs
+     * in the UI.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRocketConfig(rc: RocketConfig)
 
@@ -148,6 +176,10 @@ interface RocketConfigDao {
     @Query("UPDATE rocket_config SET is_default = 1 WHERE id = :rocketId")
     suspend fun setDefaultFlag(rocketId: Int)
 
+    /**
+     * Set a rocket config as default, clearing all other flags to avoid
+     * multiple default configs.
+     */
     @Transaction
     suspend fun setDefaultRocketConfig(rocketId: Int) {
         clearDefaultFlags()
