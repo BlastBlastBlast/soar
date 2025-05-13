@@ -94,7 +94,7 @@ fun NavigationGraph(
             LaunchSiteScreen()
         }
 
-        // — Settings (NEW) —
+        // — Settings —
         composable(Configs.route) {
             ConfigScreen(
                 onWeatherConfigsClick = {
@@ -109,7 +109,7 @@ fun NavigationGraph(
             )
         }
 
-        // — Config List —
+        // — Weather Config List —
         composable(WeatherConfigList.route) {
             WeatherConfigListScreen(
                 onEditConfig   = { cfg ->
@@ -124,7 +124,7 @@ fun NavigationGraph(
             )
         }
 
-        // — Config Edit —
+        // — Weather Config Edit —
         composable(
             route     = WeatherConfigEdit.route,
             arguments = listOf(navArgument("weatherId") {

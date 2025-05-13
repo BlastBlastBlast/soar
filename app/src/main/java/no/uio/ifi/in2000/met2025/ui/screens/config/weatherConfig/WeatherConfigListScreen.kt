@@ -111,7 +111,7 @@ fun WeatherConfigListScreen(
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("+")
+                    Text(text = "+", style = MaterialTheme.typography.titleLarge)
                 }
             }
         }

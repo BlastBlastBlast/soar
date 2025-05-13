@@ -146,7 +146,9 @@ fun MapScreen(
             ErrorScreen(
                 errorMsg = msg,
                 buttonText = "Reload Map",
-                onReload = { viewModel.reloadScreen() })
+                onReload = { viewModel.reloadScreen() },
+                drawable = painterResource(R.drawable.mountain_crash)
+            )
         }
 
         is MapScreenViewModel.MapScreenUiState.Success -> {
