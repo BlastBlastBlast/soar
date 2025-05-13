@@ -58,7 +58,25 @@ import no.uio.ifi.in2000.met2025.domain.RocketState
 import org.apache.commons.math3.linear.RealVector
 
 
-// FIXME: CHECK NULL POINTER EXCEPTION WHEN PLACING FIRST MARKER
+/*
+ * This file defines a Composable MapView for displaying launch sites and simulated rocket trajectories using Mapbox.
+ * Main functionality:
+ *  - Render an interactive Mapbox map with markers for saved launch sites and a user-added marker.
+ *  - Fetch and display terrain elevations via Mapbox DEM.
+ *  - Draw and animate a 3D model trajectory of a rocket flight.
+ * Special notes:
+ *  - Expects trajectoryPoints as a list of (RealVector lat/lon/alt, unused, RocketState).
+ *  - Uses MapView.getElevation() for DEM retrieval; requires a short delay for terrain loading.
+ */
+
+
+/**
+ * Displays a Mapbox map with:
+ *  - Centered camera on `center` coordinates.
+ *  - A "new" marker for user placement.
+ *  - Saved launch site markers with elevation labels.
+ *  - 3D trajectory models representing rocket states and flight.
+ */
 @OptIn(MapboxExperimental::class)
 @Composable
 fun MapView(
@@ -75,13 +93,11 @@ fun MapView(
     onLaunchSiteMarkerClick: (LaunchSite) -> Unit = {},
     onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit = {},
     onSiteElevation: (Int, Double) -> Unit,
-    // Trajectory integration
     trajectoryPoints: List<Triple<RealVector, Double, RocketState>>, // sim points: (lat,lon,altAboveLaunchDatum)
     isAnimating: Boolean,
     onAnimationEnd: () -> Unit,
     styleReloadTrigger: Int
 ) {
-    // 1) Map state & scope
     val mapState = rememberMapState {
         cameraOptions {
             center(Point.fromLngLat(center.second, center.first))
@@ -98,24 +114,27 @@ fun MapView(
         baseStyleLoaded = false
     }
 
-    // ← NEW: helper to fetch & store DEM elevation
+    /**
+     * Fetches true terrain elevation for the given point via Mapbox DEM and
+     * calls onSiteElevation(siteId, elevation) to store the result.
+     * Delays briefly to ensure DEM source is loaded.
+     */
     suspend fun fetchTrueElevationAndStore(siteId: Int, pt: Point) {
-        // give Mapbox a frame to load terrain
+        // Allow Mapbox terrain tiles to initialize
         delay(500)
         val dem = mapViewRef
             ?.mapboxMap
-            ?.getElevation(pt)      // returns Double?
+            ?.getElevation(pt)
         if (dem != null) {
             onSiteElevation(siteId, dem)
         }
         markerElevation = dem
     }
 
-    // 3) Sync VM-driven newMarker into temporaryMarker
     LaunchedEffect(newMarker) {
         newMarker?.let { site ->
             temporaryMarker = Point.fromLngLat(site.longitude, site.latitude)
-            markerElevation = site.elevation  // might be null
+            markerElevation = site.elevation
             if (site.elevation == null && mapViewRef != null) {
                 fetchTrueElevationAndStore(site.uid, temporaryMarker!!)
             }
@@ -125,7 +144,6 @@ fun MapView(
 
     Box(modifier.fillMaxSize()) {
         //key(styleReloadTrigger) {
-
             MapboxMap(
                 modifier             = modifier.fillMaxSize(),
                 mapState             = mapState,
@@ -133,8 +151,7 @@ fun MapView(
                 onMapLongClickListener = { pt -> onMapLongClick(pt, null); true },
                 style                = { /* no-op: we load style imperatively below */ }
             ) {
-                // ─── Base style + DEM + terrain + sky + globe ───────────────
-
+                // Base style + DEM + terrain + sky + globe
                 MapEffect(mapViewRef, styleReloadTrigger) { mv ->
                     mapViewRef = mv
                     if (!baseStyleLoaded) {
@@ -160,11 +177,11 @@ fun MapView(
                 }
 
 
-
+                // Remove existing trajectory when no points
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) {
                         mv.mapboxMap.getStyle { style ->
-                            // 1) remove all "traj-lyr-*" layers
+                            // Remove all "traj-lyr-*" layers
                             style.styleLayers
                                 .map { it.id }                              // StyleObjectInfo.id
                                 .filter { it.startsWith("traj-lyr-") }
@@ -172,7 +189,7 @@ fun MapView(
                                     style.removeStyleLayer(layerId)           // removeStyleLayer(String)
                                 }
 
-                            // 2) then remove all "traj-src-*" sources
+                            // Remove all "traj-src-*" sources
                             style.styleSources
                                 .map { it.id }
                                 .filter { it.startsWith("traj-src-") }
@@ -182,11 +199,11 @@ fun MapView(
                         }
                     }
                 }
-
+                // Draw trajectory points as 3D models
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
 
-                    // ─── 1) find the two special insertion indices ────────────────────
+                    // Offset model rendering
                     val firstFreeFlightIdx = trajectoryPoints
                         .indexOfFirst { it.third == RocketState.FREE_FLIGHT }
                         .takeIf { it >= 0 } ?: 0
@@ -199,12 +216,12 @@ fun MapView(
                         .takeIf { it >= 0 }
                     val parachuteModelIdx = firstParachuteIdx?.plus(parachuteOffset)
 
-                    // fallback terrain elevation at launch
+                    // Fallback terrain elevation at launch
                     val launchElev = trajectoryPoints.first().first.getEntry(2)
 
-                    // ─── 2) draw every point (with skip logic) ────────────────────────
+                    // Draw trajectory points
                     trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
-                        // skip most parachute points… but NOT the one at parachuteModelIdx
+                        // Limit amount of parachute points
                         if (state == RocketState.PARACHUTE_DEPLOYED
                             && idx != parachuteModelIdx
                             && idx % 10 != 0) return@forEachIndexed
@@ -217,7 +234,6 @@ fun MapView(
                             ?: launchElev
                         val relAlt = absAlt - terrain
 
-                        // choose your .glb
                         val modelUri = when {
                             idx == rocketModelIdx -> "asset://Rocket.glb"
                             parachuteModelIdx != null && idx == parachuteModelIdx -> "asset://parachute_offset.glb"
@@ -230,7 +246,7 @@ fun MapView(
                             }
                         }
 
-                        // decide scale: 4× larger for rocket & parachute, base otherwise
+                        // Decide scale for rocket and parachute
                         val scaleVec = when {
                             idx == rocketModelIdx -> listOf(200.0, 200.0, 200.0)
                             parachuteModelIdx != null && idx == parachuteModelIdx -> listOf(60.0, 60.0, 60.0)
@@ -242,14 +258,12 @@ fun MapView(
                         val layerId  = "traj-lyr-$idx"
 
                         mv.mapboxMap.getStyle { style ->
-                            // 1) add the model resource if missing
                             if (!style.styleLayers.any { it.id == modelId }) {
                                 mv.mapboxMap.addModel(model(modelId) {
                                     uri(modelUri)
                                 })
                                 println("➤ added MODEL $modelId → $modelUri")
                             }
-                            // 2) add the GeoJSON source if missing
                             if (!style.styleSources.any { it.id == sourceId }) {
                                 style.addSource(geoJsonSource(sourceId) {
                                     data(FeatureCollection.fromFeatures(arrayOf(
@@ -257,7 +271,6 @@ fun MapView(
                                     )).toJson())
                                 })
                             }
-                            // 3) add the ModelLayer if missing
                             if (!style.styleLayers.any { it.id == layerId }) {
                                 style.addLayer(modelLayer(layerId, sourceId) {
                                     modelId(modelId)
@@ -267,7 +280,6 @@ fun MapView(
                                     modelCastShadows(true)
                                     modelReceiveShadows(true)
                                 })
-                                // Log layer addition
                                 if (style.styleLayers.any { it.id == layerId }) {
                                     println("ModelLayer $layerId added successfully.")
                                 } else {
@@ -278,7 +290,7 @@ fun MapView(
                     }
                 }
 
-                // ─── 4) Animate camera over the lifted trajectory ────────────────────
+                // Animate camera over the lifted trajectory
                 MapEffect(trajectoryPoints to isAnimating) { mv ->
                     if (!isAnimating || trajectoryPoints.isEmpty()) return@MapEffect
                     (mv.context as ComponentActivity).lifecycleScope.launch {
@@ -306,7 +318,7 @@ fun MapView(
                     }
                 }
 
-                // 4) (unchanged) capture MapView ref & enable location puck
+                // MapView ref & enable location puck
                 MapEffect(Unit) { mv ->
                     mapViewRef = mv
                     (mv.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
@@ -318,8 +330,8 @@ fun MapView(
                 }
 
 
-                // 6) Draw the “new” marker
-                //Null check needed for first launch of app
+                // Draw the “new” marker
+                // Null check needed for first launch of app
                 if (newMarkerStatus && newMarker != null) {
                     key(newMarker.uid to newMarker.name) {
                         val icon = rememberIconImage(
@@ -349,7 +361,7 @@ fun MapView(
                                     lat = "%.4f".format(pt.latitude()),
                                     lon = "%.4f".format(pt.longitude()),
                                     elevation = markerElevation?.let { "%.1f m".format(it) },
-                                    isLoadingElevation = markerElevation == null,   // show spinner when null
+                                    isLoadingElevation = markerElevation == null, // Shows loader
                                     onClick = { onMarkerAnnotationClick(pt, markerElevation) },
                                     onLongPress = {
                                         onMarkerAnnotationLongPress(
@@ -382,7 +394,7 @@ fun MapView(
                     }
                 }
 
-                // 7) Draw all other launch sites
+                // Draw all other launch sites
                 launchSites
                     .filter { it.name !in listOf("Last Visited", "New Marker") }
                     .forEach { site ->
@@ -438,19 +450,15 @@ fun MapView(
                             }
                         }
 
-                        // only fetch terrain elevation once, and only if it's still null
                         LaunchedEffect(site.uid, site.elevation) {
                             if (site.elevation == null
                                 && !requestedPts.contains(sitePoint)
                                 && mapViewRef != null
                             ) {
-                                // mark as requested so we don't repeat
                                 requestedPts = requestedPts + sitePoint
-
-                                // synchronous elevation query
                                 val dem = mapViewRef!!
                                     .mapboxMap
-                                    .getElevation(sitePoint)   // returns Double?
+                                    .getElevation(sitePoint)
                                 dem?.let { onSiteElevation(site.uid, it) }
                             }
                         }
@@ -460,14 +468,3 @@ fun MapView(
     }
 //}
 
-/** Updated Helper */
-fun idToBitmap(context: Context, @DrawableRes id: Int): Bitmap {
-    val dr = ResourcesCompat.getDrawable(context.resources, id, null)
-        ?: error("Drawable $id not found")
-    val bmp = Bitmap.createBitmap(dr.intrinsicWidth, dr.intrinsicHeight, Bitmap.Config.ARGB_8888)
-    android.graphics.Canvas(bmp).apply {
-        dr.setBounds(0, 0, width, height)
-        dr.draw(this)
-    }
-    return bmp
-}
