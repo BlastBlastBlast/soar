@@ -1,5 +1,8 @@
 package no.uio.ifi.in2000.met2025.data.models
 
+/**
+ * Coordinate boundaries for the applications GRIB2 data.
+ */
 object CoordinateBoundaries {
     const val MIN_LATITUDE = 55.35
     const val MAX_LATITUDE = 64.25
