@@ -183,102 +183,74 @@ fun MapView(
                     }
                 }
 
-                // ─── 3) When trajectoryPoints appear: register model+source+layer per point ───
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
-//                mv.mapboxMap.getStyle { style ->
-//                    trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
-//                        if (state == RocketState.PARACHUTE_DEPLOYED && idx%10 != 0) return@forEachIndexed
-//
-//                        val lon = vec.getEntry(1)
-//                        val lat = vec.getEntry(0)
-//                        val alt = vec.getEntry(2)
-//
-//                        val modelId  = "redball-$idx"
-//                        val sourceId = "traj-src-$idx"
-//                        val layerId  = "traj-lyr-$idx"
-//
-//
-//                        // 3.1) add the GLB asset once
-//                        if (style.getLayer(modelId) == null) {
-//                            mv.mapboxMap.addModel(model(modelId) {
-//                                uri("asset://tiny_icosphere2.glb")
-//                            })
-//                        }
-//
-//                        // 3.2) add a GeoJSON source at exactly (lon,lat,alt)
-//                        if (style.getSource(sourceId) == null) {
-//                            style.addSource(geoJsonSource(sourceId) {
-//                                data(
-//                                    FeatureCollection.fromFeatures(arrayOf(
-//                                        Feature.fromGeometry(Point.fromLngLat(lon, lat, alt))
-//                                    )).toJson()
-//                                )
-//                            })
-//                        }
-//
-//                        // 3.3) add a ModelLayer, shifted up by altitude
-//                        if (style.getLayer(layerId) == null) {
-//                            style.addLayer(modelLayer(layerId, sourceId) {
-//                                modelId(modelId)
-//                                modelType(ModelType.COMMON_3D)
-//                                modelScale(listOf(5.0, 5.0, 5.0))
-//                                modelTranslation(listOf(0.0, 0.0, alt))
-//                                modelCastShadows(true)
-//                                modelReceiveShadows(true)
-//                            })
-//                        }
-//                    }
-//                }
+
+                    // ─── 1) compute special‐model indices ─────────────────────────
+                    val rocketOffset      = 0                // e.g. first point
+                    val parachuteOffset   = 10               // X steps after deploy
+                    val firstParachuteIdx = trajectoryPoints
+                        .indexOfFirst { it.third == RocketState.PARACHUTE_DEPLOYED }
+                        .takeIf { it >= 0 }
+                    val rocketModelIdx    = rocketOffset
+                    val parachuteModelIdx = firstParachuteIdx?.plus(parachuteOffset)
+
+                    // ─── 2) get launch elevation for fallback ────────────────────
                     val launchElev = trajectoryPoints.first().first.getEntry(2)
 
+                    // ─── 3) loop each sim‐point ───────────────────────────────────
                     trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
+                        // **skip most of the parachute points** to throttle draw
                         if (state == RocketState.PARACHUTE_DEPLOYED && idx % 10 != 0) return@forEachIndexed
 
-                        // 2) sim coords
+                        // 3.1) lat/lon/absAlt
                         val lat    = vec.getEntry(0)
                         val lon    = vec.getEntry(1)
-                        val absAlt = vec.getEntry(2)        // ASL altitude from your sim
+                        val absAlt = vec.getEntry(2)
 
-                        // 3) query the DEM at this (lon,lat)
+                        // 3.2) compute meters above terrain
                         val pt2d    = Point.fromLngLat(lon, lat)
                         val terrain = mv.mapboxMap.getElevation(pt2d) ?: launchElev
-
-                        // 4) compute metres _above_ that terrain
                         val relAlt  = absAlt - terrain
 
-                        val modelId = "redball-$idx"
-                        val sourceId = "traj-src-$idx"
-                        val layerId = "traj-lyr-$idx"
+                        // 3.3) decide which GLB to place here
+                        val modelUri = when {
+                            idx == rocketModelIdx -> "asset://Rocket.glb"
+                            parachuteModelIdx != null && idx == parachuteModelIdx ->
+                                "asset://parachute.glb"
+                            else -> when (state) {
+                                RocketState.ON_LAUNCH_RAIL     -> "asset://PurpleIso.glb"
+                                RocketState.THRUSTING          -> "asset://RedIso.glb"
+                                RocketState.FREE_FLIGHT        -> "asset://OrangeIso.glb"
+                                RocketState.PARACHUTE_DEPLOYED -> "asset://BlueIso.glb"
+                                RocketState.LANDED             -> "asset://GreenIso.glb"
+                            }
+                        }
 
+                        // 3.4) unique IDs for this point
+                        val modelId  = "traj-model-$idx"
+                        val sourceId = "traj-src-$idx"
+                        val layerId  = "traj-lyr-$idx"
+
+                        // ─── 4) the familiar getStyle { … } block ────────────────────
                         mv.mapboxMap.getStyle { style ->
-                            // Add the GLB model if not already added
+                            // 4.1) add the GLB model if missing
                             if (!style.styleLayers.any { it.id == modelId }) {
-                                style.addModel(model(modelId) {
-                                    uri("asset://tiny_icosphere2.glb")
+                                mv.mapboxMap.addModel(model(modelId) {
+                                    uri(modelUri)
                                 })
                             }
-
-                            // Add the GeoJSON source if not already added
+                            // 4.2) add GeoJSON source if missing
                             if (!style.styleSources.any { it.id == sourceId }) {
                                 style.addSource(geoJsonSource(sourceId) {
                                     data(
-                                        FeatureCollection.fromFeatures(
-                                            listOf(
-                                                Feature.fromGeometry(
-                                                    Point.fromLngLat(
-                                                        lon,
-                                                        lat,
-                                                        relAlt
-                                                    )
-                                                )
-                                            )
-                                        ).toJson()
+                                        FeatureCollection.fromFeatures(arrayOf(
+                                            Feature.fromGeometry(Point.fromLngLat(lon, lat, relAlt))
+                                        )).toJson()
                                     )
                                 })
                             }
-
-                            // Add the ModelLayer if not already added
+                            // 4.3) add ModelLayer if missing
                             if (!style.styleLayers.any { it.id == layerId }) {
                                 style.addLayer(modelLayer(layerId, sourceId) {
                                     modelId(modelId)
