@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -141,52 +142,56 @@ fun TrajectoryPopup(
                         .height(70.dp)
                 )
 
-                Column(
+                LazyColumn(
                     Modifier
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick  = onStartTrajectory,
-                            modifier = Modifier
-                                .weight(1f)
-                                .semantics {
-                                    contentDescription = "Start trajectory"
-                                    role = Role.Button
-                                }
+                    item {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("▶️ Start Trajectory")
-                        }
-                        Button(
-                            onClick  = onEditConfigs,
-                            modifier = Modifier
-                                .weight(1f)
-                                .semantics {
-                                    contentDescription = "Edit rocket configurations"
-                                    role = Role.Button
-                                }
-                        ) {
-                            Text("⚙️ Edit Configs")
+                            Button(
+                                onClick = onStartTrajectory,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .semantics {
+                                        contentDescription = "Start trajectory"
+                                        role = Role.Button
+                                    }
+                            ) {
+                                Text("▶️ Start Trajectory")
+                            }
+                            Button(
+                                onClick = onEditConfigs,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .semantics {
+                                        contentDescription = "Edit rocket configurations"
+                                        role = Role.Button
+                                    }
+                            ) {
+                                Text("⚙️ Edit Configs")
+                            }
                         }
                     }
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick  = onClearTrajectory,
-                            modifier = Modifier
-                                .weight(1f)
-                                .semantics {
-                                    contentDescription = "Clear trajectory"
-                                    role = Role.Button
-                                }
+                    item {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("🗑️ Clear Trajectory")
+                            Button(
+                                onClick = onClearTrajectory,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .semantics {
+                                        contentDescription = "Clear trajectory"
+                                        role = Role.Button
+                                    }
+                            ) {
+                                Text("🗑️ Clear Trajectory")
+                            }
                         }
                     }
                 }
