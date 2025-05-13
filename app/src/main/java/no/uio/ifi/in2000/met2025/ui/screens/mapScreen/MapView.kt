@@ -124,7 +124,7 @@ fun MapView(
 
 
     Box(modifier.fillMaxSize()) {
-        key(styleReloadTrigger) {
+        //key(styleReloadTrigger) {
 
             MapboxMap(
                 modifier             = modifier.fillMaxSize(),
@@ -479,7 +479,7 @@ fun MapView(
             }
         }
     }
-}
+//}
 
 /** Updated Helper */
 fun idToBitmap(context: Context, @DrawableRes id: Int): Bitmap {
