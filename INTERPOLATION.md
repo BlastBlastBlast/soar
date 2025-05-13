@@ -1,3 +1,5 @@
+\usepackage{amsmath}
+
 ![Catmull-Rom Interpolation](images/catmull-rom-interpolation.svg)
 
 This diagram illustrates the concept of Catmull-Rom interpolation. The $x$-axis represents distance, while the $y$-axis represents the metric we want to approximate, for instance altitude or wind speed. The curve segments of the Catmull-Rom spline are defined so that they pass through the control points, and the slope of a curve segment at an end point is defined by the adjacent control points. The red spline is constructed from linear interpolation between the points, while the blue curves show the Catmull-Rom spline. The Catmull-Rom spline has the advantage of creating a smooth transition between segments, while the linear spline is only continuous at the control points.
@@ -22,9 +24,9 @@ t^3
 M =
 \begin{pmatrix}
 0 & 1 & 0 & 0 \\
--\dfrac{1}{2} & 0 & \dfrac{1}{2} & 0 \\
-1 & -\dfrac{5}{2} & 2 & -\dfrac{1}{2} \\
--\dfrac{1}{2} & \dfrac{3}{2} & -\dfrac{3}{2} & \dfrac{1}{2}
+-\tfrac{1}{2} & 0 & \tfrac{1}{2} & 0 \\
+1 & -\tfrac{5}{2} & 2 & -\tfrac{1}{2} \\
+-\tfrac{1}{2} & \tfrac{3}{2} & -\tfrac{3}{2} & \tfrac{1}{2}
 \end{pmatrix}
 ,
 \vec{p} =
