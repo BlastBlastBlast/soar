@@ -260,14 +260,14 @@ fun MapScreen(
                             .padding(16.dp)
                     )
 
-                    // Bottom sheep popup
+                    // Popup for trajectory simulation
                     if (showTrajectoryPopup) {
                         TrajectoryPopup(
                             show = true,
                             lastVisited = viewModel.lastVisited.collectAsState().value,
                             currentSite = currentSite,
-                            rocketConfigs = rocketConfigs,                    // ← pass list
-                            selectedConfig = selectedCfg,                // ← pass default
+                            rocketConfigs = rocketConfigs,
+                            selectedConfig = selectedCfg,
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },
@@ -286,6 +286,7 @@ fun MapScreen(
                             .padding(16.dp)
                     ) {
                         if (!showTrajectoryPopup) {
+                            // Display the latitude and longitude input field
                             LatLonDisplay(
                                 coordinates = coordsString,
                                 onCoordinatesChange = { coordsString = it },
@@ -312,7 +313,7 @@ fun MapScreen(
                             parseError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         }
                     }
-
+                    // Floating button to open the launch site menu
                     LaunchSitesButton(
                         Modifier
                             .align(Alignment.BottomStart)
@@ -350,7 +351,7 @@ fun MapScreen(
                             }
                         )
                     }
-
+                    // Floating button to toggle the visibility of map annotations
                     IconButton(
                         onClick = { showAnnotations = !showAnnotations },
                         modifier = Modifier
@@ -368,7 +369,7 @@ fun MapScreen(
                             contentDescription = null
                         )
                     }
-
+                    // Floating button to navigate to the weather screen
                     WeatherNavigationButton(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -382,7 +383,7 @@ fun MapScreen(
                         },
                         context = LocalContext.current
                     )
-
+                    // Popup dialog for saving a launch site
                     if (showSaveDialog) {
                         SaveLaunchSiteDialog(
                             launchSiteName = launchSiteName,
@@ -423,6 +424,7 @@ fun MapScreen(
                             updateStatus = updateStatus
                         )
                     }
+                    // Handle the update status of the launch site
                     LaunchedEffect(updateStatus) {
                         if (updateStatus is MapScreenViewModel.UpdateStatus.Success) {
                             showSaveDialog = false
