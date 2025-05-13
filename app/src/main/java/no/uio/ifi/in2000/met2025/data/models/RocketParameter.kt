@@ -4,7 +4,9 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import kotlin.math.PI
 import kotlin.math.pow
 
-// Parameter names aligned with TrajectoryCalculator inputs
+/**
+ * Parameter names aligned with TrajectoryCalculator inputs
+ */
 enum class RocketParameterType {
     LAUNCH_AZIMUTH,                  // clockwise from north
     LAUNCH_PITCH,                    // elevation angle (upward = 90°)
@@ -20,10 +22,14 @@ enum class RocketParameterType {
     PARACHUTE_DRAG_COEFFICIENT       // unitless
 }
 
-// Holds a map of parameter values
+/**
+ * Holds a map of parameter values
+ */
 data class RocketParameterValues(val valueMap: Map<String, Double>)
 
-// Default values matching previous defaults (with cross-sectional area computed from 0.2 m diameter)
+/**
+ * Default values matching previous defaults (with cross-sectional area computed from 0.2 m diameter)
+ */
 fun getDefaultRocketParameterValues(): RocketParameterValues {
     val defaultDiameter = 0.2                          // meters
     val defaultArea = PI * (defaultDiameter / 2).pow(2)
@@ -45,7 +51,9 @@ fun getDefaultRocketParameterValues(): RocketParameterValues {
     return RocketParameterValues(map)
 }
 
-// Map parameter values into the database model
+/**
+ * Map parameter values into the database model
+ */
 fun mapToRocketConfig(
     name: String,
     values: RocketParameterValues,
