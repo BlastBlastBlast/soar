@@ -72,7 +72,7 @@ This diagram shows how uniform interpolation works in 2D space. One can, given 1
 As with the one-dimensional case, the interpolation can be expressed as a product of vectors and matrices. Given 16 control points $p_{i,j}$, where $i$ and $j$ are the indices of the grid, we can represent the interpolation as a function $f_2$ of $t_x$ and $t_y$ on the interval $[0, 1]$:
 
 $$
-f(t_x, t_y) = \vec{t_y}^T \cdot M \cdot P \cdot M^T \cdot \vec{t_x}
+f_2(t_x, t_y) = \vec{t_y}^T \cdot M \cdot P \cdot M^T \cdot \vec{t_x}
 $$
 
 $$
