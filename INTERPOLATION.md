@@ -8,6 +8,7 @@
 - [2D Uniform Interpolation](#2d-uniform-interpolation)
 - [1D Non-Uniform Interpolation](#1d-non-uniform-interpolation)
 - [3D Mixed Interpolation](#3d-mixed-interpolation)
+- [Notes](#notes)
 
 ## Overview
 Interpolation is a method used to estimate unknown values that fall within the range of known data points. It is particularly useful in various fields such as meteorology, computer graphics, and numerical analysis. The following sections describe the interpolation methods used in SOAR.
@@ -108,7 +109,7 @@ The matrix $M$ is the same as in the one-dimensional case.
 The principle of non-uniform interpolation is similar to the uniform case, but the control points are not evenly spaced. Instead of using a matrix approach, we use a recursive method to compute the interpolated value. The algorithm is based on the following formula:
 
 $$
-C = \frac{t_{2} - t}{t_{2} - t_{1}} B_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} B_{2}
+f^*(t) = \frac{t_{2} - t}{t_{2} - t_{1}} B_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} B_{2}
 $$
 
 where
@@ -140,3 +141,8 @@ $$
 This diagram shows how 3D interpolation works. We compute four control points at the target $x$ and $y$, each on a different isobaric level, ground level, or a layer extrapolated from the available data. The value at $(x, y, z)$ is then computed by interpolating from those four control points.
 
 The control points are obtained using 2D interpolation, as shown in the previous diagram. The altitudes $z_0, z_1, z_2$ and $z_3$ of the four control points are also calculated using 2D interpolation. 
+
+## Notes
+
+- The 1D non-uniform interpolation method comes from a paper by P. J. Barry and R. N. Goldman, "Recursive evaluation algorithm for a class of Catmull-Rom splines"
+- The interpolation methods are implemented in the 'IsobaricInterpolator' class, which is part of the 'domain' package.
