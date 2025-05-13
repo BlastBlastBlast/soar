@@ -42,6 +42,7 @@ import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.WeatherNavigati
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -240,24 +241,29 @@ fun MapScreen(
 
                     )
                     // Floating button to open the trajectory simulation popup
-                    ExtendedFloatingActionButton(
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = R.drawable.missile),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(4.dp),
-                                tint = Color.Black // Set the desired color here
-                            )
-                        },
-                        text = { Text("Trajectory") },
-                        onClick = { showTrajectoryPopup = true },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp)
-                    )
-
+                    if (!showTrajectoryPopup) {
+                        ExtendedFloatingActionButton(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            icon = {
+                                Icon(
+                                    Icons.Default.RocketLaunch,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(4.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            text = { Text("BALLISTIC\nTRAJECTORY") },
+                            onClick = { showTrajectoryPopup = true },
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(16.dp)
+                                .semantics {
+                                    contentDescription = "Start trajectory simulation"
+                                }
+                        )
+                    }
                     // Popup for trajectory simulation
                     if (showTrajectoryPopup) {
                         TrajectoryPopup(
@@ -312,13 +318,15 @@ fun MapScreen(
                         }
                     }
                     // Floating button to open the launch site menu
-                    LaunchSitesButton(
-                        Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(16.dp)
-                            .size(90.dp),
-                        onClick = { isMenuExpanded = !isMenuExpanded }
-                    )
+                    if (!showTrajectoryPopup) {
+                        LaunchSitesButton(
+                            Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(16.dp)
+                                .size(90.dp),
+                            onClick = { isMenuExpanded = !isMenuExpanded }
+                        )
+                    }
 
                     AnimatedVisibility(
                         visible = isMenuExpanded,
@@ -353,7 +361,7 @@ fun MapScreen(
                     IconButton(
                         onClick = { showAnnotations = !showAnnotations },
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
+                            .align(Alignment.CenterEnd)
                             .padding(16.dp)
                             .size(36.dp)
                             .semantics {
@@ -368,19 +376,21 @@ fun MapScreen(
                         )
                     }
                     // Floating button to navigate to the weather screen
-                    WeatherNavigationButton(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(16.dp)
-                            .size(90.dp),
-                        latInput = coords.first.toString(),
-                        lonInput = coords.second.toString(),
-                        onNavigate = { lat, lon ->
-                            viewModel.updateCoordinates(lat, lon)
-                            onNavigateToWeather(lat, lon)
-                        },
-                        context = LocalContext.current
-                    )
+                    if (!showTrajectoryPopup) {
+                        WeatherNavigationButton(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(16.dp)
+                                .size(90.dp),
+                            latInput = coords.first.toString(),
+                            lonInput = coords.second.toString(),
+                            onNavigate = { lat, lon ->
+                                viewModel.updateCoordinates(lat, lon)
+                                onNavigateToWeather(lat, lon)
+                            },
+                            context = LocalContext.current
+                        )
+                    }
                     // Popup dialog for saving a launch site
                     if (showSaveDialog) {
                         SaveLaunchSiteDialog(

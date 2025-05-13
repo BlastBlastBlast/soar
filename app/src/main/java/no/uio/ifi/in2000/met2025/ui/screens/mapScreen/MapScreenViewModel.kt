@@ -138,7 +138,7 @@ class MapScreenViewModel @Inject constructor(
             val default = rocketConfigRepository.getDefaultRocketConfig().firstOrNull()
             if (default == null) {
                 val defaultCfg = mapToRocketConfig(
-                    name = "Default Rocket Config",
+                    name = "Default",
                     values = getDefaultRocketParameterValues(),
                     isDefault = true
                 )
@@ -174,17 +174,6 @@ class MapScreenViewModel @Inject constructor(
             if (launchSiteRepository.checkIfSiteExists("New Marker")) {
                 _newMarkerStatus.value = true
             }
-        }
-        // Create a default rocket config if it doesn't exist (once on startup)
-        viewModelScope.launch {
-            rocketConfigRepository.getDefaultRocketConfig().firstOrNull()?.let { /* ok */ }
-                ?: rocketConfigRepository.insertRocketConfig(
-                    mapToRocketConfig(
-                        name = "Default Rocket Config",
-                        values = getDefaultRocketParameterValues(),
-                        isDefault = true
-                    )
-                )
         }
     }
 
