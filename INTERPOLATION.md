@@ -97,6 +97,7 @@ p_{0,2} & p_{1,2} & p_{2,2} & p_{3,2} \\
 p_{0,3} & p_{1,3} & p_{2,3} & p_{3,3}
 \end{pmatrix}
 $$
+
 The matrix $M$ is the same as in the one-dimensional case.
 
 ## Three-Dimensional Interpolation
