@@ -228,8 +228,8 @@ fun MapScreen(
                             show = true,
                             lastVisited = viewModel.lastVisited.collectAsState().value,
                             currentSite = currentSite,
-                            rocketConfigs = rocketConfigs,                    // ← pass list
-                            selectedConfig = selectedCfg,                // ← pass default
+                            rocketConfigs = rocketConfigs,
+                            selectedConfig = selectedCfg,
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },

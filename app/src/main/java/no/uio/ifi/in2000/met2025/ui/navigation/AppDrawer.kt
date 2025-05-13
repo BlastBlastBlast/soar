@@ -1,14 +1,17 @@
 package no.uio.ifi.in2000.met2025.ui.navigation
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,11 +24,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.unit.sp
+import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
 @Composable
 fun AppDrawer(
@@ -39,7 +46,7 @@ fun AppDrawer(
         currentRoute == Screen.Maps.route                               -> "Map"
         currentRoute?.startsWith("weather/") == true                    -> "Weather"
         currentRoute == Screen.RocketConfigList.route                   -> "Rocket Profiles"
-        currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Profile"
+        currentRoute?.startsWith("rocket_edit") == true          -> "Edit Rocket Profile"
         currentRoute == Screen.WeatherConfigList.route                         -> "Weather Settings"
         currentRoute?.startsWith("weather_edit") == true                 -> "Edit Weather Settings"
         currentRoute == Screen.Configs.route                           -> "Settings"
@@ -48,27 +55,48 @@ fun AppDrawer(
     }
 
     val infoText = when (infoTitle) {
-        "Map" -> "Explore the map: set and save launch-site markers, navigate between sites, " +
-                "view elevation and coordinates, pan and zoom, fetch and compute weather data " +
-                "for the selected location, and calculate ballistic trajectories using LocationForecast 2.0 " +
-                "and Isobaric GRIB-2 data."
+        "Map"-> "How to use the map: \n" +
+                "- Longpress the map to place a marker.\n" +
+                "- Or input coordinates at the top of the screen.\n" +
+                "- Longpress the label above a marker to edit the name and save it as a launch site.\n" +
+                "- Saved sites can be deleted from the launch site screen.\n" +
+                "- Double click  a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
+                "- Open the rocket launch trajectory simulation menu by pressing the trajectory button."
 
-        "Weather" -> "Browse a day-pager of hourly launch windows. For each window, view the hourly forecast, " +
-                "fetch and display three-hour isobaric wind data on demand, and see which windows " +
-                "already have wind data loaded. Use the filter menu to apply your Weather Settings thresholds."
 
-        "Rocket Profiles" -> "View all saved rocket configuration profiles. A standard default profile is provided; " +
-                "press the plus button to create your own. Default threshold values are preconfigured."
+        "Weather" -> "Forecast screen:\n"
 
-        "Edit Rocket Profile" -> "Edit the selected rocket profile’s parameters—thrust, payload mass, and stages. " +
-                "Save when you’re done."
+        "Rocket Profiles" -> "Rocket Profiles:\n" +
+                "- View all saved rocket configuration profiles.\n" +
+                "- A default profile is provided.\n" +
+                "- Press the plus button to create your own.\n" +
+                "- Default threshold values are preconfigured."
 
-        "Weather Settings" -> "Configure your weather thresholds and preferences. Select or edit saved settings " +
-                "that determine which launch windows are shown."
+        "Edit Rocket Profile" -> "Edit the selected rocket profile’s parameters:\n" +
+                "— Launch direction (Azimuth and Pitch)\n" +
+                "— Launch rail length\n" +
+                "— Wet mass: Total weight with fuel\n" +
+                "— Dry mass: Weight, not counting fuel\n" +
+                "— Burn time: Expected fuel consumption time\n" +
+                "— Step Size: The intervals of flight at which the simulation renders data\n" +
+                "— Thrust: Force produced in Newton\n" +
+                "— Cross-Sectional area and Drag Coefficient\n" +
+                "— Parachute Cross-Sectional area and Drag Coefficient\n"
+
+        "Weather Settings" -> "Weather Profiles:\n" +
+                "- View all saved Weather configuration profiles.\n" +
+                "- These profiles define the thresholds for what is evaluated as safe or unsafe." +
+                "- A default profile is provided.\n" +
+                "- Press the plus button to create your own.\n" +
+                "- Default threshold values are preconfigured."
+
 
         "Settings" -> "From here you can choose to manage Weather Settings or Rocket Profiles."
 
-        "Edit Weather Settings" -> "Configure which parameters are used to filter launch windows."
+        "Edit Weather Settings" -> "Define which parameters is used for evaluating " +
+                "launch windows as safe or unsafe, and the thresholds for these.\n" +
+                "Data explanation:\n" +
+                ""
 
         "Launch Sites" -> "Browse saved launch sites, edit names."
 
@@ -216,27 +244,98 @@ fun AppDrawer(
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
             // 3) Info title as a heading
-            Text(
-                text = infoTitle,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(start = 16.dp, bottom = 4.dp)
-                    .semantics { heading() }
-            )
+//            Text(
+//                text = infoTitle,
+//                style = MaterialTheme.typography.titleMedium,
+//                modifier = Modifier
+//                    .padding(start = 16.dp, bottom = 4.dp)
+//                    .semantics { heading() }
+//            )
 
-            // 4) Info body
-            Column(
-                Modifier
-                    .weight(1f)
-                    .verticalScroll(bodyScroll)
-                    .padding(horizontal = 16.dp)
-                    .semantics {
-                        contentDescription = infoText
-                    }
-            ) {
-                Text(infoText)
-                Spacer(Modifier.height(8.dp))
+            if (infoTitle != "Weather") {
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .verticalScroll(bodyScroll)
+                        .padding(horizontal = 16.dp)
+                        .semantics {
+                            contentDescription = infoText
+                        }
+                ) {
+                    Text(infoText)
+                    Spacer(Modifier.height(8.dp))
+                }
+            } else {
+                val isLightMode = LocalIsDarkTheme.current
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .verticalScroll(bodyScroll)
+                        .padding(horizontal = 16.dp)
+                        .semantics { contentDescription = infoText }
+                ) {
+                    Text(infoText)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Data explanation:",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    InfoBlock(
+                        text = "Wind blows from the direction indicated by the red end, " +
+                                "and towards the direction indicated by the white end.\n" +
+                                "The degrees express the cardinality of the red end.\n" +
+                                "0° = North \n90° = East \n180° = South \n270° = West",
+                        iconRes = listOf(R.drawable.windicator),
+                        contentDescription = "Wind Direction Pointer"
+                    )
+                    val gribFetched = if (isLightMode) R.drawable.grib_fetched_light
+                        else R.drawable.grib_fetched_dark
+                    val gribNotFetched = if (isLightMode) R.drawable.grib_not_fetched_light
+                        else R.drawable.grib_not_fetched_dark
+                    InfoBlock(
+                        text = "An empty icon shows that grib data is not yet fetched.\n" +
+                            "A filled icon shows that grib data is fetched.\n" +
+                            "When grib data is fetched, it is part of the safety evaluation",
+                        iconRes = listOf(gribFetched, gribNotFetched),
+                        contentDescription = "Grib Icons"
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+fun InfoBlock(
+    text: String,
+    @DrawableRes iconRes: List<Int>,
+    contentDescription: String? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Row {
+            iconRes.forEach() { icon ->
+                Icon(
+                    painter = painterResource(id = icon),
+                    contentDescription = contentDescription,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            lineHeight = 20.sp
+        )
     }
 }
