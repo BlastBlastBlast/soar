@@ -69,7 +69,7 @@ This diagram shows how interpolation works in 2D space. One can, given 16 contro
 As with the one-dimensional case, the interpolation can be expressed as a product of vectors and matrices. Given 16 control points $p_{i,j}$, where $i$ and $j$ are the indices of the grid, we can represent the interpolation as a function $f$ of $t_x$ and $t_y$ on the interval $[0, 1]$:
 
 $$
-f(t_x, t_y) = \vec{t_x}^T \cdot M \cdot P \cdot M^T \cdot \vec{t_y}
+f(t_x, t_y) = \vec{t_y}^T \cdot M \cdot P \cdot M^T \cdot \vec{t_x}
 $$
 
 $$
@@ -103,6 +103,7 @@ The matrix $M$ is the same as in the one-dimensional case.
 ## Three-Dimensional Interpolation
 
 ![Vertical Interpolation](images/vertical-interpolation.svg)
+
 This diagram shows how 3D interpolation works. We compute four control point in the $z$-direction, each at the given $(x, y)$-coordinates on some isobaric level, ground level, or a layer extrapolated from the available data. The value at $(x, y, z)$ is then computed by interpolating from those four control points.
 
 The control points are obtained using 2D interpolation, as shown in the previous diagram. The altitudes $z_0, z_1, z_2$ and $z_3$ of the four control points are also calculated using 2D interpolation. 
