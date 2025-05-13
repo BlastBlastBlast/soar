@@ -139,6 +139,15 @@ fun MapScreen(
                 parseError = null
             }
 
+            // ← NEW: trigger to reload base style
+            var styleReloadTrigger by rememberSaveable { mutableStateOf(0) }
+
+            // when clearing trajectory, bump the trigger
+            val handleClearTrajectory = {
+                viewModel.clearTrajectory()
+                styleReloadTrigger++
+                showTrajectoryPopup = false
+            }
 
             Box(Modifier
                 .fillMaxSize()
@@ -199,7 +208,9 @@ fun MapScreen(
                         },
                         trajectoryPoints = trajectoryPoints,
                         isAnimating = isAnimating,
-                        onAnimationEnd = { viewModel.isAnimating = false }
+                        onAnimationEnd = { viewModel.isAnimating = false },
+                        styleReloadTrigger  = styleReloadTrigger
+
                     )
 
                     ExtendedFloatingActionButton(
@@ -234,10 +245,7 @@ fun MapScreen(
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },
                             onEditConfigs = onNavigateToRocketConfig,
-                            onClearTrajectory = {
-                                viewModel.clearTrajectory()
-                                showTrajectoryPopup = false
-                            },
+                            onClearTrajectory = handleClearTrajectory,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)

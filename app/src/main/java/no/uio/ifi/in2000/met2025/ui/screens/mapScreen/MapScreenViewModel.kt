@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -286,11 +287,14 @@ class MapScreenViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // 1) Grab the current default/selected config
-                val cfg = selectedConfig.value
-                    ?: return@launch    // nothing selected yet, bail
+                val cfg = selectedConfig.value ?: return@launch
+
+                // 2) Pull the “last visited” lat/lon directly from the repo:
+                val (lat, lon) = launchSiteRepository
+                    .getCurrentCoordinates()    // Flow<Pair<Double,Double>>
+                    .first()                    // suspend until we get the latest
 
                 // 2) Build the initial position from your center coords + elevation
-                val (lat, lon) = _coordinates.value
                 val elev = launchSiteRepository.getLastVisitedElevation()
                 val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
                 val traj: List<Triple<RealVector, Double, RocketState>> =
