@@ -78,7 +78,8 @@ fun MapView(
     // Trajectory integration
     trajectoryPoints: List<Triple<RealVector, Double, RocketState>>, // sim points: (lat,lon,altAboveLaunchDatum)
     isAnimating: Boolean,
-    onAnimationEnd: () -> Unit
+    onAnimationEnd: () -> Unit,
+    styleReloadTrigger: Int
 ) {
     // 1) Map state & scope
     val mapState = rememberMapState {
@@ -87,13 +88,15 @@ fun MapView(
             zoom(12.0); pitch(0.0); bearing(0.0)
         }
     }
-    var baseStyleLoaded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var requestedPts by remember { mutableStateOf(setOf<Point>()) }
     var temporaryMarker: Point? by rememberSaveable { mutableStateOf(null) }
     var markerElevation: Double? by rememberSaveable { mutableStateOf(null) }
     var mapViewRef: MapView? by remember { mutableStateOf(null) }
-
+    var baseStyleLoaded by remember { mutableStateOf(false) }
+    LaunchedEffect(styleReloadTrigger) {
+        baseStyleLoaded = false
+    }
 
     // ← NEW: helper to fetch & store DEM elevation
     suspend fun fetchTrueElevationAndStore(siteId: Int, pt: Point) {
@@ -127,9 +130,9 @@ fun MapView(
             onMapLongClickListener = { pt -> onMapLongClick(pt, null); true },
             style                = { /* no-op: we load style imperatively below */ }
         ) {
-            // ─── 2) Base style + DEM + terrain + sky + globe ───────────────
-            MapEffect(mapViewRef) { mv ->
-                mapViewRef = mv
+            // ─── Base style + DEM + terrain + sky + globe ───────────────
+
+            MapEffect(mapViewRef, styleReloadTrigger) { mv ->                mapViewRef = mv
                 if (!baseStyleLoaded) {
                     baseStyleLoaded = true
                     mv.mapboxMap.loadStyle(styleExtension = style(Style.SATELLITE_STREETS) {
@@ -138,7 +141,6 @@ fun MapView(
                         +skyLayer("sky") { skyType(SkyType.ATMOSPHERE) }
                         +projection(ProjectionName.GLOBE)
                     }) {
-                        // turn on location puck
                         (mv.getPlugin("location") as? LocationComponentPlugin)?.updateSettings {
                             enabled = true
                             locationPuck = createDefault2DPuck(withBearing = true)
@@ -148,6 +150,7 @@ fun MapView(
                     }
                 }
             }
+
 
             MapEffect(trajectoryPoints) { mv ->
                 if (trajectoryPoints.isEmpty()) {
