@@ -1,7 +1,9 @@
 package no.uio.ifi.in2000.met2025.ui.screens.launchSiteScreen
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -61,11 +64,11 @@ fun LaunchSiteItem(
         }
     }
 
-    ElevatedCard(
-        modifier = Modifier
+    Surface(
+        modifier        = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .animateContentSize()
+            .clickable(onClick = onDelete)   // or whatever your click target is
             .semantics {
                 role = Role.Button
                 contentDescription = if (!isEditing) {
@@ -74,11 +77,13 @@ fun LaunchSiteItem(
                     "Editing site ${site.name}. Double-tap to save or cancel."
                 }
             },
-        shape = cornerShape,
-        elevation = CardDefaults.elevatedCardElevation(2.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+        color           = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation  = 8.dp,
+        shadowElevation = 10.dp,
+        shape           = cornerShape,
+        border = BorderStroke(
+            width = 1.dp,
+            color = Color.Black
         )
     ) {
         Column(Modifier.clip(cornerShape)) {

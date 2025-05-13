@@ -1,3 +1,14 @@
+/*
+ * A button that navigates to the weather screen for given coordinates.
+ *
+ * Main functionality:
+ *  - Attempts to parse latitude and longitude from strings.
+ *  - Calls onNavigate(lat, lon) if valid, otherwise shows a Toast error.
+ *
+ * Special notes:
+ *  - Requires a Context to show the Toast.
+ */
+
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import android.widget.Toast
@@ -17,6 +28,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 
+/**
+ * Floating action button to navigate to the weather forecast.
+ *
+ * @param modifier Modifier for styling and semantics.
+ * @param latInput Latitude.
+ * @param lonInput Longitude.
+ * @param onNavigate Callback invoked with parsed lat/lon when valid.
+ * @param context Android Context used to show a Toast on parse failure.
+ */
 @Composable
 fun WeatherNavigationButton(
     modifier: Modifier = Modifier,
@@ -25,6 +45,7 @@ fun WeatherNavigationButton(
     onNavigate: (Double, Double) -> Unit,
     context: android.content.Context
 ) {
+    // Floating action button to navigate to the weather forecast
     FloatingActionButton(
         onClick = {
             val lat = latInput.toDoubleOrNull()

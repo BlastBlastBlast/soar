@@ -1,16 +1,23 @@
+/*
+ * This file defines a Composable MapView for displaying launch sites and simulated rocket trajectories using Mapbox.
+ * Main functionality:
+ *  - Render an interactive Mapbox map with markers for saved launch sites and a user-added marker.
+ *  - Fetch and display terrain elevations via Mapbox DEM.
+ *  - Draw and animate a 3D model trajectory of a rocket flight.
+ * Special notes:
+ *  - Expects trajectoryPoints as a list of (RealVector lat/lon/alt, unused, RocketState).
+ *  - Uses MapView.getElevation() for DEM retrieval; requires a short delay for terrain loading.
+ */
+
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
-import android.content.Context
-import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
@@ -56,19 +63,6 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.RocketState
 import org.apache.commons.math3.linear.RealVector
-
-
-/*
- * This file defines a Composable MapView for displaying launch sites and simulated rocket trajectories using Mapbox.
- * Main functionality:
- *  - Render an interactive Mapbox map with markers for saved launch sites and a user-added marker.
- *  - Fetch and display terrain elevations via Mapbox DEM.
- *  - Draw and animate a 3D model trajectory of a rocket flight.
- * Special notes:
- *  - Expects trajectoryPoints as a list of (RealVector lat/lon/alt, unused, RocketState).
- *  - Uses MapView.getElevation() for DEM retrieval; requires a short delay for terrain loading.
- */
-
 
 /**
  * Displays a Mapbox map with:

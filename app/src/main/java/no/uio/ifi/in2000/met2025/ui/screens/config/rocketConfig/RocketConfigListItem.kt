@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -32,6 +34,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.ui.common.ConfirmationDialog
 import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun RocketConfigItem(
@@ -45,7 +48,7 @@ fun RocketConfigItem(
 
     // Each item on pure white primary
     Surface(
-        modifier        = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick)
@@ -56,10 +59,14 @@ fun RocketConfigItem(
                     if (rocketConfig.isDefault) append("Default configuration.")
                 }
             },
-        color           = MaterialTheme.colorScheme.primary,
-        tonalElevation  = 2.dp,
-        shadowElevation = 4.dp,
-        shape           = shape
+        color           = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation  = 8.dp,
+        shadowElevation = 10.dp,
+        shape           = shape,
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (rocketConfig.isDefault) WarmOrange else Color.Black
+        )
     ) {
         Row(
             Modifier

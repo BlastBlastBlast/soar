@@ -49,7 +49,7 @@ fun AppDrawer(
         currentRoute?.startsWith("rocket_edit") == true          -> "Edit Rocket Profile"
         currentRoute == Screen.WeatherConfigList.route                         -> "Weather Settings"
         currentRoute?.startsWith("weather_edit") == true                 -> "Edit Weather Settings"
-        currentRoute == Screen.Configs.route                           -> "Settings"
+        currentRoute == Screen.Configs.route                           -> "Config"
         currentRoute == Screen.LaunchSite.route                         -> "Launch Sites"
         else                                                            -> "Help"
     }
@@ -91,7 +91,7 @@ fun AppDrawer(
                 "- Default threshold values are preconfigured."
 
 
-        "Settings" -> "From here you can choose to manage Weather Settings or Rocket Profiles."
+        "Config" -> "From here you can choose to manage Weather Settings or Rocket Profiles."
 
         "Edit Weather Settings" -> "Define which parameters is used for evaluating " +
                 "launch windows as safe or unsafe, and the thresholds for these.\n" +
@@ -180,7 +180,7 @@ fun AppDrawer(
                         }
                 )
                 NavigationDrawerItem(
-                    label    = { Text("Rocket Profiles") },
+                    label    = { Text("Rocket Config") },
                     selected = currentRoute == Screen.RocketConfigList.route,
                     onClick  = {
                         navController.navigateSingleTopTo(Screen.RocketConfigList.route)
@@ -190,12 +190,12 @@ fun AppDrawer(
                         .padding(NavigationDrawerItemDefaults.ItemPadding)
                         .semantics {
                             role = Role.Button
-                            contentDescription = "Navigate to Rocket Profiles"
+                            contentDescription = "Navigate to Rocket Config"
                             stateDescription = if (selected) "Selected" else "Not selected"
                         }
                 )
                 NavigationDrawerItem(
-                    label    = { Text("Weather Settings") },
+                    label    = { Text("Weather Config") },
                     selected = currentRoute == Screen.WeatherConfigList.route,
                     onClick  = {
                         navController.navigateSingleTopTo(Screen.WeatherConfigList.route)
@@ -205,25 +205,25 @@ fun AppDrawer(
                         .padding(NavigationDrawerItemDefaults.ItemPadding)
                         .semantics {
                             role = Role.Button
-                            contentDescription = "Navigate to Weather Settings"
+                            contentDescription = "Navigate to Weather Config"
                             stateDescription = if (selected) "Selected" else "Not selected"
                         }
                 )
-                NavigationDrawerItem(
-                    label    = { Text("Config") },
-                    selected = currentRoute == Screen.Configs.route,
-                    onClick  = {
-                        navController.navigateSingleTopTo(Screen.Configs.route)
-                        closeDrawer()
-                    },
-                    modifier = Modifier
-                        .padding(NavigationDrawerItemDefaults.ItemPadding)
-                        .semantics {
-                            role = Role.Button
-                            contentDescription = "Navigate to Config"
-                            stateDescription = if (selected) "Selected" else "Not selected"
-                        }
-                )
+//                NavigationDrawerItem(
+//                    label    = { Text("Config") },
+//                    selected = currentRoute == Screen.Configs.route,
+//                    onClick  = {
+//                        navController.navigateSingleTopTo(Screen.Configs.route)
+//                        closeDrawer()
+//                    },
+//                    modifier = Modifier
+//                        .padding(NavigationDrawerItemDefaults.ItemPadding)
+//                        .semantics {
+//                            role = Role.Button
+//                            contentDescription = "Navigate to Config"
+//                            stateDescription = if (selected) "Selected" else "Not selected"
+//                        }
+//                )
                 NavigationDrawerItem(
                     label    = { Text("Launch Sites") },
                     selected = currentRoute == Screen.LaunchSite.route,
