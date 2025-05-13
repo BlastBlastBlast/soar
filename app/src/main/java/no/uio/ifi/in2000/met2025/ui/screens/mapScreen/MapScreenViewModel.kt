@@ -247,41 +247,6 @@ class MapScreenViewModel @Inject constructor(
         }
     }
 
-    /*
-    fun loadMockTrajectory() {
-        val baseLat = 59.9431
-        val baseLon = 10.7185
-        val nPoints = 200   // now 100 samples
-
-        val raw = (0 until nPoints).map { i ->
-            val t = i / (nPoints - 1).toDouble()   // 0.0 .. 1.0
-            // interpolate Lat/Lon along a small NE vector
-            val lat   = baseLat + 0.010 * t       // make it larger
-            val lon   = baseLon + 0.010 * t       // make it larger
-            // altitude: sin(π t) * 5000 → peaks at 5000m
-            val alt   = sin(Math.PI * t) * 5000.0
-            // speed: same shape, you can keep 500 or bump it
-            val speed = sin(Math.PI * t) * 500.0
-            doubleArrayOf(lat, lon, alt, speed)
-        }
-
-        // Map into your StateFlow format: RealVector(lon, lat, alt) → speed
-        val list: List<Pair<RealVector, Double>> = raw.map { arr ->
-            val lat   = arr[0]
-            val lon   = arr[1]
-            val alt   = arr[2]
-            val speed = arr[3]
-            ArrayRealVector(doubleArrayOf(lon, lat, alt)) to speed
-        }
-
-        _trajectoryPoints.value = list
-        isAnimating      = true
-        isTrajectoryMode = true
-    }
-     */
-
-//    fun startTrajectory(){/* noop */}
-
     /** Start the trajectory using the currently selected config */
     fun startTrajectory() {
         viewModelScope.launch {
