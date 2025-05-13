@@ -1,11 +1,20 @@
 package no.uio.ifi.in2000.met2025.data.models.isobaric
 
+/**
+ * IsobaricData
+ * A set of calculated IsobaricData values for a specific time.
+ */
 data class IsobaricData(
-    //val updatedAt: String, TODO: Add support for this value, could be displayed when failing to load most recent data
     val time: String,
-    val valuesAtLayer: Map<Int, IsobaricDataValues> // key is pressure in hPa
+    val valuesAtLayer: Map<Int, IsobaricDataValues>
 )
 
+/**
+ * IsobaricDataValues
+ * A set of calculated IsobaricData values.
+ * GRIB2 wind vectors are converted to wind speed and direction.
+ * Pressure and temperature are used to calculate the altitude.
+ */
 data class IsobaricDataValues(
     val altitude: Double,
     val airTemperature: Double,
