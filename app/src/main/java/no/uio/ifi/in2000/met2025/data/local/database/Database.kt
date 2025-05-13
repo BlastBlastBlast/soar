@@ -7,6 +7,13 @@ import androidx.room.RoomDatabase
 import androidx.room.Database
 import androidx.room.Index
 
+/**
+ * AppDatabase
+ *
+ * Defines the Room database and it's assosciated entities and DAO's
+ * GribData uses a unique equals()/hasCode() implementation
+ */
+
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, WeatherConfig::class, RocketConfig::class],
     version = 10
@@ -33,7 +40,7 @@ data class GribData(
     @PrimaryKey val timestamp: String,
     val data: ByteArray,
 ) {
-    //IDE generert oppsett for korrekt funksjon av ByteArray i database
+    //Using only timestamps for equality checks, to avoid the complexity of the byte arrays
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
