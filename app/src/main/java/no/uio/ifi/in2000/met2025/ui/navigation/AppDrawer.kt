@@ -98,7 +98,7 @@ fun AppDrawer(
                 "- Change the thresholds by changing the values in the input fields.\n" +
                 "- Toggle on or off whether the parameters are used for evaluation."
 
-        "Launch Sites" -> "Browse saved launch sites, edit names."
+        "Launch Sites" -> "Browse saved launch sites, edit names or delete sites."
 
         else -> ""
     }
