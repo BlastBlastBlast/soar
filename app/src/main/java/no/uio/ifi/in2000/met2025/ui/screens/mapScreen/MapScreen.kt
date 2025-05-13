@@ -50,6 +50,26 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 
+/*
+ * This screen displays an interactive Mapbox map with:
+ *  - Markers for saved launch sites and a temporary user marker
+ *  - Long-press to add a new marker
+ *  - Rocket trajectory animation and 3D model rendering
+ *
+ * Special notes:
+ *  - Uses Mapbox DEM to fetch terrain elevations
+ *  - Parses coordinate input with parseLatLon helper
+ *  - Longer load times due to massive calculatin with interpolation
+ */
+
+/**
+ * Main composable that renders the map UI.
+ *
+ * @param viewModel Provides UI state and actions via Hilt
+ * @param onNavigateToWeather Callback to open weather screen with given coords
+ * @param onNavigateToRocketConfig Callback to open rocket configuration screen
+ */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -89,6 +109,10 @@ fun MapScreen(
     val selectedCfg by viewModel.selectedConfig.collectAsState()
     var showTrajectoryPopup by remember { mutableStateOf(false) }
 
+    /**
+     * Triggered on long-press: places a new marker at the clicked location
+     * and updates its elevation if available.
+     */
     val mapLongClick: (Point, Double?) -> Unit = { pt, elev ->
         viewModel.onMarkerPlaced(
             lat = pt.latitude(),
@@ -132,15 +156,21 @@ fun MapScreen(
                 if (showTrajectorySheet) sheetState.show() else sheetState.hide()
             }
 
+            /**
+             * Updates the displayed lat/lon string whenever coords change,
+             * and clears any previous parse errors.
+             */
             LaunchedEffect(coords) {
                 coordsString = "%.4f, %.4f".format(coords.first, coords.second)
                 parseError = null
             }
 
-            // ← NEW: trigger to reload base style
+            // Trigger to reload base style
             var styleReloadTrigger by rememberSaveable { mutableStateOf(0) }
 
-            // when clearing trajectory, bump the trigger
+            /**
+             * Clears the current trajectory data and forces the map style to reload.
+             */
             val handleClearTrajectory = {
                 viewModel.clearTrajectory()
                 styleReloadTrigger++
@@ -149,17 +179,18 @@ fun MapScreen(
 
             Box(Modifier
                 .fillMaxSize()
-                .semantics { contentDescription = "Home screen with map and controls" }
+                .semantics { contentDescription = "Map screen with map and controls" }
             ) {
+                // Treat the map as an image with interactive markers
                 Box(modifier = Modifier
                     .matchParentSize()
                     .semantics {
-                        // Treat the map as an image with interactive markers
                         role = Role.Image
                         contentDescription =
                             "Map view showing launch sites and your current position"
                     }
                 ) {
+                    // Render the MapView composable with markers, trajectory, and elevation callbacks
                     MapView(
                         center = coords,
                         newMarker = newMarker,
@@ -210,7 +241,7 @@ fun MapScreen(
                         styleReloadTrigger  = styleReloadTrigger
 
                     )
-
+                    // Floating button to open the trajectory simulation popup
                     ExtendedFloatingActionButton(
                         icon = {
                             Icon(
@@ -229,9 +260,7 @@ fun MapScreen(
                             .padding(16.dp)
                     )
 
-                    /**
-                     * Bottom of screen popup from which you can start a launch simulation
-                     **/
+                    // Bottom sheep popup
                     if (showTrajectoryPopup) {
                         TrajectoryPopup(
                             show = true,
