@@ -22,9 +22,9 @@ t^3
 M =
 \begin{pmatrix}
 0 & 1 & 0 & 0 \\
--\frac{1}{2} & 0 & \frac{1}{2} & 0 \\
-1 & -\frac{5}{2} & 2 & -\frac{1}{2} \\
--\frac{1}{2} & \frac{3}{2} & -\frac{3}{2} & \frac{1}{2}
+-\dfrac{1}{2} & 0 & \dfrac{1}{2} & 0 \\
+1 & -\dfrac{5}{2} & 2 & -\dfrac{1}{2} \\
+-\dfrac{1}{2} & \dfrac{3}{2} & -\dfrac{3}{2} & \dfrac{1}{2}
 \end{pmatrix}
 ,
 \vec{p} =
