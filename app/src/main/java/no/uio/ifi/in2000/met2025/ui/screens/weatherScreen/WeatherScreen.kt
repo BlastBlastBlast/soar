@@ -103,7 +103,8 @@ fun WeatherScreen(
                 currentSite = currentSite,
                 selectedStatuses = selectedStatuses,
                 viewModel = viewModel,
-                isSunFilterActive = isSunFilterActive
+                isSunFilterActive = isSunFilterActive,
+                launchSites = launchSites
             )
             // Segmented Bottom Bar with three buttons.
             SegmentedBottomBar(
@@ -189,7 +190,6 @@ fun WeatherScreen(
                     modifier = Modifier
                         .align(Alignment.BottomStart) // For bottom-right placement.
                         .offset(y = (10.dp)),
-
                 )
             }
         }
@@ -209,7 +209,8 @@ fun ScreenContent(
     selectedStatuses: Set<LaunchStatus>,
     currentSite: LaunchSite?,
     viewModel: WeatherViewModel,
-    isSunFilterActive: Boolean
+    isSunFilterActive: Boolean,
+    launchSites: List<LaunchSite>
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
@@ -306,7 +307,8 @@ fun ScreenContent(
                                 SiteHeader(
                                     site = currentSite,
                                     coordinates = coordinates,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    launchSites = launchSites
                                 )
 
                                 DailyForecastCard(
