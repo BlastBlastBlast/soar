@@ -1,4 +1,5 @@
 \usepackage{amsmath}
+\usepackage{nicefrac}
 
 ![Catmull-Rom Interpolation](images/catmull-rom-interpolation.svg)
 
@@ -24,7 +25,7 @@ t^3
 M =
 \begin{pmatrix}
 0 & 1 & 0 & 0 \\
--\tfrac{1}{2} & 0 & \tfrac{1}{2} & 0 \\
+-\nicefrac{1}{2} & 0 & \tfrac{1}{2} & 0 \\
 1 & -\tfrac{5}{2} & 2 & -\tfrac{1}{2} \\
 -\tfrac{1}{2} & \tfrac{3}{2} & -\tfrac{3}{2} & \tfrac{1}{2}
 \end{pmatrix}
