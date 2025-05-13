@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun WeatherConfigListItem(
@@ -41,10 +44,14 @@ fun WeatherConfigListItem(
                     append("Tap to select.")
                 }
             },
-        color           = MaterialTheme.colorScheme.primary,
-        tonalElevation  = 2.dp,
-        shadowElevation = 4.dp,
-        shape           = shape
+        color           = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation  = 8.dp,
+        shadowElevation = 10.dp,
+        shape           = shape,
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (weatherConfig.isDefault) WarmOrange else Color.Black
+        )
     ) {
         Row(
             Modifier
