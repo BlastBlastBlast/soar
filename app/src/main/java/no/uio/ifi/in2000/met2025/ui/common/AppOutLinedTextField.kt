@@ -20,17 +20,16 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.ImeAction
 
 
-// File: ui/common/AppOutlinedTextField.kt
-
 @Composable
 fun AppOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    labelText: String,                     // changed from @Composable label to plain text
+    labelText: String,
     singleLine: Boolean = true,
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    filterRegex: Regex = Regex(".*")
 ) {
     val selectionColors = TextSelectionColors(
         handleColor     = WarmOrange,
@@ -40,7 +39,11 @@ fun AppOutlinedTextField(
 
     OutlinedTextField(
         value         = value,
-        onValueChange = onValueChange,
+        onValueChange = { new ->
+            if (filterRegex.matches(new)) {
+                onValueChange(new)
+            }
+        },
         modifier      = modifier
             .semantics {
                 contentDescription = labelText

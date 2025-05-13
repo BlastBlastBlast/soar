@@ -7,13 +7,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -40,18 +37,17 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
-import no.uio.ifi.in2000.met2025.ui.common.LatLonDisplay
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LatLonDisplay
 import androidx.compose.material3.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
+import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,36 +119,10 @@ fun MapScreen(
 
         is MapScreenViewModel.MapScreenUiState.Error -> {
             val msg = (uiState as MapScreenViewModel.MapScreenUiState.Error).message
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center     // Center its ONE child
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,  // center text+button
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Error: $msg",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .semantics {
-                                liveRegion = LiveRegionMode.Assertive
-                                contentDescription = "Error: $msg"
-                            }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { viewModel.reloadScreen() },
-                        modifier = Modifier.semantics {
-                            contentDescription = "Reload map"
-                            role = Role.Button
-                        }
-                    ) {
-                        Text("Reload map")
-                    }
-                }
-            }
+            ErrorScreen(
+                errorMsg = msg,
+                buttonText = "Reload Map",
+                onReload = { viewModel.reloadScreen() })
         }
 
         is MapScreenViewModel.MapScreenUiState.Success -> {
@@ -167,6 +137,15 @@ fun MapScreen(
                 parseError = null
             }
 
+            // ← NEW: trigger to reload base style
+            var styleReloadTrigger by rememberSaveable { mutableStateOf(0) }
+
+            // when clearing trajectory, bump the trigger
+            val handleClearTrajectory = {
+                viewModel.clearTrajectory()
+                styleReloadTrigger++
+                showTrajectoryPopup = false
+            }
 
             Box(Modifier
                 .fillMaxSize()
@@ -227,7 +206,9 @@ fun MapScreen(
                         },
                         trajectoryPoints = trajectoryPoints,
                         isAnimating = isAnimating,
-                        onAnimationEnd = { viewModel.isAnimating = false }
+                        onAnimationEnd = { viewModel.isAnimating = false },
+                        styleReloadTrigger  = styleReloadTrigger
+
                     )
 
                     ExtendedFloatingActionButton(
@@ -262,10 +243,7 @@ fun MapScreen(
                             onClose = { showTrajectoryPopup = false },
                             onStartTrajectory = { viewModel.startTrajectory() },
                             onEditConfigs = onNavigateToRocketConfig,
-                            onClearTrajectory = {
-                                viewModel.clearTrajectory()
-                                showTrajectoryPopup = false
-                            },
+                            onClearTrajectory = handleClearTrajectory,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)

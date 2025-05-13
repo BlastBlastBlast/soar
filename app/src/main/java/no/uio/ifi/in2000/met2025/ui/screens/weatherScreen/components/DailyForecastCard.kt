@@ -1,5 +1,11 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,7 +14,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.InvertColors
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Opacity
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,11 +33,18 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.getWeatherIconRes
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDayMonth
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.SunIconsOverlayWithText
 import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
+import kotlin.math.roundToInt
 
 
 val weatherPriority = listOf(
@@ -105,19 +125,19 @@ fun getGradientForSymbol(symbolCode: String?): Brush {
         symbolCode.contains("clearsky") || symbolCode.contains("fair") ->
             Brush.verticalGradient(
                 colors = listOf(
-                    Color(0xFFFFF8E1), Color(0xFFFFCC80), Color(0xFFFFA726)
+                    Color(0xFFE3E3E3), Color(0xFF03A9F4), Color(0xFF26A1FF)
                 )
             )
 
 
         symbolCode.contains("partlycloudy") || symbolCode.contains("cloudy") ->
             Brush.verticalGradient(
-                colors = listOf(Color(0xFFCFD8DC), Color(0xFF90A4AE), Color(0xFF455A64))
+                colors = listOf(Color(0xFF9A9CA5), Color(0xFF5995AD), Color(0xFF81D4FA))
             )
 
         symbolCode.contains("rain") || symbolCode.contains("showers") ->
             Brush.verticalGradient(
-                colors = listOf(Color(0xFF81D4FA), Color(0xFF4FC3F7), Color(0xFF0288D1))
+                colors = listOf(Color(0xFFCFD8DC), Color(0xFF90A4AE), Color(0xFF455A64))
             )
 
         symbolCode.contains("snow") || symbolCode.contains("sleet") ->
@@ -152,6 +172,8 @@ data class WeatherInfoItem(
 @Composable
 fun DailyForecastCard(
     forecastItems: List<ForecastDataItem>,
+    sunrise: String = "--:--",
+    sunset:  String = "--:--",
     modifier: Modifier = Modifier
 ) {
     if (forecastItems.isEmpty()) return
@@ -187,11 +209,29 @@ fun DailyForecastCard(
         "Wind direction" to avgWindDirection?.let { "%.1f°".format(it) }
     )
 
+    val infiniteTransition = rememberInfiniteTransition()
+    val overlayAlpha by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    val bounceOffsetDp by infiniteTransition.animateFloat(
+        initialValue = -10f,
+        targetValue = 10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
     Card(
         modifier = modifier
             .width(260.dp)
             .semantics {
-                // Describe the entire card at once
                 contentDescription = buildString {
                     append("$dayLabel forecast: ${avgTemp.toInt()}°C, $description. ")
                     infoItems.forEach { (label, value) ->
@@ -204,25 +244,26 @@ fun DailyForecastCard(
     ) {
         Box(
             modifier = Modifier
-                .background(getGradientForSymbol(symbolCode))
                 .fillMaxWidth()
+                .background(getGradientForSymbol(symbolCode))
+                .then(Modifier
+                    .height(IntrinsicSize.Min)
+                    .background(Color.White.copy(alpha = overlayAlpha)))
                 .padding(16.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Date heading
                 Box(
                     modifier = Modifier
                         .wrapContentWidth()
                         .background(
                             color = MaterialTheme.colorScheme.primary,
                             shape = CutCornerShape(
-                                //topEnd = 32.dp,
                                 bottomEnd = 40.dp
                             )
                         )
                         .padding(
                             start = 12.dp,
-                            end = 32.dp,   // extra padding to balance the slant
+                            end = 32.dp,
                             top = 4.dp,
                             bottom = 4.dp
                         )
@@ -257,28 +298,39 @@ fun DailyForecastCard(
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1
                         )
+                        Spacer(Modifier.height(4.dp))
+                        SunIconsOverlayWithText(
+                            sunrise = sunrise,
+                            sunset  = sunset
+                        )
                     }
 
-                    // Weather icon or fallback
                     if (symbolCode == null) {
                         Icon(
                             imageVector = Icons.Default.CloudOff,
                             contentDescription = "No weather data",
-                            tint = IconPurple,
-                            modifier = Modifier.size(130.dp)
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier
+                                .size(130.dp)
+                                .offset { IntOffset(0, bounceOffsetDp.roundToInt()) }
                         )
                     } else {
                         getWeatherIconRes(symbolCode)?.let { resId ->
                             Image(
                                 painter = painterResource(id = resId),
                                 contentDescription = getSymbolDescription(symbolCode),
-                                modifier = Modifier.size(130.dp)
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .size(130.dp)
+                                    .offset { IntOffset(0, bounceOffsetDp.roundToInt()) }
                             )
                         } ?: Icon(
                             imageVector = Icons.Default.CloudOff,
                             contentDescription = "Unknown symbol",
-                            tint = IconPurple,
-                            modifier = Modifier.size(130.dp)
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier
+                                .size(130.dp)
+                                .offset { IntOffset(0, bounceOffsetDp.roundToInt()) }
                         )
                     }
                 }
@@ -288,25 +340,100 @@ fun DailyForecastCard(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics {
-                                    contentDescription = "$label: ${value ?: "not available"}"
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .semantics { contentDescription = "$label: ${value ?: "not available"}" },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
+                            // left: icon + label
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (label == "Wind direction" && avgWindDirection != null) {
+                                    Icon(
+                                        painter            = painterResource(id = R.drawable.windicator),
+                                        contentDescription = label,
+                                        tint               = Color.Unspecified,
+                                        modifier           = Modifier
+                                            .size(20.dp)
+                                            .graphicsLayer(rotationZ = avgWindDirection.toFloat())
+                                    )
+                                } else {
+                                    when (label) {
+                                        "Cloud cover" -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.Cloud,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Precipitation" -> {
+                                            Icon(
+                                                painter            = painterResource(id = R.drawable.water_droplet),
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Fog" -> {
+                                            Icon(
+                                                painter            = painterResource(id = R.drawable.fog),
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Humidity" -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.Opacity,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Dew point" -> {
+                                            Icon(
+                                                painter            = painterResource(id = R.drawable.dewpoint),
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        "Air wind", "Ground wind" -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.Air,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        else -> {
+                                            Icon(
+                                                imageVector        = Icons.Filled.CloudOff,
+                                                contentDescription = label,
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(Modifier.width(8.dp))
+
+                                Text(
+                                    text  = label,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+
+                            // right: value
                             Text(
-                                text = label,
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Text(
-                                text = value ?: "DATA NOT AVAILABLE",
-                                color = if (value != null) Color.White else IconPurple,
-                                style = MaterialTheme.typography.labelMedium,
+                                text      = value ?: "DATA NOT AVAILABLE",
+                                color     = if (value != null) Color.White else IconPurple,
+                                style     = MaterialTheme.typography.labelMedium,
                                 fontWeight = if (value != null)
-                                    androidx.compose.ui.text.font.FontWeight.Bold
+                                    FontWeight.Bold
                                 else
-                                    androidx.compose.ui.text.font.FontWeight.Normal
+                                    FontWeight.Normal
                             )
                         }
                     }

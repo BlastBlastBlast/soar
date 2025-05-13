@@ -18,7 +18,7 @@ interface LaunchSiteDAO {
     @Delete
     suspend fun delete(site: LaunchSite)
 
-    @Query("SELECT * FROM LaunchSite")
+    @Query("SELECT * FROM LaunchSite ORDER BY name")
     fun findAll(): Flow<List<LaunchSite>>
 
     @Query("SELECT * FROM LaunchSite WHERE uid = :id LIMIT 1")
@@ -41,7 +41,7 @@ interface LaunchSiteDAO {
     @Query("SELECT * FROM LaunchSite WHERE name = :name LIMIT 1")
     suspend fun checkIfSiteExists(name: String): LaunchSite?
 
-    @Query("SELECT name FROM LaunchSite")
+    @Query("SELECT name FROM LaunchSite ORDER BY name")
     fun findAllLaunchSiteNames(): Flow<List<String>>
 
     @Query("UPDATE LaunchSite SET elevation = :elevation WHERE uid = :uid")

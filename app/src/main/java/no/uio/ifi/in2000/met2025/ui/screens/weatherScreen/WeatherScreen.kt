@@ -44,14 +44,18 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
+import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForecastCard
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay.WeatherConfigOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SegmentedBottomBar
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.SiteHeader
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFilterOverlay.WeatherFilterOverlay
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.launchSiteOverlay.LaunchSitesMenuOverlay
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -209,135 +213,148 @@ fun ScreenContent(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    if (uiState is WeatherViewModel.WeatherUiState.Success) {
-        val forecastItems = uiState.forecastItems
+    when (uiState) {
+        is WeatherViewModel.WeatherUiState.Success -> {
+            val forecastItems = uiState.forecastItems
 
-        val forecastByDay: Map<String, List<ForecastDataItem>> =
-            forecastItems.groupBy { it.time.substring(0, 10) }
+            val forecastByDay: Map<String, List<ForecastDataItem>> =
+                forecastItems.groupBy { it.time.substring(0, 10) }
 
-        val filteredItems = forecastItems
-            .filter { item ->
-                if (isSunFilterActive) {
-                    val zonedTime = try {
-                        ZonedDateTime.parse(item.time).toInstant()
-                    } catch (e: Exception) {
-                        return@filter false
+            val filteredItems = forecastItems
+                .filter { item ->
+                    if (isSunFilterActive) {
+                        val zonedTime = try {
+                            ZonedDateTime.parse(item.time).toInstant()
+                        } catch (e: Exception) {
+                            return@filter false
+                        }
+
+                        val sunTimeForDay =
+                            uiState.sunTimes[item.time.substring(0, 10)] ?: return@filter false
+
+                        val afterEarliest = zonedTime.isAfter(sunTimeForDay.earliestRocket)
+                        val beforeLatest = zonedTime.isBefore(sunTimeForDay.latestRocket)
+
+                        if (!(afterEarliest && beforeLatest)) return@filter false
                     }
 
-                    val sunTimeForDay = uiState.sunTimes[item.time.substring(0, 10)] ?: return@filter false
+                    val state = evaluateLaunchConditions(item, weatherConfig)
+                    if (!filterActive) {
+                        if (state !is ParameterState.Available) return@filter true
+                        val status = launchStatus(state.relativeUnsafety)
+                        return@filter status in selectedStatuses
+                    }
 
-                    val afterEarliest = zonedTime.isAfter(sunTimeForDay.earliestRocket)
-                    val beforeLatest = zonedTime.isBefore(sunTimeForDay.latestRocket)
-
-                    if (!(afterEarliest && beforeLatest)) return@filter false
-                }
-
-                val state = evaluateLaunchConditions(item, weatherConfig)
-                if (!filterActive) {
-                    if (state !is ParameterState.Available) return@filter true
+                    if (state !is ParameterState.Available) return@filter false
                     val status = launchStatus(state.relativeUnsafety)
+
+                    if (status == LaunchStatus.UNSAFE) return@filter false
+
                     return@filter status in selectedStatuses
                 }
-
-                if (state !is ParameterState.Available) return@filter false
-                val status = launchStatus(state.relativeUnsafety)
-
-                if (status == LaunchStatus.UNSAFE) return@filter false
-
-                return@filter status in selectedStatuses
-            }
             //.take(hoursToShow.toInt())
-        val filteredByDay: Map<String, List<ForecastDataItem>> =
-            filteredItems.groupBy { it.time.substring(0, 10) }
-        val sortedDays = forecastByDay.keys.sorted()
-        val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
+            val filteredByDay: Map<String, List<ForecastDataItem>> =
+                filteredItems.groupBy { it.time.substring(0, 10) }
+            val sortedDays = forecastByDay.keys.sorted()
+            val pagerState: PagerState = rememberPagerState(pageCount = { sortedDays.size })
 
-
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(screenHeight)
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                item {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(screenHeight),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        pageSpacing = 16.dp,
-                        pageSize = PageSize.Fill
-                    ) { page ->
-                        val date = sortedDays[page]
-                        val dailyForecastItems = forecastByDay[date] ?: emptyList()
-                        val hourlyFilteredItems = filteredByDay[date] ?: emptyList()
-                        Column(
+                            .height(screenHeight)
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .fillMaxHeight()
-                                .verticalScroll(rememberScrollState())
-                                .padding(vertical = 16.dp),
-                            verticalArrangement = Arrangement.Top
-                        ) {
-                            SiteHeader(
-                                site = currentSite,
-                                coordinates = coordinates,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                .height(screenHeight),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            pageSpacing = 16.dp,
+                            pageSize = PageSize.Fill
+                        ) { page ->
+                            val date = sortedDays[page]
+                            val dailyForecastItems = forecastByDay[date] ?: emptyList()
+                            val hourlyFilteredItems = filteredByDay[date] ?: emptyList()
 
-                            DailyForecastCard(
-                                forecastItems = dailyForecastItems,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            val fmt = DateTimeFormatter.ofPattern("HH:mm")
+                            val zone = ZoneId.of("Europe/Oslo")
+                            val sunTimesForDate = uiState.sunTimes[date]
+                            val sunriseText = sunTimesForDate
+                                ?.sunrise
+                                ?.atZone(zone)
+                                ?.format(fmt)
+                                ?: "--:--"
+                            val sunsetText = sunTimesForDate
+                                ?.sunset
+                                ?.atZone(zone)
+                                ?.format(fmt)
+                                ?: "--:--"
 
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            if (hourlyFilteredItems.isEmpty()) {
-                                Text(
-                                    text = "No results for selected filter",
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .fillMaxWidth(),
-                                    textAlign = TextAlign.Center
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(vertical = 16.dp),
+                                verticalArrangement = Arrangement.Top
+                            ) {
+                                SiteHeader(
+                                    site = currentSite,
+                                    coordinates = coordinates,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
-                            } else {
-                                hourlyFilteredItems.forEach { forecastItem ->
-                                    HourlyExpandableCard(
-                                        forecastItem = forecastItem,
-                                        coordinates = coordinates,
-                                        weatherConfig = weatherConfig,
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                        viewModel = viewModel
-                                    )
-                                }
-                            }
 
-                            Spacer(modifier = Modifier.height(50.dp))
+                                DailyForecastCard(
+                                    forecastItems = dailyForecastItems,
+                                    sunrise = sunriseText,
+                                    sunset = sunsetText,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                if (hourlyFilteredItems.isEmpty()) {
+                                    Text(
+                                        text = "No results for selected filter",
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier
+                                            .padding(16.dp)
+                                            .fillMaxWidth(),
+                                        textAlign = TextAlign.Center
+                                    )
+                                } else {
+                                    hourlyFilteredItems.forEach { forecastItem ->
+                                        HourlyExpandableCard(
+                                            forecastItem = forecastItem,
+                                            coordinates = coordinates,
+                                            weatherConfig = weatherConfig,
+                                            modifier = Modifier.padding(vertical = 8.dp),
+                                            viewModel = viewModel
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(50.dp))
+                            }
                         }
                     }
                 }
             }
         }
-    } else {
-        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-            when (uiState) {
-                is WeatherViewModel.WeatherUiState.Loading -> item { WeatherLoadingSpinner() }
-                is WeatherViewModel.WeatherUiState.Error -> item {
-                    Text(
-                        text = "Feil: ${uiState.message}",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                }
-                else -> Unit
-            }
+        is WeatherViewModel.WeatherUiState.Loading -> { WeatherLoadingSpinner() }
+        is WeatherViewModel.WeatherUiState.Error -> {
+            ErrorScreen(
+                errorMsg = uiState.message,
+                buttonText = "Reload Weather",
+                onReload = { viewModel.loadForecast(coordinates.first, coordinates.second) }
+            )
+        }
+        else -> Unit
         }
     }
-}
-
