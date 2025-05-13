@@ -1,4 +1,14 @@
-// MapScreen.kt
+/*
+ * This screen displays an interactive Mapbox map with:
+ *  - Markers for saved launch sites and a temporary user marker
+ *  - Long-press to add a new marker
+ *  - Rocket trajectory animation and 3D model rendering
+ *
+ * Special notes:
+ *  - Uses Mapbox DEM to fetch terrain elevations
+ *  - Parses coordinate input with parseLatLon helper
+ *  - Longer load times due to massive calculatin with interpolation
+ */
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import androidx.compose.animation.AnimatedVisibility
@@ -49,18 +59,6 @@ import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
-
-/*
- * This screen displays an interactive Mapbox map with:
- *  - Markers for saved launch sites and a temporary user marker
- *  - Long-press to add a new marker
- *  - Rocket trajectory animation and 3D model rendering
- *
- * Special notes:
- *  - Uses Mapbox DEM to fetch terrain elevations
- *  - Parses coordinate input with parseLatLon helper
- *  - Longer load times due to massive calculatin with interpolation
- */
 
 /**
  * Main composable that renders the map UI.

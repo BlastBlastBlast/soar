@@ -1,3 +1,14 @@
+/*
+ * ViewModel for the Map screen:
+ *  - Loads and exposes launch sites, coordinates, and rocket configs
+ *  - Handles insertion/update of “Last Visited” and “New Marker” sites
+ *  - Computes and publishes rocket trajectory points via physics simulation
+ *
+ * Special notes:
+ *  - Uses Flow + StateFlow to stream UI state
+ *  - Persists data with LaunchSiteRepository and RocketConfigRepository
+ */
+
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.database.sqlite.SQLiteConstraintException
@@ -28,7 +39,12 @@ import org.apache.commons.math3.linear.RealVector
 import javax.inject.Inject
 import java.time.Instant
 
-// MapScreenViewModel.kt
+/**
+ * Provides all data and actions for MapScreen:
+ *  - Exposes UI state (Loading/Success/Error)
+ *  - Streams coordinate updates and saved sites
+ *  - Orchestrates trajectory simulation using TrajectoryCalculator
+ */
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository,
