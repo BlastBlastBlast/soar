@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.common
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -34,7 +36,8 @@ import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 fun ErrorScreen(
     errorMsg: String,
     buttonText: String,
-    onReload: () -> Unit
+    onReload: () -> Unit,
+    drawable: Painter
 ) {
     Box(
         modifier = Modifier
@@ -59,7 +62,7 @@ fun ErrorScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Image(
-                painter = painterResource(id = R.drawable.crashedrocket),
+                painter = drawable,
                 contentDescription = "Background image error screen",
                 modifier = Modifier.size(200.dp)
             )

@@ -20,7 +20,8 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 fun SiteHeader(
     site: LaunchSite?,
     coordinates: Pair<Double, Double>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    launchSites: List<LaunchSite>
 ) {
     Column(
         modifier = modifier
@@ -33,8 +34,24 @@ fun SiteHeader(
         ) {
             // Left column: title + optional elevation
             Column {
+                var displayName = "Location"
+                when (site?.name) {
+                    "New Marker" -> {
+                        launchSites.forEach() { listSite ->
+                            if (listSite.latitude == site.latitude && listSite.longitude == site.longitude) {
+                               displayName = listSite.name
+                            }
+                        }
+                    }
+                    null -> {
+                        displayName = "Location"
+                    }
+                    else -> {
+                        displayName = site.name
+                    }
+                }
                 Text(
-                    text = site?.name ?: "Location",
+                    text = displayName,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )

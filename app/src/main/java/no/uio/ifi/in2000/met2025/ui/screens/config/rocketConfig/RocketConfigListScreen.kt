@@ -107,7 +107,7 @@ fun RocketConfigListScreen(
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("+")
+                    Text(text ="+", style = MaterialTheme.typography.titleLarge)
                 }
 
                 Spacer(Modifier.height(16.dp))

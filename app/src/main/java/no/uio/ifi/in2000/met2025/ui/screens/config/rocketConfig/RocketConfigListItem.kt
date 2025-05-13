@@ -16,6 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -24,6 +29,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.ui.common.ConfirmationDialog
 import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
 
@@ -35,6 +41,7 @@ fun RocketConfigItem(
     onDelete: () -> Unit
 ) {
     val shape = RoundedCornerShape(8.dp)
+    var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
 
     // Each item on pure white primary
     Surface(
@@ -88,7 +95,7 @@ fun RocketConfigItem(
                             tint = IconGreen
                         )
                     }
-                    IconButton(onClick = onDelete,
+                    IconButton(onClick = { showConfirmationDialog = true },
                         modifier = Modifier.semantics {
                             role = Role.Button
                             contentDescription = "Delete ${rocketConfig.name}"
@@ -101,6 +108,16 @@ fun RocketConfigItem(
                     }
                 }
             }
+        }
+        if (showConfirmationDialog) {
+            ConfirmationDialog(
+                title = "Delete Configuration",
+                text = "Are you sure you want to delete ${rocketConfig.name}?",
+                confirmText = "Delete",
+                dismissText = "Cancel",
+                onConfirm = onDelete,
+                onDismiss = { showConfirmationDialog = false }
+            )
         }
     }
 }

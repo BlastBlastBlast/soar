@@ -36,7 +36,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
@@ -103,7 +105,8 @@ fun WeatherScreen(
                 currentSite = currentSite,
                 selectedStatuses = selectedStatuses,
                 viewModel = viewModel,
-                isSunFilterActive = isSunFilterActive
+                isSunFilterActive = isSunFilterActive,
+                launchSites = launchSites
             )
             // Segmented Bottom Bar with three buttons.
             SegmentedBottomBar(
@@ -189,7 +192,6 @@ fun WeatherScreen(
                     modifier = Modifier
                         .align(Alignment.BottomStart) // For bottom-right placement.
                         .offset(y = (10.dp)),
-
                 )
             }
         }
@@ -209,7 +211,8 @@ fun ScreenContent(
     selectedStatuses: Set<LaunchStatus>,
     currentSite: LaunchSite?,
     viewModel: WeatherViewModel,
-    isSunFilterActive: Boolean
+    isSunFilterActive: Boolean,
+    launchSites: List<LaunchSite>
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
@@ -306,7 +309,8 @@ fun ScreenContent(
                                 SiteHeader(
                                     site = currentSite,
                                     coordinates = coordinates,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    launchSites = launchSites
                                 )
 
                                 DailyForecastCard(
@@ -352,7 +356,8 @@ fun ScreenContent(
             ErrorScreen(
                 errorMsg = uiState.message,
                 buttonText = "Reload Weather",
-                onReload = { viewModel.loadForecast(coordinates.first, coordinates.second) }
+                onReload = { viewModel.loadForecast(coordinates.first, coordinates.second) },
+                drawable = painterResource(id = R.drawable.ground_crash)
             )
         }
         else -> Unit

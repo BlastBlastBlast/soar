@@ -46,7 +46,7 @@ fun RocketConfigEditScreen(
 
     val defaultsMap = getDefaultRocketParameterValues().valueMap
 
-    var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Rocket Config") }
+    var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Config") }
     var launchAzimuth by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchAzimuth?.toString()
         ?: defaultsMap[RocketParameterType.LAUNCH_AZIMUTH.name]?.toString() ?: "") }
     var launchPitch by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchPitch?.toString()
@@ -123,12 +123,14 @@ fun RocketConfigEditScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Column(Modifier.padding(horizontal = 16.dp)) {
-                    // --- all fields now use labelText + implicit semantics ---
                     AppOutlinedTextField(
-                        value        = name,
-                        onValueChange= { name = it },
-                        labelText    = "Configuration Name",
-                        modifier     = Modifier.fillMaxWidth()
+                        value = name,
+                        onValueChange = {
+                            name = it
+                        },
+                        labelText = "Name",
+                        modifier = Modifier.fillMaxWidth(),
+                        filterRegex = Regex("^.{0,14}\$") //avoids too long names
                     )
                     if (isNameError) {
                         Text(
