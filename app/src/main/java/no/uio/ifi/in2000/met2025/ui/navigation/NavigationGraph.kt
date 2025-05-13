@@ -102,6 +102,9 @@ fun NavigationGraph(
                 },
                 onRocketConfigsClick = {
                     navController.navigateSingleTopTo(RocketConfigList.route)
+                },
+                onLaunchSiteClick = {
+                    navController.navigateSingleTopTo(LaunchSite.route)
                 }
             )
         }

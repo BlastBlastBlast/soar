@@ -61,7 +61,8 @@ fun AppScaffold(
                         navController    = navController,
                         currentThemeDark = darkTheme,
                         onToggleTheme    = toggleTheme,
-                        onOpenDrawer     = { scope.launch { drawerState.open() } }
+                        onOpenDrawer     = { scope.launch { drawerState.open() } },
+                        goToConfig       = { navController.navigateSingleTopTo(Screen.Configs.route) }
                     )
                 }
             ) { innerPadding ->

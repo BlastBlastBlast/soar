@@ -92,7 +92,7 @@ fun MapScreen(
 
     val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
     val isAnimating = viewModel.isAnimating
-    var showTrajectorySheet by remember { mutableStateOf(false) }
+    var showTrajectorySheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
@@ -107,7 +107,7 @@ fun MapScreen(
     val currentSite by viewModel.currentSite.collectAsState()
     val rocketConfigs by viewModel.rocketConfigList.collectAsState()
     val selectedCfg by viewModel.selectedConfig.collectAsState()
-    var showTrajectoryPopup by remember { mutableStateOf(false) }
+    var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
 
     /**
      * Triggered on long-press: places a new marker at the clicked location
