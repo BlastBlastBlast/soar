@@ -1,6 +1,6 @@
 ![Catmull-Rom Interpolation](images/catmull-rom-interpolation.svg)
 
-This diagram illustrates the concept of Catmull-Rom interpolation. The curve segments are defined so that they pass through the control points, and the slope at each control point is defined by adjacent control points. The red line segments show linear interpolation between the points, while the blue curve segments show the Catmull-Rom splines. The Catmull-Rom splines have the advantage of being smooth and continuous at the control points, while the linear segments do not.
+This diagram illustrates the concept of Catmull-Rom interpolation. The curve segments are defined so that they pass through the control points, and the slope at each control point is defined by adjacent control points. The red line segments show linear interpolation between the points, while the blue curve segments show the Catmull-Rom splines. The Catmull-Rom splines have the advantage of creating a smooth transition between segments, while the linear segments are only continuous.
 
 
 ![Interpolation in 2D](images/interpolation-2d.svg)
