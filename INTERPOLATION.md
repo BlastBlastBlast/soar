@@ -1,9 +1,23 @@
 # Methodology for Interpolation
 
 ## Contents
+- [Overview](#overview)
+- [Motivation](#motivation)
+- [Strategy](#strategy)
 - [One-Dimensional Interpolation](#one-dimensional-interpolation)
 - [Two-Dimensional Interpolation](#two-dimensional-interpolation)
 - [Three-Dimensional Interpolation](#three-dimensional-interpolation)
+
+## Overview
+Interpolation is a method used to estimate unknown values that fall within the range of known data points. It is particularly useful in various fields such as meteorology, computer graphics, and numerical analysis. The following sections describe the interpolation methods used in SOAR.
+
+## Motivation
+To simulate the trajectory of a rocket, we need to know the wind speed and direction at various altitudes. The data we receive from MET is not always available at the exact altitudes we need, so we must interpolate between the available data points. This is especially important for small rockets, which can have a wide range of altitudes during their flight.
+
+The interpolation methods used in SOAR are based on the Catmull-Rom spline, which is a type of cubic Hermite spline. This method is particularly well-suited for interpolating data points in a smooth and continuous manner. The Catmull-Rom spline is defined by four control points, and it ensures that the result passes through these points while maintaining a smooth transition between them.
+
+## Strategy
+We combine two variants of Catmull-Rom interpolation to estimate altitude, air temperature and the velocity components of the wind at and between the various isobaric levels. The first variant allows us to get an estimate at a given pair of $(x, y)$ coordinates, while the second variant allows us to get an estimate at a given $(x, y, z)$ coordinate. The first variant is used to interpolate between the four control points at the desired $(x, y)$ coordinates, while the second variant is a one-dimensional approach does not require the control points to be equally spaced. This is important since the data we receive from MET has a non-uniform distribution of data points in the vertical direction.
 
 ## One-Dimensional Interpolation
 
