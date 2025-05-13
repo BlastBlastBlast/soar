@@ -13,14 +13,26 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-// LocationForecastRepository.kt
+/**
+* LocationForecastRepository
+*
+* Fetches location forecast data from the remote API, applies simple caching,
+* and provides functions to filter and time‐zone adjust the results.
+*
+* Special notes:
+* - Caches a single response per coordinate pair for up to one hour.
+* - Uses a Mutex to ensure thread‐safe cache access.
+*/
 class LocationForecastRepository @Inject constructor(
     private val locationForecastDataSource: LocationForecastDataSource
 ) {
-    // Cache both the forecast response and the coordinates used to fetch it.
     private var cachedForecastDataResponse: ForecastDataResponse? = null
     private var cachedCoordinates: Pair<Double, Double>? = null
 
+    /**
+     * Fetches the raw ForecastDataResponse, using the cache if the same
+     * coordinates were requested within the last hour.
+     */
     private suspend fun fetchForecastDataResponse(
         lat: Double,
         lon: Double,
@@ -50,6 +62,9 @@ class LocationForecastRepository @Inject constructor(
         }
     }
 
+    /**
+     * Returns processed forecast data, filtered by time span and frequency.
+     */
     suspend fun getForecastData(
         lat: Double,
         lon: Double,
@@ -62,8 +77,8 @@ class LocationForecastRepository @Inject constructor(
             onFailure = { return Result.failure(it) },
             onSuccess = { it }
         )
-        // (The rest of your filtering logic remains the same.)
         val responseItems = response.properties.timeSeries
+        // Filter by start time if provided
         val filteredItems = if (time != null) {
             responseItems.filter { Instant.parse(it.time) >= time.minus(Duration.ofHours(1)) }
         } else {
@@ -102,6 +117,10 @@ class LocationForecastRepository @Inject constructor(
         )
     }
 
+    /**
+     * Converts all timestamp strings in the forecast to Europe/Oslo local time,
+     * formatted as ISO_OFFSET_DATE_TIME.
+     */
     suspend fun getTimeZoneAdjustedForecast(
         lat: Double,
         lon: Double,
@@ -116,6 +135,7 @@ class LocationForecastRepository @Inject constructor(
         val osloZone = ZoneId.of("Europe/Oslo")
         val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
+        // Convert each entry's time from UTC to Oslo time with offset
         val adjustedTimeSeries = response.timeSeries.map { item ->
             val osloTime = Instant.parse(item.time).atZone(osloZone)
             val formattedTime = formatter.format(osloTime)
@@ -128,6 +148,10 @@ class LocationForecastRepository @Inject constructor(
         return Result.success(result)
     }
 
+    /**
+     * Takes entries while their timestamp does not exceed the given span
+     * from the first entry.
+     */
     private fun List<TimeSeries>.takeUntilDurationExceeds(threshold: Int): List<TimeSeries> {
         val lastHour = Instant.parse(this.first().time) + Duration.ofHours(threshold.toLong())
         return this.takeWhile { timeSeries ->
