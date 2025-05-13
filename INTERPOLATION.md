@@ -1,5 +1,11 @@
-\usepackage{amsmath}
-\usepackage{nicefrac}
+# Methodology for Interpolation
+
+## Contents
+- [One-Dimensional Interpolation](#one-dimensional-interpolation)
+- [Two-Dimensional Interpolation](#two-dimensional-interpolation)
+- [Three-Dimensional Interpolation](#three-dimensional-interpolation)
+
+## One-Dimensional Interpolation
 
 ![Catmull-Rom Interpolation](images/catmull-rom-interpolation.svg)
 
@@ -40,9 +46,13 @@ p_3
 \end{pmatrix}
 $$
 
+## Two-Dimensional Interpolation
+
 ![Interpolation in 2D](images/interpolation-2d.svg)
 
-This diagram shows how interpolation works in a 2D space. One can, given 16 control points in a regularly spaced grid, interpolate values within the square defined by $x_1 \leq x \leq x_2$ and $y_1 \leq y \leq y_2$. The interpolation is done in two steps. First, four interpolations are performed at the desired $x$ from the four sets of four points that share $y$-values. The value at $(x, y_0)$, for instance, is interpolated from the values at $(x_0, y_0), (x_1, y_0), (x_2, y_0)$ and $(x_3, y_0)$. Then the four resulting points are interpolated to get the final value at the desired coordinates $(x, y)$.
+This diagram shows how interpolation works in 2D space. One can, given 16 control points in a regularly spaced grid, interpolate values within the square defined by $x_1 \leq x \leq x_2$ and $y_1 \leq y \leq y_2$. The interpolation is done in two steps. First, four interpolations are performed at the desired $x$ from the four sets of four points that share $y$-values. The value at $(x, y_0)$, for instance, is interpolated from the values at $(x_0, y_0), (x_1, y_0), (x_2, y_0)$ and $(x_3, y_0)$. Then the four resulting points are interpolated to get the final value at the desired coordinates $(x, y)$.
+
+## Three-Dimensional Interpolation
 
 ![Vertical Interpolation](images/vertical-interpolation.svg)
 This diagram shows how 3D interpolation works. We compute four control point in the $z$-direction, each at the given $(x, y)$-coordinates on some isobaric level, ground level, or a layer extrapolated from the available data. The value at $(x, y, z)$ is then computed by interpolating from those four control points.
