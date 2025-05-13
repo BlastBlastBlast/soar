@@ -186,38 +186,41 @@ fun MapView(
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
 
-                    // ─── 1) compute special‐model indices ─────────────────────────
-                    val rocketOffset      = 0                // e.g. first point
-                    val parachuteOffset   = 10               // X steps after deploy
+                    // ─── 1) find the two special insertion indices ────────────────────
+                    val firstFreeFlightIdx = trajectoryPoints
+                        .indexOfFirst { it.third == RocketState.FREE_FLIGHT }
+                        .takeIf { it >= 0 } ?: 0
+                    val rocketOffset    = 5
+                    val rocketModelIdx  = firstFreeFlightIdx + rocketOffset
+
+                    val parachuteOffset   = 1 
                     val firstParachuteIdx = trajectoryPoints
                         .indexOfFirst { it.third == RocketState.PARACHUTE_DEPLOYED }
                         .takeIf { it >= 0 }
-                    val rocketModelIdx    = rocketOffset
                     val parachuteModelIdx = firstParachuteIdx?.plus(parachuteOffset)
 
-                    // ─── 2) get launch elevation for fallback ────────────────────
+                    // fallback terrain elevation at launch
                     val launchElev = trajectoryPoints.first().first.getEntry(2)
 
-                    // ─── 3) loop each sim‐point ───────────────────────────────────
+                    // ─── 2) draw every point (with skip logic) ────────────────────────
                     trajectoryPoints.forEachIndexed { idx, (vec, _, state) ->
-                        // **skip most of the parachute points** to throttle draw
-                        if (state == RocketState.PARACHUTE_DEPLOYED && idx % 10 != 0) return@forEachIndexed
+                        // skip most parachute points… but NOT the one at parachuteModelIdx
+                        if (state == RocketState.PARACHUTE_DEPLOYED
+                            && idx != parachuteModelIdx
+                            && idx % 10 != 0) return@forEachIndexed
 
-                        // 3.1) lat/lon/absAlt
                         val lat    = vec.getEntry(0)
                         val lon    = vec.getEntry(1)
                         val absAlt = vec.getEntry(2)
+                        val terrain = mv.mapboxMap
+                            .getElevation(Point.fromLngLat(lon, lat))
+                            ?: launchElev
+                        val relAlt = absAlt - terrain
 
-                        // 3.2) compute meters above terrain
-                        val pt2d    = Point.fromLngLat(lon, lat)
-                        val terrain = mv.mapboxMap.getElevation(pt2d) ?: launchElev
-                        val relAlt  = absAlt - terrain
-
-                        // 3.3) decide which GLB to place here
+                        // choose your .glb
                         val modelUri = when {
                             idx == rocketModelIdx -> "asset://Rocket.glb"
-                            parachuteModelIdx != null && idx == parachuteModelIdx ->
-                                "asset://parachute.glb"
+                            parachuteModelIdx != null && idx == parachuteModelIdx -> "asset://parachute_offset.glb"
                             else -> when (state) {
                                 RocketState.ON_LAUNCH_RAIL     -> "asset://PurpleIso.glb"
                                 RocketState.THRUSTING          -> "asset://RedIso.glb"
@@ -227,35 +230,39 @@ fun MapView(
                             }
                         }
 
-                        // 3.4) unique IDs for this point
+                        // decide scale: 4× larger for rocket & parachute, base otherwise
+                        val scaleVec = when {
+                            idx == rocketModelIdx -> listOf(200.0, 200.0, 200.0)
+                            parachuteModelIdx != null && idx == parachuteModelIdx -> listOf(60.0, 60.0, 60.0)
+                            else -> listOf(5.0, 5.0, 5.0)
+                        }
+
                         val modelId  = "traj-model-$idx"
                         val sourceId = "traj-src-$idx"
                         val layerId  = "traj-lyr-$idx"
 
-                        // ─── 4) the familiar getStyle { … } block ────────────────────
                         mv.mapboxMap.getStyle { style ->
-                            // 4.1) add the GLB model if missing
+                            // 1) add the model resource if missing
                             if (!style.styleLayers.any { it.id == modelId }) {
                                 mv.mapboxMap.addModel(model(modelId) {
                                     uri(modelUri)
                                 })
+                                println("➤ added MODEL $modelId → $modelUri")
                             }
-                            // 4.2) add GeoJSON source if missing
+                            // 2) add the GeoJSON source if missing
                             if (!style.styleSources.any { it.id == sourceId }) {
                                 style.addSource(geoJsonSource(sourceId) {
-                                    data(
-                                        FeatureCollection.fromFeatures(arrayOf(
-                                            Feature.fromGeometry(Point.fromLngLat(lon, lat, relAlt))
-                                        )).toJson()
-                                    )
+                                    data(FeatureCollection.fromFeatures(arrayOf(
+                                        Feature.fromGeometry(Point.fromLngLat(lon, lat, relAlt))
+                                    )).toJson())
                                 })
                             }
-                            // 4.3) add ModelLayer if missing
+                            // 3) add the ModelLayer if missing
                             if (!style.styleLayers.any { it.id == layerId }) {
                                 style.addLayer(modelLayer(layerId, sourceId) {
                                     modelId(modelId)
                                     modelType(ModelType.COMMON_3D)
-                                    modelScale(listOf(5.0, 5.0, 5.0))
+                                    modelScale(scaleVec)
                                     modelTranslation(listOf(0.0, 0.0, relAlt))
                                     modelCastShadows(true)
                                     modelReceiveShadows(true)
