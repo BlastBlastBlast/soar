@@ -23,11 +23,12 @@ t^3
 \end{pmatrix}
 , 
 M =
+\frac{1}{2}
 \begin{pmatrix}
-0 & 1 & 0 & 0 \\
--\nicefrac{1}{2} & 0 & \tfrac{1}{2} & 0 \\
-1 & -\tfrac{5}{2} & 2 & -\tfrac{1}{2} \\
--\tfrac{1}{2} & \tfrac{3}{2} & -\tfrac{3}{2} & \tfrac{1}{2}
+0 & 2 & 0 & 0 \\
+-1 & 0 & 1 & 0 \\
+1 & -5 & 2 & -1 \\
+-1 & 3 & -3 & 1
 \end{pmatrix}
 ,
 \vec{p} =
