@@ -108,29 +108,29 @@ The matrix $M$ is the same as in the one-dimensional case.
 The principle of non-uniform interpolation is similar to the uniform case, but the control points are not evenly spaced. Instead of using a matrix approach, we use a recursive method to compute the interpolated value. The algorithm is based on the following formula:
 
 $$
-\C = \frac{t_{2} - t}{t_{2} - t_{1}} B_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} B_{2}
+C = \frac{t_{2} - t}{t_{2} - t_{1}} B_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} B_{2}
 $$
 
 where
 
 $$
-\mathbf{B}_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} \mathbf{A}_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} \mathbf{A}_{2}
+B_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} A_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} A_{2}
 $$
 
 $$
-\mathbf{B}_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} \mathbf{A}_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} \mathbf{A}_{3}
+B_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} A_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} A_{3}
 $$
 
 $$
-\mathbf{A}_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} \mathbf{P}_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} \mathbf{P}_{1}
+A_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} P_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} P_{1}
 $$
 
 $$
-\mathbf{A}_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} \mathbf{P}_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} \mathbf{P}_{2}
+A_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} P_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} P_{2}
 $$
 
 $$
-\mathbf{A}_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} \mathbf{P}_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} \mathbf{P}_{3}
+A_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} P_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} P_{3}
 $$
 
 ## 3D Mixed Interpolation
