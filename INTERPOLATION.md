@@ -17,8 +17,6 @@ $$
 f(t) = \vec{t}^T \cdot M \cdot \vec{p}
 $$
 
-where 
-
 $$
 \vec{t} = 
 \begin{pmatrix} 
