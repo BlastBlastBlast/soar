@@ -9,18 +9,25 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAP
 import kotlin.math.ln
 import kotlin.math.pow
 
-fun calculateAltitude(pressure: Double, referencePressure: Double, referenceAirTemperature: Double, referenceAltitude: Double): Double {
-    // expects temperature in Kelvin
-    Log.i("calculateAltitude:", "pressure = $pressure, referencePressure = $referencePressure, referenceAirTemperature = ${(referenceAirTemperature - CELSIUS_TO_KELVIN).roundToDecimals(2)}, referenceAltitude = $referenceAltitude")
-
-    return referenceAltitude + if (referenceAltitude < 10000) { // barometric formula for altitudes below 10 km
+/**
+ * Uses the barometric formula to calculate the altitude based on the pressure, reference pressure, reference air temperature, and reference altitude.
+ * Expects temperature in Kelvin.
+ * Above 10 km, the formula changes to a different form where temperature is assumed to be constant.
+ */
+fun calculateAltitude(
+    pressure: Double,
+    referencePressure: Double,
+    referenceAirTemperature: Double,
+    referenceAltitude: Double
+): Double {
+    return referenceAltitude + if (referenceAltitude < 10000) {
         val exponent =
             (UNIVERSAL_GAS_CONSTANT * TEMPERATURE_LAPSE_RATE) /
                 (GRAVITY * EARTH_AIR_MOLAR_MASS)
 
         (referenceAirTemperature / TEMPERATURE_LAPSE_RATE) *
                 (1 - (pressure / referencePressure).pow(exponent))
-    } else { // above 10 km, the temperature lapse rate is assumed to be constant
+    } else {
         ln(referencePressure / pressure) *
                 (UNIVERSAL_GAS_CONSTANT * referenceAirTemperature) /
                 (GRAVITY * EARTH_AIR_MOLAR_MASS)
