@@ -111,7 +111,7 @@ $$
 f_2(t_x, t_y) = (f_2(t_x, t_y))^T = \vec{t_x}^T \cdot M \cdot P^T \cdot M^T \cdot \vec{t_y}
 $$
 
-This equation shows that we can swap $\vec{t_x}$ and $\vec{t_y}$, and as long as we transpose the matrix $P$, we still get the same result. This is analogous to first interpolating along the $y$-axis and then along the $x$-axis, which shows that this approach of two-dimensional interpolation is symmetric.
+This equation shows that we can swap $\vec{t_x}$ and $\vec{t_y}$, and as long as we transpose the matrix $P$, we still get the same result. Since tranposing $P$ means swapping the $x$ and $y$ coordinates of all its entries, then the above expression is analogous to first interpolating along the $y$-axis and then along the $x$-axis. This shows that our approach of two-dimensional interpolation does not depend on the choice of axis ordering.
 
 ## 1D Non-Uniform Interpolation
 
