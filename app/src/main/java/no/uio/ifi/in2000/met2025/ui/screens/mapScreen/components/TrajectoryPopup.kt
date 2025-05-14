@@ -46,6 +46,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import kotlin.math.roundToInt
 
 /**
@@ -74,13 +79,14 @@ fun TrajectoryPopup(
     selectedConfig: RocketConfig?,
     onSelectConfig: (RocketConfig) -> Unit,
     onClose: () -> Unit,
-    onStartTrajectory: () -> Unit,
+    onStartTrajectory: (Instant) -> Unit,
     onClearTrajectory: () -> Unit,
     onEditConfigs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
+    var pickedTime by remember { mutableStateOf(LocalTime.now(ZoneId.of("Europe/Oslo"))) }
 
     AnimatedVisibility(
         visible = show,
@@ -162,22 +168,34 @@ fun TrajectoryPopup(
                             .height(80.dp)
                     )
 
+                    OsloTimePicker(
+                        initialTime    = pickedTime,
+                        onTimeSelected = { pickedTime = it },
+                        modifier       = Modifier.fillMaxWidth()
+                    )
+
                     // Action buttons
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
-                            onClick = onStartTrajectory,
+                            onClick = {
+                                val today   = LocalDate.now(ZoneId.of("Europe/Oslo"))
+                                val ldt     = LocalDateTime.of(today, pickedTime)
+                                val instant = ldt.atZone(ZoneId.of("Europe/Oslo")).toInstant()
+                                onStartTrajectory(instant)
+                            },
                             modifier = Modifier.weight(1f),
-                            // color
-                            colors = ButtonDefaults.buttonColors(
+                            colors   = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
                                 contentColor   = Color.Black
-                            ),
-                        ) { Icon(Icons.Default.RocketLaunch, contentDescription = "Start Trajectory")
+                            )
+                        ) {
+                            Icon(Icons.Default.RocketLaunch, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Start Trajectory") }
+                            Text("Start Trajectory")
+                        }
 
                         OutlinedButton(
                             onClick = onEditConfigs,
