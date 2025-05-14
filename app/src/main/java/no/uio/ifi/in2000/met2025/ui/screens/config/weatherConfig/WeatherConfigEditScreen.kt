@@ -36,6 +36,14 @@ import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common.SettingR
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * WeatherConfigEditScreen
+ *
+ * UI for creating or editing a WeatherConfig profile.
+ * - Organizes settings into sections (name, wind, cloud, etc.).
+ * - Validates unique config name and non-empty input.
+ * - Saves or updates via ConfigViewModel.
+ */
 @Composable
 fun WeatherConfigEditScreen(
     weatherConfig: WeatherConfig? = null,
@@ -45,6 +53,7 @@ fun WeatherConfigEditScreen(
     val updateStatus by viewModel.updateStatus.collectAsState()
     val weatherNames by viewModel.weatherNames.collectAsState()
 
+    // Local state for all config fields, defaulting to the values of the default config
     var configName               by remember(weatherConfig) { mutableStateOf(weatherConfig?.name ?: "") }
     var groundWind               by remember(weatherConfig) { mutableStateOf(weatherConfig?.groundWindThreshold?.toString() ?: "8.6") }
     var isEnabledGroundWind      by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledGroundWind ?: true) }
@@ -74,6 +83,7 @@ fun WeatherConfigEditScreen(
     var altitude                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.altitudeUpperBound?.toString() ?: "5000.0") }
     var isEnabledAltitude        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledAltitudeUpperBound ?: true) }
 
+    // Group settings into lists for reuse
     val windSettings = listOf(
         SettingItem("Ground Wind Threshold", groundWind, { groundWind = it }, isEnabledGroundWind) { isEnabledGroundWind = it },
         SettingItem("Air Wind Threshold",    airWind,    { airWind    = it }, isEnabledAirWind)    { isEnabledAirWind    = it },
@@ -98,7 +108,7 @@ fun WeatherConfigEditScreen(
     ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
         val isNameError = configName in weatherNames && configName != weatherConfig?.name
 
-        // Name
+        // Name section with duplicate-name validation
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
             AppOutlinedTextField(
                 value         = configName,
@@ -107,7 +117,8 @@ fun WeatherConfigEditScreen(
                 },
                 labelText    = "Name",
                 modifier = Modifier.fillMaxWidth(),
-                filterRegex = Regex("^.{0,14}\$") //avoids too long names
+                //Regex limits names to 14 characters
+                filterRegex = Regex("^.{0,14}\$")
             )
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
@@ -193,7 +204,7 @@ fun WeatherConfigEditScreen(
         }
         Spacer(Modifier.height(24.dp))
 
-        // Save button
+        // Save button, enabled only when name is valid
         Button(
             onClick = {
                 val updated = WeatherConfig(
@@ -268,6 +279,8 @@ fun WeatherConfigEditScreen(
             )
         }
     }
+
+    //Navigate back when save succeeds
     LaunchedEffect(updateStatus) {
         if (updateStatus is ConfigViewModel.UpdateStatus.Success) {
             viewModel.resetWeatherStatus()
