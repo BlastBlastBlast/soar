@@ -17,7 +17,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
@@ -35,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -51,6 +51,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 /**
@@ -86,7 +87,12 @@ fun TrajectoryPopup(
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
-    var pickedTime by remember { mutableStateOf(LocalTime.now(ZoneId.of("Europe/Oslo"))) }
+    val osloZone = ZoneId.of("Europe/Oslo")
+
+        // now holds both date + time
+        var pickedDateTime by remember { mutableStateOf(LocalDateTime.now(osloZone))}
+        // controls visibility of our date/time dialog
+        var showDatePicker by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
         visible = show,
@@ -110,7 +116,6 @@ fun TrajectoryPopup(
             Surface(
                 shape           = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                 color           = Color.Black.copy(alpha = 0.6f),
-                //border          = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
                 shadowElevation = 8.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
@@ -142,6 +147,7 @@ fun TrajectoryPopup(
                             .background(Color.White, RoundedCornerShape(2.dp))
                     )
 
+                    // Location label
                     val label = currentSite?.name?.let { "$it: " } ?: "Location: "
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
@@ -168,22 +174,16 @@ fun TrajectoryPopup(
                             .height(80.dp)
                     )
 
-                    OsloTimePicker(
-                        initialTime    = pickedTime,
-                        onTimeSelected = { pickedTime = it },
-                        modifier       = Modifier.fillMaxWidth()
-                    )
-
-                    // Action buttons
+                    // First row: Start & Edit
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
                             onClick = {
-                                val today   = LocalDate.now(ZoneId.of("Europe/Oslo"))
-                                val ldt     = LocalDateTime.of(today, pickedTime)
-                                val instant = ldt.atZone(ZoneId.of("Europe/Oslo")).toInstant()
+                                val instant = pickedDateTime
+                                    .atZone(osloZone)
+                                    .toInstant()
                                 onStartTrajectory(instant)
                             },
                             modifier = Modifier.weight(1f),
@@ -203,7 +203,7 @@ fun TrajectoryPopup(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
                                 contentColor   = Color.Black
-                            ),
+                            )
                         ) {
                             Icon(Icons.Default.Settings, contentDescription = "Edit configs")
                             Spacer(Modifier.width(8.dp))
@@ -211,20 +211,51 @@ fun TrajectoryPopup(
                         }
                     }
 
-                    OutlinedButton(
-                        onClick = onClearTrajectory,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor   = Color.Black
-                        ),
+                    // Inside your TrajectoryPopup’s Column, replace the second Row with:
+
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Clear trajectory")
-                        Spacer(Modifier.width(8.dp))
-                        Text("Clear Trajectory")
+                        OutlinedButton(
+                            onClick = { showDatePicker = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor   = Color.Black
+                            )
+                        ) {
+                            Text(
+                                text = pickedDateTime.format(DateTimeFormatter.ofPattern("dd.MM HH:00")),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = onClearTrajectory,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor   = Color.Black
+                            )
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Clear")
+                        }
                     }
+
+
+                    // DateTime Picker Dialog
+                    DateTimePickerDialog(
+                        showDialog = showDatePicker,
+                        initialDateTime = pickedDateTime,
+                        onDismiss = { showDatePicker = false },
+                        onConfirm = {
+                            pickedDateTime = it
+                            showDatePicker = false
+                        }
+                    )
                 }
             }
         }
