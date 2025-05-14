@@ -1,6 +1,6 @@
 package no.uio.ifi.in2000.met2025.data.remote.sunrise
 
-import SunriseResponse
+import no.uio.ifi.in2000.met2025.data.models.sunrise.SunriseResponse
 import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
 import no.uio.ifi.in2000.met2025.domain.helpers.formatter
 import java.time.Duration

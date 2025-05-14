@@ -9,6 +9,10 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataRespon
 import java.math.RoundingMode
 import javax.inject.Inject
 
+/**
+ * Fetches location forecast data from the API.
+ * @return A Result containing the ForecastDataResponse on success or an exception on failure.
+ */
 class LocationForecastDataSource @Inject constructor(
     private val httpClient: HttpClient
 ) {

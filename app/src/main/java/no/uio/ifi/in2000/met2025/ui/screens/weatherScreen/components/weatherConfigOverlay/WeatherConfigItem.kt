@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -76,7 +77,7 @@ fun EditWeatherConfig(
                 modifier   = Modifier.weight(1f)
             )
             Icon(
-                imageVector   = Icons.Default.ArrowForward,
+                imageVector   = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Go to edit screen",
                 tint          = MaterialTheme.colorScheme.onSurface
             )

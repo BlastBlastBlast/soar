@@ -5,6 +5,14 @@ import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfigDao
 import javax.inject.Inject
 
+/**
+ * WeatherConfigRepository
+ *
+ * The WeatherConfigRepository is a repository layer for persisting
+ * and retrieving WeatherConfig entities.
+ * Delegates all operations to the provided WeatherConfigDao.
+ */
+
 class WeatherConfigRepository @Inject constructor(
     private val weatherConfigDao: WeatherConfigDao
 ) {

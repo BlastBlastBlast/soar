@@ -1,3 +1,15 @@
+/*
+ * Bottom-sheet dialog for configuring and launching a rocket trajectory.
+ *
+ * Main functionality:
+ *  - Displays last-visited location and lets you pick a RocketConfig
+ *  - Provides buttons to start or clear the trajectory simulation
+ *  - Supports swipe-down to dismiss with animated enter/exit
+ *
+ * Special notes:
+ *  - Uses detectVerticalDragGestures to allow swipe-to-dismiss
+ *  - AnimatedVisibility wraps the content for smooth transitions
+ */
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import androidx.compose.animation.AnimatedVisibility
@@ -5,11 +17,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,18 +38,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
-import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 import kotlin.math.roundToInt
 
+/**
+ * Shows a draggable bottom sheet with:
+ *  - Last-visited coordinates display
+ *  - RocketConfigCarousel for selecting a config
+ *  - Start, Edit, and Clear buttons for trajectory control
+ *
+ * @param show Whether the popup is visible
+ * @param lastVisited The last visited LaunchSite, or null
+ * @param rocketConfigs Available rocket configurations
+ * @param selectedConfig Currently selected RocketConfig, or null
+ * @param onSelectConfig Callback when a config is tapped
+ * @param onClose Callback to dismiss the popup
+ * @param onStartTrajectory Callback to begin the simulation
+ * @param onClearTrajectory Callback to clear existing trajectory
+ * @param onEditConfigs Callback to open the configs editor
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrajectoryPopup(
     show: Boolean,
@@ -55,144 +86,126 @@ fun TrajectoryPopup(
         visible = show,
         enter   = slideInVertically { it } + fadeIn(),
         exit    = slideOutVertically { it } + fadeOut(),
-        modifier = modifier.semantics {
-            contentDescription = "Trajectory options dialog"
-            customActions = listOf(
-                CustomAccessibilityAction(label = "Close dialog") { onClose(); true }
-            ) }
+        modifier = modifier
+            .fillMaxSize()
+            .semantics {
+                contentDescription = "Trajectory options dialog"
+                customActions = listOf(
+                    CustomAccessibilityAction("Close dialog") {
+                        onClose(); true
+                    }
+                )
+            }
     ) {
-        Surface(
-            shape          = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            color          = WarmOrange,
-            tonalElevation = 0.dp,
-            modifier       = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.3f)
-                .offset { IntOffset(x = 0, y = offsetY.roundToInt()) }
-                .pointerInput(show) {
-                    detectVerticalDragGestures { change, dragAmount ->
-                        change.consume()
-                        val newOffset = (offsetY + dragAmount).coerceAtLeast(0f)
-                        offsetY = newOffset
-                        if (newOffset > thresholdPx) {
-                            offsetY = 0f
-                            onClose()
-                        }
-                    }
-                }
+        Box(
+            Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
         ) {
-            Column(
-                Modifier
+            Surface(
+                shape           = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                color           = Color.Black.copy(alpha = 0.6f),
+                //border          = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+                shadowElevation = 8.dp,
+                modifier        = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Small drag handle
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .background(
-                            color = Color.Black,
-                            shape = RoundedCornerShape(2.dp)
-                        )
-                )
-                val name : String = when (currentSite?.name) {
-                    null -> "Location: "
-                    else -> "${currentSite.name}: "
-                }
-                Row() {
-                    if (lastVisited != null) {
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.semantics {
-                                contentDescription = "Last visited Launch Site: $name"
+                    .fillMaxHeight(0.35f)
+                    .offset { IntOffset(0, offsetY.roundToInt()) }
+                    .pointerInput(show) {
+                        detectVerticalDragGestures { change, dy ->
+                            change.consume()
+                            val new = (offsetY + dy).coerceAtLeast(0f)
+                            offsetY = new
+                            if (new > thresholdPx) {
+                                offsetY = 0f
+                                onClose()
                             }
-                        )
-                    }
-                    Text(
-                        text = lastVisited
-                            ?.let { "%.4f, %.4f".format(it.latitude, it.longitude) }
-                            ?: "No location yet",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.semantics {
-                            contentDescription =
-                                lastVisited
-                                    ?.let {
-                                        "Last visited at %.4f latitude, %.4f longitude".format(
-                                            it.latitude,
-                                            it.longitude
-                                        )
-                                    }
-                                    ?: "No location yet"
                         }
-                    )
-                }
-
-                // Grid of buttons (2 columns)
-                // 2) Carousel right here:
-                RocketConfigCarousel(
-                    rocketConfigs  = rocketConfigs,
-                    selectedConfig = selectedConfig,
-                    onSelectConfig = onSelectConfig,
-                    modifier       = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                )
-
-                LazyColumn(
+                    }
+            ) {
+                Column(
                     Modifier
-                        .fillMaxWidth(),
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    item {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    // Drag handle
+                    Box(
+                        Modifier
+                            .size(40.dp, 4.dp)
+                            .background(Color.White, RoundedCornerShape(2.dp))
+                    )
+
+                    val label = currentSite?.name?.let { "$it: " } ?: "Location: "
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                        Text(
+                            lastVisited
+                                ?.let { "%.4f, %.4f".format(it.latitude, it.longitude) }
+                                ?: "No location yet",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                    }
+
+                    // Rocket carousel
+                    RocketConfigCarousel(
+                        rocketConfigs  = rocketConfigs,
+                        selectedConfig = selectedConfig,
+                        onSelectConfig = onSelectConfig,
+                        modifier       = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                    )
+
+                    // Action buttons
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onStartTrajectory,
+                            modifier = Modifier.weight(1f),
+                            // color
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor   = Color.Black
+                            ),
+                        ) { Icon(Icons.Default.RocketLaunch, contentDescription = "Start Trajectory")
+                            Spacer(Modifier.width(8.dp))
+                            Text("Start Trajectory") }
+
+                        OutlinedButton(
+                            onClick = onEditConfigs,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor   = Color.Black
+                            ),
                         ) {
-                            Button(
-                                onClick = onStartTrajectory,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .semantics {
-                                        contentDescription = "Start trajectory"
-                                        role = Role.Button
-                                    }
-                            ) {
-                                Text("▶️ Start Trajectory")
-                            }
-                            Button(
-                                onClick = onEditConfigs,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .semantics {
-                                        contentDescription = "Edit rocket configurations"
-                                        role = Role.Button
-                                    }
-                            ) {
-                                Text("⚙️ Edit Configs")
-                            }
+                            Icon(Icons.Default.Settings, contentDescription = "Edit configs")
+                            Spacer(Modifier.width(8.dp))
+                            Text("Rocket Configs")
                         }
                     }
-                    item {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = onClearTrajectory,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .semantics {
-                                        contentDescription = "Clear trajectory"
-                                        role = Role.Button
-                                    }
-                            ) {
-                                Text("🗑️ Clear Trajectory")
-                            }
-                        }
+
+                    OutlinedButton(
+                        onClick = onClearTrajectory,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor   = Color.Black
+                        ),
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Clear trajectory")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Clear Trajectory")
                     }
                 }
             }

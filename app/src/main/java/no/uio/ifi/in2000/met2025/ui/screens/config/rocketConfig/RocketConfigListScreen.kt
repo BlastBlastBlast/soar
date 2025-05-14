@@ -46,9 +46,9 @@ fun RocketConfigListScreen(
             modifier        = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            color           = MaterialTheme.colorScheme.surface,
-            tonalElevation  = 4.dp,
-            shadowElevation = 8.dp,
+            color           = MaterialTheme.colorScheme.primary,
+            tonalElevation  = 8.dp,
+            shadowElevation = 10.dp,
             shape           = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
@@ -107,7 +107,7 @@ fun RocketConfigListScreen(
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("+")
+                    Text(text ="+", style = MaterialTheme.typography.titleLarge)
                 }
 
                 Spacer(Modifier.height(16.dp))

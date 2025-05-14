@@ -4,6 +4,16 @@ import kotlinx.coroutines.flow.Flow
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfigDao
 
+/**
+ * RocketConfigRepository
+ *
+ * Provides a repository layer for managing RocketConfig entities.
+ * Delegates CRUD operations and default-selection logic to the RocketConfigDao.
+ *
+ * Special notes:
+ * - All reads return reactive Flows.
+ */
+
 class RocketConfigRepository(private val rocketConfigDao: RocketConfigDao) {
 
     suspend fun insertRocketConfig(rocketConfig: RocketConfig) {

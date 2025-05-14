@@ -3,6 +3,8 @@ package no.uio.ifi.in2000.met2025.ui.navigation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,7 +23,8 @@ fun AppTopBar(
     navController: NavHostController,
     currentThemeDark: Boolean,
     onToggleTheme: () -> Unit,
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    goToConfig: () -> Unit
 ) {
     val currentRoute = navController
         .currentBackStackEntryAsState()
@@ -75,6 +78,31 @@ fun AppTopBar(
             }
         },
         actions = {
+            // Config toggle button
+            IconButton(
+                onClick = {
+                    if (currentRoute == Screen.Configs.route) {
+                        // already on the Config screen → go back
+                        navController.popBackStack()
+                    } else {
+                        // not on Config → navigate there
+                        goToConfig()
+                    }
+                },
+                modifier = Modifier
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = if (currentRoute == Screen.Configs.route)
+                            "Close settings" else "Open settings"
+                    }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+
             IconButton(
                 onClick = onToggleTheme,
                 modifier = Modifier.semantics {
