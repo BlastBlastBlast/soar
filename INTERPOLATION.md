@@ -140,7 +140,9 @@ The points $p_0,p_1,p_2,p_3$ are as usual the control points, and $t_0,t_1,t_2,t
 
 This diagram shows how 3D interpolation works. We compute four control points at the target $x$ and $y$, each on a different isobaric level, ground level, or a layer extrapolated from the available data. The value at $(x, y, z)$ is then computed by interpolating from those four control points.
 
-The control points are obtained using 2D interpolation, as shown in the previous diagram. The altitudes $z_0, z_1, z_2$ and $z_3$ of the four control points are also calculated using 2D interpolation. 
+The control points are obtained using 2D interpolation, as shown in the previous diagram. The altitudes $z_0, z_1, z_2$ and $z_3$ of the four control points are also calculated using 2D interpolation.
+
+When we have the four control points, we use the same recursive method as in the 1D non-uniform interpolation to compute the value at $(x, y, z)$.
 
 ## Notes
 
