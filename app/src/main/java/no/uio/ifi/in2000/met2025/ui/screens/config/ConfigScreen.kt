@@ -37,6 +37,14 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * ConfigScreen
+ *
+ * Presents three tappable cards for navigating to:
+ * - Weather configuration profiles
+ * - Rocket configuration profiles
+ * - Launch site management
+ */
 @Composable
 fun ConfigScreen(
     modifier: Modifier = Modifier,
