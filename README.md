@@ -18,7 +18,7 @@
 ---
 
 ## Overview
-**SOAR** is an Android app developed as part of a University of Oslo student project, with the Portalspace rocketry club as our primary user group. Based on interviews and usability tests with Portalspace members, SOAR aims to help small‐scale rocketry teams:
+**SOAR** is an Android app developed as part of a University of Oslo student project, with the Portal Space rocketry club as our primary user group. Based on interviews and usability tests with Portalspace members, SOAR aims to help small‐scale rocketry teams:
 - Determine safe launch windows by fetching and evaluating MET weather data at chosen launch sites
 - Visualize hourly and daily weather summaries with “Safe / Caution / Unsafe” indicators
 - Simulate rocket flight trajectories in 3D based on configurable rocket parameters
