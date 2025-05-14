@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.met2025.data.local.launchsites
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
@@ -26,6 +27,7 @@ class LaunchSiteRepository @Inject constructor(
      * The full LaunchSite row flagged as “Last Visited”,
      * or null if the user has never picked a site.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getActiveSite(): Flow<LaunchSite?> =
         getLastVisitedTempSite()
             .mapLatest { placeholder ->
