@@ -1,9 +1,9 @@
 package no.uio.ifi.in2000.met2025.data.remote.sunrise
 
-import SunriseResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import no.uio.ifi.in2000.met2025.data.models.sunrise.SunriseResponse
 
 import javax.inject.Inject
 

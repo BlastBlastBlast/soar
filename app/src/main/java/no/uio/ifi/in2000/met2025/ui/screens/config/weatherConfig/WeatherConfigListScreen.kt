@@ -51,9 +51,9 @@ fun WeatherConfigListScreen(
             modifier        = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            color           = MaterialTheme.colorScheme.surface,
-            tonalElevation  = 4.dp,    // subtle tint under items
-            shadowElevation = 8.dp,
+            color           = MaterialTheme.colorScheme.primary,
+            tonalElevation  = 8.dp,    // subtle tint under items
+            shadowElevation = 10.dp,
             shape           = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
@@ -111,7 +111,7 @@ fun WeatherConfigListScreen(
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("+")
+                    Text(text = "+", style = MaterialTheme.typography.titleLarge)
                 }
             }
         }
