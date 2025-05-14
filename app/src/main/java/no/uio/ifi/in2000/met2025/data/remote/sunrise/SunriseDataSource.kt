@@ -7,6 +7,16 @@ import no.uio.ifi.in2000.met2025.data.models.sunrise.SunriseResponse
 
 import javax.inject.Inject
 
+/**
+ * SunriseDataSource
+ *
+ * Responsible for fetching sunrise and sunset times from the MET Norway Sunrise API.
+ *
+ * Special notes:
+ * - Constructs the request URL with latitude, longitude, date, and time offset.
+ * - Returns a Result wrapping the parsed SunriseResponse or an exception on failure.
+ */
+
 class SunriseDataSource @Inject constructor(
     private val client: HttpClient
 ) {

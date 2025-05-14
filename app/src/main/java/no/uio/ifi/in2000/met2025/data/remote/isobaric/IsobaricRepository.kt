@@ -23,50 +23,81 @@ import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 
-//TODO: Inject GribDAO
+/**
+ * IsobaricRepository
+ *
+ * Orchestrates fetching of isobaric GRIB datasets from the remote API,
+ * caching and persisting raw bytes locally, and parsing them into
+ * structured maps of meteorological vectors by location and pressure level.
+ *
+ * Special notes:
+ * - Stores each GRIB payload in local database for offline reuse.
+ * - Tracks the last update timestamp to decide whether to fetch fresh data.
+ * - Uses an in-memory map to avoid reparsing recently accessed datasets.
+ */
 
 class IsobaricRepository @Inject constructor(
     private val isobaricDataSource: IsobaricDataSource,
     private val gribDAO: GribDataDAO,
     private val updatedDAO: GribUpdatedDAO
 ) {
+    //cache
     private val gribMaps: MutableMap<String, GribDataMap> = mutableMapOf()
 
+    /**
+     * Retrieves the GRIB map for the closest dataset at or before timeSlot.
+     * Handles availability lookup, cache invalidation, database persistence,
+     * remote fetching, and parsing.
+     */
     suspend fun getIsobaricGribData(timeSlot: Instant): GribDataResult {
-        //holds a common updated timestamp and individual time stamps and uri's for each dataset
         val availableData = getAvailabilityData()
-        println("IsobaricGribDataCalled")
+
         if (availableData != null) {
-            //returns the uri and time stamp for the dataset where timeSlot is valid
-            val data = availableData.findClosestBefore(timeSlot) ?: return GribDataResult.AvailabilityError
+
+            // Pick the entry valid for the requested time
+            val data = availableData.findClosestBefore(timeSlot)
+                ?: return GribDataResult.AvailabilityError
+
             val time = data.time
+            // Return in-memory if already parsed
             if (time.toString() in gribMaps.keys) {return GribDataResult.Success(gribMaps[time.toString()]!!)}
+
             val byteArray: ByteArray
+            // Decide whether to fetch fresh or load from DB based on last update
             if (!isGribUpToDate(availableData)) {
+                //If new data is available, delete outdated data.
                 gribDAO.clearAll()
                 updatedDAO.delete()
+
+                //Store new update time.
                 time.let { updatedDAO.insert(GribUpdated(it.toString())) }
-                val isobaricData: Result<ByteArray> =
-                    isobaricDataSource.fetchIsobaricGribData(data.uri)
+
+                val isobaricData: Result<ByteArray> = isobaricDataSource.fetchIsobaricGribData(data.uri)
                 byteArray = isobaricData.fold(
                     onSuccess = { it },
                     onFailure = { return GribDataResult.FetchingError }
                 )
+
             } else {
+                //Try to load from database.
                 if (gribDAO.findByTimestamp(time.toString()) != null) {
                     val isobaricData = gribDAO.findByTimestamp(time.toString())!!
                     byteArray = isobaricData.data
+
+                //If not in database, fetch fresh data.
                 } else {
-                    val isobaricData: Result<ByteArray> =
-                        isobaricDataSource.fetchIsobaricGribData(data.uri)
+                    val isobaricData: Result<ByteArray> = isobaricDataSource.fetchIsobaricGribData(data.uri)
                     byteArray = isobaricData.fold(
                         onSuccess = { it },
                         onFailure = { return GribDataResult.FetchingError }
                     )
                 }
             }
+            //Store in database
             val gribData = GribData(time.toString(), byteArray)
             gribDAO.insert(gribData)
+
+
             val res = parseGribData(byteArray, time.toString())
             when (res){
                 is GribParsingResult.Error -> return GribDataResult.FetchingError
@@ -74,6 +105,10 @@ class IsobaricRepository @Inject constructor(
             }
             return GribDataResult.Success(res.gribDataMap)
         } else {
+            /*
+             * Handle case with no availability data: try rounding to nearest 3h slot
+             * since the grib API follows this format 99% of the time.
+             */
             val roundedTime = timeSlot.roundToNearest3Hour()
             if (roundedTime in gribMaps.keys) {return GribDataResult.Success(gribMaps[roundedTime]!!)}
             val databaseCheck = gribDAO.findByTimestamp(roundedTime)
@@ -91,6 +126,11 @@ class IsobaricRepository @Inject constructor(
         }
     }
 
+    /**
+     * Parses raw GRIB byte content into a GribDataMap.
+     * Writes to a temp file for NetCDF library consumption, reads variables,
+     * and builds a nested map of (lat,lon) → (pressure hPa → vectors).
+     */
     private suspend fun parseGribData(byteArray: ByteArray, time: String): GribParsingResult {
         Mutex().withLock {
             val dataMap = mutableMapOf<Pair<Double, Double>, MutableMap<Int, GribVectors>>()
@@ -105,8 +145,11 @@ class IsobaricRepository @Inject constructor(
                 println("Tempfile created")
 
                 NetcdfFiles.open(tempFile.absolutePath).use { netcdfFile ->
-                    //Henter ut variablene som ligger i vanlige arrayer.
-                    //Disse trengs for å hente ut data fra 4d arrayene
+
+                    /*
+                    Extract the variables that are stored in normal 1D arrays
+                    These are required to extract data from 4D arrays later
+                    */
                     val latitudes = (netcdfFile.findVariable("lat")?.read() as? ArrayFloat.D1)
                         ?.let { array ->
                             (0 until array.size).map { idx -> array.get(idx.toInt()) }
@@ -124,13 +167,10 @@ class IsobaricRepository @Inject constructor(
                             }
 
                     if (latitudes == null || longitudes == null || isobaricLevels == null) {
-                        val errorMsg = "Missing lat/lon/isobaric data"
-                        println(errorMsg)
                         return GribParsingResult.Error
                     }
-                    println("lat/lon/isobaric data found")
 
-                    // Henter ut 4d arrayene for variablene på gitte punkter.
+                    // Read the 4D variables for temperature and wind components
                     val temperatureVar = netcdfFile.findVariable("Temperature_isobaric")?.read() as? ArrayFloat.D4
                     val uWindVar = netcdfFile.findVariable("u-component_of_wind_isobaric")
                         ?.read() as? ArrayFloat.D4
@@ -142,7 +182,8 @@ class IsobaricRepository @Inject constructor(
                     }
                     println("temperature/wind data found")
 
-                    //test prints for å forstå datasettet
+                    /*
+                    Old print statements for debugging, keeping them here in case they're ever needed
                     //println("Temperature shape: ${temperatureVar.shape.contentToString()}")
                     println("uWind shape: ${uWindVar.shape.contentToString()}")
                     println("vWind shape: ${vWindVar.shape.contentToString()}")
@@ -150,8 +191,9 @@ class IsobaricRepository @Inject constructor(
                     println("Latitudes size: ${latitudes.size}, Longitudes size: ${longitudes.size}")
                     println("Isobaric levels size: ${isobaricLevels.size}")
                     println("Isobaric levels from NetCDF: ${isobaricLevels.joinToString()}")
+                     */
 
-                    // Nøsted løkke over kombinasjonen latitude, longitude og isobaric level
+                    // Build nested map over lat, lon, and pressure levels
                     for (latIdx in latitudes.indices) {
                         for (lonIdx in longitudes.indices) {
                             val lat = latitudes[latIdx]
@@ -163,6 +205,12 @@ class IsobaricRepository @Inject constructor(
                                 val level = isobaricLevels[levelIdx] / 100  //Convert from Pa to hPa
 
                                 try {
+                                    /*
+                                    Accessing the 4D array: [time, level, lat, lon]
+                                    Accessing is done by referencing the index of the variable arrays.
+                                    Our Grib2 datasets have a single time step, so it's
+                                    always the value at index 0 of the time array.
+                                    */
                                     val temperature = temperatureVar.get(0, levelIdx, latIdx, lonIdx)
                                     val uWind = uWindVar.get(0, levelIdx, latIdx, lonIdx)
                                     val vWind = vWindVar.get(0, levelIdx, latIdx, lonIdx)
@@ -174,24 +222,26 @@ class IsobaricRepository @Inject constructor(
                                 }
                             }
 
-                            dataMap[Pair( // ikkje bruk +, for den returnerer eit nytt map og muterer ikkje det gamle :)))
+                            dataMap[Pair(
                                 RoundFloatToXDecimalsDouble(lat, 2),
                                 RoundFloatToXDecimalsDouble(lon - 360, 2)
                             )] = isobaricMap
                         }
                     }
                 }
-                // Sletter tempFilen siden dataen er lagt i map
                 tempFile.delete()
             } catch (e: Exception) {
                 println("Error processing GRIB file: ${e.message}")
                 return GribParsingResult.Error
             }
-            val gribDataMap = GribDataMap(time, dataMap)
-            return GribParsingResult.Success(gribDataMap)
+            //Return successful parsing result
+            return GribParsingResult.Success(gribDataMap = GribDataMap(time, dataMap))
         }
     }
 
+    /**
+     * Retrieves and restructures availability metadata from the API.
+     */
     private suspend fun getAvailabilityData(): StructuredAvailability?{
         val response = isobaricDataSource.fetchAvailabilityData()
         val data = response.getOrNull() ?: return null
@@ -199,15 +249,16 @@ class IsobaricRepository @Inject constructor(
         return restructureAvailabilityResponse(data)
     }
 
-    suspend fun isGribDataAvailable(time: Instant): Boolean {
-        val availableData = getAvailabilityData()
-        return availableData?.findClosestBefore(time) != null
-    }
-
+    /**
+     * Checks whether GRIB data on disk is up to date with the latest availability timestamp.
+     */
     private suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
         return availResponse.updated.toString() == updatedDAO.findUpdated()
     }
 
+    /**
+     * Converts raw API availability response to internal StructuredAvailability.
+     */
     private fun restructureAvailabilityResponse(
         availResponse: GribAvailabilityResponse
     ): StructuredAvailability {
@@ -220,6 +271,10 @@ class IsobaricRepository @Inject constructor(
         return StructuredAvailability(updatedInstant, availData)
     }
 
+    /**
+     * Finds the availability entry closest before the target time,
+     * within a ~3-hour window.
+     */
     private fun StructuredAvailability.findClosestBefore(targetTime: Instant): AvailabilityData? {
         val data = this.availData
             .filter { it.time <= targetTime } //kryssa fingrane for at <= ikkje ødelegge alt
@@ -231,6 +286,9 @@ class IsobaricRepository @Inject constructor(
         return data
     }
 
+    /**
+     * Rounds an Instant down to the nearest 3-hour boundary.
+     */
     private fun Instant.roundToNearest3Hour(): String {
         val rounded = (epochSecond / 3600 / 3) * 3 * 3600
         return Instant.ofEpochSecond(rounded).toString()

@@ -9,6 +9,9 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAP
 import kotlin.math.ln
 import kotlin.math.pow
 
+/**
+ * Calculate altitude from pressure and temperature
+ */
 fun calculateAltitude(pressure: Double, referencePressure: Double, referenceAirTemperature: Double, referenceAltitude: Double): Double {
     // expects temperature in Kelvin
     Log.i("calculateAltitude:", "pressure = $pressure, referencePressure = $referencePressure, referenceAirTemperature = ${(referenceAirTemperature - CELSIUS_TO_KELVIN).roundToDecimals(2)}, referenceAltitude = $referenceAltitude")

@@ -36,6 +36,15 @@ import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * RocketConfigItem
+ *
+ * Displays a card for a RocketConfig with:
+ * - The config name
+ * - Tap anywhere on the card to select this config
+ * - Edit and Delete buttons for non-default configs
+ * - A confirmation dialog before deletion
+ */
 @Composable
 fun RocketConfigItem(
     rocketConfig: RocketConfig,
