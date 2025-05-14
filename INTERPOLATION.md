@@ -7,6 +7,7 @@
 - [1D Uniform Interpolation](#1d-uniform-interpolation)
 - [2D Uniform Interpolation](#2d-uniform-interpolation)
 - [1D Non-Uniform Interpolation](#1d-non-uniform-interpolation)
+- [Extrapolating at the boundaries of the data](#extrapolating-at-the-boundaries-of-the-data)
 - [3D Mixed Interpolation](#3d-mixed-interpolation)
 - [Notes](#notes)
 
@@ -133,6 +134,12 @@ q_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} p_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} 
 $$
 
 The points $p_0,p_1,p_2,p_3$ are as usual the control points, and $t_0,t_1,t_2,t_3$ are the values that the $p_i$'s are associate with.
+
+## Extrapolating at the boundaries of the data
+
+![Extrapolation](images/extrapolation.svg)
+
+This diagram shows how we extrapolate the values at the boundaries of the available data. We use the two closest control points to the boundary at $x_1$ and $x_2$ and extrapolate the value at $x_0$ so that the slope from the value at $x_0$ to the value at $x_1$ is the same as the slope from the value at $x_1$ to the value at $x_2$. The same is done for the other boundary.
 
 ## 3D Mixed Interpolation
 
