@@ -144,5 +144,5 @@ The control points are obtained using 2D interpolation, as shown in the previous
 
 ## Notes
 
-- The 1D non-uniform interpolation method comes from a paper by P. J. Barry and R. N. Goldman, "Recursive evaluation algorithm for a class of Catmull-Rom splines"
+- The 1D non-uniform interpolation method comes from a paper by P. J. Barry and R. N. Goldman, "Recursive evaluation algorithm for a class of Catmull-Rom splines". https://doi.org/10.1145/378456.378511
 - The interpolation methods are implemented in the 'IsobaricInterpolator' class, which is part of the 'domain' package.
