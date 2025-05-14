@@ -105,6 +105,14 @@ $$
 
 The matrix $M$ is the same as in the one-dimensional case.
 
+A nice property of this method of interpolation is that the order of the axes can be swapped, so that we can first interpolate in the $y$-direction and then in the $x$-direction. We can observe this from the following equation:
+
+$$
+f_2(t_x, t_y) = (f_2(t_x, t_y))^T = \vec{t_x}^T \cdot M \cdot P^T \cdot M^T \cdot \vec{t_y}
+$$
+
+This equation shows that we can swap $vec{t_x}$ and $vec{t_y}$, and as long as we transpose the matrix $P$, we still get the same result. This is analogous to first interpolating along the $y$-axis and then along the $x$-axis, which shows that this approach of two-dimensional interpolation is in some sense quite natural.
+
 ## 1D Non-Uniform Interpolation
 
 The principle of non-uniform interpolation is similar to the uniform case, but the control points are not evenly spaced. Instead of using a matrix approach, we use a recursive method to compute the interpolated value. The algorithm is based on the following formula:
