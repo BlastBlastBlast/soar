@@ -57,7 +57,7 @@ fun ConfigScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // — WEATHER —
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -96,7 +96,6 @@ fun ConfigScreen(
             }
         }
 
-        // — ROCKET —
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -135,7 +134,6 @@ fun ConfigScreen(
             }
         }
 
-        // — LAUNCH SITE —
         Box(
             modifier = Modifier
                 .weight(1f)
