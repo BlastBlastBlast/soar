@@ -109,27 +109,27 @@ The matrix $M$ is the same as in the one-dimensional case.
 The principle of non-uniform interpolation is similar to the uniform case, but the control points are not evenly spaced. Instead of using a matrix approach, we use a recursive method to compute the interpolated value. The algorithm is based on the following formula:
 
 $$
-f^*(t) = \frac{t_{2} - t}{t_{2} - t_{1}} R_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} R_{2}
+f^*(t) = \frac{t_{2} - t}{t_{2} - t_{1}} r_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} r_{2}
 $$
 
 $$
-R_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} Q_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} Q_{2}
+r_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} q_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} q_{2}
 $$
 
 $$
-R_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} Q_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} Q_{3}
+r_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} q_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} q_{3}
 $$
 
 $$
-Q_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} p_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} p_{1}
+q_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} p_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} p_{1}
 $$
 
 $$
-Q_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} p_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} p_{2}
+q_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} p_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} p_{2}
 $$
 
 $$
-Q_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} p_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} p_{3}
+q_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} p_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} p_{3}
 $$
 
 The points $p_0,p_1,p_2,p_3$ are as usual the control points, and $t_0,t_1,t_2,t_3$ are the values that the $p_i$'s are associate with.
