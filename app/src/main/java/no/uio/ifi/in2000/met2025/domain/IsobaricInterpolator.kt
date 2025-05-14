@@ -26,7 +26,7 @@ import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
 import no.uio.ifi.in2000.met2025.data.models.sin
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
-import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
+import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressure
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import java.time.Instant
@@ -262,7 +262,7 @@ class IsobaricInterpolator(
 
                     val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
 
-                    val groundPressure = calculatePressureAtAltitude(
+                    val groundPressure = calculatePressure(
                         altitude = forecastData.altitude,
                         referencePressure = forecastDataValues.airPressureAtSeaLevel,
                         referenceAirTemperature = airTemperatureAtSeaLevel,
