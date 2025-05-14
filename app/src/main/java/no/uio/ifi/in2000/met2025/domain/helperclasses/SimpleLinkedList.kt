@@ -1,9 +1,10 @@
 package no.uio.ifi.in2000.met2025.domain.helperclasses
 
-// Simple LinkedList class
-// Does not resize
-// Not intended for fast access at arbitrary indices
-// Apparently does not exist natively in Kotlin?
+/** Simple LinkedList class
+* Does not resize
+* Not intended for fast access at arbitrary indices
+* Apparently does not exist natively in Kotlin?
+ */
 class SimpleLinkedList<T>(
     initialValue: T? = null
 ) {
