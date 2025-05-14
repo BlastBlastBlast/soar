@@ -31,7 +31,7 @@ This diagram illustrates the concept of Catmull-Rom interpolation. The $x$-axis 
 
 The red spline is constructed from linear interpolation between the points, while the blue curves show the Catmull-Rom spline. The Catmull-Rom spline has the advantage of creating a smooth transition between segments, while the linear spline is only continuous at the control points.
 
-The process of Catmull-Rom interpolation can be represented as a product of vectors and matrices. If $p_0, p_1, p_2, p_3$ are control points, then we represent the spline segment between $p_1$ and $p_2$ as a function $f_1$ of $t$ on the interval $[0, 1]$:
+The process of Catmull-Rom interpolation can be represented as a product of vectors and matrices. If $p_0, p_1, p_2, p_3$ are the control points with a distance of 1 between adjacent points, then we represent the spline segment between $p_1$ and $p_2$ as a function $f_1$ of $t$ on the interval $[0, 1]$:
 
 $$
 f_1(t) = \vec{t}^T \cdot M \cdot \vec{p}
@@ -70,7 +70,7 @@ $$
 
 This diagram shows how uniform interpolation works in 2D space. One can, given 16 control points in a regularly spaced grid, interpolate values within the square defined by $x_1 \leq x \leq x_2$ and $y_1 \leq y \leq y_2$. The interpolation is done in two steps. First, four interpolations are performed at the desired $x$ from the four sets of four points that share $y$-values. The value at $(x, y_0)$, for instance, is interpolated from the values at $(x_0, y_0), (x_1, y_0), (x_2, y_0)$ and $(x_3, y_0)$. Then the four resulting points are interpolated to get the final value at the desired coordinates $(x, y)$.
 
-As with the one-dimensional case, the interpolation can be expressed as a product of vectors and matrices. Given 16 control points $p_{i,j}$, where $i$ and $j$ are the indices of the grid, we can represent the interpolation as a function $f_2$ of $t_x$ and $t_y$ on the interval $[0, 1]$:
+As with the one-dimensional case, the interpolation can be expressed as a product of vectors and matrices. Given 16 control points $p_{i,j}$, where $i$ and $j$ are the indices of the grid, and adjacent points along the same axis are spaced with a distance of 1, then we can represent the interpolation as a function $f_2$ of $t_x$ and $t_y$ on the interval $[0, 1]$:
 
 $$
 f_2(t_x, t_y) = \vec{t_y}^T \cdot M \cdot P \cdot M^T \cdot \vec{t_x}
@@ -109,29 +109,29 @@ The matrix $M$ is the same as in the one-dimensional case.
 The principle of non-uniform interpolation is similar to the uniform case, but the control points are not evenly spaced. Instead of using a matrix approach, we use a recursive method to compute the interpolated value. The algorithm is based on the following formula:
 
 $$
-f^*(t) = \frac{t_{2} - t}{t_{2} - t_{1}} B_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} B_{2}
+f^*(t) = \frac{t_{2} - t}{t_{2} - t_{1}} R_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} R_{2}
 $$
 
 where
 
 $$
-B_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} A_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} A_{2}
+R_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} Q_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} Q_{2}
 $$
 
 $$
-B_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} A_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} A_{3}
+R_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} Q_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} Q_{3}
 $$
 
 $$
-A_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} P_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} P_{1}
+Q_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} P_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} P_{1}
 $$
 
 $$
-A_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} P_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} P_{2}
+Q_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} P_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} P_{2}
 $$
 
 $$
-A_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} P_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} P_{3}
+Q_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} P_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} P_{3}
 $$
 
 ## 3D Mixed Interpolation
