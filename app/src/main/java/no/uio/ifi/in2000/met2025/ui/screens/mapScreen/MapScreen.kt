@@ -273,7 +273,7 @@ fun MapScreen(
                             selectedConfig = selectedCfg,
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
-                            onStartTrajectory = { viewModel.startTrajectory() },
+                            onStartTrajectory = { instant -> viewModel.startTrajectory(instant) },
                             onEditConfigs = onNavigateToRocketConfig,
                             onClearTrajectory = {
                                 viewModel.clearTrajectory()
