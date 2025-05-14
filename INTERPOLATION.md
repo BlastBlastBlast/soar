@@ -69,29 +69,29 @@ $$
 
 ![Interpolation in 2D](images/interpolation-2d_t.svg)
 
-This diagram shows how uniform interpolation works in 2D space. One can, given 16 control points in a regularly spaced grid, interpolate values within the square defined by $x_1 \leq x \leq x_2$ and $y_1 \leq y \leq y_2$. The interpolation is done in two steps. First, four interpolations are performed at the desired $x$ from the four sets of four points that share $y$-values. The value at $(x, y_0)$, for instance, is interpolated from the values at $(x_0, y_0), (x_1, y_0), (x_2, y_0)$ and $(x_3, y_0)$. Then the four resulting points are interpolated to get the final value at the desired coordinates $(x, y)$.
+This diagram shows how uniform interpolation works in 2D space. One can, given 16 control points in a regularly spaced grid, interpolate values within the square defined by $t^x_1 \leq t^x \leq t^x_2$ and $t^y_1 \leq t^y \leq t^y_2$. The interpolation is done in two steps. First, four interpolations are performed at the desired $t^x$ from the four sets of four points that share $t^y$-values. The value at $(t^x, t^y_0)$, for instance, is interpolated from the values at $(t^x_0, t^y_0), (t^x_1, t^y_0), (t^x_2, t^y_0)$ and $(t^x_3, t^y_0)$. Then the four resulting points are interpolated to get the final value at the desired coordinates $(t^x, t^y)$.
 
-As with the one-dimensional case, the interpolation can be expressed as a product of vectors and matrices. Given 16 control points $p_{i,j}$, where $i$ and $j$ are the indices of the grid, and adjacent points along the same axis are spaced with a distance of 1, then we can represent the interpolation as a function $f_2$ of $t_x$ and $t_y$ on the interval $[0, 1]$:
-
-$$
-f_2(t_x, t_y) = \vec{t_y}^T \cdot M \cdot P \cdot M^T \cdot \vec{t_x}
-$$
+As with the one-dimensional case, the interpolation can be expressed as a product of vectors and matrices. Given 16 control points $p_{i,j}$, where $i$ and $j$ are the indices of the grid, and adjacent points along the same axis are spaced with a distance of 1, then we can represent the interpolation as a function $f_2$ of $\delta t^x = t^x - t^x_1$ and $\delta t_y = t^y - t^y_1$ on the interval $[0, 1]$:
 
 $$
-\vec{t_x} =
+f_2(t^x, t^y) = \vec{t^y}^T \cdot M \cdot P \cdot M^T \cdot \vec{t^x}
+$$
+
+$$
+\vec{t^x} =
 \begin{pmatrix}
 1 \\
-t_x \\
-t_x^2 \\
-t_x^3
+\delta t^x \\
+\delta {t^x}^2 \\
+\delta {t^x}^3
 \end{pmatrix}
 ,
-\vec{t_y} =
+\vec{t^y} =
 \begin{pmatrix}
 1 \\
-t_y \\
-t_y^2 \\
-t_y^3
+\delta t^y \\
+\delta {t^y}^2 \\
+\delta {t^y}^3
 \end{pmatrix}
 ,
 P =
@@ -108,10 +108,10 @@ The matrix $M$ is the same as in the one-dimensional case.
 A nice property of this method of interpolation is that the order of the axes can be swapped, so that we can first interpolate in the $y$-direction and then in the $x$-direction. We can observe this from the following equation:
 
 $$
-f_2(t_x, t_y) = (f_2(t_x, t_y))^T = \vec{t_x}^T \cdot M \cdot P^T \cdot M^T \cdot \vec{t_y}
+f_2(t^x, t^y) = (f_2(t^x, t^y))^T = \vec{t^x}^T \cdot M \cdot P^T \cdot M^T \cdot \vec{t^y}
 $$
 
-This equation shows that we can swap $\vec{t_x}$ and $\vec{t_y}$, and as long as we transpose the matrix $P$, we still get the same result. Since tranposing $P$ means swapping the $x$ and $y$ coordinates of all its entries, then the above expression is analogous to first interpolating along the $y$-axis and then along the $x$-axis. This shows that our approach of two-dimensional interpolation does not depend on the choice of axis ordering.
+This equation shows that we can swap $\vec{t^x}$ and $\vec{t^y}$, and as long as we transpose the matrix $P$, we still get the same result. Since transposing $P$ means swapping the $x$ and $y$ coordinates of all its entries, then the above expression is analogous to first interpolating along the $y$-axis and then along the $x$-axis. This shows that our approach of two-dimensional interpolation does not depend on the choice of axis ordering.
 
 ## 1D Non-Uniform Interpolation
 
@@ -147,17 +147,17 @@ The points $p_0,p_1,p_2,p_3$ are as usual the control points, and $t_0,t_1,t_2,t
 
 ![Extrapolation](images/extrapolation_t.svg)
 
-This diagram shows how we extrapolate the values at the boundaries of the available data. We use the two closest control points to the boundary at $x_1$ and $x_2$ and extrapolate the value at $x_0$ so that the slope from the value at $x_0$ to the value at $x_1$ is the same as the slope from the value at $x_1$ to the value at $x_2$. The same is done for the other boundary.
+This diagram shows how we extrapolate the values at the boundaries of the available data. We use the two closest control points to the boundary at $t_1$ and $t_2$ and extrapolate the value at $t_0$ so that the slope from the value at $t_0$ to the value at $t_1$ is the same as the slope from the value at $t_1$ to the value at $t_2$. The same is done for the other boundary.
 
 ## 3D Mixed Interpolation
 
 ![Vertical Interpolation](images/vertical-interpolation_t.svg)
 
-This diagram shows how 3D interpolation works. We compute four control points at the target $x$ and $y$, each on a different isobaric level, ground level, or a layer extrapolated from the available data. The value at $(x, y, z)$ is then computed by interpolating from those four control points.
+This diagram shows how 3D interpolation works. We compute four control points at the target $t^x$ and $t^y$, each on a different isobaric level, ground level, or a layer extrapolated from the available data. The value at $(t^x, t^y, t^z)$ is then computed by interpolating from those four control points.
 
 The control points are obtained using 2D interpolation, as shown in the previous diagram. The altitudes $z_0, z_1, z_2$ and $z_3$ of the four control points are also calculated using 2D interpolation.
 
-When we have the four control points, we use the same recursive method as in the 1D non-uniform interpolation to compute the value at $(x, y, z)$.
+When we have the four control points, we use the same recursive method as in the 1D non-uniform interpolation to compute the value at $(t^x, t^y, z)$.
 
 ## Notes
 
