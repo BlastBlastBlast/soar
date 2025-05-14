@@ -26,7 +26,7 @@ The uniform variant is used in the horizontal plane, since data from the Isobari
 
 ## 1D Uniform Interpolation
 
-![Catmull-Rom Interpolation](images/catmull-rom-interpolation.svg)
+![Catmull-Rom Interpolation](images/catmull-rom-interpolation_t.svg)
 
 This diagram illustrates the concept of Catmull-Rom interpolation. The $x$-axis typically represents distance, while the $y$-axis represents the metric we want to approximate, for instance altitude or wind speed. The curve segments of the Catmull-Rom spline are defined so that they pass through the control points, and the slope of a curve segment at an end point is defined by the adjacent control points.
 
@@ -67,7 +67,7 @@ $$
 
 ## 2D Uniform Interpolation
 
-![Interpolation in 2D](images/interpolation-2d.svg)
+![Interpolation in 2D](images/interpolation-2d_t.svg)
 
 This diagram shows how uniform interpolation works in 2D space. One can, given 16 control points in a regularly spaced grid, interpolate values within the square defined by $x_1 \leq x \leq x_2$ and $y_1 \leq y \leq y_2$. The interpolation is done in two steps. First, four interpolations are performed at the desired $x$ from the four sets of four points that share $y$-values. The value at $(x, y_0)$, for instance, is interpolated from the values at $(x_0, y_0), (x_1, y_0), (x_2, y_0)$ and $(x_3, y_0)$. Then the four resulting points are interpolated to get the final value at the desired coordinates $(x, y)$.
 
@@ -145,13 +145,13 @@ The points $p_0,p_1,p_2,p_3$ are as usual the control points, and $t_0,t_1,t_2,t
 
 ## Extrapolating at the boundaries of the data
 
-![Extrapolation](images/extrapolation.svg)
+![Extrapolation](images/extrapolation_t.svg)
 
 This diagram shows how we extrapolate the values at the boundaries of the available data. We use the two closest control points to the boundary at $x_1$ and $x_2$ and extrapolate the value at $x_0$ so that the slope from the value at $x_0$ to the value at $x_1$ is the same as the slope from the value at $x_1$ to the value at $x_2$. The same is done for the other boundary.
 
 ## 3D Mixed Interpolation
 
-![Vertical Interpolation](images/vertical-interpolation.svg)
+![Vertical Interpolation](images/vertical-interpolation_t.svg)
 
 This diagram shows how 3D interpolation works. We compute four control points at the target $x$ and $y$, each on a different isobaric level, ground level, or a layer extrapolated from the available data. The value at $(x, y, z)$ is then computed by interpolating from those four control points.
 
