@@ -12,6 +12,7 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.database.sqlite.SQLiteConstraintException
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -95,6 +96,9 @@ class MapScreenViewModel @Inject constructor(
             viewModelScope, SharingStarted.Eagerly, null
         )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
+
+    private val _isTrajectoryCalculating = MutableStateFlow(false)
+    val isTrajectoryCalculating: StateFlow<Boolean> = _isTrajectoryCalculating
 
     private val _newMarker = MutableStateFlow<LaunchSite?>(null)
     val newMarker: StateFlow<LaunchSite?> = _newMarker
@@ -280,6 +284,7 @@ class MapScreenViewModel @Inject constructor(
      */
     fun startTrajectory() {
         viewModelScope.launch {
+            _isTrajectoryCalculating.value = true
             try {
                 // 1) Grab the current default/selected config
                 val cfg = selectedConfig.value ?: return@launch
@@ -322,6 +327,8 @@ class MapScreenViewModel @Inject constructor(
                             "The calculations use weather data fetched in real time, " +
                             "so please check your internet connection and try again."
                 )
+            } finally {
+                _isTrajectoryCalculating.value = false
             }
         }
     }
