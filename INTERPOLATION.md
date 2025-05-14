@@ -112,8 +112,6 @@ $$
 f^*(t) = \frac{t_{2} - t}{t_{2} - t_{1}} R_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} R_{2}
 $$
 
-where
-
 $$
 R_{1} = \frac{t_{2} - t}{t_{2} - t_{0}} Q_{1} + \frac{t - t_{0}}{t_{2} - t_{0}} Q_{2}
 $$
@@ -123,16 +121,18 @@ R_{2} = \frac{t_{3} - t}{t_{3} - t_{1}} Q_{2} + \frac{t - t_{1}}{t_{3} - t_{1}} 
 $$
 
 $$
-Q_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} P_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} P_{1}
+Q_{1} = \frac{t_{1} - t}{t_{1} - t_{0}} p_{0} + \frac{t - t_{0}}{t_{1} - t_{0}} p_{1}
 $$
 
 $$
-Q_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} P_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} P_{2}
+Q_{2} = \frac{t_{2} - t}{t_{2} - t_{1}} p_{1} + \frac{t - t_{1}}{t_{2} - t_{1}} p_{2}
 $$
 
 $$
-Q_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} P_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} P_{3}
+Q_{3} = \frac{t_{3} - t}{t_{3} - t_{2}} p_{2} + \frac{t - t_{2}}{t_{3} - t_{2}} p_{3}
 $$
+
+The points $p_0,p_1,p_2,p_3$ are as usual the control points, and $t_0,t_1,t_2,t_3$ are the values that the $p_i$ are associate with.
 
 ## 3D Mixed Interpolation
 
