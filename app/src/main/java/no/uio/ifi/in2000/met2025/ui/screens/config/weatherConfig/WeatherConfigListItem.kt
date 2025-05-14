@@ -27,6 +27,15 @@ import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * WeatherConfigListItem
+ *
+ * Displays a card for a WeatherConfig with:
+ * - The config name
+ * - Tap anywhere on the row to select this config
+ * - Edit and Delete buttons for non-default configs
+ * - A confirmation dialog before deletion
+ */
 @Composable
 fun WeatherConfigListItem(
     weatherConfig: WeatherConfig,
