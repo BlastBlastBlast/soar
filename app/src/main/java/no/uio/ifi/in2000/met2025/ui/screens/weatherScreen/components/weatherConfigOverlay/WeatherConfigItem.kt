@@ -31,6 +31,12 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 
+/**
+ * EditWeatherConfig
+ *
+ * Renders a clickable card prompting the user to edit weather profiles.
+ *
+ */
 @Composable
 fun EditWeatherConfig(
     onClick: () -> Unit,
@@ -48,6 +54,7 @@ fun EditWeatherConfig(
             .clickable(enabled = enabled, onClick = onClick)
             .semantics {
                 role = Role.Button
+                // Accessibility description, reflects enabled/disabled state
                 contentDescription =
                     if (enabled) "Edit profiles"
                     else       "Edit profiles (disabled)"
@@ -85,6 +92,12 @@ fun EditWeatherConfig(
     }
 }
 
+/**
+ * WeatherConfigItem
+ *
+ * Displays a selectable weather configuration card with the config name centered.
+ *
+ */
 @Composable
 fun WeatherConfigItem(
     weatherConfig: WeatherConfig,
@@ -118,7 +131,7 @@ fun WeatherConfigItem(
             Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
-                .semantics { heading() },
+                .semantics { heading() }, // Helps assistive tech identify context
             contentAlignment = Alignment.Center
         ) {
             Text(

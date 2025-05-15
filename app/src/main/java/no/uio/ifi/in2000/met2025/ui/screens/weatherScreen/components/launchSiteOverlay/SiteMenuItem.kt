@@ -48,7 +48,7 @@ fun SiteMenuItem(
             .semantics {
                 role = Role.Button
 
-                // Accessibility, announces site name and coordinates
+                // Accessibility description, announces site name and coordinates
                 contentDescription = buildString {
                     append("Launch site ${site.name}. ")
                     append("Coordinates: %.4f, %.4f".format(site.latitude, site.longitude))
