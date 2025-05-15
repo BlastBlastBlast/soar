@@ -17,6 +17,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import no.uio.ifi.in2000.met2025.R
 
+/**
+ * AppTopBar
+ *
+ * Displays the top app bar with:
+ * - A title based on the current screen
+ * - The app logo as a button that opens the navigation drawer
+ * - An action to open/close the Config screen
+ * - A light/dark mode toggle button
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(

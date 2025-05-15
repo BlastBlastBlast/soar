@@ -34,6 +34,17 @@ import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import javax.inject.Named
 import javax.inject.Singleton
 
+/**
+ * AppModule
+ *
+ * Provides application-wide dependencies, including configured HTTP clients,
+ * remote data sources, repositories, and the WeatherModel.
+ *
+ * Special notes:
+ * - Uses two distinct HttpClient instances: one for JSON APIs with content negotiation
+ *   and one for GRIB binary downloads.
+ * - Sets a custom header on all JSON requests for team identification.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -139,6 +150,14 @@ object AppModule {
 }
 
 
+/**
+ * DatabaseModule
+ *
+ * Configures the Room database and provides DAO instances.
+ *
+ * Special notes:
+ * - Uses fallbackToDestructiveMigration, which wipes existing data on schema version changes.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {

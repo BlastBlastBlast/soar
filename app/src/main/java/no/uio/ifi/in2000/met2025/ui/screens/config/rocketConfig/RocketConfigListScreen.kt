@@ -1,7 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig
 
-// File: RocketConfigListScreen.kt
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +26,14 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * RocketConfigListScreen
+ *
+ * Displays the list of saved RocketConfig profiles in a scrollable column.
+ * Highlights default profiles and disables edit/delete for them.
+ * Every non-default item can be selected, edited, or deleted.
+ * Also provides a button to add a new configuration.
+ */
 @Composable
 fun RocketConfigListScreen(
     viewModel: ConfigViewModel = hiltViewModel(),

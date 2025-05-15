@@ -14,6 +14,19 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.CompositionLocalProvider
 import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
+/**
+ * AppScaffold
+ *
+ * Sets up the overall app UI structure with:
+ * - A modal navigation drawer (AppDrawer) configurable by gesture and route
+ * - A top app bar (AppTopBar) that toggles theme and opens drawer or config screen
+ * - Safe drawing insets padding for system UI
+ * - System bar color setup (always black with light icons)
+ *
+ * Special notes:
+ * - Hoists all ViewModels via provideAppViewModels().
+ * - Disables drawer gestures on the Map screen to avoid conflict with map panning.
+ */
 @Composable
 fun AppScaffold(
     darkTheme: Boolean,
