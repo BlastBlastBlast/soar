@@ -24,6 +24,19 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * LaunchStatusToggleRow.kt
+ *
+ * This composable displays a horizontal row of toggleable filter chips for launch status categories.
+ * It allows the user to include or exclude forecast results based on their safety classification:
+ * SAFE, CAUTION, or UNSAFE.
+ *
+ * Main functionality:
+ * - Each status is represented by a selectable chip
+ * - The UI reflects the current filter state via `selectedStatuses`
+ * - The parent can react to toggle changes via `onStatusToggled`
+ *
+ */
 @Composable
 fun LaunchStatusToggleRow(
     selectedStatuses: Set<LaunchStatus>,
@@ -51,6 +64,7 @@ fun LaunchStatusToggleRow(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Display a chip for each launch status value (SAFE, CAUTION, UNSAFE)
             LaunchStatus.entries.forEach { status ->
                 val isSelected = selectedStatuses.contains(status)
                 FilterChip(
