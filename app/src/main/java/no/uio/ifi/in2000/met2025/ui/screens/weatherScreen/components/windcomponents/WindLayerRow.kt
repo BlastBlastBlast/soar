@@ -20,6 +20,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 
+/**
+ * Displays a single row of wind layer data including altitude, wind direction, wind speed,
+ * and safety status icon based on configuration thresholds.
+ */
+
 @Composable
 fun WindLayerRow(
     config: WeatherConfig,

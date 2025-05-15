@@ -59,18 +59,27 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * This file defines the main weather forecast screen for the app.
+ * It handles loading and displaying weather data per launch site,
+ * allows configuration and filtering of forecasts, and manages UI overlays
+ * such as configuration, filters, and launch site selection.
+ */
 
 @Composable
 fun WeatherScreen(
     viewModel: WeatherViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
+    // Collect states from ViewModel
     val uiState by viewModel.uiState.collectAsState()
     val activeConfig by viewModel.activeConfig.collectAsState()
     val configList by viewModel.configList.collectAsState()
     val coordinates by viewModel.coordinates.collectAsState()
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
     val currentSite by viewModel.currentSite.collectAsState()
+
+    // UI control state
     var hoursToShow by rememberSaveable { mutableStateOf(24f) }
     var filterActive by rememberSaveable { mutableStateOf(false) }
     var isConfigMenuExpanded by rememberSaveable { mutableStateOf(false) }
@@ -78,6 +87,8 @@ fun WeatherScreen(
     var isLaunchMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var isSunFilterActive by rememberSaveable { mutableStateOf(false) }
     var selectedStatuses by remember { mutableStateOf(setOf(LaunchStatus.SAFE, LaunchStatus.CAUTION, LaunchStatus.UNSAFE)) }
+
+    // Compute launch sites to show in overlay
     val sitesForOverlay = remember(launchSites) {
         val allButLastVisited = launchSites.filter { it.name != "Last Visited" }
         val (newMarkerList, realSites) = allButLastVisited.partition { it.name == "New Marker" }
@@ -90,6 +101,7 @@ fun WeatherScreen(
         }
     }
 
+    // Trigger forecast load when coordinates change
     LaunchedEffect(coordinates) {
         viewModel.loadForecast(coordinates.first, coordinates.second)
     }
@@ -101,17 +113,16 @@ fun WeatherScreen(
                 coordinates = coordinates,
                 weatherConfig = activeConfig!!,
                 filterActive = filterActive,
-                //hoursToShow = hoursToShow,
                 currentSite = currentSite,
                 selectedStatuses = selectedStatuses,
                 viewModel = viewModel,
                 isSunFilterActive = isSunFilterActive,
                 launchSites = launchSites
             )
-            // Segmented Bottom Bar with three buttons.
+            // Segmented Bottom Bar with three buttons
             SegmentedBottomBar(
                 onConfigClick = {
-                    // Toggle configuration overlay and close others.
+                    // Toggle configuration overlay and close others
                     if (!isConfigMenuExpanded) {
                         isConfigMenuExpanded = true
                         isFilterMenuExpanded = false
@@ -121,7 +132,7 @@ fun WeatherScreen(
                     }
                 },
                 onFilterClick = {
-                    // Toggle filter overlay and close others.
+                    // Toggle filter overlay and close others
                     if (!isFilterMenuExpanded) {
                         isFilterMenuExpanded = true
                         isConfigMenuExpanded = false
@@ -131,7 +142,7 @@ fun WeatherScreen(
                     }
                 },
                 onLaunchClick = {
-                    // Toggle launch overlay and close others.
+                    // Toggle launch overlay and close others
                     if (!isLaunchMenuExpanded) {
                         isLaunchMenuExpanded = true
                         isConfigMenuExpanded = false
@@ -201,13 +212,17 @@ fun WeatherScreen(
 }
 
 
+/**
+ * Displays the detailed forecast content for the current weather screen.
+ * Groups forecast items by day and page, applies filtering (examples: sun hours, status),
+ * and renders each day's data with site header, daily summary, and hourly details.
+ */
 @Composable
 fun ScreenContent(
     uiState: WeatherViewModel.WeatherUiState,
     coordinates: Pair<Double, Double>,
     weatherConfig: WeatherConfig,
     filterActive: Boolean,
-    //hoursToShow: Float,
     selectedStatuses: Set<LaunchStatus>,
     currentSite: LaunchSite?,
     viewModel: WeatherViewModel,
@@ -255,7 +270,7 @@ fun ScreenContent(
 
                     return@filter status in selectedStatuses
                 }
-            //.take(hoursToShow.toInt())
+
             val filteredByDay: Map<String, List<ForecastDataItem>> =
                 filteredItems.groupBy { it.time.substring(0, 10) }
             val sortedDays = forecastByDay.keys.sorted()

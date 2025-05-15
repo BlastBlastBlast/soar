@@ -52,6 +52,14 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
+/**
+ * HourlyExpandableCard.kt
+ * Provides an expandable card UI component for visualizing hourly weather forecasts, including:
+ * - Forecast time, temperature, and launch status icons.
+ * - Parameter evaluations (examples: wind speed, humidity) with visual icons and safety indicators.
+ * - Integration of isobaric data and related status indicators.
+ */
+
 @Composable
 fun WindDirectionIcon(windDirection: Double?) {
     if (windDirection == null) {
@@ -67,7 +75,6 @@ fun WindDirectionIcon(windDirection: Double?) {
             .graphicsLayer(rotationZ = windDirection.toFloat())
             .semantics { role = Role.Image }
         ,
-        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
     )
 }
 

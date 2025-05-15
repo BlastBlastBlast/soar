@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -24,6 +25,16 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
+/**
+ * SiteMenuItem
+ *
+ * Displays a single launch site as a tappable card.
+ * Shows the site name, coordinates, and a pin icon if the site is a "New Marker".
+ *
+ * Special notes:
+ * - Accessible via screen readers using contentDescription.
+ * - Width adapts within given min/max limits.
+ */
 @Composable
 fun SiteMenuItem(
     site: LaunchSite,
@@ -37,6 +48,8 @@ fun SiteMenuItem(
             .animateContentSize(tween(200))
             .semantics {
                 role = Role.Button
+
+                // Accessibility description, announces site name and coordinates
                 contentDescription = buildString {
                     append("Launch site ${site.name}. ")
                     append("Coordinates: %.4f, %.4f".format(site.latitude, site.longitude))
@@ -67,6 +80,7 @@ fun SiteMenuItem(
                 Icon(
                     painter           = painterResource(id = R.drawable.red_marker),
                     contentDescription= "Pinned",
+                    tint              = Color.Unspecified,
                     modifier          = Modifier.size(24.dp)
                 )
             }

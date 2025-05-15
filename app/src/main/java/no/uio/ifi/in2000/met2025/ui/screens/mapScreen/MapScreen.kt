@@ -61,6 +61,7 @@ import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
+import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 
 /**
  * Main composable that renders the map UI.
@@ -92,6 +93,7 @@ fun MapScreen(
 
     val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
     val isAnimating = viewModel.isAnimating
+    val isTrajectoryCalculating by viewModel.isTrajectoryCalculating.collectAsState()
     var showTrajectorySheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -329,6 +331,10 @@ fun MapScreen(
                                 .size(90.dp),
                             onClick = { isMenuExpanded = !isMenuExpanded }
                         )
+                    }
+
+                    if (isTrajectoryCalculating) {
+                        WeatherLoadingSpinner(Modifier.align(Alignment.TopCenter))
                     }
 
                     AnimatedVisibility(

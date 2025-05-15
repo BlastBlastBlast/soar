@@ -1,4 +1,3 @@
-// File: RocketConfigEditScreen.kt
 package no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig
 
 import androidx.compose.foundation.background
@@ -34,13 +33,25 @@ import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * RocketConfigEditScreen
+ *
+ * Screen for creating or editing a RocketConfig. Displays input fields for
+ * each rocket parameter, validates the name against existing configs, and
+ * saves or updates the entry via the ViewModel.
+ *
+ * Special notes:
+ * - Uses getDefaultRocketParameterValues() to prefill fields when adding a new config.
+ * - Validates uniqueness of the name and non-emptiness.
+ * - Announces name errors via liveRegion semantics for accessibility.
+ */
 @Composable
 fun RocketConfigEditScreen(
     rocketParameters: RocketConfig? = null,
     viewModel: ConfigViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    // ➊ collect the rocket‐edit status
+
     val updateStatus by viewModel.rocketUpdateStatus.collectAsState()
     val rocketNames by viewModel.rocketNames.collectAsState()
 
@@ -101,14 +112,14 @@ fun RocketConfigEditScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Header
+
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                         .background(WarmOrange, RoundedCornerShape(4.dp))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
-                        .semantics { heading() },    // ← marks this Text as a heading
+                        .semantics { heading() },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -130,7 +141,8 @@ fun RocketConfigEditScreen(
                         },
                         labelText = "Name",
                         modifier = Modifier.fillMaxWidth(),
-                        filterRegex = Regex("^.{0,14}\$") //avoids too long names
+                        //Regex to limit name to 14 characters
+                        filterRegex = Regex("^.{0,14}\$")
                     )
                     if (isNameError) {
                         Text(
@@ -237,10 +249,8 @@ fun RocketConfigEditScreen(
                     )
                 }
 
-
                 Spacer(Modifier.height(24.dp))
 
-                // Save button
                 Button(
                     onClick = {
                         val updated = RocketConfig(
@@ -320,7 +330,7 @@ fun RocketConfigEditScreen(
     }
 
 
-    // ➍ navigate back on success
+    //navigate back on success
     LaunchedEffect(updateStatus) {
         if (updateStatus is ConfigViewModel.UpdateStatus.Success) {
             viewModel.resetRocketStatus()

@@ -12,6 +12,7 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.database.sqlite.SQLiteConstraintException
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,6 +32,7 @@ import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
 import no.uio.ifi.in2000.met2025.domain.RocketState
 import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
@@ -49,7 +51,8 @@ import java.time.Instant
 class MapScreenViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository,
     private val rocketConfigRepository: RocketConfigRepository,
-    private val isobaricInterpolator: IsobaricInterpolator
+    private val isobaricInterpolator: IsobaricInterpolator,
+    private val isobaricRepository: IsobaricRepository
 ) : ViewModel() {
 
     sealed class MapScreenUiState {
@@ -96,6 +99,9 @@ class MapScreenViewModel @Inject constructor(
         )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
 
+    private val _isTrajectoryCalculating = MutableStateFlow(false)
+    val isTrajectoryCalculating: StateFlow<Boolean> = _isTrajectoryCalculating
+
     private val _newMarker = MutableStateFlow<LaunchSite?>(null)
     val newMarker: StateFlow<LaunchSite?> = _newMarker
 
@@ -113,6 +119,9 @@ class MapScreenViewModel @Inject constructor(
 
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
+
+    private val _latestAvailableGrib = MutableStateFlow<Instant?>(null)
+    val latestAvailableGrib: StateFlow<Instant?> = _latestAvailableGrib
 
     /**
      * Startup tasks:
@@ -280,6 +289,7 @@ class MapScreenViewModel @Inject constructor(
      */
     fun startTrajectory(timeOfLaunch: Instant) {
         viewModelScope.launch {
+            _isTrajectoryCalculating.value = true
             try {
                 // 1) Grab the current default/selected config
                 val cfg = selectedConfig.value ?: return@launch
@@ -322,6 +332,8 @@ class MapScreenViewModel @Inject constructor(
                             "The calculations use weather data fetched in real time, " +
                             "so please check your internet connection and try again."
                 )
+            } finally {
+                _isTrajectoryCalculating.value = false
             }
         }
     }
@@ -387,6 +399,10 @@ class MapScreenViewModel @Inject constructor(
         _trajectoryPoints.value = emptyList()
         isAnimating = false
         isTrajectoryMode = false
+    }
+
+    suspend fun updateLatestAvailableGrib() {
+        _latestAvailableGrib.value = isobaricRepository.getLatestAvailableGrib()
     }
 
 }
