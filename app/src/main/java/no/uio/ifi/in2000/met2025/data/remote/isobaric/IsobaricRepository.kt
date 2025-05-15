@@ -70,7 +70,7 @@ class IsobaricRepository @Inject constructor(
                 updatedDAO.delete()
 
                 //Store new update time.
-                time.let { updatedDAO.insert(GribUpdated(it.toString())) }
+                time.let { updatedDAO.insert(GribUpdated(it.toString(), availableData.latest.toString()))}
 
                 val isobaricData: Result<ByteArray> = isobaricDataSource.fetchIsobaricGribData(data.uri)
                 byteArray = isobaricData.fold(

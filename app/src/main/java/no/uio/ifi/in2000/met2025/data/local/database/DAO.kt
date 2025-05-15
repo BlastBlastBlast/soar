@@ -95,7 +95,7 @@ interface GribUpdatedDAO {
     @Query("DELETE FROM GribUpdated")
     suspend fun delete()
 
-    @Query("SELECT * FROM GribUpdated LIMIT 1")
+    @Query("SELECT time FROM GribUpdated LIMIT 1")
     suspend fun findUpdated(): String?
 }
 
