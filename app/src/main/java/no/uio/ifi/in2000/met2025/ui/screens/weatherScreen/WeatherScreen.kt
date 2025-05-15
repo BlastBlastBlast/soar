@@ -256,7 +256,7 @@ fun ScreenContent(
                         if (!(afterEarliest && beforeLatest)) return@filter false
                     }
 
-                    val state = evaluateConditions(item, weatherConfig)
+                    val state = evaluateConditions(weatherConfig, item)
                     if (!filterActive) {
                         if (state !is ParameterState.Available) return@filter true
                         val status = launchStatus(state.relativeUnsafety)
