@@ -284,7 +284,6 @@ fun RocketConfigEditScreen(
                         )
                         if (rocketParameters == null) viewModel.saveRocketConfig(updated)
                         else viewModel.updateRocketConfig(updated)
-                        onNavigateBack()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
