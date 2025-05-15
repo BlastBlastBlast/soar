@@ -10,12 +10,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -45,26 +50,33 @@ fun LaunchWindowPickerDialog(
             .withSecond(0)
             .withNano(0)
     }
+    // ① take the Instant, convert to Oslo, then +2h
     val latest = remember {
-        getAvailabilityLatestTime().atZone(osloZone)
+        getAvailabilityLatestTime()
+            .atZone(osloZone)
+            .withMinute(0).withSecond(0).withNano(0)  // optional: snap to the hour
+            .plusHours(2)
     }
 
-    // Build a list of every full-hour slot between now and latest
+    // ② build each full-hour slot
     val hours = generateSequence(now) { it.plusHours(1) }
         .takeWhile { !it.isAfter(latest) }
         .toList()
 
+    // ③ group by calendar day
     val groupedByDate = hours.groupBy { it.toLocalDate() }
+
+    // ④ remember a vertical scroll
+    val scrollState = rememberScrollState()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text("Select Launch Time", style = MaterialTheme.typography.titleSmall)
-        },
+        title = { Text("Select Launch Time") },
         text = {
             Column(
                 Modifier
                     .fillMaxWidth()
+                    .verticalScroll(scrollState)
                     .padding(vertical = 8.dp)
             ) {
                 groupedByDate.forEach { (day, slots) ->
@@ -73,8 +85,12 @@ fun LaunchWindowPickerDialog(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        slots.forEach { slotZdt ->
+                    // ⑤ horizontal, scrollable row
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        items(slots) { slotZdt ->
                             OutlinedButton(
                                 onClick = { onConfirm(slotZdt.toInstant()) },
                                 shape = CircleShape,
@@ -83,7 +99,7 @@ fun LaunchWindowPickerDialog(
                                     vertical = 4.dp
                                 )
                             ) {
-                                Text("${slotZdt.hour.toString().padStart(2, '0')}:00")
+                                Text("${slotZdt.hour.toString().padStart(2,'0')}:00")
                             }
                         }
                     }
@@ -91,16 +107,9 @@ fun LaunchWindowPickerDialog(
                 }
             }
         },
-        confirmButton = { /* no-op; selection happens on slot tap */ },
+        confirmButton = { /* no-op; taps confirm */ },
         dismissButton = {
-            Button(
-                onClick = onDismiss,
-                shape = CircleShape,
-                modifier = Modifier.size(64.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Text("Cancel", fontSize = 14.sp)
-            }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }

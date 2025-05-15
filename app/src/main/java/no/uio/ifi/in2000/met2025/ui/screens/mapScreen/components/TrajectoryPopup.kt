@@ -212,7 +212,8 @@ fun TrajectoryPopup(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
-                            onClick = { showWindowPicker = true },
+                                onClick = { getAvailabilityLastTime()
+                                    showWindowPicker = true },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
