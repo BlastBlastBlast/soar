@@ -179,26 +179,27 @@ fun MapView(
                     }
                 }
 
-
-                // Remove existing trajectory when no points
+                // Remove existing trajectory and endpoint circles when no points
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) {
                         mv.mapboxMap.getStyle { style ->
                             // Remove all "traj-lyr-*" layers
                             style.styleLayers
-                                .map { it.id }                              // StyleObjectInfo.id
+                                .map { it.id }
                                 .filter { it.startsWith("traj-lyr-") }
-                                .forEach { layerId ->
-                                    style.removeStyleLayer(layerId)           // removeStyleLayer(String)
-                                }
+                                .forEach { style.removeStyleLayer(it) }
 
                             // Remove all "traj-src-*" sources
                             style.styleSources
                                 .map { it.id }
                                 .filter { it.startsWith("traj-src-") }
-                                .forEach { sourceId ->
-                                    style.removeStyleSource(sourceId)         // removeStyleSource(String)
-                                }
+                                .forEach { style.removeStyleSource(it) }
+
+                            // Also remove our endpoint circles
+                            style.removeStyleLayer("endpoint-lyr-start")
+                            style.removeStyleLayer("endpoint-lyr-end")
+                            style.removeStyleSource("endpoint-src-start")
+                            style.removeStyleSource("endpoint-src-end")
                         }
                     }
                 }
@@ -481,9 +482,9 @@ fun MapView(
                             }
                         }
                     }
-            }
         }
     }
+}
 
 fun addTrajectoryEndpointsOnGround(
     mapView: MapView,
@@ -494,7 +495,7 @@ fun addTrajectoryEndpointsOnGround(
 ) {
     mapView.mapboxMap.getStyle { style ->
 
-        // 1) both bitmaps: fade+outline
+        //  both bitmaps: fade+outline
         val startBmp = createFadeCircleWithOutlineBitmap(
             size = bitmapSizePx / 2,
             innerColor    = android.graphics.Color.YELLOW,
