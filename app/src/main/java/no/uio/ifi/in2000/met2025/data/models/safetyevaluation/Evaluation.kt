@@ -59,68 +59,20 @@ fun evaluateConditions(config: WeatherConfig, forecastDataItem: ForecastDataItem
         (forecastDataItem == null && isobaricData == null) ||
                 (forecastDataItem != null && forecastDataItem.hasMissingValues()) -> ParameterState.Missing
 
-        (forecastDataItem == null || (ConfigParameter.entries.all { !forecastDataItem.isEnabledAt(it, config) }) &&
+        (forecastDataItem == null || (ConfigParameter.entries.all { !forecastDataItem.isEnabledAt(it, config) })) &&
                 (isobaricData == null ||
                         (!config.isEnabledAirWind && !config.isEnabledWindShear) ||
-                        (config.isEnabledAltitudeUpperBound && config.altitudeUpperBound <= 0))) -> ParameterState.Disabled
+                        (config.isEnabledAltitudeUpperBound && config.altitudeUpperBound <= 0)) -> ParameterState.Disabled
 
         else -> ParameterState.Available(
             relativeUnsafety(config = config, forecastDataItem = forecastDataItem, isobaricData = isobaricData)!!
         )
-
-        /*
-        //isobaricData == null -> evaluateLaunchConditions(forecastDataItem!!, config)
-        //forecastDataItem == null -> evaluateLaunchConditions(isobaricData, config)
-
-        ConfigParameter.entries.all { !forecastDataItem.isEnabledAt(it, config) }
-                && ((!config.isEnabledAirWind && !config.isEnabledWindShear)
-                || (config.isEnabledAltitudeUpperBound && config.altitudeUpperBound <= 0)) -> ParameterState.Disabled
-
-        // consider parameters as missing if any of the required values are not present
-        ForecastDataValues::class.memberProperties.any { it.get(forecastDataItem.values) == null } -> ParameterState.Missing
-        */
     }
-
-/**
- * Evaluates the launch conditions based on the provided forecast data item and weather configuration.
- * It checks if the required parameters are available and enabled, and returns the appropriate state.
- *
- * @param forecastDataItem The forecast data item to evaluate.
- * @param config The weather configuration to evaluate against.
- * @return The state of the parameter evaluation.
- */
-/*
-fun evaluateLaunchConditions(forecastDataItem: ForecastDataItem, config: WeatherConfig): ParameterState {
-    if (ConfigParameter.entries.all { !forecastDataItem.isEnabledAt(it, config) }) {
-        return ParameterState.Disabled
-    }
-
-    if (ForecastDataValues::class.memberProperties.any { it.get(forecastDataItem.values) == null }) {
-        return ParameterState.Missing
-    }
-
-    return ParameterState.Available(
-        relativeUnsafety(config = config, forecastDataItem = forecastDataItem, )!!
-    )
-}
-*/
-
-/*
-fun evaluateLaunchConditions(isobaricData: IsobaricData, config: WeatherConfig): ParameterState {
-    if ((!config.isEnabledAirWind && !config.isEnabledWindShear) || (config.isEnabledAltitudeUpperBound && config.altitudeUpperBound <= 0)) {
-        return ParameterState.Disabled
-    }
-
-    return ParameterState.Available(
-        relativeUnsafety(config = config, isobaricData = isobaricData)!!
-    )
-}
-*/
 
 /**
  * Evaluates launch conditions based on a single parameter value and weather configuration parameter.
  */
-fun evaluateConditions(value: Double?, config: WeatherConfig, parameter: ConfigParameter): ParameterState
+fun evaluateConditions(config: WeatherConfig, parameter: ConfigParameter, value: Double?): ParameterState
 =
     when {
         value == null -> ParameterState.Missing
