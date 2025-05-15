@@ -60,14 +60,14 @@ class IsobaricInterpolator(
 
     // data from GRIB and LocationForecast API are stored as CartesianIsobaricValues
     // Coordinates are converted to grid indices using the resolution of the GRIB data
-    // key is indices for [lat, lon, pressure]
-    private val pointCache: MutableMap<List<Int>, CartesianIsobaricValues> = mutableMapOf()
+    // key is indices for [lat, lon, pressure] and the time the we want to fetch data for
+    private val pointCache: MutableMap<Pair<List<Int>, Instant>, CartesianIsobaricValues> = mutableMapOf()
 
     // surfaceCache is used to cache the interpolated surfaces for each pressure level
     // a surface is a representation of a horizontal slice of the atmosphere at a given pressure level,
     // bounded by four indices in the latitude and longitude dimensions
-    // key is indices [lat, lon, pressure]
-    private val surfaceCache: MutableMap<List<Int>, (Double, Double) -> CartesianIsobaricValues> = mutableMapOf()
+    // key is indices [lat, lon, pressure] and the time the we want to fetch data for
+    private val surfaceCache: MutableMap<Pair<List<Int>, Instant>, (Double, Double) -> CartesianIsobaricValues> = mutableMapOf()
 
     // saving the last visited index to avoid having to search for the correct index each time getCartesianIsobaricValues is called
     private var lastVisitedIsobaricIndex: Int? = null
