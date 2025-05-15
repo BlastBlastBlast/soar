@@ -288,6 +288,8 @@ class IsobaricRepository @Inject constructor(
             data = availData.latest
         }
 
+        if (data < Instant.now()) return null
+
         if (availData != null && availData.updated.toString() != updatedDAO.findUpdated()) {
             updatedDAO.delete()
             gribDAO.clearAll()
