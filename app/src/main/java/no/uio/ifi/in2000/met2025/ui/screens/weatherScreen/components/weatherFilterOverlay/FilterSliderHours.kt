@@ -18,6 +18,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import no.uio.ifi.in2000.met2025.ui.common.ColoredSlider
 
+/**
+ * FilterSliderHours
+ *
+ * Displays a card containing a slider to select the number of forecast hours to display.
+ *
+ * Special notes:
+ * - Semantics added for accessibility (screen readers).
+ */
 @Composable
 fun FilterSliderHours(
     hoursToShow: Float,
@@ -42,10 +50,12 @@ fun FilterSliderHours(
         )
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Text label displaying current hour value
             Text(
                 text  = "Show forecast for ${hoursToShow.toInt()} hours",
                 style = MaterialTheme.typography.bodyMedium
             )
+            // Custom slider to change the number of forecast hours
             ColoredSlider(
                 value      = hoursToShow,
                 onValueChange = onHoursChanged,

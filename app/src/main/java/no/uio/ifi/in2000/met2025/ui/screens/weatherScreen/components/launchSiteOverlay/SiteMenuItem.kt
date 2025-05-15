@@ -24,6 +24,16 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
+/**
+ * SiteMenuItem
+ *
+ * Displays a single launch site as a tappable card.
+ * Shows the site name, coordinates, and a pin icon if the site is a "New Marker".
+ *
+ * Special notes:
+ * - Accessible via screen readers using contentDescription.
+ * - Width adapts within given min/max limits.
+ */
 @Composable
 fun SiteMenuItem(
     site: LaunchSite,
@@ -37,6 +47,8 @@ fun SiteMenuItem(
             .animateContentSize(tween(200))
             .semantics {
                 role = Role.Button
+
+                // Accessibility description, announces site name and coordinates
                 contentDescription = buildString {
                     append("Launch site ${site.name}. ")
                     append("Coordinates: %.4f, %.4f".format(site.latitude, site.longitude))

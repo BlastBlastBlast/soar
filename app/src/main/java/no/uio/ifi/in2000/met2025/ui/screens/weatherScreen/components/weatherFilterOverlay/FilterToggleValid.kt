@@ -21,6 +21,20 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+/**
+ * FilterToggleValid
+ *
+ * A card-style toggle switch that filters forecast hours based on validity.
+ *
+ * Parameters:
+ * - isActive: Whether the filter is active or not. `true` shows all hours, `false` filters to valid only.
+ * - onClick: Callback invoked when the card is clicked to toggle the filter.
+ *
+ * Behavior:
+ * - Card acts like a toggle switch (with accessibility semantics).
+ * - The label and content description change depending on `isActive`.
+ * - Width adapts responsively to screen size.
+ */
 @Composable
 fun FilterToggleValid(
     isActive: Boolean,
@@ -54,6 +68,7 @@ fun FilterToggleValid(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Display the current state text
             Text(
                 text       = if (isActive) "Show all" else "Show valid",
                 fontWeight = FontWeight.Bold,
