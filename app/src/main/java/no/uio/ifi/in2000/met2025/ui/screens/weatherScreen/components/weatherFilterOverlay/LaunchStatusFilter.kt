@@ -39,7 +39,7 @@ fun forecastPassesFilter(
     filter: LaunchStatusFilter
 ): Boolean {
     // Evaluate forecast data against weather configuration
-    val state = evaluateConditions(forecastItem, config)
+    val state = evaluateConditions(config, forecastItem)
 
     // Forecast passes only if:
     // 1. The evaluated state is of type Available (i.e. not missing/incomplete).
