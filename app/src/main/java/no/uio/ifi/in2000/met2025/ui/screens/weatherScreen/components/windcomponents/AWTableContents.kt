@@ -83,9 +83,9 @@ fun AWTableContents(
                             // semantics in class file
                         )
                     }
-                    LaunchStatusIcon(evaluateConditions(item, config), modifier = Modifier.size(24.dp).semantics {
+                    LaunchStatusIcon(evaluateConditions(config, isobaricData = item), modifier = Modifier.size(24.dp).semantics {
                         role = Role.Image
-                        contentDescription = "Launch status: ${evaluateConditions(item, config)}" }
+                        contentDescription = "Launch status: ${evaluateConditions(config, isobaricData = item)}" }
                     )
                 }
 
