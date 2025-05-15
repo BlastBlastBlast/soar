@@ -127,7 +127,7 @@ fun TrajectoryPopup(
                 shadowElevation = 8.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.35f)
+                    .fillMaxHeight(0.40f)
                     .offset { IntOffset(0, offsetY.roundToInt()) }
                     .pointerInput(show) {
                         detectVerticalDragGestures { change, dy ->
