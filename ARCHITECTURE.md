@@ -1,4 +1,3 @@
-# ARCHITECTURE
 ## Table of Contents
 - [Introduction](#introduction)
 - [Architecture](#architecture)
