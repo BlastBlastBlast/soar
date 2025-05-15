@@ -30,6 +30,15 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * WeatherFilterOverlay.kt
+ *
+ * Composable that displays a full-screen filter overlay used for refining weather forecast data.
+ *
+ * Special notes:
+ * - Uses AnimatedVisibility with vertical expand/shrink and fade animations for smooth transitions.
+ * - Provides toggles and sliders to control filter activation, launch status, and sunrise/sunset filtering.
+ */
 @Composable
 fun WeatherFilterOverlay(
     isFilterActive: Boolean,
@@ -45,7 +54,7 @@ fun WeatherFilterOverlay(
 ) {
     val bottomBarHeight = 56.dp
 
-    // 1) full‑screen dimmed backdrop
+    // Full-screen dimmed backdrop that dims underlying content and dismisses overlay on click outside
     Box(
         Modifier
             .fillMaxSize()
@@ -61,7 +70,7 @@ fun WeatherFilterOverlay(
                 interactionSource = remember { MutableInteractionSource() }
             )
     ) {
-        // 2) our orange “sheet” container, positioned by the caller
+        // Animated orange “sheet” container with slide and fade animations, positioned and styled by the caller
         AnimatedVisibility(
             visible = true,
             enter   = expandVertically(expandFrom = Alignment.Bottom, animationSpec = tween(300)) + fadeIn(tween(300)),
@@ -84,6 +93,7 @@ fun WeatherFilterOverlay(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier            = Modifier.padding(vertical = 16.dp)
                 ) {
+                    // Toggle to enable or disable the forecast filter
                     FilterToggleValid(
                         isActive = isFilterActive,
                         onClick  = {
@@ -100,13 +110,14 @@ fun WeatherFilterOverlay(
                    //         .padding(horizontal = 16.dp)
                    // )
 
-                    //launch status row
+                    // Row of toggles to filter launch statuses, allowing multiple selections
                     LaunchStatusToggleRow(
                         selectedStatuses = selectedStatuses,
                         onStatusToggled = onStatusToggled,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
 
+                    // Toggle switch to filter forecasts based on sunrise and sunset times
                     SunriseFilter(
                         isSunFilterActive = isSunFilterActive,
                         onToggleSunFilter = onToggleSunFilter,
