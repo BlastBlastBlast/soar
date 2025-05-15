@@ -1,6 +1,6 @@
 # Methodology for Interpolation
 
-## Contents
+## Table of Contents
 - [Overview](#overview)
 - [Motivation](#motivation)
 - [Strategy](#strategy)

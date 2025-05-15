@@ -33,6 +33,12 @@ import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearDirection
 import no.uio.ifi.in2000.met2025.domain.helpers.windShearSpeed
 
+/**
+ * This composable displays wind layer and shear data for an isobaric forecast.
+ * Users can expand or collapse the full table view.
+ * Each layer shows wind speed, direction, and computed shear between levels.
+ */
+
 @Composable
 fun WindDataColumn(isobaricData: IsobaricData, config: WeatherConfig, windShearColor: Color) {
     var expanded by remember { mutableStateOf(false) }
@@ -48,6 +54,7 @@ fun WindDataColumn(isobaricData: IsobaricData, config: WeatherConfig, windShearC
             }
     ) {
         Column {
+            // Expand/collapse icon
             Icon(
                 imageVector = Icons.Default.ExpandMore,
                 contentDescription = "Expand",
@@ -88,6 +95,7 @@ fun WindDataColumn(isobaricData: IsobaricData, config: WeatherConfig, windShearC
                     )
                 }
 
+                // Show wind shear row between current and next layer
                 if (index < displayedValues.size - 1) {
                     val nextLayer = displayedValues[index + 1]
                     val currentData = isobaricData.valuesAtLayer[layer]

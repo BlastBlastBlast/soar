@@ -46,6 +46,9 @@ import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.SunIconsOverlay
 import no.uio.ifi.in2000.met2025.ui.theme.IconPurple
 import kotlin.math.roundToInt
 
+/**
+ * Provides UI components to display summarized daily weather forecasts in a horizontal scrollable row.
+ */
 
 val weatherPriority = listOf(
     "heavyrainandthunder",

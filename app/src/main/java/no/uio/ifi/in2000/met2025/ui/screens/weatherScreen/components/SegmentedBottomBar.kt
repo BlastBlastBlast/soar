@@ -1,4 +1,3 @@
-// SegmentedBottomBar.kt
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
 import androidx.compose.foundation.BorderStroke
@@ -27,6 +26,13 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
+/**
+ * Provides a horizontal navigation bar at the bottom of the screen with three interactive tabs:
+ * - LAUNCH: Open the launch site selector.
+ * - FILTER: Apply filters to weather/launch conditions.
+ * - CONFIG: Change the active weather configuration.
+ */
 
 @Composable
 fun SegmentedBottomBar(
