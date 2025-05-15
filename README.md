@@ -43,6 +43,7 @@
     - Define and save configurations for rocket parameters (mass, thrust, drag, parachute, launch angles, etc..)
     - Easily switch between configurations for simulation
     - Render 3D markers along the flight path at user-defined intervals, the caluclations are based on your chosen rocket parameters and interpolated weather data from a minimum of 16 data points.
+    - A launch can be simulated for all launchwindows for which data is currently available
 - **Intuitive UI & navigation**
     - Persistent top-bar + drawer menu for fast navigation between map, weather, configs & sites
     - Context-sensitive info panel in the drawer
@@ -60,6 +61,8 @@ TODO: Legg inn screenshots av skjermene her
 - **DI:** Dagger-Hilt
 - **Networking:** Ktor HTTP client
 - **Map:** Mapbox Android SDK
+- **Turf:** Mapbox SDK Turf
+    - Mapbox extension for geospatial tooling. Used in our project for distance & bearing calculations between points, in order to render visuals directly onto terrain.
 - **Database:** Room
 - **Image Loading:** Coil
 - **APIs:**
@@ -144,7 +147,7 @@ cd team-21
 ### Find Launch Windows
 1. On the **Map** screen, long-press to place a marker.
 2. Long press the marker label to save and name the launch site.
-3. Click the **Forecast** button in the bottom right corner to open the forecast for your chosen launch site.
+3. Click the **Weather** button in the bottom right corner to open the weather screen for your chosen launch site.
 4. Swipe horizontally between days.
 5. Swipe vertically to see more hourly cards with launch window viability evaluations.
 6. Click any hourly card to expand it and see full Locationforecast data
