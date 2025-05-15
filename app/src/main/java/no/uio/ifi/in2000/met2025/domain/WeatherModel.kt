@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import android.util.Log
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -94,24 +95,24 @@ class WeatherModel @Inject constructor(
         groundAltitude: Double,
         airTemperatureAtSeaLevel: Double
     ): IsobaricDataResult {
-        println("lat $lat, lon $lon")
+        Log.i("WeatherModel", "lat $lat, lon $lon")
 
         return if (CoordinateBoundaries.isWithinBounds(lat, lon)) {
-            println("Coordinate is within bounds")
+            Log.i("WeatherModel", "Coordinate is within bounds")
 
             try {
                 // Coordinates in the GRIB data are at .x5 degrees
                 val updatedLat = lat.roundToPointXFive()
                 val updatedLon = lon.roundToPointXFive()
-                println("updated lat $updatedLat, updated lon $updatedLon")
+                Log.i("WeatherModel", "updated lat $updatedLat, updated lon $updatedLon")
 
                 // avoid floating point errors by rounding to 2 decimals
                 val update2Lat = RoundDoubleToXDecimals(updatedLat, 2)
                 val update2Lon = RoundDoubleToXDecimals(updatedLon, 2)
-                println("updated lat $update2Lat, updated lon $update2Lon")
+                Log.i("WeatherModel", "updated lat $update2Lat, updated lon $update2Lon")
 
                 val dataMap: Map<Int, GribVectors>? = gribDataMap.map[Pair(update2Lat, update2Lon)]
-                println(if (dataMap != null) "rounding success" else "rounding failure")
+                Log.i("WeatherModel", if (dataMap != null) "rounding success" else "rounding failure")
                 val gribVectorsMap = dataMap!!
 
                 IsobaricDataResult.Success(
