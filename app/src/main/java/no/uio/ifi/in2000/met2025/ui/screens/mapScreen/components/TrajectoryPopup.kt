@@ -222,7 +222,8 @@ fun TrajectoryPopup(
                             modifier           = Modifier.weight(1f),
                             icon               = Icons.Default.AccessTime,  // clock icon!
                             contentDescription = "Pick time",
-                            line1              = displayZdt.format(DateTimeFormatter.ofPattern("dd.MM HH:00")),
+                            line1              = "Launch Window:",
+                            line2              = displayZdt.format(DateTimeFormatter.ofPattern("dd.MM HH:00")),
                             onClick            = { showWindowPicker = true }
                         )
                         IconTextButton(
@@ -230,6 +231,7 @@ fun TrajectoryPopup(
                             icon               = Icons.Default.Delete,
                             contentDescription = "Clear trajectory",
                             line1              = "Clear",
+                            line2              = "Trajectory",
                             onClick            = onClearTrajectory
                         )
                     }
