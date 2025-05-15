@@ -17,6 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 
+/**
+ * SunriseFilter.kt
+ *
+ * A composable that displays a toggleable filter switch for enabling or disabling
+ * a sunrise and sunset filter in the app's forecast view.
+ *
+ * Special notes:
+ * - Displays a switch representing the current active state of the filter
+ */
 @Composable
 fun SunriseFilter(
     isSunFilterActive: Boolean,
@@ -48,6 +57,7 @@ fun SunriseFilter(
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            // Switch toggles the sunrise/sunset filter state
             Switch(
                 checked = isSunFilterActive,
                 onCheckedChange = { onToggleSunFilter() }
