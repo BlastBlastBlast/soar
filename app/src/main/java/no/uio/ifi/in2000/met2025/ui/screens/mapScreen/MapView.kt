@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.geojson.Feature
@@ -32,6 +33,7 @@ import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
+import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.annotation.rememberIconImage
 import com.mapbox.maps.extension.compose.rememberMapState
@@ -63,6 +65,20 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.RocketState
 import org.apache.commons.math3.linear.RealVector
+import android.graphics.*
+import com.mapbox.maps.extension.style.layers.generated.RasterLayer
+import com.mapbox.maps.extension.style.sources.generated.ImageSource
+import com.mapbox.turf.TurfConstants
+import com.mapbox.turf.TurfMeasurement
+import kotlin.math.sqrt
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RadialGradient
+import android.graphics.Shader
+import com.mapbox.maps.extension.style.sources.updateImage
+
+
 
 /**
  * Displays a Mapbox map with:
@@ -284,6 +300,21 @@ fun MapView(
                     }
                 }
 
+                MapEffect(trajectoryPoints) { mv ->
+                    if (trajectoryPoints.size >= 2) {
+                        val fv = trajectoryPoints.first().first
+                        val lv = trajectoryPoints.last().first
+                        val startPt = Point.fromLngLat(fv.getEntry(1), fv.getEntry(0))
+                        val endPt   = Point.fromLngLat(lv.getEntry(1), lv.getEntry(0))
+                        addTrajectoryEndpointsOnGround(
+                            mapView      = mv,
+                            start        = startPt,
+                            end          = endPt,
+                            radiusMeters = 500.0  // adjust as needed
+                        )
+                    }
+                }
+
                 // Recenter the camera on the midpoint
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
@@ -460,5 +491,98 @@ fun MapView(
             }
         }
     }
-//}
+
+fun addTrajectoryEndpointsOnGround(
+    mapView: MapView,
+    start: Point,
+    end: Point,
+    radiusMeters: Double,
+    bitmapSizePx: Int = 512
+) {
+    mapView.getMapboxMap().getStyle { style ->
+
+        // 1) bitmaps for start/end
+        val startBmp = createSolidCircleBitmap(bitmapSizePx / 2, android.graphics.Color.YELLOW)
+        val endBmp   = createFadeCircleWithOutlineBitmap(
+            size = bitmapSizePx,
+            innerColor = android.graphics.Color.GREEN,
+            outerColor = android.graphics.Color.TRANSPARENT,
+            outlineColor = android.graphics.Color.GREEN,
+            outlineWidthPx = 8f
+        )
+
+        // helper to place one circle
+        fun addCircle(center: Point, suffix: String, bmp: Bitmap, circleRadius: Double) {
+            val srcId = "endpoint-src-$suffix"
+            val lyrId = "endpoint-lyr-$suffix"
+            // cleanup
+            style.removeStyleLayer(lyrId)
+            style.removeStyleSource(srcId)
+            // compute four ground corners
+            val diag = circleRadius * sqrt(2.0)
+            val bearings = listOf(315.0, 45.0, 135.0, 225.0)
+            val corners = bearings.map { brg ->
+                TurfMeasurement.destination(center, diag, brg, TurfConstants.UNIT_METERS)
+            }
+            val coords = corners.map { listOf(it.longitude(), it.latitude()) }
+            // create & add ImageSource
+            val imageSource = ImageSource.Builder(srcId)
+                .coordinates(coords)
+                .build()
+            style.addSource(imageSource)
+            imageSource.updateImage(bmp)
+            // add RasterLayer
+            style.addLayer(
+                RasterLayer(lyrId, srcId)
+                    .rasterOpacity(1.0)
+            )
+        }
+
+        // place them (start half‐size, end full‐size)
+        addCircle(start, "start", startBmp, radiusMeters * 0.5)
+        addCircle(end,   "end",   endBmp,   radiusMeters)
+    }
+}
+
+/** solid fill */
+private fun createSolidCircleBitmap(size: Int, fillColor: Int): Bitmap {
+    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bmp)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = fillColor
+    }
+    val r = size / 2f
+    canvas.drawCircle(r, r, r, paint)
+    return bmp
+}
+
+/** fade center→edge plus a stroke */
+private fun createFadeCircleWithOutlineBitmap(
+    size: Int,
+    innerColor: Int,
+    outerColor: Int,
+    outlineColor: Int,
+    outlineWidthPx: Float
+): Bitmap {
+    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bmp)
+    val r = size / 2f
+    // fill with radial gradient
+    val shader = RadialGradient(
+        r, r, r,
+        innerColor, outerColor,
+        Shader.TileMode.CLAMP
+    )
+    val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader }
+    canvas.drawCircle(r, r, r, fill)
+    // draw outline
+    val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        color = outlineColor
+        strokeWidth = outlineWidthPx
+    }
+    canvas.drawCircle(r, r, r - outlineWidthPx/2, stroke)
+    return bmp
+}
 
