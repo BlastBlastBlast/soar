@@ -282,13 +282,17 @@ fun MapScreen(
                             onEditConfigs = onNavigateToRocketConfig,
                             onClearTrajectory = {
                                 viewModel.clearTrajectory()
-                                styleReloadTrigger++
+                                // trigger a recomposition of the map if you like
                             },
-                            getAvailabilityLastTime = { latestAvailableGrib ?: Instant.now() },
+                            availabilityInstant = latestAvailableGrib,
+                            onRetryAvailability = {
+                                // re-fetch and stay open
+                                scope.launch { viewModel.updateLatestAvailableGrib() }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
-                                .zIndex(1f)
+                                .zIndex(1f),
                         )
                     }
 

@@ -83,7 +83,9 @@ fun TrajectoryPopup(
     onStartTrajectory: (Instant) -> Unit,
     onClearTrajectory: () -> Unit,
     onEditConfigs: () -> Unit,
-    getAvailabilityLastTime: () -> Instant,
+    availabilityInstant: Instant?,             // nullable Instant
+    onRetryAvailability: () -> Unit,           // retry callback
+
     modifier: Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
@@ -212,8 +214,7 @@ fun TrajectoryPopup(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
-                                onClick = { getAvailabilityLastTime()
-                                    showWindowPicker = true },
+                                onClick = { showWindowPicker = true },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
@@ -242,11 +243,12 @@ fun TrajectoryPopup(
 
                     // The scrolling hour-picker, which hands back an Instant
                     LaunchWindowPickerDialog(
-                        showDialog = showWindowPicker,
-                        getAvailabilityLatestTime = getAvailabilityLastTime,
-                        onDismiss = { showWindowPicker = false },
-                        onConfirm = { selectedUtcInstant ->
-                            pickedInstant = selectedUtcInstant
+                        showDialog           = showWindowPicker,
+                        availabilityInstant  = availabilityInstant,
+                        onDismiss            = { showWindowPicker = false },
+                        onRetry              = { onRetryAvailability() },
+                        onConfirm           = {
+                            pickedInstant = it
                             showWindowPicker = false
                         }
                     )
