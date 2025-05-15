@@ -1,3 +1,5 @@
+# ARCHITECTURE
+## Table of Contents
 - [Introduction](#introduction)
 - [Architecture](#architecture)
 - [Architecture sketch/diagram](#architecture-sketch/diagram)
