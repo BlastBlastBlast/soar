@@ -33,23 +33,6 @@ class CustomRoundedCornerShape(private val cornerSize: Dp) : Shape {
                 sweepAngleDegrees = 90f,
                 forceMoveTo = false
             )
-//            // Bottom-right corner
-//            moveTo(size.width, size.height - cornerRadius)
-//            arcTo(
-//                rect = androidx.compose.ui.geometry.Rect(size.width - cornerRadius * 2, size.height - cornerRadius * 2, size.width, size.height),
-//                startAngleDegrees = 0f,
-//                sweepAngleDegrees = 90f,
-//                forceMoveTo = false
-//            )
-//            // Bottom horizontal line
-//            lineTo(cornerRadius, size.height)
-//            // Bottom-left corner
-//            arcTo(
-//                rect = androidx.compose.ui.geometry.Rect(0f, size.height - cornerRadius * 2, cornerRadius * 2, size.height),
-//                startAngleDegrees = 90f,
-//                sweepAngleDegrees = 90f,
-//                forceMoveTo = false
-//            )
         })
     }
 }

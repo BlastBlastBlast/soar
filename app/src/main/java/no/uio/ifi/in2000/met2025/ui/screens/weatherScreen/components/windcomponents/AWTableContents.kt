@@ -42,6 +42,11 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 
+/**
+ * This composable displays a card with wind layer data (isobaric) for a given forecast item.
+ * It includes launch status icon, optional time display, and expandable table view
+ * showing altitude, wind speed/direction, and wind shear layers.
+ */
 
 @Composable
 fun AWTableContents(
@@ -84,6 +89,7 @@ fun AWTableContents(
                     )
                 }
 
+                // Expandable wind data table
                 AnimatedVisibility(visible = expanded, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
                 ) {
 
