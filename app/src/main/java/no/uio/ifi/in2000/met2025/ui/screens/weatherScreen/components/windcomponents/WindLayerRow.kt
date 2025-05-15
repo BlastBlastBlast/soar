@@ -91,7 +91,7 @@ fun WindLayerRow(
                 style = style,
                 modifier = Modifier.weight(1f)
             )
-            LaunchStatusIcon(evaluateConditions(windSpeed, config, ConfigParameter.AIR_WIND), modifier = Modifier.size(24.dp))
+            LaunchStatusIcon(evaluateConditions(config, ConfigParameter.AIR_WIND, windSpeed), modifier = Modifier.size(24.dp))
         }
     }
 }
