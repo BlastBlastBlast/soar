@@ -7,6 +7,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+/**
+ * Defines a custom shape with rounded top corners for use in Compose UI components.
+ */
 
 class CustomRoundedCornerShape(private val cornerSize: Dp) : Shape {
     override fun createOutline(
