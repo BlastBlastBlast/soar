@@ -284,32 +284,34 @@ fun MapView(
                     }
                 }
 
-                // Animate camera over the lifted trajectory
-                MapEffect(trajectoryPoints to isAnimating) { mv ->
-                    if (!isAnimating || trajectoryPoints.isEmpty()) return@MapEffect
-                    (mv.context as ComponentActivity).lifecycleScope.launch {
-                        var prev: Point? = null
-                        trajectoryPoints.forEach { (vec, _) ->
-                            val lon = vec.getEntry(1)
-                            val lat = vec.getEntry(0)
-                            val alt = vec.getEntry(2)
-                            val p = Point.fromLngLat(lon, lat, alt)
-                            val bearing = prev?.let {
-                                calculateBearing(it.longitude(), it.latitude(), lon, lat)
-                            } ?: 0.0
-                            mv.mapboxMap.easeTo(
-                                CameraOptions.Builder()
-                                    .center(p)
-                                    .pitch(70.0)
-                                    .bearing(bearing)
-                                    .zoom(12.0)
-                                    .build(),
-                                MapAnimationOptions.mapAnimationOptions { duration(200L) }
-                            )
-                            prev = p
+                // After your 3D models have been added, recenter the camera on the midpoint
+                MapEffect(trajectoryPoints) { mv ->
+                    if (trajectoryPoints.isEmpty()) return@MapEffect
+
+                    // grab the first and last positions
+                    val firstVec = trajectoryPoints.first().first
+                    val lastVec  = trajectoryPoints.last().first
+
+                    // compute midpoint (lat, lon, alt)
+                    val midLat  = (firstVec.getEntry(0) + lastVec.getEntry(0)) / 2.0
+                    val midLon  = (firstVec.getEntry(1) + lastVec.getEntry(1)) / 2.0
+                    val midAlt  = (firstVec.getEntry(2) + lastVec.getEntry(2)) / 2.0
+                    val centerPoint = Point.fromLngLat(midLon, midLat, midAlt)
+
+                    // ease the camera there with pitch = 50
+                    mv.mapboxMap.easeTo(
+                        CameraOptions.Builder()
+                            .center(centerPoint)
+                            .pitch(80.0)
+                            .zoom( 11.0 )
+                            .build(),
+                        MapAnimationOptions.mapAnimationOptions {
+                            duration(1000L)
                         }
-                        onAnimationEnd()
-                    }
+                    )
+
+                    // signal that we're done (so you can trigger any further zoom logic)
+                    onAnimationEnd()
                 }
 
                 // MapView ref & enable location puck
