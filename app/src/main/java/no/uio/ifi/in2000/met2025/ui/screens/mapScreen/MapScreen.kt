@@ -291,9 +291,9 @@ fun MapScreen(
                     }
 
                     Column(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(start = 16.dp, top = 38.dp, end = 38.dp)
                     ) {
                         if (!showTrajectoryPopup && showAnnotations) {
                             // Display the latitude and longitude input field
@@ -318,7 +318,7 @@ fun MapScreen(
                                         }
                                     } ?: run { parseError = "Invalid format" }
                                 },
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                modifier = Modifier.align(Alignment.Start)
                             )
                             parseError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         }
