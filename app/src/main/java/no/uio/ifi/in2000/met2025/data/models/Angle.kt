@@ -1,5 +1,8 @@
 package no.uio.ifi.in2000.met2025.data.models
 
+/**
+ * Convenience class to avoid confusing degrees with radians.
+ */
 class Angle(val degrees: Double) {
     val radians: Double = degrees * Math.PI / 180
 
