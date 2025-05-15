@@ -201,7 +201,7 @@ fun LaunchWindowPickerDialog(
                             // One section per date with a LazyRow of hour buttons
                             grouped.forEach { (day, slots) ->
                                 item {
-                                    // Date header (e.g., "Monday 15.05")
+                                    // Date header
                                     Text(
                                         text = day.format(DateTimeFormatter.ofPattern("EEEE dd.MM")),
                                         fontWeight = FontWeight.Bold,
