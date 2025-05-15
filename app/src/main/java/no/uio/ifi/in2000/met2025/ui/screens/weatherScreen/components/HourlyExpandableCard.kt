@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
+import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -85,7 +86,8 @@ fun HourlyExpandableCard(
     coordinates: Pair<Double, Double>,
     weatherConfig: WeatherConfig,
     modifier: Modifier = Modifier,
-    viewModel: WeatherViewModel
+    viewModel: WeatherViewModel,
+    latestAvailableGribTime: Instant?
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isobaricDataMap by viewModel.isobaricData.collectAsState()
@@ -128,9 +130,9 @@ fun HourlyExpandableCard(
                             Icon(
                                 painter = painterResource(
                                     id = if (isLightMode)
-                                        R.drawable.grib_fetched_light
+                                        R.drawable.grib_light_blue
                                     else
-                                        R.drawable.grib_fetched_dark
+                                        R.drawable.grib_dark_blue
                                 ),
                                 contentDescription = "Grib files fetched",
                                 modifier = Modifier.size(36.dp),
@@ -146,14 +148,31 @@ fun HourlyExpandableCard(
                             )
                         }
                         else -> {
+                            //Grib data availability check to decide Icon
+                            val light: Int
+                            val dark: Int
+                            val description: String
+                            if (latestAvailableGribTime == null) {
+                                light = R.drawable.grib_light_empty
+                                dark = R.drawable.grib_dark_empty
+                                description = "Grib data available, but not fetched"
+                            } else if (Instant.parse(forecastItem.time) >= latestAvailableGribTime.plusSeconds(3600)) {
+                                light = R.drawable.grib_light_purple
+                                dark = R.drawable.grib_dark_purple
+                                description = "Grib data not available"
+                            } else {
+                                light = R.drawable.grib_light_empty
+                                dark = R.drawable.grib_dark_empty
+                                description = "Grib data available, but not fetched"
+                            }
                             Icon(
                                 painter = painterResource(
                                     id = if (isLightMode)
-                                        R.drawable.grib_not_fetched_light
+                                        light
                                     else
-                                        R.drawable.grib_not_fetched_dark
+                                        dark
                                 ),
-                                contentDescription = "Grib not fetched",
+                                contentDescription = description,
                                 modifier = Modifier.size(36.dp),
                                 tint = Color.Unspecified
                             )
