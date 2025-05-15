@@ -195,13 +195,8 @@ class IsobaricRepository @Inject constructor(
     private suspend fun getAvailabilityData(): StructuredAvailability?{
         val response = isobaricDataSource.fetchAvailabilityData()
         val data = response.getOrNull() ?: return null
-        println("Availability data fetched")
-        return restructureAvailabilityResponse(data)
-    }
 
-    suspend fun isGribDataAvailable(time: Instant): Boolean {
-        val availableData = getAvailabilityData()
-        return availableData?.findClosestBefore(time) != null
+        return restructureAvailabilityResponse(data)
     }
 
     private suspend fun isGribUpToDate(availResponse: StructuredAvailability): Boolean {
@@ -217,7 +212,9 @@ class IsobaricRepository @Inject constructor(
             AvailabilityData(entry.params.area, Instant.parse(entry.params.time), entry.uri)
         }
 
-        return StructuredAvailability(updatedInstant, availData)
+        val latest = availData.maxOf { it.time }
+
+        return StructuredAvailability(updatedInstant, latest, availData)
     }
 
     private fun StructuredAvailability.findClosestBefore(targetTime: Instant): AvailabilityData? {
