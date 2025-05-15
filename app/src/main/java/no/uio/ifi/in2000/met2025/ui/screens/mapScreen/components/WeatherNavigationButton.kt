@@ -70,7 +70,7 @@ fun WeatherNavigationButton(
                 modifier = Modifier.size(60.dp)
             )
             Text(
-                text = "FORECAST",
+                text = "WEATHER",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimary
             )
