@@ -51,6 +51,7 @@ data class Params(
  */
 data class StructuredAvailability(
     val updated: java.time.Instant,
+    val latest: java.time.Instant,
     val availData: List<AvailabilityData>
 )
 

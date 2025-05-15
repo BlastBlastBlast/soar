@@ -35,6 +35,16 @@ import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * WeatherConfigOverlay
+ *
+ * Displays a full-screen overlay with a bottom-aligned weather configuration menu.
+ * Allows users to select, edit, or dismiss weather configuration profiles.
+ *
+ * Special notes:
+ * - The overlay dims the background and captures clicks to dismiss itself.
+ * - Menu content is animated in/out with expand/fade effects.
+ */
 @Composable
 fun WeatherConfigOverlay(
     configList: List<WeatherConfig>,

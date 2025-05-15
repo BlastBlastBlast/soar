@@ -32,6 +32,17 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.ui.theme.Black
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+* LaunchSitesMenuOverlay
+*
+* Displays an interactive overlay listing available launch sites.
+* Shown as an animated bottom sheet over a dimmed background.
+*
+* Special notes:
+* - Allows dismissal by tapping outside the sheet.
+* - Uses screen dimensions to constrain layout.
+* - Automatically closes when a launch site is selected.
+*/
 @Composable
 fun LaunchSitesMenuOverlay(
     launchSites: List<LaunchSite>,
@@ -48,7 +59,8 @@ fun LaunchSitesMenuOverlay(
     val maxHeight       = screenHeight * 0.5f
     val bottomBarHeight = 56.dp
 
-    // 1) full‑screen dimmed backdrop
+    // Create a dimmed full-screen backdrop.
+    // Dismisses the menu when the user taps outside the popup.
     Box(
         Modifier
             .fillMaxSize()
@@ -64,7 +76,7 @@ fun LaunchSitesMenuOverlay(
                 interactionSource = remember { MutableInteractionSource() }
             )
     ) {
-        // 2) orange sheet, popped up at bottom
+        // Animate the launch site menu in from the bottom of the screen
         AnimatedVisibility(
             visible = true,
             enter   = expandVertically(expandFrom = Alignment.Bottom, animationSpec = tween(300)) + fadeIn(tween(300)),

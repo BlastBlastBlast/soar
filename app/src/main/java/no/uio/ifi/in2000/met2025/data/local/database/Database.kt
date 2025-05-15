@@ -16,7 +16,7 @@ import androidx.room.Index
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, WeatherConfig::class, RocketConfig::class],
-    version = 10
+    version = 11
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
@@ -58,6 +58,7 @@ data class GribData(
 @Entity
 data class GribUpdated(
     @PrimaryKey() val time: String,
+    val latestTimeAvailable: String? = null
 )
 
 @Entity(tableName = "weather_config")

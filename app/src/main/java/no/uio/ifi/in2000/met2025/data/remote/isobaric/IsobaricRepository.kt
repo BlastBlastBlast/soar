@@ -70,7 +70,7 @@ class IsobaricRepository @Inject constructor(
                 updatedDAO.delete()
 
                 //Store new update time.
-                time.let { updatedDAO.insert(GribUpdated(it.toString())) }
+                time.let { updatedDAO.insert(GribUpdated(it.toString(), availableData.latest.toString()))}
 
                 val isobaricData: Result<ByteArray> = isobaricDataSource.fetchIsobaricGribData(data.uri)
                 byteArray = isobaricData.fold(
@@ -245,7 +245,7 @@ class IsobaricRepository @Inject constructor(
     private suspend fun getAvailabilityData(): StructuredAvailability?{
         val response = isobaricDataSource.fetchAvailabilityData()
         val data = response.getOrNull() ?: return null
-        println("Availability data fetched")
+
         return restructureAvailabilityResponse(data)
     }
 
@@ -268,7 +268,34 @@ class IsobaricRepository @Inject constructor(
             AvailabilityData(entry.params.area, Instant.parse(entry.params.time), entry.uri)
         }
 
-        return StructuredAvailability(updatedInstant, availData)
+        val latest = availData.maxOf { it.time }
+
+        return StructuredAvailability(updatedInstant, latest, availData)
+    }
+
+    /**
+     * Retrieves the latest timeslot with available grib data from the API.
+     * If API call fails, check database for last entry.
+     * If no data is available, returns null.
+     * Clears outdated data if needed, and updates the GribUpdated table accordingly.
+     */
+    suspend fun getLatestAvailableGrib(): Instant? {
+        val availData = getAvailabilityData()
+        val data: Instant
+        if (availData == null) {
+            data = Instant.parse(updatedDAO.findLatest()) ?: return null
+        } else {
+            data = availData.latest
+        }
+
+        if (data < Instant.now()) return null
+
+        if (availData != null && availData.updated.toString() != updatedDAO.findUpdated()) {
+            updatedDAO.delete()
+            gribDAO.clearAll()
+            updatedDAO.insert(GribUpdated(availData.updated.toString(), availData.latest.toString()))
+        }
+        return data
     }
 
     /**

@@ -32,6 +32,7 @@ import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
 import no.uio.ifi.in2000.met2025.domain.RocketState
 import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
@@ -50,7 +51,8 @@ import java.time.Instant
 class MapScreenViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository,
     private val rocketConfigRepository: RocketConfigRepository,
-    private val isobaricInterpolator: IsobaricInterpolator
+    private val isobaricInterpolator: IsobaricInterpolator,
+    private val isobaricRepository: IsobaricRepository
 ) : ViewModel() {
 
     sealed class MapScreenUiState {
@@ -117,6 +119,9 @@ class MapScreenViewModel @Inject constructor(
 
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
+
+    private val _latestAvailableGrib = MutableStateFlow<Instant?>(null)
+    val latestAvailableGrib: StateFlow<Instant?> = _latestAvailableGrib
 
     /**
      * Startup tasks:
@@ -394,6 +399,10 @@ class MapScreenViewModel @Inject constructor(
         _trajectoryPoints.value = emptyList()
         isAnimating = false
         isTrajectoryMode = false
+    }
+
+    suspend fun updateLatestAvailableGrib() {
+        _latestAvailableGrib.value = isobaricRepository.getLatestAvailableGrib()
     }
 
 }
