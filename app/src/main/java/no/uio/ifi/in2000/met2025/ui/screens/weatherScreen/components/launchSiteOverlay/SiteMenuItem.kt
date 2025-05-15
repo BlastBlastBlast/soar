@@ -34,7 +34,6 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
  * - Accessible via screen readers using contentDescription.
  * - Width adapts within given min/max limits.
  */
-
 @Composable
 fun SiteMenuItem(
     site: LaunchSite,
