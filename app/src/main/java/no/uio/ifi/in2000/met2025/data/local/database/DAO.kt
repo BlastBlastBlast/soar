@@ -54,7 +54,8 @@ interface LaunchSiteDAO {
     suspend fun updateElevation(uid: Int, elevation: Double)
 
     /** Return the “real” site matching these coords,
-     *  ignoring both placeholder rows. */
+     *  ignoring both placeholder rows.
+     */
     @Query(
         """
     SELECT * FROM LaunchSite
@@ -95,13 +96,16 @@ interface GribUpdatedDAO {
     @Query("DELETE FROM GribUpdated")
     suspend fun delete()
 
-    @Query("SELECT * FROM GribUpdated LIMIT 1")
+    @Query("SELECT time FROM GribUpdated LIMIT 1")
     suspend fun findUpdated(): String?
+
+    @Query("SELECT latestTimeAvailable FROM GribUpdated LIMIT 1")
+    suspend fun findLatest(): String?
 }
 
 /**
  * WeatherConfigDao
- * Defines CRUD operations and queries for WeatherConfig entities.
+ * Defines CRUD (create, read, update, delete) operations and queries for WeatherConfig entities.
  */
 @Dao
 interface WeatherConfigDao {
@@ -138,7 +142,6 @@ interface WeatherConfigDao {
  * RocketConfigDao
  * Defines CRUD (create, read, update, delete) operations and queries for RocketConfig entities.
  */
-
 @Dao
 interface RocketConfigDao {
 
