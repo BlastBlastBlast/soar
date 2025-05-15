@@ -16,18 +16,20 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.ui.theme.*
 
-// Definition for EvaluationIcon remains unchanged.
-sealed class EvaluationIcon {
-    data class DrawableIcon(val resId: Int) : EvaluationIcon()
-    data class VectorIcon(val icon: androidx.compose.ui.graphics.vector.ImageVector) : EvaluationIcon()
-}
-
+/**
+ * This enum class contains the three states that available data for a weather parameter, or an aggregate of parameters can be in.
+ * The states relate to how close the parameter(s) are to the threshold(s).
+ * Each state has a corresponding icon.
+ */
 enum class LaunchStatus {
     SAFE,           // All values comfortably within spec.
-    CAUTION,        // Some values are close to threshold.
+    CAUTION,        // At least one value is close to threshold, the rest within spec.
     UNSAFE,         // One or more values exceed the allowed threshold.
 }
 
+/**
+ * Couples a relative unsafety value to a LaunchStatus.
+ */
 fun launchStatus(relativeUnsafety: Double): LaunchStatus {
     return when {
         relativeUnsafety > UNSAFE_THRESHOLD -> LaunchStatus.UNSAFE
@@ -36,9 +38,26 @@ fun launchStatus(relativeUnsafety: Double): LaunchStatus {
     }
 }
 
+/**
+ * Draws an icon given a collection of weather parameters.
+ * This can either be in the form of forecast or isobaric data, or both.
+ * Different icons are drawn for missing data, disabled parameters, and the three launch statuses.
+ */
+@Composable
+fun LaunchStatusIcon(
+    weatherConfig: WeatherConfig,
+    forecast: ForecastDataItem? = null,
+    isobaric: IsobaricData? = null,
+    modifier: Modifier
+) {
+    val state = evaluateConditions(weatherConfig, forecast, isobaric)
+    LaunchStatusIcon(state, modifier)
+}
 
-
-
+/**
+ * Draws an icon for a single parameter state.
+ * Different icons are drawn for missing data, disabled parameters, and the three launch statuses.
+ */
 @Composable
 fun LaunchStatusIcon(state: ParameterState, modifier: Modifier) {
     // detect light vs dark
@@ -71,16 +90,4 @@ fun LaunchStatusIcon(state: ParameterState, modifier: Modifier) {
         tint            = color,
         modifier        = modifier
     )
-}
-
-
-@Composable
-fun LaunchStatusIndicator(
-    weatherConfig: WeatherConfig,
-    forecast: ForecastDataItem? = null,
-    isobaric: IsobaricData? = null,
-    modifier: Modifier
-) {
-    val state = evaluateLaunchConditions(weatherConfig, forecast, isobaric)
-    LaunchStatusIcon(state, modifier)
 }
