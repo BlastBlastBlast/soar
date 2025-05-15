@@ -301,7 +301,7 @@ fun MapScreen(
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
-                        if (!showTrajectoryPopup) {
+                        if (!showTrajectoryPopup && showAnnotations) {
                             // Display the latitude and longitude input field
                             LatLonDisplay(
                                 coordinates = coordsString,

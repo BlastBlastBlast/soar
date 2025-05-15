@@ -284,7 +284,7 @@ fun MapView(
                     }
                 }
 
-                // After your 3D models have been added, recenter the camera on the midpoint
+                // Recenter the camera on the midpoint
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
 
@@ -298,7 +298,6 @@ fun MapView(
                     val midAlt  = (firstVec.getEntry(2) + lastVec.getEntry(2)) / 2.0
                     val centerPoint = Point.fromLngLat(midLon, midLat, midAlt)
 
-                    // ease the camera there with pitch = 50
                     mv.mapboxMap.easeTo(
                         CameraOptions.Builder()
                             .center(centerPoint)
@@ -310,7 +309,6 @@ fun MapView(
                         }
                     )
 
-                    // signal that we're done (so you can trigger any further zoom logic)
                     onAnimationEnd()
                 }
 
