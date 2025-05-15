@@ -18,6 +18,7 @@ import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.models.sunrise.ValidSunTimes
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
+import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.data.remote.sunrise.SunriseRepository
 import no.uio.ifi.in2000.met2025.domain.WeatherModel
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherConfigOverlay.DefaultWeatherParameters
@@ -39,7 +40,8 @@ class WeatherViewModel @Inject constructor(
     private val weatherConfigRepository: WeatherConfigRepository,
     private val launchSiteRepository: LaunchSiteRepository,
     private val weatherModel: WeatherModel,
-    private val sunriseRepository: SunriseRepository
+    private val sunriseRepository: SunriseRepository,
+    private val isobaricRepository: IsobaricRepository
 ) : ViewModel() {
 
     // UI state sealed class for regular weather data
@@ -87,6 +89,9 @@ class WeatherViewModel @Inject constructor(
     private val _isobaricData = MutableStateFlow<Map<Instant, AtmosphericWindUiState>>(emptyMap())
     val isobaricData: StateFlow<Map<Instant, AtmosphericWindUiState>> = _isobaricData
 
+    private val _latestAvailableGribTime = MutableStateFlow<Instant?>(null)
+    val latestAvailableGribTime: StateFlow<Instant?> = _latestAvailableGribTime
+
     val validSunTimesMap = mutableMapOf<String, ValidSunTimes>()
 
     private val _currentSite: StateFlow<LaunchSite?> =
@@ -94,7 +99,6 @@ class WeatherViewModel @Inject constructor(
             viewModelScope, SharingStarted.Eagerly, null
         )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
-
 
     val launchSites = launchSiteRepository.getAll()
 
@@ -127,6 +131,12 @@ class WeatherViewModel @Inject constructor(
                     //     // Clear the isobaric data for all times or for your current time key.
                     // }
                 }
+        }
+        // Continuously collect the latest available GRIB time from the repository.
+        viewModelScope.launch {
+            isobaricRepository.getLatestAvailableGribFlow().collect { time ->
+                _latestAvailableGribTime.value = time
+            }
         }
     }
 
