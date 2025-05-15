@@ -40,6 +40,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -52,143 +53,154 @@ fun LaunchWindowPickerDialog(
 ) {
     if (!showDialog) return
 
-    val osloZone = ZoneId.of("Europe/Oslo")
-    val now = remember {
-        ZonedDateTime.now(osloZone)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
-    }
-
-    if (availabilityInstant == null) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("Couldn’t load GRIB data", color = MaterialTheme.colorScheme.onSurface) },
-            text = {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudOff,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "We hit a snag fetching the forecasts.\nCheck your connection and try again.",
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = onRetry,
-                    colors = ButtonDefaults.textButtonColors(contentColor = WarmOrange)
-                ) {
-                    Text("Retry")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.textButtonColors(contentColor = WarmOrange)
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+    val oslo = ZoneId.of("Europe/Oslo")
+    val fileStart = availabilityInstant
+        ?.atZone(oslo)
+        ?.truncatedTo(ChronoUnit.HOURS)
+    val nowHour = ZonedDateTime.now(oslo).truncatedTo(ChronoUnit.HOURS)
+    if (fileStart == null) { /* error UI */
     } else {
-        val latest = remember(availabilityInstant) {
-            availabilityInstant
-                .atZone(osloZone)
-                .withMinute(0).withSecond(0).withNano(0)
-                .plusHours(2)
-        }
-        val hours = generateSequence(now) { it.plusHours(1) }
-            .takeWhile { !it.isAfter(latest) }
-            .toList()
-        val grouped = hours.groupBy { it.toLocalDate() }
-        val scroll = rememberScrollState()
+        // coverage = 3 hours → slots at offsets 0,1,2
+        val startZdt = maxOf(nowHour, fileStart)
+        val slots = (0..2).map { startZdt.plusHours(it.toLong()) }
 
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text("Select Launch Time", color = MaterialTheme.colorScheme.onSurface) },
-            text = {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(scroll)
-                            .padding(vertical = 8.dp),
-                        horizontalAlignment = Alignment.Start
+        if (availabilityInstant == null) {
+            AlertDialog(
+                onDismissRequest = onDismiss,
+                containerColor = MaterialTheme.colorScheme.surface,
+                title = {
+                    Text(
+                        "Couldn’t load GRIB data",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                text = {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Display availability range in Oslo local time
-                        Text(
-                            "GRIB-2 data availability:\n" +
-                                    "${now.format(DateTimeFormatter.ofPattern("HH:mm"))} – " +
-                                    "${latest.format(DateTimeFormatter.ofPattern("HH:mm"))} (Oslo time)",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
-                        grouped.forEach { (day, slots) ->
-                            Text(
-                                day.format(DateTimeFormatter.ofPattern("EEEE dd.MM")),
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(8.dp)
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudOff,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.error
                             )
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp)
-                            ) {
-                                items(slots) { slotZdt ->
-                                    OutlinedButton(
-                                        onClick = { onConfirm(slotZdt.toInstant()) },
-                                        shape = CircleShape,
-                                        border = BorderStroke(1.dp, WarmOrange),
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = WarmOrange),
-                                        contentPadding = PaddingValues(
-                                            horizontal = 12.dp, vertical = 4.dp
-                                        )
-                                    ) {
-                                        Text(
-                                            "${slotZdt.hour.toString().padStart(2, '0')}:00",
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                }
-                            }
                             Spacer(Modifier.height(12.dp))
+                            Text(
+                                "We hit a snag fetching the forecasts.\nCheck your connection and try again.",
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = onRetry,
+                        colors = ButtonDefaults.textButtonColors(contentColor = WarmOrange)
+                    ) {
+                        Text("Retry")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.textButtonColors(contentColor = WarmOrange)
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            confirmButton = { /* no-op */ },
-            dismissButton = {
-                TextButton(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.textButtonColors(contentColor = WarmOrange)
-                ) {
-                    Text("Cancel")
-                }
+            )
+        } else {
+            val latest = remember(availabilityInstant) {
+                availabilityInstant
+                    .atZone(oslo)
+                    .withMinute(0).withSecond(0).withNano(0)
+                    .plusHours(2)
             }
-        )
+            val hours = generateSequence(nowHour) { it.plusHours(1) }
+                .takeWhile { !it.isAfter(latest) }
+                .toList()
+            val grouped = hours.groupBy { it.toLocalDate() }
+            val scroll = rememberScrollState()
+
+            AlertDialog(
+                onDismissRequest = onDismiss,
+                containerColor = MaterialTheme.colorScheme.surface,
+                title = { Text("Select Launch Time", color = MaterialTheme.colorScheme.onSurface) },
+                text = {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(scroll)
+                                .padding(vertical = 8.dp),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            // Display availability range in Oslo local time
+                            Text(
+                                "GRIB-2 data availability:\n" +
+                                        "${nowHour.format(DateTimeFormatter.ofPattern("HH:mm"))} – " +
+                                        "${latest.format(DateTimeFormatter.ofPattern("HH:mm"))} (Oslo time)",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                            grouped.forEach { (day, slots) ->
+                                Text(
+                                    day.format(DateTimeFormatter.ofPattern("EEEE dd.MM")),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp)
+                                ) {
+                                    items(slots) { slotZdt ->
+                                        OutlinedButton(
+                                            onClick = { onConfirm(slotZdt.toInstant()) },
+                                            shape = CircleShape,
+                                            border = BorderStroke(1.dp, WarmOrange),
+                                            colors = ButtonDefaults.outlinedButtonColors(
+                                                contentColor = WarmOrange
+                                            ),
+                                            contentPadding = PaddingValues(
+                                                horizontal = 12.dp, vertical = 4.dp
+                                            )
+                                        ) {
+                                            Text(
+                                                "${slotZdt.hour.toString().padStart(2, '0')}:00",
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                            }
+                        }
+                    }
+                },
+                confirmButton = { /* no-op */ },
+                dismissButton = {
+                    TextButton(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.textButtonColors(contentColor = WarmOrange)
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
 }

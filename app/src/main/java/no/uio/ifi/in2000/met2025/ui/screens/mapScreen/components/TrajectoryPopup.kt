@@ -51,7 +51,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 /**
@@ -90,9 +92,14 @@ fun TrajectoryPopup(
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
-    val osloZone = ZoneId.of("Europe/Oslo")
-    // Keep the selected time as an Instant (UTC/Zulu)…
-    var pickedInstant by remember { mutableStateOf(Instant.now()) }
+    val oslo = ZoneId.of("Europe/Oslo")
+    // truncate “now” to the top of the hour
+    val defaultLaunch = remember {
+        ZonedDateTime.now(oslo)
+            .truncatedTo(ChronoUnit.HOURS)
+            .toInstant()
+    }
+    var pickedInstant by remember { mutableStateOf(defaultLaunch) }
     var showWindowPicker by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
@@ -222,7 +229,7 @@ fun TrajectoryPopup(
                             )
                         ) {
                             // format our UTC instant in Oslo time for display
-                            val displayZdt = pickedInstant.atZone(osloZone)
+                            val displayZdt = pickedInstant.atZone(oslo)
                             Text(
                                 displayZdt.format(DateTimeFormatter.ofPattern("dd.MM HH:00"))
                             )
