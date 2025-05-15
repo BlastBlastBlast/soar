@@ -251,7 +251,7 @@ fun MapView(
                                 RocketState.ON_LAUNCH_RAIL     -> "asset://PurpleIso.glb"
                                 RocketState.THRUSTING          -> "asset://RedIso.glb"
                                 RocketState.FREE_FLIGHT        -> "asset://OrangeIso.glb"
-                                RocketState.PARACHUTE_DEPLOYED -> "asset://BlueIso.glb"
+                                RocketState.PARACHUTE_DEPLOYED -> "asset://LightBlueIso.glb"
                                 RocketState.LANDED             -> "asset://GreenIso.glb"
                             }
                         }
@@ -499,38 +499,47 @@ fun addTrajectoryEndpointsOnGround(
     radiusMeters: Double,
     bitmapSizePx: Int = 512
 ) {
-    mapView.getMapboxMap().getStyle { style ->
+    mapView.mapboxMap.getStyle { style ->
 
-        // 1) bitmaps for start/end
-        val startBmp = createSolidCircleBitmap(bitmapSizePx / 2, android.graphics.Color.YELLOW)
-        val endBmp   = createFadeCircleWithOutlineBitmap(
+        // 1) both bitmaps: fade+outline
+        val startBmp = createFadeCircleWithOutlineBitmap(
+            size = bitmapSizePx / 2,
+            innerColor    = android.graphics.Color.YELLOW,
+            outerColor    = android.graphics.Color.TRANSPARENT,
+            outlineColor  = android.graphics.Color.YELLOW,
+            outlineWidthPx = 8f
+        )
+        val endBmp = createFadeCircleWithOutlineBitmap(
             size = bitmapSizePx,
-            innerColor = android.graphics.Color.GREEN,
-            outerColor = android.graphics.Color.TRANSPARENT,
-            outlineColor = android.graphics.Color.GREEN,
+            innerColor    = android.graphics.Color.parseColor("#ADD8E6"), // light blue
+            outerColor    = android.graphics.Color.TRANSPARENT,
+            outlineColor  = android.graphics.Color.parseColor("#ADD8E6"),
             outlineWidthPx = 8f
         )
 
-        // helper to place one circle
         fun addCircle(center: Point, suffix: String, bmp: Bitmap, circleRadius: Double) {
             val srcId = "endpoint-src-$suffix"
             val lyrId = "endpoint-lyr-$suffix"
+
             // cleanup
             style.removeStyleLayer(lyrId)
             style.removeStyleSource(srcId)
-            // compute four ground corners
+
+            // compute ground corners
             val diag = circleRadius * sqrt(2.0)
             val bearings = listOf(315.0, 45.0, 135.0, 225.0)
             val corners = bearings.map { brg ->
                 TurfMeasurement.destination(center, diag, brg, TurfConstants.UNIT_METERS)
             }
             val coords = corners.map { listOf(it.longitude(), it.latitude()) }
+
             // create & add ImageSource
             val imageSource = ImageSource.Builder(srcId)
                 .coordinates(coords)
                 .build()
             style.addSource(imageSource)
             imageSource.updateImage(bmp)
+
             // add RasterLayer
             style.addLayer(
                 RasterLayer(lyrId, srcId)
@@ -538,23 +547,10 @@ fun addTrajectoryEndpointsOnGround(
             )
         }
 
-        // place them (start half‐size, end full‐size)
+        // place start (half‐size yellow) and end (full‐size light‐blue)
         addCircle(start, "start", startBmp, radiusMeters * 0.5)
         addCircle(end,   "end",   endBmp,   radiusMeters)
     }
-}
-
-/** solid fill */
-private fun createSolidCircleBitmap(size: Int, fillColor: Int): Bitmap {
-    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bmp)
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = fillColor
-    }
-    val r = size / 2f
-    canvas.drawCircle(r, r, r, paint)
-    return bmp
 }
 
 /** fade center→edge plus a stroke */
@@ -568,21 +564,24 @@ private fun createFadeCircleWithOutlineBitmap(
     val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bmp)
     val r = size / 2f
+
     // fill with radial gradient
     val shader = RadialGradient(
         r, r, r,
         innerColor, outerColor,
         Shader.TileMode.CLAMP
     )
-    val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader }
-    canvas.drawCircle(r, r, r, fill)
-    // draw outline
-    val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader }
+    canvas.drawCircle(r, r, r, fillPaint)
+
+    // draw solid outline
+    val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         color = outlineColor
         strokeWidth = outlineWidthPx
     }
-    canvas.drawCircle(r, r, r - outlineWidthPx/2, stroke)
+    // inset by half the stroke so it draws crisply inside the bitmap
+    canvas.drawCircle(r, r, r - outlineWidthPx/2, strokePaint)
+
     return bmp
 }
-
