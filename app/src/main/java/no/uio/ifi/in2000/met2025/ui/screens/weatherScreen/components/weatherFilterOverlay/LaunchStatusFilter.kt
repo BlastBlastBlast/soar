@@ -2,7 +2,7 @@ package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.weatherFil
 
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateConditions
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
@@ -39,7 +39,7 @@ fun forecastPassesFilter(
     filter: LaunchStatusFilter
 ): Boolean {
     // Evaluate forecast data against weather configuration
-    val state = evaluateLaunchConditions(forecastItem, config)
+    val state = evaluateConditions(forecastItem, config)
 
     // Forecast passes only if:
     // 1. The evaluated state is of type Available (i.e. not missing/incomplete).
