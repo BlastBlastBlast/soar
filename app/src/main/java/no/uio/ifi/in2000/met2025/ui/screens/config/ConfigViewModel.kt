@@ -13,23 +13,25 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import javax.inject.Inject
 
+/**
+ * ConfigViewModel
+ *
+ * Manages UI state for weather and rocket configuration screens.
+ */
 @HiltViewModel
 class ConfigViewModel @Inject constructor(
     private val weatherRepo: WeatherConfigRepository,
     private val rocketRepo: RocketConfigRepository
 ) : ViewModel() {
 
-    //–– shared UpdateStatus type ––
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         object Success : UpdateStatus()
     }
 
-    //–– 1) LIST FLOWS ––
     val weatherConfigs: Flow<List<WeatherConfig>> = weatherRepo.getAllWeatherConfigs()
     val rocketConfigs:  Flow<List<RocketConfig>>  = rocketRepo.getAllRocketConfigs()
 
-    //–– 2) NAME LISTS FOR DUPLICATE‐CHECKS ––
     private val _weatherNames = MutableStateFlow<List<String>>(emptyList())
     private val _rocketNames  = MutableStateFlow<List<String>>(emptyList())
     val weatherNames: StateFlow<List<String>> = _weatherNames
@@ -46,11 +48,9 @@ class ConfigViewModel @Inject constructor(
         }
     }
 
-    //–– 3) INDIVIDUAL LOADS ––
     fun getWeatherConfig(id: Int): Flow<WeatherConfig?> = weatherRepo.getWeatherConfig(id)
     fun getRocketConfig(id: Int):  Flow<RocketConfig?>  = rocketRepo.getRocketConfig(id)
 
-    //–– 4) WEATHER “updateStatus” ––
     private val _updateStatus            = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
@@ -72,7 +72,6 @@ class ConfigViewModel @Inject constructor(
         _updateStatus.value = UpdateStatus.Idle
     }
 
-    //–– 5) ROCKET “rocketUpdateStatus” ––
     private val _rocketUpdateStatus            = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val rocketUpdateStatus: StateFlow<UpdateStatus> = _rocketUpdateStatus
 

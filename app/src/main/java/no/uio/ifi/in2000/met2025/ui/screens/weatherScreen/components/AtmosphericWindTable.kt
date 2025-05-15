@@ -31,17 +31,21 @@ import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.windcompone
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 import java.time.Instant
 
-// AtmosphericWindTable.kt
+/**
+ * Displays the isobaric wind data (e.g. upper atmosphere wind layers) for a given coordinate and time.
+ */
 @Composable
 fun AtmosphericWindTable(
     viewModel: WeatherViewModel,
     coordinates: Pair<Double, Double>,
     time: Instant
 ) {
+    // Reactive state for isobaric wind data and active configuration
     val isobaricTimeData by viewModel.isobaricData.collectAsState()
     val lastLoadedCoordinates by viewModel.lastIsobaricCoordinates.collectAsState()
     val config by viewModel.activeConfig.collectAsState()
 
+    // Determine UI state based on coordinates and time
     val effectiveState = if (lastLoadedCoordinates != coordinates) {
         WeatherViewModel.AtmosphericWindUiState.Idle
     } else {
@@ -70,6 +74,7 @@ fun AtmosphericWindTable(
             }
         }
         is WeatherViewModel.AtmosphericWindUiState.Loading -> {
+            // Show loading spinner
             Box(
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -83,6 +88,7 @@ fun AtmosphericWindTable(
             }
         }
         is WeatherViewModel.AtmosphericWindUiState.Error -> {
+            // Display error and retry option
             Column {
                 Text(
                     text = "Error loading isobaric data: ${effectiveState.message}",
@@ -112,6 +118,7 @@ fun AtmosphericWindTable(
             }
         }
         is WeatherViewModel.AtmosphericWindUiState.Success -> {
+            // Show data table if config is ready
             if (config == null) {
                 Text("Loading configuration...", color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodyMedium)

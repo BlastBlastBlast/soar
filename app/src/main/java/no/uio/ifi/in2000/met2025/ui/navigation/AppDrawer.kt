@@ -34,6 +34,13 @@ import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
+/**
+ * AppDrawer.kt
+ *
+ * Defines the navigation drawer UI for the app, including:
+ * - A list of navigation items
+ * - Contextual help text based on the current screen
+ */
 @Composable
 fun AppDrawer(
     navController: NavHostController,
@@ -55,6 +62,7 @@ fun AppDrawer(
     }
 
     val infoText = when (infoTitle) {
+        // Define the help text paragraphs for each section
         "Map"-> "How to use the map: \n" +
                 "- Longpress the map to place a marker.\n" +
                 "- Or input coordinates at the top of the screen.\n" +
@@ -256,7 +264,7 @@ fun AppDrawer(
                     Text(infoText)
                     Spacer(Modifier.height(8.dp))
                 }
-            //Weather screen appDrawer info field is defined here
+            // Weather screen has custom InfoBlock sections
             } else {
                 val isLightMode = LocalIsDarkTheme.current
                 Column(
@@ -298,6 +306,11 @@ fun AppDrawer(
     }
 }
 
+/**
+ * InfoBlock
+ *
+ * Displays an icon row and descriptive text block, used in the drawer’s help section.
+ */
 @Composable
 fun InfoBlock(
     text: String,

@@ -16,6 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
+/**
+ * Displays the currently selected launch site information at the top of the weather screen.
+ */
+
 @Composable
 fun SiteHeader(
     site: LaunchSite?,

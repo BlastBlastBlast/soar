@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -23,9 +24,17 @@ import javax.inject.Inject
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
+
 /**
- * This class is responsible for fetching and processing weather data.
- * It combines data from different sources and provides an interface that outputs air data from both ground level and at the various isobaric layers.
+ * WeatherModel
+ *
+ * Core business logic for combining forecast and isobaric data into a unified
+ * IsobaricDataResult, handling unit conversions, interpolation, and boundary checks.
+ *
+ * Special notes:
+ * - Applies the standard atmospheric lapse rate to adjust temperatures to sea level.
+ * - Converts lat/lon to grid-aligned coordinates before lookup.
+ * - Builds a vertical profile of isobaric values up from the surface.
  */
 class WeatherModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
@@ -183,6 +192,11 @@ class WeatherModel @Inject constructor(
     /**
      * Combines multiple forecast data items into a single forecast data item.
      * This is useful for aggregating data over the time frame the isobaric data is valid in.
+     */
+    /**
+     * Aggregates a list of ForecastDataItem into a single representative item.
+     *
+     * Chooses maximum values (or average where appropriate) across the timespan.
      */
     private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>): ForecastDataItem {
         return ForecastDataItem(

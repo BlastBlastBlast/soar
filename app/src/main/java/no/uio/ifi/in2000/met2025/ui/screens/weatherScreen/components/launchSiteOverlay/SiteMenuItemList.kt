@@ -15,6 +15,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 
+/**
+ * SiteMenuItemList
+ *
+ * Displays a scrollable list of launch sites, separated visually with dividers.
+ * The "New Marker" site (if present) is pinned at the top, followed by other sites.
+ *
+ * Special notes:
+ * - Ensures consistent ordering by prioritizing pinned sites.
+ * - Applies accessible semantics to describe the list content.
+ */
 @Composable
 fun SiteMenuItemList(
     launchSites: List<LaunchSite>,
@@ -22,6 +32,7 @@ fun SiteMenuItemList(
     minWidth: Dp,
     maxWidth: Dp
 ) {
+    // Separate pinned site (for example custom user marker) from other sites
     val pinned = launchSites.find { it.name == "New Marker" }
     val others = launchSites.filter { it.name != "New Marker" }
 
@@ -32,6 +43,7 @@ fun SiteMenuItemList(
             contentDescription = "Available launch sites"
         }
     ) {
+        // Display pinned site at the top if it exists
         pinned?.let { site ->
             item {
                 SiteMenuItem(

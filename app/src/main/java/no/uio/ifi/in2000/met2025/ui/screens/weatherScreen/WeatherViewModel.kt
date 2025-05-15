@@ -25,7 +25,14 @@ import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
 
-// WeatherViewModel.kt
+/**
+ * ViewModel responsible for managing weather-related UI state and data operations.
+ * Handles loading of forecast data, isobaric wind layers, sun times, config profiles, and coordinates.
+ * Uses dependency-injected repositories and exposes reactive StateFlows to the UI layer.
+ *
+ */
+
+
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
@@ -35,6 +42,7 @@ class WeatherViewModel @Inject constructor(
     private val sunriseRepository: SunriseRepository
 ) : ViewModel() {
 
+    // UI state sealed class for regular weather data
     sealed class WeatherUiState {
         object Idle : WeatherUiState()
         object Loading : WeatherUiState()
@@ -45,6 +53,7 @@ class WeatherViewModel @Inject constructor(
         data class Error(val message: String) : WeatherUiState()
     }
 
+    // UI state sealed class for wind layer/isobaric data
     sealed class AtmosphericWindUiState {
         object Idle : AtmosphericWindUiState()
         object Loading : AtmosphericWindUiState()
@@ -52,12 +61,15 @@ class WeatherViewModel @Inject constructor(
         data class Error(val message: String) : AtmosphericWindUiState()
     }
 
+    // UI states
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Idle)
     val uiState: StateFlow<WeatherUiState> = _uiState
+
 
     private val _windState = MutableStateFlow<AtmosphericWindUiState>(AtmosphericWindUiState.Idle)
     val windState: StateFlow<AtmosphericWindUiState> = _windState
 
+    // Weather config state
     private val _activeConfig = MutableStateFlow<WeatherConfig?>(null)
     val activeConfig: StateFlow<WeatherConfig?> = _activeConfig
 
@@ -151,6 +163,7 @@ class WeatherViewModel @Inject constructor(
         _activeConfig.value = config
     }
 
+    // Fetch forecast data and matching sun times
     fun loadForecast(lat: Double, lon: Double, timeSpanInHours: Int = 120) {
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
@@ -185,6 +198,7 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
+    // Trigger loading of isobaric (wind layer) data
     fun loadIsobaricData(lat: Double, lon: Double, time: Instant) {
         viewModelScope.launch {
             _lastIsobaricCoordinates.value = Pair(lat, lon)
@@ -192,6 +206,7 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
+    // Internal function to fetch and store isobaric wind data
     private suspend fun updateIsobaricData(
         lat: Double,
         lon: Double,
@@ -239,6 +254,7 @@ class WeatherViewModel @Inject constructor(
         _isobaricData.value += (time to newState)
     }
 
+    // Fetch and cache sun times for current and upcoming days
     suspend fun getValidSunTimesList(lat: Double, lon: Double) {
         val date = Instant.now()
             .atZone(ZoneId.of("Europe/Oslo"))

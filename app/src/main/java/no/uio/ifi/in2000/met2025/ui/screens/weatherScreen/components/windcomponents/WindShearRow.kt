@@ -1,8 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.windcomponents
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,12 +15,13 @@ import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.unit
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WindDirectionIcon
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 
+/**
+ * Displays a row representing wind shear data including direction, speed, and safety status
+ */
 @Composable
 fun WindShearRow(
     config: WeatherConfig,

@@ -6,6 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 
+/**
+ * Defines a reusable header row for wind data tables, used in the isobaric wind layer UI.
+ */
+
 @Composable
 fun WindLayerHeader(
     altitudeText: String,
