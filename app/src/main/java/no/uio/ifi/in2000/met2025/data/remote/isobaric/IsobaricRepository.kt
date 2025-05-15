@@ -274,6 +274,21 @@ class IsobaricRepository @Inject constructor(
     }
 
     /**
+     * Retrieves the latest timeslot with available grib data from the API.
+     * If no data is available, returns null.
+     * Clears outdated data if needed, and updates the GribUpdated table accordingly.
+     */
+    suspend fun getLatestAvailableGrib(): Instant? {
+        val availData = getAvailabilityData() ?: return null
+        if (availData.updated.toString() != updatedDAO.findUpdated()) {
+            updatedDAO.delete()
+            gribDAO.clearAll()
+            updatedDAO.insert(GribUpdated(availData.updated.toString(), availData.latest.toString()))
+        }
+        return availData.latest
+    }
+
+    /**
      * Finds the availability entry closest before the target time,
      * within a ~3-hour window.
      */

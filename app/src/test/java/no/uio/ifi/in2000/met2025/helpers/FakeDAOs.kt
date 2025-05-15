@@ -50,7 +50,15 @@ class FakeLaunchSiteDAO : LaunchSiteDAO {
         return flowOf(emptyList())
     }
 
-    override suspend fun getSiteByName(name: String): LaunchSite? {
+    override suspend fun findSiteByName(name: String): LaunchSite? {
+        return null
+    }
+
+    override suspend fun findSiteById(id: Int): LaunchSite? {
+        return null
+    }
+
+    override suspend fun findSiteByCoordinates(lat: Double, lon: Double): LaunchSite? {
         return null
     }
 
@@ -97,6 +105,10 @@ class FakeGribUpdatedDAO : GribUpdatedDAO {
     }
 
     override suspend fun findUpdated(): String? {
+        return null
+    }
+
+    override suspend fun findLatest(): String? {
         return null
     }
 }
