@@ -111,4 +111,8 @@ class FakeGribUpdatedDAO : GribUpdatedDAO {
     override suspend fun findLatest(): String? {
         return null
     }
+
+    override fun findLatestFlow(): Flow<String?> {
+        return flowOf(null)
+    }
 }

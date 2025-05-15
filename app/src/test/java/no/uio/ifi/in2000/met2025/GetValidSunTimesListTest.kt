@@ -57,7 +57,9 @@ class WeatherViewModelTest {
             weatherConfigRepository,
             launchSiteRepository,
             weatherModel,
-            sunriseRepository
+            sunriseRepository,
+            isobaricRepository
+
         )
     }
 

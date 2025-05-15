@@ -1,6 +1,8 @@
 package no.uio.ifi.in2000.met2025.data.remote.isobaric
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -315,6 +317,15 @@ class IsobaricRepository @Inject constructor(
                 return null
         }
         return data
+    }
+
+    fun getLatestAvailableGribFlow(): Flow<Instant?> {
+        return updatedDAO
+            .findLatestFlow()
+            .map { isoString ->
+                isoString
+                    ?.let { runCatching { Instant.parse(it) }.getOrNull() }
+            }
     }
 
     /**

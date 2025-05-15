@@ -101,6 +101,9 @@ interface GribUpdatedDAO {
 
     @Query("SELECT latestTimeAvailable FROM GribUpdated LIMIT 1")
     suspend fun findLatest(): String?
+
+    @Query("SELECT latestTimeAvailable FROM GribUpdated LIMIT 1")
+    fun findLatestFlow(): Flow<String?>
 }
 
 /**
