@@ -62,6 +62,7 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
+import java.time.Instant
 
 /**
  * Main composable that renders the map UI.
@@ -110,6 +111,7 @@ fun MapScreen(
     val rocketConfigs by viewModel.rocketConfigList.collectAsState()
     val selectedCfg by viewModel.selectedConfig.collectAsState()
     var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
+    val latestAvailableGrib by viewModel.latestAvailableGrib.collectAsState()
 
     /**
      * Triggered on long-press: places a new marker at the clicked location
@@ -256,7 +258,8 @@ fun MapScreen(
                                 )
                             },
                             text = { Text("BALLISTIC\nTRAJECTORY") },
-                            onClick = { showTrajectoryPopup = true },
+                            onClick = { scope.launch { viewModel.updateLatestAvailableGrib() }
+                                showTrajectoryPopup = true },
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(16.dp)
@@ -275,16 +278,21 @@ fun MapScreen(
                             selectedConfig = selectedCfg,
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
-                            onStartTrajectory = { viewModel.startTrajectory() },
+                            onStartTrajectory = { instant -> viewModel.startTrajectory(instant) },
                             onEditConfigs = onNavigateToRocketConfig,
                             onClearTrajectory = {
                                 viewModel.clearTrajectory()
-                                styleReloadTrigger++
+                                // trigger a recomposition of the map if you like
+                            },
+                            availabilityInstant = latestAvailableGrib,
+                            onRetryAvailability = {
+                                // re-fetch and stay open
+                                scope.launch { viewModel.updateLatestAvailableGrib() }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
-                                .zIndex(1f)
+                                .zIndex(1f),
                         )
                     }
 

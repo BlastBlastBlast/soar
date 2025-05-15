@@ -77,6 +77,9 @@ class IsobaricRepository @Inject constructor(
                     onSuccess = { it },
                     onFailure = { return GribDataResult.FetchingError }
                 )
+                //Store in database
+                val gribData = GribData(time.toString(), byteArray)
+                gribDAO.insert(gribData)
 
             } else {
                 //Try to load from database.
@@ -91,11 +94,12 @@ class IsobaricRepository @Inject constructor(
                         onSuccess = { it },
                         onFailure = { return GribDataResult.FetchingError }
                     )
+                    //Store in database
+                    val gribData = GribData(time.toString(), byteArray)
+                    gribDAO.insert(gribData)
                 }
             }
-            //Store in database
-            val gribData = GribData(time.toString(), byteArray)
-            gribDAO.insert(gribData)
+
 
 
             val res = parseGribData(byteArray, time.toString())
