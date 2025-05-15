@@ -83,16 +83,15 @@ fun TrajectoryPopup(
     onStartTrajectory: (Instant) -> Unit,
     onClearTrajectory: () -> Unit,
     onEditConfigs: () -> Unit,
+    getAvailabilityLastTime: () -> Instant,
     modifier: Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
     val osloZone = ZoneId.of("Europe/Oslo")
-
-        // now holds both date + time
-        var pickedDateTime by remember { mutableStateOf(LocalDateTime.now(osloZone))}
-        // controls visibility of our date/time dialog
-        var showDatePicker by remember { mutableStateOf(false) }
+    // Keep the selected time as an Instant (UTC/Zulu)…
+    var pickedInstant by remember { mutableStateOf(Instant.now()) }
+    var showWindowPicker by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
         visible = show,
@@ -174,35 +173,31 @@ fun TrajectoryPopup(
                             .height(80.dp)
                     )
 
-                    // First row: Start & Edit
+                    // Start & Edit
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
                             onClick = {
-                                val instant = pickedDateTime
-                                    .atZone(osloZone)
-                                    .toInstant()
-                                onStartTrajectory(instant)
+                                onStartTrajectory(pickedInstant)
                             },
                             modifier = Modifier.weight(1f),
-                            colors   = ButtonDefaults.buttonColors(
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
-                                contentColor   = Color.Black
+                                contentColor = Color.Black
                             )
                         ) {
                             Icon(Icons.Default.RocketLaunch, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             Text("Start Trajectory")
                         }
-
                         OutlinedButton(
                             onClick = onEditConfigs,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
-                                contentColor   = Color.Black
+                                contentColor = Color.Black
                             )
                         ) {
                             Icon(Icons.Default.Settings, contentDescription = "Edit configs")
@@ -211,32 +206,31 @@ fun TrajectoryPopup(
                         }
                     }
 
-                    // Inside your TrajectoryPopup’s Column, replace the second Row with:
-
+                    // Pick-time & Clear
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedButton(
-                            onClick = { showDatePicker = true },
+                            onClick = { showWindowPicker = true },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
-                                contentColor   = Color.Black
+                                contentColor = Color.Black
                             )
                         ) {
+                            // format our UTC instant in Oslo time for display
+                            val displayZdt = pickedInstant.atZone(osloZone)
                             Text(
-                                text = pickedDateTime.format(DateTimeFormatter.ofPattern("dd.MM HH:00")),
-                                style = MaterialTheme.typography.bodyMedium
+                                displayZdt.format(DateTimeFormatter.ofPattern("dd.MM HH:00"))
                             )
                         }
-
                         OutlinedButton(
                             onClick = onClearTrajectory,
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White,
-                                contentColor   = Color.Black
+                                contentColor = Color.Black
                             )
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = null)
@@ -245,15 +239,14 @@ fun TrajectoryPopup(
                         }
                     }
 
-
-                    // DateTime Picker Dialog
-                    DateTimePickerDialog(
-                        showDialog = showDatePicker,
-                        initialDateTime = pickedDateTime,
-                        onDismiss = { showDatePicker = false },
-                        onConfirm = {
-                            pickedDateTime = it
-                            showDatePicker = false
+                    // The scrolling hour-picker, which hands back an Instant
+                    LaunchWindowPickerDialog(
+                        showDialog = showWindowPicker,
+                        getAvailabilityLatestTime = getAvailabilityLastTime,
+                        onDismiss = { showWindowPicker = false },
+                        onConfirm = { selectedUtcInstant ->
+                            pickedInstant = selectedUtcInstant
+                            showWindowPicker = false
                         }
                     )
                 }

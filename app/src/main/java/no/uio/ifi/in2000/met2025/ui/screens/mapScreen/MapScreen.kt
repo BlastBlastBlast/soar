@@ -279,6 +279,7 @@ fun MapScreen(
                                 viewModel.clearTrajectory()
                                 styleReloadTrigger++
                             },
+                            getAvailabilityLastTime = { viewModel.updateLastestAvailableGrib() },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)

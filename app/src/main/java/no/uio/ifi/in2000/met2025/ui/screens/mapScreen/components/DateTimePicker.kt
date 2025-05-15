@@ -1,166 +1,106 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * Dialog-only composable for selecting a date (today/tomorrow/day after) and an hour (full hours).
- * The caller is responsible for showing the trigger button in TrajectoryPopup.
- *
- * @param showDialog Controls visibility of the dialog
- * @param initialDateTime Starting LocalDateTime
- * @param onDismiss Called when dialog is cancelled
- * @param onConfirm  Called with the selected LocalDateTime when OK pressed
- */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun DateTimePickerDialog(
+fun LaunchWindowPickerDialog(
     showDialog: Boolean,
-    initialDateTime: LocalDateTime,
+    getAvailabilityLatestTime: () -> Instant,
     onDismiss: () -> Unit,
-    onConfirm: (LocalDateTime) -> Unit
+    onConfirm: (Instant) -> Unit
 ) {
     if (!showDialog) return
 
     val osloZone = ZoneId.of("Europe/Oslo")
-    // Local mutable copy for selection
-    var dateTime by remember { mutableStateOf(initialDateTime) }
+    // Round "now" down to the top of the current hour in Oslo
+    val now = remember {
+        ZonedDateTime.now(osloZone)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0)
+    }
+    val latest = remember {
+        getAvailabilityLatestTime().atZone(osloZone)
+    }
 
-    // Formatters
-    val dateFormatter = DateTimeFormatter.ofPattern("dd.MM")
+    // Build a list of every full-hour slot between now and latest
+    val hours = generateSequence(now) { it.plusHours(1) }
+        .takeWhile { !it.isAfter(latest) }
+        .toList()
+
+    val groupedByDate = hours.groupBy { it.toLocalDate() }
 
     AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = { Text("Select Date & Hour", style = MaterialTheme.typography.titleSmall) },
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Select Launch Time", style = MaterialTheme.typography.titleSmall)
+        },
         text = {
             Column(
                 Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             ) {
-                // Day selector row
-                val today = LocalDate.now(osloZone)
-                val days = listOf(0L,1L,2L).map { today.plusDays(it)}
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(64.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    days.forEach { d ->
-                        val selected = d == dateTime.toLocalDate()
-                        OutlinedButton(
-                            onClick = { dateTime = dateTime.with(d) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            shape = RectangleShape,
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                                contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                            )
-                        ) {
-                            Text(
-                                text = d.format(dateFormatter),
-                                fontSize = 14.sp,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Hour display and controls
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Display HH:00
+                groupedByDate.forEach { (day, slots) ->
                     Text(
-                        text = dateTime.hour.toString().padStart(2,'0') + ":00",
-                        fontSize = 52.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        text = day.format(DateTimeFormatter.ofPattern("EEEE dd.MM")),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
-
-                    // Control buttons: Now, Up, Down
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Button(
-                            onClick = { dateTime = LocalDateTime.now(osloZone).withMinute(0) },
-                            shape = CircleShape,
-                            modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text("Now", fontSize = 14.sp)
-                        }
-                        Button(
-                            onClick = { dateTime = dateTime.withHour((dateTime.hour+23)%24) },
-                            shape = CircleShape,
-                            modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Icon(Icons.Default.ArrowDropUp, contentDescription="Up")
-                        }
-                        Button(
-                            onClick = { dateTime = dateTime.withHour((dateTime.hour+1)%24) },
-                            shape = CircleShape,
-                            modifier = Modifier.size(56.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Icon(Icons.Default.ArrowDropDown, contentDescription="Down")
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        slots.forEach { slotZdt ->
+                            OutlinedButton(
+                                onClick = { onConfirm(slotZdt.toInstant()) },
+                                shape = CircleShape,
+                                contentPadding = PaddingValues(
+                                    horizontal = 12.dp,
+                                    vertical = 4.dp
+                                )
+                            ) {
+                                Text("${slotZdt.hour.toString().padStart(2, '0')}:00")
+                            }
                         }
                     }
+                    Spacer(Modifier.height(12.dp))
                 }
             }
         },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(dateTime.withMinute(0)) },
-                shape = CircleShape,
-                modifier = Modifier.size(64.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) { Text("OK") }
-        },
+        confirmButton = { /* no-op; selection happens on slot tap */ },
         dismissButton = {
             Button(
-                onClick = { onDismiss() },
+                onClick = onDismiss,
                 shape = CircleShape,
                 modifier = Modifier.size(64.dp),
                 contentPadding = PaddingValues(0.dp)
-            ) { Text("Cancel", fontSize=14.sp) }
+            ) {
+                Text("Cancel", fontSize = 14.sp)
+            }
         }
     )
 }
