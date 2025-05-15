@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain
 
-import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -190,13 +189,11 @@ class WeatherModel @Inject constructor(
     }
 
     /**
-     * Combines multiple forecast data items into a single forecast data item.
-     * This is useful for aggregating data over the time frame the isobaric data is valid in.
-     */
-    /**
      * Aggregates a list of ForecastDataItem into a single representative item.
      *
      * Chooses maximum values (or average where appropriate) across the timespan.
+     *
+     * This is useful for aggregating data over the time frame the isobaric data is valid in.
      */
     private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>): ForecastDataItem {
         return ForecastDataItem(
