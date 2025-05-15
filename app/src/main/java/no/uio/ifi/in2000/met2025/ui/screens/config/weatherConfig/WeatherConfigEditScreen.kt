@@ -36,6 +36,14 @@ import no.uio.ifi.in2000.met2025.ui.screens.config.weatherConfig.common.SettingR
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * WeatherConfigEditScreen
+ *
+ * UI for creating or editing a WeatherConfig profile.
+ * - Organizes settings into sections (name, wind, cloud, etc.).
+ * - Validates unique config name and non-empty input.
+ * - Saves or updates via ConfigViewModel.
+ */
 @Composable
 fun WeatherConfigEditScreen(
     weatherConfig: WeatherConfig? = null,
@@ -43,7 +51,9 @@ fun WeatherConfigEditScreen(
     onNavigateBack: () -> Unit
 ) {
     val updateStatus by viewModel.updateStatus.collectAsState()
+    val weatherNames by viewModel.weatherNames.collectAsState()
 
+    // Local state for all config fields, defaulting to the values of the default config
     var configName               by remember(weatherConfig) { mutableStateOf(weatherConfig?.name ?: "") }
     var groundWind               by remember(weatherConfig) { mutableStateOf(weatherConfig?.groundWindThreshold?.toString() ?: "8.6") }
     var isEnabledGroundWind      by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledGroundWind ?: true) }
@@ -62,8 +72,8 @@ fun WeatherConfigEditScreen(
     var isEnabledLowCloud        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledCloudCoverLow ?: true) }
     var fog                      by remember(weatherConfig) { mutableStateOf(weatherConfig?.fogThreshold?.toString() ?: "0.0") }
     var isEnabledFog             by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledFog ?: true) }
-    var precip                   by remember(weatherConfig) { mutableStateOf(weatherConfig?.precipitationThreshold?.toString() ?: "0.0") }
-    var isEnabledPrecip          by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledPrecipitation ?: true) }
+    var precipitation            by remember(weatherConfig) { mutableStateOf(weatherConfig?.precipitationThreshold?.toString() ?: "0.0") }
+    var isEnabledPrecipitation   by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledPrecipitation ?: true) }
     var humidity                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.humidityThreshold?.toString() ?: "75.0") }
     var isEnabledHumidity        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledHumidity ?: true) }
     var dewPoint                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.dewPointThreshold?.toString() ?: "15.0") }
@@ -73,6 +83,7 @@ fun WeatherConfigEditScreen(
     var altitude                 by remember(weatherConfig) { mutableStateOf(weatherConfig?.altitudeUpperBound?.toString() ?: "5000.0") }
     var isEnabledAltitude        by remember(weatherConfig) { mutableStateOf(weatherConfig?.isEnabledAltitudeUpperBound ?: true) }
 
+    // Group settings into lists for reuse
     val windSettings = listOf(
         SettingItem("Ground Wind Threshold", groundWind, { groundWind = it }, isEnabledGroundWind) { isEnabledGroundWind = it },
         SettingItem("Air Wind Threshold",    airWind,    { airWind    = it }, isEnabledAirWind)    { isEnabledAirWind    = it },
@@ -88,36 +99,37 @@ fun WeatherConfigEditScreen(
 
     val weatherSettings = listOf(
         SettingItem("Fog Threshold",              fog,     { fog     = it }, isEnabledFog)     { isEnabledFog     = it },
-        SettingItem("Precipitation Threshold",    precip,  { precip  = it }, isEnabledPrecip)  { isEnabledPrecip  = it },
+        SettingItem("Precipitation Threshold",    precipitation,  { precipitation  = it }, isEnabledPrecipitation)  { isEnabledPrecipitation  = it },
         SettingItem("Humidity Threshold",         humidity,{ humidity = it }, isEnabledHumidity){ isEnabledHumidity = it },
         SettingItem("Dew Point Threshold",        dewPoint,{ dewPoint = it }, isEnabledDewPoint){ isEnabledDewPoint = it },
         SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
     )
 
-    LaunchedEffect(configName) {
-        viewModel.checkWeatherNameAvailability(configName)
-    }
-
     ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
-        val isNameError = updateStatus is ConfigViewModel.UpdateStatus.Error &&
-                configName != weatherConfig?.name
+        val isNameError = configName in weatherNames && configName != weatherConfig?.name
 
-        // Name
+        // Name section with duplicate-name validation
         SectionCard("Configuration Name", Modifier.fillMaxWidth()) {
             AppOutlinedTextField(
                 value         = configName,
                 onValueChange = {
                     configName = it
-                    viewModel.checkWeatherNameAvailability(it)
                 },
                 labelText    = "Name",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                //Regex limits names to 14 characters
+                filterRegex = Regex("^.{0,14}\$")
             )
             Spacer(Modifier.height(2.dp))
             if (isNameError) {
                 Text(
-                    (updateStatus as ConfigViewModel.UpdateStatus.Error).message,
+                    text = "A config named \"$configName\" already exists",
                     color = Color.Red
+                )
+            } else if (configName.length == 14) {
+                Text(
+                    text = "Name length limit reached: 14 characters",
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -192,7 +204,7 @@ fun WeatherConfigEditScreen(
         }
         Spacer(Modifier.height(24.dp))
 
-        // Save button
+        // Save button, enabled only when name is valid
         Button(
             onClick = {
                 val updated = WeatherConfig(
@@ -217,8 +229,8 @@ fun WeatherConfigEditScreen(
                     isEnabledWindDirection         = isEnabledWindDirection,
                     isEnabledFog                   = isEnabledFog,
                     fogThreshold                   = fog.toDoubleOrNull()                     ?: 0.0,
-                    isEnabledPrecipitation         = isEnabledPrecip,
-                    precipitationThreshold         = precip.toDoubleOrNull()                  ?: 0.0,
+                    isEnabledPrecipitation         = isEnabledPrecipitation,
+                    precipitationThreshold         = precipitation.toDoubleOrNull()                  ?: 0.0,
                     isEnabledProbabilityOfThunder  = isEnabledThunder,
                     probabilityOfThunderThreshold  = thunder.toDoubleOrNull()                  ?: 0.0,
                     isEnabledAltitudeUpperBound    = isEnabledAltitude,
@@ -233,6 +245,7 @@ fun WeatherConfigEditScreen(
                     viewModel.updateWeatherConfig(updated)
                 }
             },
+            enabled = !isNameError && configName.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
                 .semantics {
                     role = Role.Button
@@ -245,18 +258,29 @@ fun WeatherConfigEditScreen(
         ) {
             Text("Save Configuration")
         }
-        if (updateStatus is ConfigViewModel.UpdateStatus.Error) {
-            val msg = (updateStatus as ConfigViewModel.UpdateStatus.Error).message
+        if (isNameError) {
             Text(
-                text = msg,
+                text = "A config named \"$configName\" already exists",
                 color = Color.Red,
                 modifier = Modifier.semantics {
                     liveRegion = LiveRegionMode.Polite
-                    contentDescription = msg
+                    contentDescription = "A config named $configName already exists"
+                }
+            )
+        }
+        if (configName.isBlank()) {
+            Text(
+                text = "Configuration Name field must not be empty",
+                color = Color.Red,
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = "Configuration Name field must not be empty"
                 }
             )
         }
     }
+
+    //Navigate back when save succeeds
     LaunchedEffect(updateStatus) {
         if (updateStatus is ConfigViewModel.UpdateStatus.Success) {
             viewModel.resetWeatherStatus()

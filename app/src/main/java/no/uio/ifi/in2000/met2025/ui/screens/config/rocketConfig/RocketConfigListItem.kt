@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.ui.screens.config.rocketConfig
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,17 +17,34 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.ui.common.ConfirmationDialog
 import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * RocketConfigItem
+ *
+ * Displays a card for a RocketConfig with:
+ * - The config name
+ * - Tap anywhere on the card to select this config
+ * - Edit and Delete buttons for non-default configs
+ * - A confirmation dialog before deletion
+ */
 @Composable
 fun RocketConfigItem(
     rocketConfig: RocketConfig,
@@ -35,10 +53,11 @@ fun RocketConfigItem(
     onDelete: () -> Unit
 ) {
     val shape = RoundedCornerShape(8.dp)
+    var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
 
     // Each item on pure white primary
     Surface(
-        modifier        = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick)
@@ -49,10 +68,14 @@ fun RocketConfigItem(
                     if (rocketConfig.isDefault) append("Default configuration.")
                 }
             },
-        color           = MaterialTheme.colorScheme.primary,
-        tonalElevation  = 2.dp,
-        shadowElevation = 4.dp,
-        shape           = shape
+        color           = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation  = 8.dp,
+        shadowElevation = 10.dp,
+        shape           = shape,
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (rocketConfig.isDefault) WarmOrange else Color.Black
+        )
     ) {
         Row(
             Modifier
@@ -88,7 +111,7 @@ fun RocketConfigItem(
                             tint = IconGreen
                         )
                     }
-                    IconButton(onClick = onDelete,
+                    IconButton(onClick = { showConfirmationDialog = true },
                         modifier = Modifier.semantics {
                             role = Role.Button
                             contentDescription = "Delete ${rocketConfig.name}"
@@ -101,6 +124,16 @@ fun RocketConfigItem(
                     }
                 }
             }
+        }
+        if (showConfirmationDialog) {
+            ConfirmationDialog(
+                title = "Delete Configuration",
+                text = "Are you sure you want to delete ${rocketConfig.name}?",
+                confirmText = "Delete",
+                dismissText = "Cancel",
+                onConfirm = onDelete,
+                onDismiss = { showConfirmationDialog = false }
+            )
         }
     }
 }

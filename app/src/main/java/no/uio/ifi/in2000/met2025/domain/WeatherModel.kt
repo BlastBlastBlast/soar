@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain
 
-import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -24,11 +23,26 @@ import javax.inject.Inject
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
+
+/**
+ * WeatherModel
+ *
+ * Core business logic for combining forecast and isobaric data into a unified
+ * IsobaricDataResult, handling unit conversions, interpolation, and boundary checks.
+ *
+ * Special notes:
+ * - Applies the standard atmospheric lapse rate to adjust temperatures to sea level.
+ * - Converts lat/lon to grid-aligned coordinates before lookup.
+ * - Builds a vertical profile of isobaric values up from the surface.
+ */
 class WeatherModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
-) { //Businesslogikk for konsolidering av forskjellig type data
+) {
 
+    /**
+     * Retrieves and merges forecast and GRIB data for a specific time and location.
+     */
     suspend fun getCurrentIsobaricData(
         lat: Double,
         lon: Double,
@@ -70,6 +84,10 @@ class WeatherModel @Inject constructor(
         )
     }
 
+    //TODO: Convert prints to logs
+    /**
+     * Combines GRIB and forecast into IsobaricDataResult.Success or OutOfBounds.
+     */
     private fun convertGribToIsobaricData(
         lat: Double,
         lon: Double,
@@ -126,11 +144,14 @@ class WeatherModel @Inject constructor(
         }
     }
 
+    /**
+     * Recursively builds isobaric data from surface up through predefined pressure levels.
+     */
     private fun buildValuesAtLayerR(
         pressureValues: List<Int>,
         previousPressure: Int,
         gribVectorsMap: Map<Int, GribVectors>,
-        referenceTemperature: Double, // maybe change to Temperature object
+        referenceTemperature: Double,
         result: Map<Int, IsobaricDataValues>
     ): Map<Int, IsobaricDataValues> {
 
@@ -161,12 +182,16 @@ class WeatherModel @Inject constructor(
                 windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
                 windFromDirection = (Math.toDegrees(
                     atan2(uComponentWind, vComponentWind)) + 180) % 360
-                )
             )
+                    )
         )
     }
 
-
+    /**
+     * Aggregates a list of ForecastDataItem into a single representative item.
+     *
+     * Chooses maximum values (or average where appropriate) across the timespan.
+     */
     private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>): ForecastDataItem {
         return ForecastDataItem(
             time = timeSeries.first().time,
@@ -190,57 +215,3 @@ class WeatherModel @Inject constructor(
         )
     }
 }
-
-
-//                var referenceAltitude = 0.0
-//                var referencePressure = forecastItem.values.airPressureAtSeaLevel
-//                var referenceAirTemperature = airTemperatureAtSeaLevel //always in Kelvin
-
-//                Result.success(
-//                    IsobaricData(
-//                        time = gribDataMap.time,
-//                        valuesAtLayer = mapOf(
-//                            groundPressure to IsobaricDataValues(
-//                                altitude = groundAltitude,
-//                                airTemperature = forecastItem.values.airTemperature,
-//                                windSpeed = forecastItem.values.windSpeed,
-//                                windFromDirection = forecastItem.values.windFromDirection
-//                            )
-//                        ) + layerPressureValues.reversed().associateWith { pressure ->
-//
-//                            val altitude = calculateAltitude(
-//                                pressure = pressure.toDouble(),
-//                                referencePressure = referencePressure,
-//                                referenceAirTemperature = referenceAirTemperature,
-//                                referenceAltitude = referenceAltitude
-//                            )
-//                            println("altitude: $altitude")
-//
-//                            val gribVectors = gribVectorsMap[pressure]
-//
-//                            val airTemperature = gribVectors?.temperature?.toDouble() ?: 0.0
-//
-//                            val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
-//                            val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
-//
-//                            val windSpeed = sqrt(uComponentWind.pow(2) + vComponentWind.pow(2))
-//                            val windFromDirection = Math.toDegrees(atan2(uComponentWind, vComponentWind))
-//
-//                            if (altitude > 10000 && referenceAltitude < 10000) { // updates reference values when altitude is above 10km, only once
-//                                referenceAltitude = altitude
-//                                referencePressure = pressure.toDouble()
-//                                referenceAirTemperature = airTemperature //ensures new reference temperature is in Kelvin
-//                            }
-//                            println("airTemperature: $airTemperature")
-//                            println("windSpeed: $windSpeed")
-//                            println("windFromDirection: $windFromDirection")
-//
-//                            IsobaricDataValues(
-//                                altitude = altitude,
-//                                airTemperature = airTemperature - CELSIUS_TO_KELVIN,
-//                                windSpeed = windSpeed,
-//                                windFromDirection = windFromDirection
-//                            )
-//                        }
-//                    )
-//                )

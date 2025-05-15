@@ -3,6 +3,8 @@ package no.uio.ifi.in2000.met2025.ui.navigation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,13 +17,23 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import no.uio.ifi.in2000.met2025.R
 
+/**
+ * AppTopBar
+ *
+ * Displays the top app bar with:
+ * - A title based on the current screen
+ * - The app logo as a button that opens the navigation drawer
+ * - An action to open/close the Config screen
+ * - A light/dark mode toggle button
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
     navController: NavHostController,
     currentThemeDark: Boolean,
     onToggleTheme: () -> Unit,
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    goToConfig: () -> Unit
 ) {
     val currentRoute = navController
         .currentBackStackEntryAsState()
@@ -75,6 +87,31 @@ fun AppTopBar(
             }
         },
         actions = {
+            // Config toggle button
+            IconButton(
+                onClick = {
+                    if (currentRoute == Screen.Configs.route) {
+                        // already on the Config screen → go back
+                        navController.popBackStack()
+                    } else {
+                        // not on Config → navigate there
+                        goToConfig()
+                    }
+                },
+                modifier = Modifier
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = if (currentRoute == Screen.Configs.route)
+                            "Close settings" else "Open settings"
+                    }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+
             IconButton(
                 onClick = onToggleTheme,
                 modifier = Modifier.semantics {
@@ -87,8 +124,8 @@ fun AppTopBar(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (currentThemeDark) R.drawable.sun_icon
-                        else               R.drawable.moon_icon
+                        if (currentThemeDark) R.drawable.light_mode
+                        else               R.drawable.dark_mode
                     ),
                     contentDescription = null,
                     tint = Color.White

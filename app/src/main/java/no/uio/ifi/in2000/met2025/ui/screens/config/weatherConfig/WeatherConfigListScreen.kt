@@ -32,7 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 
-
+/**
+ * WeatherConfigListScreen
+ *
+ * Displays the list of saved WeatherConfig profiles in a scrollable column.
+ * Highlights default profiles and disables edit/delete for them.
+ * Every non-default item can be selected, edited, or deleted.
+ * Also provides a button to add a new configuration.
+ */
 @Composable
 fun WeatherConfigListScreen(
     viewModel: ConfigViewModel = hiltViewModel(),
@@ -51,9 +58,9 @@ fun WeatherConfigListScreen(
             modifier        = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            color           = MaterialTheme.colorScheme.surface,
-            tonalElevation  = 4.dp,    // subtle tint under items
-            shadowElevation = 8.dp,
+            color           = MaterialTheme.colorScheme.primary,
+            tonalElevation  = 8.dp,    // subtle tint under items
+            shadowElevation = 10.dp,
             shape           = RoundedCornerShape(12.dp)
         ) {
             Column(Modifier.fillMaxSize()) {
@@ -111,7 +118,7 @@ fun WeatherConfigListScreen(
                         contentColor   = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("+")
+                    Text(text = "+", style = MaterialTheme.typography.titleLarge)
                 }
             }
         }

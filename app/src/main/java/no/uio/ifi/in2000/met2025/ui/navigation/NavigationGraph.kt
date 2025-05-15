@@ -57,13 +57,14 @@ fun NavigationGraph(
             .padding(innerPadding)
             .windowInsetsPadding(WindowInsets.ime)
     ) {
-        // — Home —
+        // — Map —
         composable(Maps.route) {
             MapScreen(
                 viewModel = mapScreenViewModel,
                 onNavigateToWeather = { lat, lon ->
                     navController.navigateSingleTopTo(Weather.createRoute(lat, lon))
                 },
+                onNavigateToRocketConfig = { navController.navigateSingleTopTo(RocketConfigList.route) }
             )
         }
 
@@ -93,7 +94,7 @@ fun NavigationGraph(
             LaunchSiteScreen()
         }
 
-        // — Settings (NEW) —
+        // — Settings —
         composable(Configs.route) {
             ConfigScreen(
                 onWeatherConfigsClick = {
@@ -101,11 +102,14 @@ fun NavigationGraph(
                 },
                 onRocketConfigsClick = {
                     navController.navigateSingleTopTo(RocketConfigList.route)
+                },
+                onLaunchSiteClick = {
+                    navController.navigateSingleTopTo(LaunchSite.route)
                 }
             )
         }
 
-        // — Config List —
+        // — Weather Config List —
         composable(WeatherConfigList.route) {
             WeatherConfigListScreen(
                 onEditConfig   = { cfg ->
@@ -116,12 +120,11 @@ fun NavigationGraph(
                 },
                 onSelectConfig = { cfg ->
                     weatherCardViewModel.setActiveConfig(cfg)
-                    navController.popBackStack()
                 }
             )
         }
 
-        // — Config Edit —
+        // — Weather Config Edit —
         composable(
             route     = WeatherConfigEdit.route,
             arguments = listOf(navArgument("weatherId") {

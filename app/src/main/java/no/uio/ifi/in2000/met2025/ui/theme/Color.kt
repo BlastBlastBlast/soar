@@ -24,3 +24,8 @@ val IconUnsafeLight  = Color(0xFFF44336)  // red
 val IconSafeDark    = Color(0xFF2196F3)  // blue
 val IconCautionDark = Color(0xFFFFEB3B)  // same yellow
 val IconUnsafeDark  = Color(0xFFF44336)  // same red
+
+//error background color
+val ErrorBackground = Color(0xFF3F255E)
+
+val CancelButtonColor = Color(0xCB3CD293)

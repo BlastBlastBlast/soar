@@ -1,6 +1,18 @@
+/*
+ * ViewModel for the Map screen:
+ *  - Loads and exposes launch sites, coordinates, and rocket configs
+ *  - Handles insertion/update of “Last Visited” and “New Marker” sites
+ *  - Computes and publishes rocket trajectory points via physics simulation
+ *
+ * Special notes:
+ *  - Uses Flow + StateFlow to stream UI state
+ *  - Persists data with LaunchSiteRepository and RocketConfigRepository
+ */
+
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.database.sqlite.SQLiteConstraintException
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +22,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,7 +40,12 @@ import org.apache.commons.math3.linear.RealVector
 import javax.inject.Inject
 import java.time.Instant
 
-// MapScreenViewModel.kt
+/**
+ * Provides all data and actions for MapScreen:
+ *  - Exposes UI state (Loading/Success/Error)
+ *  - Streams coordinate updates and saved sites
+ *  - Orchestrates trajectory simulation using TrajectoryCalculator
+ */
 @HiltViewModel
 class MapScreenViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository,
@@ -46,32 +64,14 @@ class MapScreenViewModel @Inject constructor(
         data class Error(val message: String) : MapScreenUiState()
     }
 
-    /** All configs, sorted so the default (isDefault=1) comes first */
-    val rocketConfigList: StateFlow<List<RocketConfig>> =
-        rocketConfigRepository
-            .getAllRocketConfigs()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
+    private val _rocketConfigList = MutableStateFlow<List<RocketConfig>>(emptyList())
+    val rocketConfigList: StateFlow<List<RocketConfig>> = _rocketConfigList
 
-    /** The one and only "default" config (or null if none yet) */
-    val selectedConfig: StateFlow<RocketConfig?> =
-        rocketConfigRepository
-            .getDefaultRocketConfig()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
-            )
+    private val _selectedConfig = MutableStateFlow<RocketConfig?>(null)
+    val selectedConfig: StateFlow<RocketConfig?> = _selectedConfig
 
-    /** Call this when the user taps a config card */
-    fun selectConfig(cfg: RocketConfig) {
-        viewModelScope.launch {
-            rocketConfigRepository.setDefaultRocketConfig(cfg.id)
-        }
-    }
+    /** Called when the user taps a config card */
+    fun selectConfig(cfg: RocketConfig) { _selectedConfig.value = cfg }
 
     private val _trajectoryPoints = MutableStateFlow<List<Triple<RealVector, Double, RocketState>>>(emptyList())
     val trajectoryPoints: StateFlow<List<Triple<RealVector, Double, RocketState>>> = _trajectoryPoints
@@ -97,11 +97,17 @@ class MapScreenViewModel @Inject constructor(
         )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
 
+    private val _isTrajectoryCalculating = MutableStateFlow(false)
+    val isTrajectoryCalculating: StateFlow<Boolean> = _isTrajectoryCalculating
+
     private val _newMarker = MutableStateFlow<LaunchSite?>(null)
     val newMarker: StateFlow<LaunchSite?> = _newMarker
 
     private val _newMarkerStatus = MutableStateFlow(false)
     val newMarkerStatus: StateFlow<Boolean> = _newMarkerStatus
+
+    private val _launchSiteName = MutableStateFlow("")
+    val launchSiteName: StateFlow<String> = _launchSiteName
 
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
@@ -112,8 +118,15 @@ class MapScreenViewModel @Inject constructor(
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
+    /**
+     * Startup tasks:
+     *  1) Load saved launch sites
+     *  2) Ensure a default rocket config exists
+     *  3) Restore any temporary “New Marker” or “Last Visited” site
+     */
+
     init {
-        // 1) Load all launch sites
+        // 1) Load saved launch sites
         viewModelScope.launch {
             launchSiteRepository.getAll().collect { sites ->
                 _launchSites.value = sites
@@ -124,50 +137,47 @@ class MapScreenViewModel @Inject constructor(
                 )
             }
         }
-
         // 2) Ensure a default rocket config exists
         viewModelScope.launch {
-            val hasDefault = rocketConfigRepository.getDefaultRocketConfig().firstOrNull() != null
-            if (!hasDefault) {
-                rocketConfigRepository.insertRocketConfig(
-                    mapToRocketConfig(
-                        name      = "Default Rocket Config",
-                        values    = getDefaultRocketParameterValues(),
-                        isDefault = true
-                    )
+            val default = rocketConfigRepository.getDefaultRocketConfig().firstOrNull()
+            if (default == null) {
+                val defaultCfg = mapToRocketConfig(
+                    name = "Default",
+                    values = getDefaultRocketParameterValues(),
+                    isDefault = true
                 )
+                rocketConfigRepository.insertRocketConfig(defaultCfg)
+                _selectedConfig.value = defaultCfg
+            } else {
+                _selectedConfig.value = default
+            }
+            rocketConfigRepository.getAllRocketConfigs().collect { configs ->
+                _rocketConfigList.value = configs
             }
         }
-
+        // 3) Restore any temporary “New Marker” or “Last Visited” site
         viewModelScope.launch {
             val tempSite = launchSiteRepository.getNewMarkerTempSite().firstOrNull()
             val newCoords = tempSite?.let { Pair(it.latitude, it.longitude) } ?: _coordinates.value
             updateCoordinates(newCoords.first, newCoords.second)
         }
+        // Get the new marker site
         viewModelScope.launch {
             launchSiteRepository.getNewMarkerTempSite().collect { site ->
                 _newMarker.value = site
             }
         }
+        // Get the last visited site
         viewModelScope.launch {
             launchSiteRepository.getLastVisitedTempSite().collect { site ->
                 _lastVisited.value = site
             }
         }
+        // Check if the new marker site exists
         viewModelScope.launch {
             if (launchSiteRepository.checkIfSiteExists("New Marker")) {
                 _newMarkerStatus.value = true
             }
-        }
-        viewModelScope.launch {
-            rocketConfigRepository.getDefaultRocketConfig().firstOrNull()?.let { /* ok */ }
-                ?: rocketConfigRepository.insertRocketConfig(
-                    mapToRocketConfig(
-                        name = "Default Rocket Config",
-                        values = getDefaultRocketParameterValues(),
-                        isDefault = true
-                    )
-                )
         }
     }
 
@@ -176,7 +186,10 @@ class MapScreenViewModel @Inject constructor(
         _coordinates.value = Pair(lat, lon)
     }
 
-    /** Allow null here: elevation pending until terrain query returns */
+    /**
+     * Inserts or updates the “Last Visited” site with nullable elevation.
+     * Catches constraint errors and reports via uiState.
+     */
     fun updateLastVisited(lat: Double, lon: Double, elevation: Double?) {
         viewModelScope.launch {
             try {
@@ -201,6 +214,17 @@ class MapScreenViewModel @Inject constructor(
         }
     }
 
+    fun reloadScreen() {
+        _uiState.value = MapScreenUiState.Success(
+            launchSites = launchSites.value,
+            apiKeyAvailable = true,
+            isOnline = true
+        )
+    }
+    /**
+     * Inserts or updates the “New Marker” site with nullable elevation.
+     * Catches constraint errors and reports via uiState.
+     */
     fun updateNewMarker(lat: Double, lon: Double, elevation: Double?) {
         viewModelScope.launch {
             try {
@@ -224,15 +248,18 @@ class MapScreenViewModel @Inject constructor(
         }
     }
 
-    /** Change edit/add APIs to accept nullable elevation too */
+    /**
+     * Validates unique name and updates an existing launch site.
+     * Updates _updateStatus to Success or Error.
+     */
     fun editLaunchSite(siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) {
         viewModelScope.launch {
-            val exists = launchSiteRepository.checkIfSiteExists(name)
-            if (exists) {
-                if (name != launchSiteRepository.getSiteById(siteId)?.name) {
+            val nameSite = launchSiteRepository.getSiteByName(name)
+            val exists = nameSite != null
+            val sameSite = nameSite?.uid == siteId
+            if (exists && !sameSite) {
                     _updateStatus.value =
                         UpdateStatus.Error("Launch site with this name already exists")
-                }
             } else {
                 launchSiteRepository.update(
                     LaunchSite(
@@ -248,75 +275,61 @@ class MapScreenViewModel @Inject constructor(
         }
     }
 
-    /*
-    fun loadMockTrajectory() {
-        val baseLat = 59.9431
-        val baseLon = 10.7185
-        val nPoints = 200   // now 100 samples
-
-        val raw = (0 until nPoints).map { i ->
-            val t = i / (nPoints - 1).toDouble()   // 0.0 .. 1.0
-            // interpolate Lat/Lon along a small NE vector
-            val lat   = baseLat + 0.010 * t       // make it larger
-            val lon   = baseLon + 0.010 * t       // make it larger
-            // altitude: sin(π t) * 5000 → peaks at 5000m
-            val alt   = sin(Math.PI * t) * 5000.0
-            // speed: same shape, you can keep 500 or bump it
-            val speed = sin(Math.PI * t) * 500.0
-            doubleArrayOf(lat, lon, alt, speed)
-        }
-
-        // Map into your StateFlow format: RealVector(lon, lat, alt) → speed
-        val list: List<Pair<RealVector, Double>> = raw.map { arr ->
-            val lat   = arr[0]
-            val lon   = arr[1]
-            val alt   = arr[2]
-            val speed = arr[3]
-            ArrayRealVector(doubleArrayOf(lon, lat, alt)) to speed
-        }
-
-        _trajectoryPoints.value = list
-        isAnimating      = true
-        isTrajectoryMode = true
-    }
+    /**
+     * Runs the rocket trajectory simulation:
+     *  1) Retrieves selected config and last-visited coords
+     *  2) Builds initial vector with elevation
+     *  3) Calls TrajectoryCalculator.calculateTrajectory(...)
+     *  4) Publishes points and triggers camera animation
      */
-
-//    fun startTrajectory(){/* noop */}
-
-    /** Start the trajectory using the currently selected config */
     fun startTrajectory() {
         viewModelScope.launch {
-            // 1) Grab the current default/selected config
-            val cfg = selectedConfig.value
-                ?: return@launch    // nothing selected yet, bail
+            _isTrajectoryCalculating.value = true
+            try {
+                // 1) Grab the current default/selected config
+                val cfg = selectedConfig.value ?: return@launch
 
-            // 2) Build the initial position from your center coords + elevation
-            val (lat, lon) = _coordinates.value
-            val elev       = launchSiteRepository.getLastVisitedElevation()
-            val initial    = ArrayRealVector(doubleArrayOf(lat, lon, elev))
-            val traj: List<Triple<RealVector, Double, RocketState>> = TrajectoryCalculator(isobaricInterpolator)
-            // 3) Run the physics‐based sim
-                .calculateTrajectory(
-                    initialPosition = initial,
-                    launchAzimuthInDegrees = cfg.launchAzimuth,
-                    launchPitchInDegrees = cfg.launchPitch,
-                    launchRailLength = cfg.launchRailLength,
-                    wetMass = cfg.wetMass,
-                    dryMass = cfg.dryMass,
-                    burnTime = cfg.burnTime,
-                    thrust = cfg.thrust,
-                    stepSize = cfg.stepSize,
-                    crossSectionalArea = cfg.crossSectionalArea,
-                    dragCoefficient = cfg.dragCoefficient,
-                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient = cfg.parachuteDragCoefficient,
-                    timeOfLaunch = Instant.now()
-                ).getOrThrow()
+                // 2) Pull the “last visited” lat/lon directly from the repo:
+                val (lat, lon) = launchSiteRepository
+                    .getCurrentCoordinates()    // Flow<Pair<Double,Double>>
+                    .first()                    // suspend until we get the latest
 
-            // 4) Publish the points & kick off the camera animation
-            _trajectoryPoints.value = traj
-            isAnimating      = true
-            isTrajectoryMode = true
+                // 2) Build the initial position from your center coords + elevation
+                val elev = launchSiteRepository.getLastVisitedElevation()
+                val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
+                val traj: List<Triple<RealVector, Double, RocketState>> =
+                    TrajectoryCalculator(isobaricInterpolator)
+                        // 3) Run the physics‐based sim
+                        .calculateTrajectory(
+                            initialPosition = initial,
+                            launchAzimuthInDegrees = cfg.launchAzimuth,
+                            launchPitchInDegrees = cfg.launchPitch,
+                            launchRailLength = cfg.launchRailLength,
+                            wetMass = cfg.wetMass,
+                            dryMass = cfg.dryMass,
+                            burnTime = cfg.burnTime,
+                            thrust = cfg.thrust,
+                            stepSize = cfg.stepSize,
+                            crossSectionalArea = cfg.crossSectionalArea,
+                            dragCoefficient = cfg.dragCoefficient,
+                            parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
+                            parachuteDragCoefficient = cfg.parachuteDragCoefficient,
+                            timeOfLaunch = Instant.now()
+                        ).getOrThrow()
+
+                // 4) Publish the points & kick off the camera animation
+                _trajectoryPoints.value = traj
+                isAnimating = true
+                isTrajectoryMode = true
+            } catch (e: Exception) {
+                _uiState.value = MapScreenUiState.Error(
+                    "Something went wrong with the launch simulation. " +
+                            "The calculations use weather data fetched in real time, " +
+                            "so please check your internet connection and try again."
+                )
+            } finally {
+                _isTrajectoryCalculating.value = false
+            }
         }
     }
 
@@ -325,6 +338,10 @@ class MapScreenViewModel @Inject constructor(
         isTrajectoryMode = false
     }
 
+    /**
+     * Central handler when user taps or long-presses map:
+     *  - Updates center coords, “Last Visited” and “New Marker” entries
+     */
     fun onMarkerPlaced(lat: Double, lon: Double, elevation: Double?) {
         updateCoordinates(lat, lon)
         updateLastVisited(lat, lon, elevation)
@@ -339,10 +356,19 @@ class MapScreenViewModel @Inject constructor(
     fun addLaunchSite(lat: Double, lon: Double, elevation: Double?, name: String) {
         viewModelScope.launch {
             try {
-                launchSiteRepository.insert(
-                    LaunchSite(latitude = lat, longitude = lon, elevation = elevation, name = name)
-                )
-                _updateStatus.value = UpdateStatus.Success
+                if (name == "New Marker") {
+                    _updateStatus.value = UpdateStatus.Error("New Marker is not a valid name")
+                } else {
+                    launchSiteRepository.insert(
+                        LaunchSite(
+                            latitude = lat,
+                            longitude = lon,
+                            elevation = elevation,
+                            name = name
+                        )
+                    )
+                    _updateStatus.value = UpdateStatus.Success
+                }
             } catch (e: SQLiteConstraintException) {
                 _updateStatus.value =
                     UpdateStatus.Error("Launch site with this name already exists")
@@ -354,69 +380,14 @@ class MapScreenViewModel @Inject constructor(
         _updateStatus.value = UpdateStatus.Idle
     }
 
-    fun geocodeAddress(address: String): Pair<Double, Double>? {
-        return if (address.contains("NYC", ignoreCase = true)) {
-            Pair(40.7128, -74.0060)
-        } else {
-            null
-        }
-    }
-
     fun updateSiteElevation(siteId: Int, elevation: Double) {
         viewModelScope.launch {
             launchSiteRepository.updateElevation(siteId, elevation)
         }
     }
 
-    /** Start the trajectory using the currently selected config */
-    /*fun startTrajectory() {
-        val cfg = _selectedConfig.value
-            ?: return  // optionally show an error “please pick a config first”
-
-        viewModelScope.launch {
-            // build initial “RealVector” from center + elevation
-            val (lat, lon) = coordinates.value
-            val elev = lastVisited.value?.elevation ?: 0.0
-            val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
-
-            trajectoryPoints = TrajectoryCalculator(isobaricInterpolator)
-                .calculateTrajectory(
-                    initialPosition = initial,
-                    launchAzimuth = cfg.launchAzimuth,
-                    launchPitch = cfg.launchPitch,
-                    launchRailLength = cfg.launchRailLength,
-                    wetMass = cfg.wetMass,
-                    dryMass = cfg.dryMass,
-                    burnTime = cfg.burnTime,
-                    thrust = cfg.thrust,
-                    stepSize = cfg.stepSize,
-                    crossSectionalArea = cfg.crossSectionalArea,
-                    dragCoefficient = cfg.dragCoefficient,
-                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient = cfg.parachuteDragCoefficient
-                )
-
-            isAnimating = true
-        }
-    */
-
-    /** Called when the user taps “⚙️ Rocket Configs” */
-    fun showRocketConfigDialog() {
-        // TODO: e.g. flip a StateFlow or send a UI‐event that your
-        // dialog/popup code can observe and render.
-    }
-
-    /** Called when the user taps “📍 Show Current Lat/Lon” */
-    fun showCurrentLatLon() {
-        //val (lat, lon) = coordinates.value
-        // TODO: e.g. push a Toast or UI‐event with "$lat, $lon"
-    }
-
-    /** Called when the user taps “🚀 Launch From Center” */
-    fun launchHere() {
-        // simply reuse your startTrajectory logic, or
-        // if you need to update a “launch site” first do that
-        //startTrajectory()
+    fun updateLaunchSiteName(name: String) {
+        _launchSiteName.value = name
     }
 
     fun clearTrajectory() {
@@ -427,8 +398,6 @@ class MapScreenViewModel @Inject constructor(
 
 }
 
-
-// Utility for bearing
 fun calculateBearing(lon1: Double, lat1: Double, lon2: Double, lat2: Double): Double {
     val φ1 = Math.toRadians(lat1)
     val φ2 = Math.toRadians(lat2)

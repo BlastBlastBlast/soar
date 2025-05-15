@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -21,6 +22,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
 @Composable
 fun RocketConfigCarousel(
@@ -39,17 +41,13 @@ fun RocketConfigCarousel(
             }
         }
     }
-
     LazyRow(
         state = listState,
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
             .semantics(mergeDescendants = false) {
                 contentDescription = "Carousel of rocket configurations"
             },
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(
             items = rocketConfigs,
@@ -58,7 +56,8 @@ fun RocketConfigCarousel(
             val isSelected = cfg.id == selectedConfig?.id
             Card(
                 modifier  = Modifier
-                    .width(160.dp)
+                    .size(width = 180.dp, height = 56.dp)
+                    .padding(8.dp)
                     .clickable { onSelectConfig(cfg) }
                     .semantics {
                         role = Role.Button
@@ -70,21 +69,20 @@ fun RocketConfigCarousel(
                 ),
                 colors    = CardDefaults.cardColors(
                     containerColor = if (isSelected)
-                        MaterialTheme.colorScheme.primaryContainer
+                        WarmOrange
                     else
-                        MaterialTheme.colorScheme.surfaceVariant
+                        Color.White
+
                 )
             ) {
                 Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    contentAlignment = Alignment.Center
+                    Modifier.fillMaxSize(),
+                       contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text      = cfg.name,
-                        style     = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center
+                    Text(text = cfg.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = Color.Black
                     )
                 }
             }

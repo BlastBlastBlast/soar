@@ -29,17 +29,12 @@ fun SaveLaunchSiteDialog(
     updateStatus: MapScreenViewModel.UpdateStatus
 ) {
     // only allow dismiss when there's no error
-    val canDismiss = updateStatus !is MapScreenViewModel.UpdateStatus.Error
+    //val canDismiss = updateStatus !is MapScreenViewModel.UpdateStatus.Error
 
     AlertDialog(
-        onDismissRequest = {
-            if (canDismiss) {
-                onDismiss()
-            }
-        },
+        onDismissRequest = { onDismiss() },
         containerColor   = MaterialTheme.colorScheme.primary,
         tonalElevation   = AlertDialogDefaults.TonalElevation,
-
         title = {
             CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
                 Text(
@@ -61,7 +56,7 @@ fun SaveLaunchSiteDialog(
                     Spacer(Modifier.height(8.dp))
                     AppOutlinedTextField(
                         value         = launchSiteName,
-                        onValueChange = onNameChange,
+                        onValueChange = {onNameChange(it)},
                         labelText         = "Site Name",
                         modifier      = Modifier.fillMaxWidth()
                             .semantics { contentDescription = "Launch site name input field" }
@@ -97,8 +92,7 @@ fun SaveLaunchSiteDialog(
 
         dismissButton = {
             TextButton(
-                onClick = { if (canDismiss) onDismiss() },
-                enabled = canDismiss,
+                onClick = { onDismiss() },
                 modifier = Modifier.semantics {
                     contentDescription = "Cancel saving launch site"
                     role = Role.Button

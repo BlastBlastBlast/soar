@@ -1,9 +1,11 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,10 +31,17 @@ fun LaunchSitesButton(
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor   = MaterialTheme.colorScheme.onPrimary,
     ) {
-        Icon(
-            painter           = painterResource(id = R.drawable.launchsites),
-            contentDescription = null,
-            modifier          = Modifier.size(50.dp),
-        )
+        Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+            Icon(
+                painter           = painterResource(id = R.drawable.globe_location),
+                contentDescription = null,
+                modifier          = Modifier.size(60.dp),
+            )
+            Text(
+                text = "SITES",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
     }
 }

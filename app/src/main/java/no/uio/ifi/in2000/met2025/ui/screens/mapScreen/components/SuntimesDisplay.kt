@@ -18,33 +18,37 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
 
 
 
 @Composable
-fun SunIconsOverlayWithText(sunrise: String, sunset: String) {
-    Column(
-        modifier = Modifier
-            .background(Color(0xAA000000), RoundedCornerShape(8.dp))
-            .padding(8.dp)
-    ) {
+fun SunIconsOverlayWithText(
+    sunrise: String,
+    sunset: String,
+    iconTint: Color = Color.White
+) {
+    Column(modifier = Modifier.padding(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.sunrise),
+                painter       = painterResource(id = R.drawable.sunrise),
                 contentDescription = "Sunrise",
-                modifier = Modifier.size(20.dp)
+                modifier      = Modifier.size(20.dp),
+                colorFilter   = ColorFilter.tint(iconTint, blendMode = BlendMode.SrcIn)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(Modifier.width(6.dp))
             Text(text = sunrise, color = Color.White)
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.sunset),
+                painter       = painterResource(id = R.drawable.sunset),
                 contentDescription = "Sunset",
-                modifier = Modifier.size(20.dp)
+                modifier      = Modifier.size(20.dp),
+                colorFilter   = ColorFilter.tint(iconTint, blendMode = BlendMode.SrcIn)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(Modifier.width(6.dp))
             Text(text = sunset, color = Color.White)
         }
     }

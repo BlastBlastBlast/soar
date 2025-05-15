@@ -1,8 +1,39 @@
-> **Disclaimer**  
+## Table of Contents
+
+- [Disclaimer](#disclaimer)
+- [Map Screen](#map-screen)
+    - [App launch → MapScreen](#app-launch---mapscreen)
+    - [MapScreen – MarkerAnnotation and LaunchSite handling](#mapscreen---markerannotation-and-launchsite-handling)
+    - [MapScreen – MapView and Location selection and Trajectory Loading](#mapscreen---mapview-and-location-selection-and-trajectory-loading)
+- [Weather Screen](#weather-screen)
+    - [Weather Screen Navigation and initialization](#weather-screen-navigation-and-initialization)
+    - [Weather Screen – Hourly Card and Isobaric Data rendering](#weather-screen---hourly-card-and-isobaric-data-rendering)
+    - [Segmented Bottom Bar interactions](#segmented-bottom-bar-interactions)
+- [Rocket Config](#rocket-config)
+    - [Rocket Config List Screen](#rocket-config-list-screen)
+    - [Rocket Config Edit Screen](#rocket-config-edit-screen)
+- [Weather Config](#weather-config)
+    - [Weather Config List Screen](#weather-config-list-screen)
+    - [Weather Config Edit Screen](#weather-config-edit-screen)
+- [Class diagrams](#class-diagrams)
+    - [Map Screen](#map-screen)
+    - [Weather Screen](#weather-screen)
+    - [Segmented bottom bar](#segmented-bottom-bar)
+    - [Configuration classes](#configuration-classes)
+    - [Navigation](#navigation)
+    - [Datasources and repositories](#datasources-and-repositories)
+    - [Dependency Injection](#dependency-injection)
+    - [Domain – Trajectory Calculation & Weather Parsing](#domain---trajectory-calculation--weather-parsing)
+- [Use Case Diagram](#use-case-diagram)
+
+
+> ## Disclaimer
 > The following diagrams are intended to illustrate the conceptual architecture and flow of data within the main components of the app, specifically the `WeatherScreen`, `MapScreen`, and `ConfigScreens`, and their interaction with backend systems.  
 > - The diagrams are based on the current design and may not reflect future changes or refactorings.
 > - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
-# Map Screen
+---
+
+## Map Screen
 ### App launch -> MapScreen
 * **App launch & navigation setup:** When the user opens the app, `MainActivity.onCreate()` sets the Compose content to `App()`, which wraps everything in `AppScaffold` (app-wide theming) and then instantiates the `NavigationGraph` with `"maps"` as the start destination—so the `NavHostController` immediately shows `MapScreen` with its ViewModel and navigation callbacks.
 * **MapScreen initialization & data load:** As soon as `MapScreen` is composed, it calls `viewModel.loadLaunchSites()`, which asks `LaunchSitesRepository` to fetch all sites via the Room DAO (`queryAllLaunchSites()`), and the resulting list is emitted back to the screen as `uiState = Success(launchSitesList)`.
@@ -312,8 +343,9 @@ sequenceDiagram
     MapView->>Mapbox: animateCameraAlong(trajectoryPoints)  
     Mapbox-->>MapView: animationComplete  
 ```
+---
 
-# Weather Screen
+## Weather Screen
 ### Weather Screen Navigation and initialization
 * **Navigation & configuration load:** When the user navigates to the Weather screen, the composable immediately asks the ViewModel for the default weather configuration. The ViewModel calls `WeatherConfigRepository.getDefaultWeatherConfig()` and returns the active config back to the UI.
 * **Coordinates & forecast fetch:** The screen then collects the current coordinates from the ViewModel and instructs it to load a 120-hour forecast. The ViewModel fetches time-zone–adjusted forecast data from `LocationForecastRepository`, then for each date in the returned series it calls `SunriseRepository.getValidSunTimes()` before emitting a `Success` UI state.
@@ -539,7 +571,9 @@ sequenceDiagram
         end
     end
 ```
-# Rocket Config
+---
+
+## Rocket Config
 ### Rocket Config List Screen
 * **Screen initialization:** When the user opens the Rocket Config List screen, the UI calls `ConfigViewModel.getAllRocketConfigs()`. The ViewModel delegates to `RocketConfigRepository.findAllRocketConfigs()`, which queries the DAO (`SELECT * FROM rocket_config`) and returns the list to the ViewModel, which then emits it back to the UI.
 * **Set default configuration:** If the user taps a non-default config, the UI invokes `ConfigViewModel.setDefaultRocketConfig(id)`. The ViewModel calls the repository’s `setDefaultRocketConfig(id)`, which runs two DAO updates—first clearing the old default, then marking the selected config—and finally notifies the ViewModel. The UI then navigates back.
@@ -692,8 +726,9 @@ sequenceDiagram
     %% 4) Navigate back on success
     EditUI->>NavCtrl: navigateBack()  
 ```
+---
 
-# Weather Config
+## Weather Config
 ### Weather Config List Screen
 * **Screen initialization:** When the Weather Config List screen is opened, it calls `ConfigViewModel.getAllWeatherConfigs()`. The ViewModel delegates to `WeatherConfigRepository.findAllWeatherConfigs()`, which queries the DAO (`SELECT * FROM weather_config`) and returns the full list to the UI.
 * **Set default configuration:** If the user taps a non-default config, the UI invokes `ConfigViewModel.setDefaultWeatherConfig(id)`. The ViewModel tells the repository to clear the old default (`UPDATE weather_config SET is_default=0`) and mark the chosen config as default (`UPDATE weather_config SET is_default=1 WHERE id=…`), then notifies the UI and navigates back.
@@ -845,8 +880,9 @@ sequenceDiagram
     %% 4) Navigate back on success
     EditUI->>NavCtrl: navigateBack()  
 ```
+---
 
-# Class diagrams
+## Class diagrams
 ### Map Screen
 ```mermaid
 classDiagram
@@ -1595,7 +1631,6 @@ classDiagram
     GribUpdatedDAO              --> GribUpdated              : uses
     WeatherConfigDao            --> WeatherConfig            : uses
     RocketConfigDao             --> RocketConfig             : uses
-
 ```
 
 ## Dependency Injection
@@ -1696,7 +1731,7 @@ direction LR
 
 ```
 
-### Domain - Trajectory Calculation & Weather Parsing
+## Domain - Trajectory Calculation & Weather Parsing
 ```mermaid
 classDiagram
 direction TB
@@ -1760,3 +1795,7 @@ direction TB
     TrajectoryCalculator --> RocketState : uses
 
 ```
+---
+
+## Use Case Diagram
+![SOAR Use Case Diagram](images/Use-case-SOAR.drawio.png)

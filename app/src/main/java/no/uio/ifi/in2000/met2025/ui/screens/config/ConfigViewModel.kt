@@ -13,24 +13,25 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import javax.inject.Inject
 
+/**
+ * ConfigViewModel
+ *
+ * Manages UI state for weather and rocket configuration screens.
+ */
 @HiltViewModel
 class ConfigViewModel @Inject constructor(
     private val weatherRepo: WeatherConfigRepository,
     private val rocketRepo: RocketConfigRepository
 ) : ViewModel() {
 
-    //–– shared UpdateStatus type ––
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         object Success : UpdateStatus()
-        data class Error(val message: String) : UpdateStatus()
     }
 
-    //–– 1) LIST FLOWS ––
     val weatherConfigs: Flow<List<WeatherConfig>> = weatherRepo.getAllWeatherConfigs()
     val rocketConfigs:  Flow<List<RocketConfig>>  = rocketRepo.getAllRocketConfigs()
 
-    //–– 2) NAME LISTS FOR DUPLICATE‐CHECKS ––
     private val _weatherNames = MutableStateFlow<List<String>>(emptyList())
     private val _rocketNames  = MutableStateFlow<List<String>>(emptyList())
     val weatherNames: StateFlow<List<String>> = _weatherNames
@@ -47,11 +48,9 @@ class ConfigViewModel @Inject constructor(
         }
     }
 
-    //–– 3) INDIVIDUAL LOADS ––
     fun getWeatherConfig(id: Int): Flow<WeatherConfig?> = weatherRepo.getWeatherConfig(id)
     fun getRocketConfig(id: Int):  Flow<RocketConfig?>  = rocketRepo.getRocketConfig(id)
 
-    //–– 4) WEATHER “updateStatus” ––
     private val _updateStatus            = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
@@ -69,19 +68,10 @@ class ConfigViewModel @Inject constructor(
         weatherRepo.deleteWeatherConfig(cfg)
     }
 
-    fun checkWeatherNameAvailability(name: String) {
-        _updateStatus.value = if (_weatherNames.value.contains(name)) {
-            UpdateStatus.Error("A config named \"$name\" already exists")
-        } else {
-            UpdateStatus.Idle
-        }
-    }
-
     fun resetWeatherStatus() {
         _updateStatus.value = UpdateStatus.Idle
     }
 
-    //–– 5) ROCKET “rocketUpdateStatus” ––
     private val _rocketUpdateStatus            = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val rocketUpdateStatus: StateFlow<UpdateStatus> = _rocketUpdateStatus
 
@@ -97,14 +87,6 @@ class ConfigViewModel @Inject constructor(
 
     fun deleteRocketConfig(rc: RocketConfig) = viewModelScope.launch {
         rocketRepo.deleteRocketConfig(rc)
-    }
-
-    fun checkRocketNameAvailability(name: String) {
-        _rocketUpdateStatus.value = if (_rocketNames.value.contains(name)) {
-            UpdateStatus.Error("A rocket config named \"$name\" already exists")
-        } else {
-            UpdateStatus.Idle
-        }
     }
 
     fun resetRocketStatus() {

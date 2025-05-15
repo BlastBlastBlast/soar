@@ -176,7 +176,10 @@ class WeatherViewModel @Inject constructor(
                     )
                 },
                 onFailure = { throwable ->
-                    _uiState.value = WeatherUiState.Error(throwable.message ?: "Unknown error")
+                    _uiState.value = WeatherUiState.Error(
+                        throwable.message ?: ("Error fetching forecast data." +
+                                "Please check your internet connection and try again.")
+                    )
                 }
             )
         }

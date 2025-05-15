@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen
+package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +20,8 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 fun SiteHeader(
     site: LaunchSite?,
     coordinates: Pair<Double, Double>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    launchSites: List<LaunchSite>
 ) {
     Column(
         modifier = modifier
@@ -33,8 +34,25 @@ fun SiteHeader(
         ) {
             // Left column: title + optional elevation
             Column {
+                var displayName = "Location"
+                when (site?.name) {
+                    "New Marker", "Last Visited" -> {
+                        val fourDecimalLat = "%.4f".format(site.latitude)
+                        val fourDecimalLon = "%.4f".format(site.longitude)
+                        val matching = launchSites.firstOrNull { listSite ->
+                            listSite.name != "New Marker" &&
+                            listSite.name != "Last Visited" &&
+                                    "%.4f".format(listSite.latitude)  == fourDecimalLat &&
+                                    "%.4f".format(listSite.longitude) == fourDecimalLon
+                        }
+                        displayName = matching?.name
+                            ?: "New Marker"
+                    }
+                    null -> displayName = "Location"
+                    else -> displayName = site.name
+                }
                 Text(
-                    text = site?.name ?: "Location",
+                    text = displayName,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
