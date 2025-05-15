@@ -100,7 +100,8 @@ class WeatherViewModel @Inject constructor(
         )
     val currentSite: StateFlow<LaunchSite?> = _currentSite
 
-    val launchSites = launchSiteRepository.getAll()
+    private val _launchSites = MutableStateFlow<List<LaunchSite>>(emptyList())
+    val launchSites: StateFlow<List<LaunchSite>> = _launchSites
 
     init {
         // Initialize configuration profiles.
@@ -136,6 +137,11 @@ class WeatherViewModel @Inject constructor(
         viewModelScope.launch {
             isobaricRepository.getLatestAvailableGribFlow().collect { time ->
                 _latestAvailableGribTime.value = time
+            }
+        }
+        viewModelScope.launch {
+            launchSiteRepository.getAll().collect { list ->
+                _launchSites.value = list
             }
         }
     }
