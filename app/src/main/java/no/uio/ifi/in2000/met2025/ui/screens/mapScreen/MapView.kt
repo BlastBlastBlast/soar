@@ -11,14 +11,12 @@
 
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.lifecycleScope
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
@@ -63,6 +61,17 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.domain.RocketState
 import org.apache.commons.math3.linear.RealVector
+import com.mapbox.maps.extension.style.layers.generated.RasterLayer
+import com.mapbox.maps.extension.style.sources.generated.ImageSource
+import com.mapbox.turf.TurfConstants
+import com.mapbox.turf.TurfMeasurement
+import kotlin.math.sqrt
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RadialGradient
+import android.graphics.Shader
+import com.mapbox.maps.extension.style.sources.updateImage
 
 /**
  * Displays a Mapbox map with:
@@ -170,26 +179,27 @@ fun MapView(
                     }
                 }
 
-
-                // Remove existing trajectory when no points
+                // Remove existing trajectory and endpoint circles when no points
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) {
                         mv.mapboxMap.getStyle { style ->
                             // Remove all "traj-lyr-*" layers
                             style.styleLayers
-                                .map { it.id }                              // StyleObjectInfo.id
+                                .map { it.id }
                                 .filter { it.startsWith("traj-lyr-") }
-                                .forEach { layerId ->
-                                    style.removeStyleLayer(layerId)           // removeStyleLayer(String)
-                                }
+                                .forEach { style.removeStyleLayer(it) }
 
                             // Remove all "traj-src-*" sources
                             style.styleSources
                                 .map { it.id }
                                 .filter { it.startsWith("traj-src-") }
-                                .forEach { sourceId ->
-                                    style.removeStyleSource(sourceId)         // removeStyleSource(String)
-                                }
+                                .forEach { style.removeStyleSource(it) }
+
+                            // Also remove our endpoint circles
+                            style.removeStyleLayer("endpoint-lyr-start")
+                            style.removeStyleLayer("endpoint-lyr-end")
+                            style.removeStyleSource("endpoint-src-start")
+                            style.removeStyleSource("endpoint-src-end")
                         }
                     }
                 }
@@ -235,7 +245,7 @@ fun MapView(
                                 RocketState.ON_LAUNCH_RAIL     -> "asset://PurpleIso.glb"
                                 RocketState.THRUSTING          -> "asset://RedIso.glb"
                                 RocketState.FREE_FLIGHT        -> "asset://OrangeIso.glb"
-                                RocketState.PARACHUTE_DEPLOYED -> "asset://BlueIso.glb"
+                                RocketState.PARACHUTE_DEPLOYED -> "asset://LightBlueIso.glb"
                                 RocketState.LANDED             -> "asset://GreenIso.glb"
                             }
                         }
@@ -284,32 +294,47 @@ fun MapView(
                     }
                 }
 
-                // Animate camera over the lifted trajectory
-                MapEffect(trajectoryPoints to isAnimating) { mv ->
-                    if (!isAnimating || trajectoryPoints.isEmpty()) return@MapEffect
-                    (mv.context as ComponentActivity).lifecycleScope.launch {
-                        var prev: Point? = null
-                        trajectoryPoints.forEach { (vec, _) ->
-                            val lon = vec.getEntry(1)
-                            val lat = vec.getEntry(0)
-                            val alt = vec.getEntry(2)
-                            val p = Point.fromLngLat(lon, lat, alt)
-                            val bearing = prev?.let {
-                                calculateBearing(it.longitude(), it.latitude(), lon, lat)
-                            } ?: 0.0
-                            mv.mapboxMap.easeTo(
-                                CameraOptions.Builder()
-                                    .center(p)
-                                    .pitch(70.0)
-                                    .bearing(bearing)
-                                    .zoom(12.0)
-                                    .build(),
-                                MapAnimationOptions.mapAnimationOptions { duration(200L) }
-                            )
-                            prev = p
-                        }
-                        onAnimationEnd()
+                MapEffect(trajectoryPoints) { mv ->
+                    if (trajectoryPoints.size >= 2) {
+                        val fv = trajectoryPoints.first().first
+                        val lv = trajectoryPoints.last().first
+                        val startPt = Point.fromLngLat(fv.getEntry(1), fv.getEntry(0))
+                        val endPt   = Point.fromLngLat(lv.getEntry(1), lv.getEntry(0))
+                        addTrajectoryEndpointsOnGround(
+                            mapView      = mv,
+                            start        = startPt,
+                            end          = endPt,
+                            radiusMeters = 500.0  // adjust as needed
+                        )
                     }
+                }
+
+                // Recenter the camera on the midpoint
+                MapEffect(trajectoryPoints) { mv ->
+                    if (trajectoryPoints.isEmpty()) return@MapEffect
+
+                    // grab the first and last positions
+                    val firstVec = trajectoryPoints.first().first
+                    val lastVec  = trajectoryPoints.last().first
+
+                    // compute midpoint (lat, lon, alt)
+                    val midLat  = (firstVec.getEntry(0) + lastVec.getEntry(0)) / 2.0
+                    val midLon  = (firstVec.getEntry(1) + lastVec.getEntry(1)) / 2.0
+                    val midAlt  = (firstVec.getEntry(2) + lastVec.getEntry(2)) / 2.0
+                    val centerPoint = Point.fromLngLat(midLon, midLat, midAlt)
+
+                    mv.mapboxMap.easeTo(
+                        CameraOptions.Builder()
+                            .center(centerPoint)
+                            .pitch(80.0)
+                            .zoom( 11.0 )
+                            .build(),
+                        MapAnimationOptions.mapAnimationOptions {
+                            duration(1000L)
+                        }
+                    )
+
+                    onAnimationEnd()
                 }
 
                 // MapView ref & enable location puck
@@ -457,8 +482,100 @@ fun MapView(
                             }
                         }
                     }
-            }
         }
     }
-//}
+}
 
+fun addTrajectoryEndpointsOnGround(
+    mapView: MapView,
+    start: Point,
+    end: Point,
+    radiusMeters: Double,
+    bitmapSizePx: Int = 512
+) {
+    mapView.mapboxMap.getStyle { style ->
+
+        //  both bitmaps: fade+outline
+        val startBmp = createFadeCircleWithOutlineBitmap(
+            size = bitmapSizePx / 2,
+            innerColor    = android.graphics.Color.YELLOW,
+            outerColor    = android.graphics.Color.TRANSPARENT,
+            outlineColor  = android.graphics.Color.YELLOW,
+            outlineWidthPx = 8f
+        )
+        val endBmp = createFadeCircleWithOutlineBitmap(
+            size = bitmapSizePx,
+            innerColor    = android.graphics.Color.parseColor("#ADD8E6"), // light blue
+            outerColor    = android.graphics.Color.TRANSPARENT,
+            outlineColor  = android.graphics.Color.parseColor("#ADD8E6"),
+            outlineWidthPx = 8f
+        )
+
+        fun addCircle(center: Point, suffix: String, bmp: Bitmap, circleRadius: Double) {
+            val srcId = "endpoint-src-$suffix"
+            val lyrId = "endpoint-lyr-$suffix"
+
+            // cleanup
+            style.removeStyleLayer(lyrId)
+            style.removeStyleSource(srcId)
+
+            // compute ground corners
+            val diag = circleRadius * sqrt(2.0)
+            val bearings = listOf(315.0, 45.0, 135.0, 225.0)
+            val corners = bearings.map { brg ->
+                TurfMeasurement.destination(center, diag, brg, TurfConstants.UNIT_METERS)
+            }
+            val coords = corners.map { listOf(it.longitude(), it.latitude()) }
+
+            // create & add ImageSource
+            val imageSource = ImageSource.Builder(srcId)
+                .coordinates(coords)
+                .build()
+            style.addSource(imageSource)
+            imageSource.updateImage(bmp)
+
+            // add RasterLayer
+            style.addLayer(
+                RasterLayer(lyrId, srcId)
+                    .rasterOpacity(1.0)
+            )
+        }
+
+        // place start (half‐size yellow) and end (full‐size light‐blue)
+        addCircle(start, "start", startBmp, radiusMeters * 0.5)
+        addCircle(end,   "end",   endBmp,   radiusMeters)
+    }
+}
+
+/** fade center→edge plus a stroke */
+private fun createFadeCircleWithOutlineBitmap(
+    size: Int,
+    innerColor: Int,
+    outerColor: Int,
+    outlineColor: Int,
+    outlineWidthPx: Float
+): Bitmap {
+    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bmp)
+    val r = size / 2f
+
+    // fill with radial gradient
+    val shader = RadialGradient(
+        r, r, r,
+        innerColor, outerColor,
+        Shader.TileMode.CLAMP
+    )
+    val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader }
+    canvas.drawCircle(r, r, r, fillPaint)
+
+    // draw solid outline
+    val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        color = outlineColor
+        strokeWidth = outlineWidthPx
+    }
+    // inset by half the stroke so it draws crisply inside the bitmap
+    canvas.drawCircle(r, r, r - outlineWidthPx/2, strokePaint)
+
+    return bmp
+}
