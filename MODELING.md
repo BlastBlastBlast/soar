@@ -1351,9 +1351,6 @@ classDiagram
         ): Unit
     }
 
-    %% Inheritance
-    ConfigType <|-- ConfigTypeWeather
-    ConfigType <|-- ConfigTypeRocket
 
     %% Usage
     ConfigViewModel <|.. WeatherConfigListScreen : uses
