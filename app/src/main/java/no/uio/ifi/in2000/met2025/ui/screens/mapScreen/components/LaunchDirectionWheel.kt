@@ -118,7 +118,7 @@ fun LaunchDirectionWheel(
                     color = Color.Red,
                     start = center,
                     end = Offset(endX.toFloat(), endY.toFloat()),
-                    strokeWidth = 4f
+                    strokeWidth = 8f
                 )
             }
         }
@@ -138,12 +138,12 @@ fun LaunchDirectionWheel(
         // numeric readouts
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.BottomCenter)
                 .background(surfaceColor, RoundedCornerShape(4.dp))
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "Wind: ${windDirection.toInt()}°",
+                text = "Wind from: ${windDirection.toInt()}°",
                 fontSize = 14.sp,
                 color = onSurfaceColor
             )
@@ -155,7 +155,7 @@ fun LaunchDirectionWheel(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "Launch: ${rotationAngle.toInt()}°",
+                text = "Launch direction: ${rotationAngle.toInt()}°",
                 fontSize = 14.sp,
                 color = onSurfaceColor
             )
