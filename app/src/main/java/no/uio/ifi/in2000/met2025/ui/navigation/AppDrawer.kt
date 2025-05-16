@@ -67,7 +67,7 @@ fun AppDrawer(
                 " (or input coordinates at the top of the screen).\n" +
                 "- Longpress the label above a marker to edit the name and save it as a launch site.\n" +
                 "- Saved sites can be deleted from the launch site screen.\n" +
-                "- Double click  a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
+                "- Double click a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
                 "- Using multiple fingers on the map will enable you to zoom, tilt the camera and more.\n" +
                 "- Open the rocket launch trajectory simulation menu by pressing the trajectory button.\n" +
                 "- Clear trajectory between launches to make sure calculations and renders happen correctly.\n\n" +
@@ -77,7 +77,7 @@ fun AppDrawer(
                 "- Choose the time you want the simulation to use weather data from.\n" +
                 "- Choose pitch by move the slider to your desired value.\n" +
                 "- Choose azimuth by spinning the pointer in the compass.\n" +
-                "- Clicking the compass sets the simulation to launch into the wind." +
+                "- Clicking the compass sets the simulation to launch into the wind.\n" +
                 "- Press Start Trajectory to start your simulation!\n" +
                 "- The needle in the compass indicates Wind Direction. The red part shows where the wind" +
                 " is blowing from, the white part where it is blowing towards.\n\n" +
