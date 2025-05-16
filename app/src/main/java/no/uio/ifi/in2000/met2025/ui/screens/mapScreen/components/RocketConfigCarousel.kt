@@ -57,7 +57,7 @@ fun RocketConfigCarousel(
             Card(
                 modifier  = Modifier
                     .size(width = 180.dp, height = 56.dp)
-                    .padding(8.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
                     .clickable { onSelectConfig(cfg) }
                     .semantics {
                         role = Role.Button

@@ -287,7 +287,7 @@ class MapScreenViewModel @Inject constructor(
      *  3) Calls TrajectoryCalculator.calculateTrajectory(...)
      *  4) Publishes points and triggers camera animation
      */
-    fun startTrajectory() {
+    fun startTrajectory(timeOfLaunch: Instant) {
         viewModelScope.launch {
             _isTrajectoryCalculating.value = true
             try {
@@ -319,7 +319,7 @@ class MapScreenViewModel @Inject constructor(
                             dragCoefficient = cfg.dragCoefficient,
                             parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
                             parachuteDragCoefficient = cfg.parachuteDragCoefficient,
-                            timeOfLaunch = Instant.now()
+                            timeOfLaunch = timeOfLaunch
                         ).getOrThrow()
 
                 // 4) Publish the points & kick off the camera animation

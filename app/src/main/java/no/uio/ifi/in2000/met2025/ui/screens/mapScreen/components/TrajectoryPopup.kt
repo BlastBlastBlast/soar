@@ -17,12 +17,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material.icons.filled.Settings
@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -42,10 +43,20 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 /**
@@ -74,13 +85,25 @@ fun TrajectoryPopup(
     selectedConfig: RocketConfig?,
     onSelectConfig: (RocketConfig) -> Unit,
     onClose: () -> Unit,
-    onStartTrajectory: () -> Unit,
+    onStartTrajectory: (Instant) -> Unit,
     onClearTrajectory: () -> Unit,
     onEditConfigs: () -> Unit,
+    availabilityInstant: Instant?,             // nullable Instant
+    onRetryAvailability: () -> Unit,           // retry callback
+
     modifier: Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
+    val oslo = ZoneId.of("Europe/Oslo")
+    // truncate “now” to the top of the hour
+    val defaultLaunch = remember {
+        ZonedDateTime.now(oslo)
+            .truncatedTo(ChronoUnit.HOURS)
+            .toInstant()
+    }
+    var pickedInstant by remember { mutableStateOf(defaultLaunch) }
+    var showWindowPicker by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
         visible = show,
@@ -104,11 +127,10 @@ fun TrajectoryPopup(
             Surface(
                 shape           = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                 color           = Color.Black.copy(alpha = 0.6f),
-                //border          = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
                 shadowElevation = 8.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.35f)
+                    .fillMaxHeight(0.40f)
                     .offset { IntOffset(0, offsetY.roundToInt()) }
                     .pointerInput(show) {
                         detectVerticalDragGestures { change, dy ->
@@ -136,6 +158,7 @@ fun TrajectoryPopup(
                             .background(Color.White, RoundedCornerShape(2.dp))
                     )
 
+                    // Location label
                     val label = currentSite?.name?.let { "$it: " } ?: "Location: "
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
@@ -159,54 +182,71 @@ fun TrajectoryPopup(
                         onSelectConfig = onSelectConfig,
                         modifier       = Modifier
                             .fillMaxWidth()
-                            .height(80.dp)
+                            .height(65.dp)
                     )
 
-                    // Action buttons
+                    // Start & Edit
                     Row(
-                        Modifier.fillMaxWidth(),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = onStartTrajectory,
-                            modifier = Modifier.weight(1f),
-                            // color
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor   = Color.Black
-                            ),
-                        ) { Icon(Icons.Default.RocketLaunch, contentDescription = "Start Trajectory")
-                            Spacer(Modifier.width(8.dp))
-                            Text("Start Trajectory") }
-
-                        OutlinedButton(
-                            onClick = onEditConfigs,
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor   = Color.Black
-                            ),
-                        ) {
-                            Icon(Icons.Default.Settings, contentDescription = "Edit configs")
-                            Spacer(Modifier.width(8.dp))
-                            Text("Rocket Configs")
-                        }
+                        IconTextButton(
+                            modifier           = Modifier.weight(1f),
+                            icon               = Icons.Default.RocketLaunch,
+                            contentDescription = "Start trajectory",
+                            line1              = "Start",
+                            line2              = "Trajectory",
+                            onClick            = { onStartTrajectory(pickedInstant) }
+                        )
+                        IconTextButton(
+                            modifier           = Modifier.weight(1f),
+                            icon               = Icons.Default.Settings,
+                            contentDescription = "Edit configs",
+                            line1              = "Rocket",
+                            line2              = "Configs",
+                            onClick            = onEditConfigs
+                        )
                     }
 
-                    OutlinedButton(
-                        onClick = onClearTrajectory,
-                        modifier = Modifier
+                    // bottom row: Pick-time & Clear
+                    Row(
+                        Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor   = Color.Black
-                        ),
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Clear trajectory")
-                        Spacer(Modifier.width(8.dp))
-                        Text("Clear Trajectory")
+                        val displayZdt = pickedInstant.atZone(oslo)
+                        IconTextButton(
+                            modifier           = Modifier.weight(1f),
+                            icon               = Icons.Default.AccessTime,  // clock icon!
+                            contentDescription = "Pick time",
+                            line1              = "Launch Window:",
+                            line2              = displayZdt.format(DateTimeFormatter.ofPattern("dd.MM HH:00")),
+                            onClick            = { showWindowPicker = true }
+                        )
+                        IconTextButton(
+                            modifier           = Modifier.weight(1f),
+                            icon               = Icons.Default.Delete,
+                            contentDescription = "Clear trajectory",
+                            line1              = "Clear",
+                            line2              = "Trajectory",
+                            onClick            = onClearTrajectory
+                        )
                     }
+
+                    // The scrolling hour-picker, which hands back an Instant
+                    LaunchWindowPickerDialog(
+                        showDialog           = showWindowPicker,
+                        availabilityInstant  = availabilityInstant,
+                        onDismiss            = { showWindowPicker = false },
+                        onRetry              = { onRetryAvailability() },
+                        onConfirm           = {
+                            pickedInstant = it
+                            showWindowPicker = false
+                        }
+                    )
                 }
             }
         }

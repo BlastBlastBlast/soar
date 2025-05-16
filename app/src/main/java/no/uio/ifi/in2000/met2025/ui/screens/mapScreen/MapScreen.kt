@@ -62,6 +62,7 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
+import java.time.Instant
 
 /**
  * Main composable that renders the map UI.
@@ -110,6 +111,7 @@ fun MapScreen(
     val rocketConfigs by viewModel.rocketConfigList.collectAsState()
     val selectedCfg by viewModel.selectedConfig.collectAsState()
     var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
+    val latestAvailableGrib by viewModel.latestAvailableGrib.collectAsState()
 
     /**
      * Triggered on long-press: places a new marker at the clicked location
@@ -160,21 +162,15 @@ fun MapScreen(
                 if (showTrajectorySheet) sheetState.show() else sheetState.hide()
             }
 
-            /**
-             * Updates the displayed lat/lon string whenever coords change,
-             * and clears any previous parse errors.
-             */
+            // Updates the displayed lat/lon string whenever coords change,and clears any previous parse errors.
             LaunchedEffect(coords) {
                 coordsString = "%.4f, %.4f".format(coords.first, coords.second)
                 parseError = null
             }
 
-            // Trigger to reload base style
+            // Trigger to clear the current trajectory data and forces the map style to reload.
             var styleReloadTrigger by rememberSaveable { mutableStateOf(0) }
 
-            /**
-             * Clears the current trajectory data and forces the map style to reload.
-             */
 
 
             Box(Modifier
@@ -256,7 +252,8 @@ fun MapScreen(
                                 )
                             },
                             text = { Text("BALLISTIC\nTRAJECTORY") },
-                            onClick = { showTrajectoryPopup = true },
+                            onClick = { scope.launch { viewModel.updateLatestAvailableGrib() }
+                                showTrajectoryPopup = true },
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(16.dp)
@@ -275,25 +272,30 @@ fun MapScreen(
                             selectedConfig = selectedCfg,
                             onSelectConfig = { viewModel.selectConfig(it) },
                             onClose = { showTrajectoryPopup = false },
-                            onStartTrajectory = { viewModel.startTrajectory() },
+                            onStartTrajectory = { instant -> viewModel.startTrajectory(instant) },
                             onEditConfigs = onNavigateToRocketConfig,
                             onClearTrajectory = {
                                 viewModel.clearTrajectory()
-                                styleReloadTrigger++
+                                // trigger a recomposition of the map if you like
+                            },
+                            availabilityInstant = latestAvailableGrib,
+                            onRetryAvailability = {
+                                // re-fetch and stay open
+                                scope.launch { viewModel.updateLatestAvailableGrib() }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
-                                .zIndex(1f)
+                                .zIndex(1f),
                         )
                     }
 
                     Column(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(start = 16.dp, top = 38.dp, end = 38.dp)
                     ) {
-                        if (!showTrajectoryPopup) {
+                        if (!showTrajectoryPopup && showAnnotations) {
                             // Display the latitude and longitude input field
                             LatLonDisplay(
                                 coordinates = coordsString,
@@ -316,19 +318,34 @@ fun MapScreen(
                                         }
                                     } ?: run { parseError = "Invalid format" }
                                 },
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                modifier = Modifier.align(Alignment.Start)
                             )
                             parseError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         }
                     }
-                    // Floating button to open the launch site menu
+
                     if (!showTrajectoryPopup) {
+                        // Floating button to open the launch site menu
                         LaunchSitesButton(
                             Modifier
                                 .align(Alignment.BottomStart)
                                 .padding(16.dp)
                                 .size(90.dp),
                             onClick = { isMenuExpanded = !isMenuExpanded }
+                        )
+                        // Floating button to navigate to the weather screen
+                        WeatherNavigationButton(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(16.dp)
+                                .size(90.dp),
+                            latInput = coords.first.toString(),
+                            lonInput = coords.second.toString(),
+                            onNavigate = { lat, lon ->
+                                viewModel.updateCoordinates(lat, lon)
+                                onNavigateToWeather(lat, lon)
+                            },
+                            context = LocalContext.current
                         )
                     }
 
@@ -365,6 +382,7 @@ fun MapScreen(
                             }
                         )
                     }
+
                     Surface(
                         tonalElevation = 0.dp,
                         shape = CircleShape,
@@ -391,22 +409,6 @@ fun MapScreen(
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                    }
-                    // Floating button to navigate to the weather screen
-                    if (!showTrajectoryPopup) {
-                        WeatherNavigationButton(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(16.dp)
-                                .size(90.dp),
-                            latInput = coords.first.toString(),
-                            lonInput = coords.second.toString(),
-                            onNavigate = { lat, lon ->
-                                viewModel.updateCoordinates(lat, lon)
-                                onNavigateToWeather(lat, lon)
-                            },
-                            context = LocalContext.current
-                        )
                     }
                     // Popup dialog for saving a launch site
                     if (showSaveDialog) {

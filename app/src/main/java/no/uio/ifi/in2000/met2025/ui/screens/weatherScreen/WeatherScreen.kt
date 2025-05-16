@@ -65,7 +65,6 @@ import java.time.format.DateTimeFormatter
  * allows configuration and filtering of forecasts, and manages UI overlays
  * such as configuration, filters, and launch site selection.
  */
-
 @Composable
 fun WeatherScreen(
     viewModel: WeatherViewModel = hiltViewModel(),
@@ -78,6 +77,7 @@ fun WeatherScreen(
     val coordinates by viewModel.coordinates.collectAsState()
     val launchSites by viewModel.launchSites.collectAsState(initial = emptyList())
     val currentSite by viewModel.currentSite.collectAsState()
+    val latestAvailableGribTime by viewModel.latestAvailableGribTime.collectAsState()
 
     // UI control state
     var hoursToShow by rememberSaveable { mutableStateOf(24f) }
@@ -117,7 +117,8 @@ fun WeatherScreen(
                 selectedStatuses = selectedStatuses,
                 viewModel = viewModel,
                 isSunFilterActive = isSunFilterActive,
-                launchSites = launchSites
+                launchSites = launchSites,
+                latestAvailableGribTime = latestAvailableGribTime
             )
             // Segmented Bottom Bar with three buttons
             SegmentedBottomBar(
@@ -227,7 +228,8 @@ fun ScreenContent(
     currentSite: LaunchSite?,
     viewModel: WeatherViewModel,
     isSunFilterActive: Boolean,
-    launchSites: List<LaunchSite>
+    launchSites: List<LaunchSite>,
+    latestAvailableGribTime: Instant?
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
@@ -354,7 +356,8 @@ fun ScreenContent(
                                             coordinates = coordinates,
                                             weatherConfig = weatherConfig,
                                             modifier = Modifier.padding(vertical = 8.dp),
-                                            viewModel = viewModel
+                                            viewModel = viewModel,
+                                            latestAvailableGribTime = latestAvailableGribTime
                                         )
                                     }
                                 }

@@ -64,12 +64,13 @@ fun AppDrawer(
     val infoText = when (infoTitle) {
         // Define the help text paragraphs for each section
         "Map"-> "How to use the map: \n" +
-                "- Longpress the map to place a marker.\n" +
-                "- Or input coordinates at the top of the screen.\n" +
+                "- Longpress the map to place a marker" +
+                " (or input coordinates at the top of the screen).\n" +
                 "- Longpress the label above a marker to edit the name and save it as a launch site.\n" +
                 "- Saved sites can be deleted from the launch site screen.\n" +
                 "- Double click  a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
-                "- Open the rocket launch trajectory simulation menu by pressing the trajectory button."
+                "- Open the rocket launch trajectory simulation menu by pressing the trajectory button.\n" +
+                "- Clear trajectory between launches to make sure calculations and renders happen correctly."
 
         //this has a bit of a unique display, and is therefore defined more in the actual method.
         "Weather" -> "Forecast screen:\n"
@@ -281,6 +282,19 @@ fun AppDrawer(
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
+                    //names were wrong on import
+                    val check = if (isLightMode) R.drawable.check_dark
+                        else R.drawable.check_light
+                    val x = if (isLightMode) R.drawable.x_dark
+                        else R.drawable.x_light
+                    InfoBlock(text ="- The blue checkmark means the launch window is safe\n"+
+                                    "- The red cross means the launch window is unsafe\n"+
+                                    "- The yellow warning means the launch window is close to "+
+                                    "the tresholds, and requires caution\n"+
+                                    "- The purple cloud icon indicates not sufficient data",
+                        iconRes = listOf(check, x, R.drawable.caution, R.drawable.no_data),
+                        contentDescription = "Wind Evaluation Icon descriptions")
+                    //wind direction pointer description
                     InfoBlock(
                         text = "Wind blows from the direction indicated by the red end, " +
                                 "and towards the direction indicated by the white end.\n" +
@@ -289,15 +303,19 @@ fun AppDrawer(
                         iconRes = listOf(R.drawable.windicator),
                         contentDescription = "Wind Direction Pointer"
                     )
-                    val gribFetched = if (isLightMode) R.drawable.grib_fetched_light
-                        else R.drawable.grib_fetched_dark
-                    val gribNotFetched = if (isLightMode) R.drawable.grib_not_fetched_light
-                        else R.drawable.grib_not_fetched_dark
+                    //grib icon descriptions
+                    val gribFetched = if (isLightMode) R.drawable.grib_light_blue
+                        else R.drawable.grib_dark_blue
+                    val gribNotFetched = if (isLightMode) R.drawable.grib_light_empty
+                        else R.drawable.grib_dark_empty
+                    val gribNotAvailable = if (isLightMode) R.drawable.grib_light_purple
+                        else R.drawable.grib_dark_purple
                     InfoBlock(
-                        text = "An empty icon shows that grib data is not yet fetched.\n" +
-                            "A filled icon shows that grib data is fetched.\n" +
-                            "When grib data is fetched, it is part of the safety evaluation",
-                        iconRes = listOf(gribFetched, gribNotFetched),
+                        text =  "- A filled blue icon shows that grib data is fetched.\n" +
+                                "- An empty icon shows that grib data is not yet fetched.\n" +
+                                "- A purple icon shows that grib data is not available.\n" +
+                                "- When grib data is fetched, it is part of the safety evaluation",
+                        iconRes = listOf(gribFetched, gribNotFetched, gribNotAvailable),
                         contentDescription = "Grib Icons"
                     )
                 }
@@ -313,10 +331,10 @@ fun AppDrawer(
  */
 @Composable
 fun InfoBlock(
+    modifier: Modifier = Modifier,
     text: String,
     @DrawableRes iconRes: List<Int>,
     contentDescription: String? = null,
-    modifier: Modifier = Modifier
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
