@@ -47,24 +47,6 @@ fun WeatherConfig.isEnabled(parameter: ConfigParameter): Boolean
     //else -> false
 }
 
-fun WeatherConfig.thresholdsMap()
-= mapOf(
-    ConfigParameter.GROUND_WIND to groundWindThreshold,
-    ConfigParameter.AIR_WIND to airWindThreshold,
-    ConfigParameter.CLOUD_COVER to cloudCoverThreshold,
-    ConfigParameter.CLOUD_COVER_HIGH to cloudCoverHighThreshold,
-    ConfigParameter.CLOUD_COVER_MEDIUM to cloudCoverMediumThreshold,
-    ConfigParameter.CLOUD_COVER_LOW to cloudCoverLowThreshold,
-    ConfigParameter.FOG to fogThreshold,
-    ConfigParameter.PRECIPITATION to precipitationThreshold,
-    ConfigParameter.HUMIDITY to humidityThreshold,
-    ConfigParameter.DEW_POINT to dewPointThreshold,
-    ConfigParameter.PROBABILITY_OF_THUNDER to probabilityOfThunderThreshold,
-    ConfigParameter.ALTITUDE_UPPER_BOUND to altitudeUpperBound,
-    ConfigParameter.WIND_SHEAR_SPEED to windShearSpeedThreshold,
-    ConfigParameter.WIND_SPEED_OF_GUST to groundWindThreshold
-)
-
 fun ConfigParameter.label(): String
 = when (this) {
     ConfigParameter.GROUND_WIND -> "Ground Wind"

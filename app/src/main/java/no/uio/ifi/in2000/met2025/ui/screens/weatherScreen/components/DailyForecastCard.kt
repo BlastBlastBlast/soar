@@ -441,33 +441,3 @@ fun DailyForecastCard(
         }
     }
 }
-
-@Composable
-fun DailyLazyRow(allForecastItems: List<ForecastDataItem>) {
-    val dailyForecasts = allForecastItems
-        .groupBy { formatZuluTimeToLocalDate(it.time) }
-        .values
-        .toList()
-        .take(3)
-
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(dailyForecasts) { dayForecast ->
-            DailyForecastCard(forecastItems = dayForecast)
-        }
-    }
-}
-
-@Composable
-fun DailyForecastRowSection(forecastItems: List<ForecastDataItem>) {
-    Column {
-        Text(
-            text = "Daily Forecast",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        DailyLazyRow(allForecastItems = forecastItems)
-    }
-}

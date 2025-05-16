@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,11 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.models.RocketParameterType
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedNumberField
 import no.uio.ifi.in2000.met2025.ui.common.AppOutlinedTextField
+import no.uio.ifi.in2000.met2025.ui.common.TutorialWindow
 import no.uio.ifi.in2000.met2025.ui.screens.config.ConfigViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
@@ -56,6 +59,7 @@ fun RocketConfigEditScreen(
     val rocketNames by viewModel.rocketNames.collectAsState()
 
     val defaultsMap = getDefaultRocketParameterValues().valueMap
+    val isRocketConfigFirstRun by viewModel.isRocketConfigFirstRun.collectAsState()
 
     var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Config") }
     var launchAzimuth by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchAzimuth?.toString()
@@ -83,11 +87,23 @@ fun RocketConfigEditScreen(
     var parachuteDragCoefficient by remember(rocketParameters) { mutableStateOf(rocketParameters?.parachuteDragCoefficient?.toString()
         ?: defaultsMap[RocketParameterType.PARACHUTE_DRAG_COEFFICIENT.name]?.toString() ?: "") }
 
+    if (isRocketConfigFirstRun) {
+        TutorialWindow(
+            onDismiss = { viewModel.markRocketConfigSeen()},
+            title = "Warning!",
+            contentText = "Launch simulations done in the app are based on realistic models and " +
+                    "calculations. \nChanging the parameters outside realistic bounds might cause " +
+                    "unintended behavior during simulations!\n\n" +
+                    "This is actual rocket science!",
+            iconRes = listOf(R.drawable.caution)
+        )
+    }
     Box(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        Spacer(Modifier.height(16.dp))
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -105,7 +121,6 @@ fun RocketConfigEditScreen(
             shadowElevation = 8.dp,
             shape = RoundedCornerShape(12.dp)
         ) {
-
             val isNameError = name in rocketNames && name != rocketParameters?.name
             Column(
                 Modifier
@@ -322,8 +337,6 @@ fun RocketConfigEditScreen(
                         }
                     )
                 }
-
-                Spacer(Modifier.height(16.dp))
             }
         }
     }

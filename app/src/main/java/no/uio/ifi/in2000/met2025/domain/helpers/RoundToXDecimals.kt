@@ -3,11 +3,11 @@ package no.uio.ifi.in2000.met2025.domain.helpers
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-fun RoundDoubleToXDecimals(value: Double, x: Int) : Double {
+fun roundDoubleToXDecimals(value: Double, x: Int) : Double {
     return BigDecimal(value).setScale(x, RoundingMode.HALF_UP).toDouble()
 }
 
-fun RoundFloatToXDecimalsDouble(value: Float, x: Int) : Double {
+fun roundFloatToXDecimalsDouble(value: Float, x: Int) : Double {
     return BigDecimal(value.toDouble()).setScale(x, RoundingMode.HALF_UP).toDouble()
 }
 

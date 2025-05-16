@@ -22,12 +22,6 @@ class LaunchSiteViewModel @Inject constructor(
     // Flow of all saved launch sites.
     val launchSites: Flow<List<LaunchSite>> = launchSiteRepository.getAll()
 
-    // Flow for "Last Visited" temporary site.
-    val tempLaunchSite: Flow<LaunchSite?> = launchSiteRepository.getLastVisitedTempSite()
-
-    // Flow for "New Marker" temporary site.
-    val newMarkerTempSite: Flow<LaunchSite?> = launchSiteRepository.getNewMarkerTempSite()
-
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         data class Success(val siteUid: Int) : UpdateStatus()
@@ -44,45 +38,6 @@ class LaunchSiteViewModel @Inject constructor(
             launchSiteRepository.getAllLaunchSiteNames().collect { names ->
                 _launchSiteNames.value = names
             }
-        }
-    }
-
-    // Update "Last Visited" temporary site.
-    fun updateTemporaryLaunchSite(latitude: Double, longitude: Double) {
-        viewModelScope.launch {
-            val currentTempSite = tempLaunchSite.firstOrNull()
-            if (currentTempSite == null) {
-                launchSiteRepository.insert(
-                    LaunchSite(latitude = latitude, longitude = longitude, name = "Last Visited")
-                )
-            } else {
-                launchSiteRepository.update(
-                    currentTempSite.copy(latitude = latitude, longitude = longitude)
-                )
-            }
-        }
-    }
-
-    // Update "New Marker" temporary site.
-    fun updateNewMarkerSite(latitude: Double, longitude: Double) {
-        viewModelScope.launch {
-            val currentNewMarker = newMarkerTempSite.firstOrNull()
-            if (currentNewMarker == null) {
-                launchSiteRepository.insert(
-                    LaunchSite(latitude = latitude, longitude = longitude, name = "New Marker")
-                )
-            } else {
-                launchSiteRepository.update(
-                    currentNewMarker.copy(latitude = latitude, longitude = longitude)
-                )
-            }
-        }
-    }
-
-    // Permanently add a launch site.
-    fun addLaunchSite(latitude: Double, longitude: Double, name: String) {
-        viewModelScope.launch {
-            launchSiteRepository.insert(LaunchSite(latitude = latitude, longitude = longitude, name = name))
         }
     }
 
