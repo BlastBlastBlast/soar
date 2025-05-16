@@ -17,11 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.InvertColors
-import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Thermostat
-import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
