@@ -32,19 +32,12 @@ fun CompassDial(
         .padding(16.dp)
 ) {
     // Hoist all theme & density lookups here
-    val primaryColor     = MaterialTheme.colorScheme.primary
-    val onBackground     = MaterialTheme.colorScheme.onBackground
-    val onBackgroundSemi = onBackground.copy(alpha = 0.4f)
+    val primaryColor     = Color.White
+    val onBackground     = Color.White
 
     // Precompute label text size in px
     val density         = LocalDensity.current
     val labelTextSizePx = with(density) { 20.sp.toPx() }
-
-//    // Animate rotation
-//    val animatedHeading by animateFloatAsState(
-//        targetValue = -heading,
-//        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
-//    )
 
     Canvas(modifier = modifier) {
         val radius = size.minDimension / 2f
@@ -104,30 +97,6 @@ fun CompassDial(
                 )
             }
         }
-
-//        // Needle
-//        rotate(animatedHeading, pivot = center) {
-//            // North (red)
-//            drawPath(
-//                path = Path().apply {
-//                    moveTo(center.x, center.y - radius * 0.7f)
-//                    lineTo(center.x - radius * 0.05f, center.y + radius * 0.1f)
-//                    lineTo(center.x + radius * 0.05f, center.y + radius * 0.1f)
-//                    close()
-//                },
-//                color = Color.Red
-//            )
-//            // South (semi-transparent)
-//            drawPath(
-//                path = Path().apply {
-//                    moveTo(center.x, center.y + radius * 0.7f)
-//                    lineTo(center.x - radius * 0.05f, center.y - radius * 0.1f)
-//                    lineTo(center.x + radius * 0.05f, center.y - radius * 0.1f)
-//                    close()
-//                },
-//                color = onBackgroundSemi
-//            )
-//        }
 
         // Center hub
         drawCircle(

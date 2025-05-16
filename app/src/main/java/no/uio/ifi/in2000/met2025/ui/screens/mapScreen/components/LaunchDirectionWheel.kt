@@ -79,7 +79,7 @@ fun LaunchDirectionWheel(
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
 
     // dial dimensions
-    val dialSize = 200.dp
+    val dialSize = 180.dp
     val dialSizePx = with(LocalDensity.current) { dialSize.toPx() }
     val center = Offset(dialSizePx / 2f, dialSizePx / 2f)
 
@@ -135,27 +135,19 @@ fun LaunchDirectionWheel(
             else -> { }
         }
 
-        // numeric readouts
-        Box(
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .background(surfaceColor, RoundedCornerShape(4.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp)// make row as wide as the dial
         ) {
             Text(
-                text = "Wind from: ${windDirection.toInt()}°",
+                text = "Wind dir: ${windDirection.toInt()}°",
                 fontSize = 14.sp,
                 color = onSurfaceColor
             )
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .background(surfaceColor, RoundedCornerShape(4.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
             Text(
-                text = "Launch direction: ${rotationAngle.toInt()}°",
+                text = "Launch dir: ${rotationAngle.toInt()}°",
                 fontSize = 14.sp,
                 color = onSurfaceColor
             )
