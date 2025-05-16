@@ -43,7 +43,10 @@
     - Define and save configurations for rocket parameters (mass, thrust, drag, parachute, launch angles, etc..)
     - Easily switch between configurations for simulation
     - Render 3D markers along the flight path at user-defined intervals, the caluclations are based on your chosen rocket parameters and interpolated weather data from a minimum of 16 data points.
-    - A launch can be simulated for all launchwindows for which data is currently available
+    - A launch can be simulated for all launchwindows for which data is currently available.
+    - Choose launch azimuth and pitch via interactive UI elements.
+        - Compass style spinner for azimuth
+        - Sliding bar for pitch
 - **Intuitive UI & navigation**
     - Persistent top-bar + drawer menu for fast navigation between map, weather, configs & sites
     - Context-sensitive info panel in the drawer
@@ -161,8 +164,9 @@ cd team-21
 
 1. From the Map click the **Trajectory** button.
 2. In the pop-up sheet at the bottom of the screen verify that you've chosen the correct launch site.
-3. Select (or edit) a rocket configuration
-4. Tap **Start Simulation** to plot 3D markers along the flight path.
+3. Select (or edit) a rocket configuration.
+4. Set your desired launch azimuth and pitch.
+5. Tap **Start Simulation** to plot 3D markers along the flight path.
 
 ---
 
@@ -176,12 +180,16 @@ cd team-21
     - Bottom-left: Open an interactible menu of all your launch sites → center map on selection
     - Bottom-right: Go to Weather screen for the currently selected launch site
     - Top: Manual coordinates entry field → Places a marker when pressing done
-    - Eye-icon: Toggle marker labels on/off
-    - Trajectory button: Opens bottom sheet
+    - Eye-icon: Toggle UI elements on the upper part of the screen and marker labels on/off
+    - Trajectory button: Opens trajectory simulation UI
+    - Azimuth compass: Adjust launch azimuth by choosing a direction on the compass.
+        - Tap the compass to set launch direction directly into the wind
+    - Pitch slider: Adjust launch pitch by moving the slider.
     - Trajectory bottom sheet:
         - Horizontally scrollable carousel for selecting rocket config for trajectory simulation
         - Edit Rocket Configs: navigates to the rocket config editor
         - Simulate trajectory: Starts a simulation for your chosen rocket config at your current launchsite.
+        - Clear trajectory: Remove all rendered trajectorys and reset the map.
 - **Weather Screen Controls**
     - Scroll horizontally to change between days.
     - Scroll vertically to see more hourly cards for the chosen day.
