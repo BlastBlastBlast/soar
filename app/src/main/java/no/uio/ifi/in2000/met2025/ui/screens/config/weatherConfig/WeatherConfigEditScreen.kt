@@ -105,7 +105,7 @@ fun WeatherConfigEditScreen(
         SettingItem("Thunder Probability",        thunder, { thunder  = it }, isEnabledThunder){ isEnabledThunder  = it },
     )
 
-    ScreenContainer(title = if (weatherConfig == null) "New Configuration" else "Edit Configuration") {
+    ScreenContainer(title = if (weatherConfig == null) "NEW WEATHER CONFIG" else "EDIT WEATHER CONFIG") {
         val isNameError = configName in weatherNames && configName != weatherConfig?.name
 
         // Name section with duplicate-name validation

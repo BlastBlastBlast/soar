@@ -301,11 +301,13 @@ fun AppDrawer(
                         else R.drawable.check_light
                     val x = if (isLightMode) R.drawable.x_dark
                         else R.drawable.x_light
-                    InfoBlock(text ="- The blue checkmark means the launch window is safe\n"+
-                                    "- The red cross means the launch window is unsafe\n"+
-                                    "- The yellow warning means the launch window is close to "+
-                                    "the tresholds, and requires caution\n"+
-                                    "- The purple cloud icon indicates not sufficient data",
+                    InfoBlock(text ="- Blue Checkmark: All weather parameters are within the " +
+                                    "selected thresholds.\n" +
+                                    "- Red Cross: One or more parameters exceed the selected " +
+                                    "thresholds by 10% or more.\n" +
+                                    "- Yellow Exclamation: One or more parameters are within "+
+                                    "10% range of the thresholds. Be cautious!\n"+
+                                    "- Purple Cloud: One or more evaluated parameters has no data available.",
                         iconRes = listOf(check, x, R.drawable.caution, R.drawable.no_data),
                         contentDescription = "Wind Evaluation Icon descriptions")
                     //wind direction pointer description
