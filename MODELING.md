@@ -897,6 +897,7 @@ classDiagram
         - launchSiteRepository: LaunchSiteRepository
         - rocketConfigRepository: RocketConfigRepository
         - isobaricInterpolator: IsobaricInterpolator
+	- userPrefs: UserPreferences
         + uiState: StateFlow&lt;MapScreenUiState&gt;
         + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
         + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
@@ -912,7 +913,7 @@ classDiagram
         + addLaunchSite: (lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
         + geocodeAddress: (address: String) -> Pair&lt;Double, Double&gt;?
         + updateSiteElevation: (siteId: Int, elevation: Double) -> Unit
-        + userPrefs: UserPreferences
+        
     }
 
     class MapScreen {
@@ -1273,6 +1274,7 @@ classDiagram
         <<HiltViewModel>>
         - weatherRepo: WeatherConfigRepository
         - rocketRepo: RocketConfigRepository
+	- userPrefs: UserPreferences
         + weatherConfigs: Flow&lt;List&lt;WeatherConfig&gt;&gt;
         + rocketConfigs: Flow&lt;List&lt;RocketConfig&gt;&gt;
         + weatherNames: StateFlow&lt;List&lt;String&gt;&gt;
@@ -1291,19 +1293,6 @@ classDiagram
         + deleteRocketConfig(rc: RocketConfig): Unit
         + checkRocketNameAvailability(name: String): Unit
         + resetRocketStatus(): Unit
-        + userPrefs: UserPreferences
-    }
-
-    class ConfigType {
-        <<sealed>>
-        - route: String
-        - label: String
-    }
-    class ConfigTypeWeather {
-        <<object>>
-    }
-    class ConfigTypeRocket {
-        <<object>>
     }
 
     class ConfigScreen {
@@ -1371,7 +1360,7 @@ classDiagram
     ConfigViewModel <|.. WeatherConfigEditScreen : uses
     ConfigViewModel <|.. RocketConfigListScreen  : uses
     ConfigViewModel <|.. RocketConfigEditScreen  : uses
-    ConfigViewModel --> UserPreferences : uses
+  
 
     %% Navigation
     ConfigScreen --> WeatherConfigListScreen    : navigates
