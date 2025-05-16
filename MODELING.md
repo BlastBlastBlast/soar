@@ -5,6 +5,7 @@
     - [App launch → MapScreen](#app-launch---mapscreen)
     - [MapScreen – MarkerAnnotation and LaunchSite handling](#mapscreen---markerannotation-and-launchsite-handling)
     - [MapScreen – MapView and Location selection and Trajectory Loading](#mapscreen---mapview-and-location-selection-and-trajectory-loading)
+    - [Map Screen](#map-screen)
 - [Weather Screen](#weather-screen)
     - [Weather Screen Navigation and initialization](#weather-screen-navigation-and-initialization)
     - [Weather Screen – Hourly Card and Isobaric Data rendering](#weather-screen---hourly-card-and-isobaric-data-rendering)
@@ -16,7 +17,7 @@
     - [Weather Config List Screen](#weather-config-list-screen)
     - [Weather Config Edit Screen](#weather-config-edit-screen)
 - [Class diagrams](#class-diagrams)
-    - [Map Screen](#map-screen)
+   
     - [Weather Screen](#weather-screen)
     - [Segmented bottom bar](#segmented-bottom-bar)
     - [Configuration classes](#configuration-classes)
