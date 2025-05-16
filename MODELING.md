@@ -867,7 +867,97 @@ classDiagram
     DefaultWeatherParameters ..> WeatherConfig       : provides
 
 ```
+---
 
+### Segmented bottom bar Class Diagram
+```mermaid
+classDiagram
+    class SegmentedBottomBar {
+        + SegmentedBottomBar(
+            onConfigClick: () -> Unit
+            onFilterClick: () -> Unit
+            onLaunchClick: () -> Unit 
+            modifier: Modifier = Modifier
+            ) : Unit
+    }
+
+    class LaunchSitesMenuOverlay {
+        + LaunchSitesMenuOverlay(launchSites: List&lt;LaunchSite&gt;
+         onSiteSelected: (LaunchSite) -> Unit
+          onDismiss: () -> Unit
+           modifier: Modifier = Modifier
+           ) : Unit
+    }
+
+    class SiteMenuItemList {
+        + SiteMenuItemList(launchSites: List&lt;LaunchSite&gt;
+        onSelect: (LaunchSite) -> Unit 
+        minWidth: Dp 
+        maxWidth: Dp
+        ) : Unit
+    }
+
+    class SiteMenuItem {
+        + SiteMenuItem(site: LaunchSite 
+        onClick: () -> Unit 
+        minWidth: Dp 
+        maxWidth: Dp
+        ) : Unit
+    }
+
+    class WeatherConfigOverlay {
+        + WeatherConfigOverlay(configList: List&lt;WeatherConfig&gt;,
+        onConfigSelected: (WeatherConfig) -> Unit,
+        onNavigateToEditConfigs: () -> Unit,
+        onDismiss: () -> Unit,
+        modifier: Modifier = Modifier
+        ) : Unit
+    }
+
+    class EditWeatherConfig {
+        + EditWeatherConfig(onClick: () -> Unit,
+        enabled: Boolean,
+        modifier: Modifier = Modifier
+        ) : Unit
+    }
+
+    class WeatherConfigItem {
+        + WeatherConfigItem(weatherConfig: WeatherConfig,
+        onConfigSelected: (WeatherConfig) -> Unit,
+        modifier: Modifier = Modifier
+        ) : Unit
+    }
+
+    class WeatherFilterOverlay {
+        + WeatherFilterOverlay(isFilterActive: Boolean,
+        onToggleFilter: () -> Unit,
+        hoursToShow: Float,
+        onHoursChanged: (Float) -> Unit,
+        onDismiss: () -> Unit,
+        modifier: Modifier = Modifier,
+        selectedStatuses: Set&lt;LaunchStatus&gt;,
+        onStatusToggled: (LaunchStatus) -> Unit,
+        isSunFilterActive: Boolean,
+        onToggleSunFilter: () -> Unit
+        ) : Unit
+    }
+
+    %% Relationships
+    SegmentedBottomBar --> LaunchSitesMenuOverlay    : opens
+    SegmentedBottomBar --> WeatherFilterOverlay      : opens
+    SegmentedBottomBar --> WeatherConfigOverlay      : opens
+
+    LaunchSitesMenuOverlay --> SiteMenuItemList      : composes
+    SiteMenuItemList --> SiteMenuItem               : composes
+
+    WeatherConfigOverlay --> EditWeatherConfig      : composes
+    WeatherConfigOverlay --> WeatherConfigItem      : composes
+
+    WeatherFilterOverlay ..> LaunchStatusToggleRow  : uses
+    WeatherFilterOverlay ..> SunriseFilter          : uses
+
+```
+---
 
 ## Rocket Config
 ### Rocket Config List Screen
@@ -1181,94 +1271,6 @@ sequenceDiagram
 
 
 
-### Segmented bottom bar
-```mermaid
-classDiagram
-    class SegmentedBottomBar {
-        + SegmentedBottomBar(
-            onConfigClick: () -> Unit
-            onFilterClick: () -> Unit
-            onLaunchClick: () -> Unit 
-            modifier: Modifier = Modifier
-            ) : Unit
-    }
-
-    class LaunchSitesMenuOverlay {
-        + LaunchSitesMenuOverlay(launchSites: List&lt;LaunchSite&gt;
-         onSiteSelected: (LaunchSite) -> Unit
-          onDismiss: () -> Unit
-           modifier: Modifier = Modifier
-           ) : Unit
-    }
-
-    class SiteMenuItemList {
-        + SiteMenuItemList(launchSites: List&lt;LaunchSite&gt;
-        onSelect: (LaunchSite) -> Unit 
-        minWidth: Dp 
-        maxWidth: Dp
-        ) : Unit
-    }
-
-    class SiteMenuItem {
-        + SiteMenuItem(site: LaunchSite 
-        onClick: () -> Unit 
-        minWidth: Dp 
-        maxWidth: Dp
-        ) : Unit
-    }
-
-    class WeatherConfigOverlay {
-        + WeatherConfigOverlay(configList: List&lt;WeatherConfig&gt;,
-        onConfigSelected: (WeatherConfig) -> Unit,
-        onNavigateToEditConfigs: () -> Unit,
-        onDismiss: () -> Unit,
-        modifier: Modifier = Modifier
-        ) : Unit
-    }
-
-    class EditWeatherConfig {
-        + EditWeatherConfig(onClick: () -> Unit,
-        enabled: Boolean,
-        modifier: Modifier = Modifier
-        ) : Unit
-    }
-
-    class WeatherConfigItem {
-        + WeatherConfigItem(weatherConfig: WeatherConfig,
-        onConfigSelected: (WeatherConfig) -> Unit,
-        modifier: Modifier = Modifier
-        ) : Unit
-    }
-
-    class WeatherFilterOverlay {
-        + WeatherFilterOverlay(isFilterActive: Boolean,
-        onToggleFilter: () -> Unit,
-        hoursToShow: Float,
-        onHoursChanged: (Float) -> Unit,
-        onDismiss: () -> Unit,
-        modifier: Modifier = Modifier,
-        selectedStatuses: Set&lt;LaunchStatus&gt;,
-        onStatusToggled: (LaunchStatus) -> Unit,
-        isSunFilterActive: Boolean,
-        onToggleSunFilter: () -> Unit
-        ) : Unit
-    }
-
-    %% Relationships
-    SegmentedBottomBar --> LaunchSitesMenuOverlay    : opens
-    SegmentedBottomBar --> WeatherFilterOverlay      : opens
-    SegmentedBottomBar --> WeatherConfigOverlay      : opens
-
-    LaunchSitesMenuOverlay --> SiteMenuItemList      : composes
-    SiteMenuItemList --> SiteMenuItem               : composes
-
-    WeatherConfigOverlay --> EditWeatherConfig      : composes
-    WeatherConfigOverlay --> WeatherConfigItem      : composes
-
-    WeatherFilterOverlay ..> LaunchStatusToggleRow  : uses
-    WeatherFilterOverlay ..> SunriseFilter          : uses
-
-```
 
 ### Configuration classes
 ```mermaid
