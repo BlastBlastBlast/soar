@@ -75,8 +75,9 @@ fun AppDrawer(
                 "- Verify that you've chosen the correct launch site.\n" +
                 "- Choose an existing rocket config, or create a new one.\n" +
                 "- Choose the time you want the simulation to use weather data from.\n" +
-                "- Choose pitch by scrolling to your desired value.\n" +
-                "- Choose azimuth by spinning the compass.\n" +
+                "- Choose pitch by move the slider to your desired value.\n" +
+                "- Choose azimuth by spinning the pointer in the compass.\n" +
+                "- Clicking the compass sets the simulation to launch into the wind." +
                 "- Press Start Trajectory to start your simulation!\n" +
                 "- The needle in the compass indicates Wind Direction. The red part shows where the wind" +
                 " is blowing from, the white part where it is blowing towards.\n\n" +
