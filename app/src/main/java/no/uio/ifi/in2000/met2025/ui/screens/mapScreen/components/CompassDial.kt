@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.cos
 import kotlin.math.sin
 
+/**
+ * A compass dial with tick marks and cardinal labels.
+ *
+ * @param modifier Modifier to be applied to the canvas.
+ */
 @Composable
 fun CompassDial(
     modifier: Modifier = Modifier
