@@ -207,6 +207,26 @@ fun MapView(
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
 
+                    mv.mapboxMap.getStyle { style ->
+                        // Remove all "traj-lyr-*" layers
+                        style.styleLayers
+                            .map { it.id }
+                            .filter { it.startsWith("traj-lyr-") }
+                            .forEach { style.removeStyleLayer(it) }
+
+                        // Remove all "traj-src-*" sources
+                        style.styleSources
+                            .map { it.id }
+                            .filter { it.startsWith("traj-src-") }
+                            .forEach { style.removeStyleSource(it) }
+
+                        // Also remove our endpoint circles
+                        style.removeStyleLayer("endpoint-lyr-start")
+                        style.removeStyleLayer("endpoint-lyr-end")
+                        style.removeStyleSource("endpoint-src-start")
+                        style.removeStyleSource("endpoint-src-end")
+                    }
+
                     // Offset model rendering
                     val firstFreeFlightIdx = trajectoryPoints
                         .indexOfFirst { it.third == RocketState.FREE_FLIGHT }

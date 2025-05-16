@@ -56,7 +56,6 @@ class MapScreenViewModel @Inject constructor(
     private val isobaricInterpolator: IsobaricInterpolator,
     private val isobaricRepository: IsobaricRepository,
     private val locationForecastRepository: LocationForecastRepository,
-    private val isobaricRepository: IsobaricRepository,
     private val userPrefs: UserPreferences
 ) : ViewModel() {
 
