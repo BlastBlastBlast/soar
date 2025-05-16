@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIndicator
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterConditions
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -138,7 +137,7 @@ fun HourlyExpandableCard(
                                 modifier = Modifier.size(36.dp),
                                 tint = Color.Unspecified
                             )
-                            LaunchStatusIndicator(
+                            LaunchStatusIcon(
                                 weatherConfig = weatherConfig,
                                 forecast      = forecastItem,
                                 isobaricData.isobaricData,
@@ -176,7 +175,7 @@ fun HourlyExpandableCard(
                                 modifier = Modifier.size(36.dp),
                                 tint = Color.Unspecified
                             )
-                            LaunchStatusIndicator(
+                            LaunchStatusIcon(
                                 weatherConfig = weatherConfig,
                                 forecast      = forecastItem,
                                 modifier = Modifier

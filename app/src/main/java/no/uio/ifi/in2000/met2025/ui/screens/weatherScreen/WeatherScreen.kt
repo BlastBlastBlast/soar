@@ -44,7 +44,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatus
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.ParameterState
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateConditions
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.launchStatus
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.DailyForecastCard
@@ -258,7 +258,7 @@ fun ScreenContent(
                         if (!(afterEarliest && beforeLatest)) return@filter false
                     }
 
-                    val state = evaluateLaunchConditions(item, weatherConfig)
+                    val state = evaluateConditions(weatherConfig, item)
                     if (!filterActive) {
                         if (state !is ParameterState.Available) return@filter true
                         val status = launchStatus(state.relativeUnsafety)

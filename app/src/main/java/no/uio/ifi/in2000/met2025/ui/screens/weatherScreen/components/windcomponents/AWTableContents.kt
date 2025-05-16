@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateLaunchConditions
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateConditions
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -83,9 +83,9 @@ fun AWTableContents(
                             // semantics in class file
                         )
                     }
-                    LaunchStatusIcon(evaluateLaunchConditions(item, config), modifier = Modifier.size(24.dp).semantics {
+                    LaunchStatusIcon(evaluateConditions(config, isobaricData = item), modifier = Modifier.size(24.dp).semantics {
                         role = Role.Image
-                        contentDescription = "Launch status: ${evaluateLaunchConditions(item, config)}" }
+                        contentDescription = "Launch status: ${evaluateConditions(config, isobaricData = item)}" }
                     )
                 }
 

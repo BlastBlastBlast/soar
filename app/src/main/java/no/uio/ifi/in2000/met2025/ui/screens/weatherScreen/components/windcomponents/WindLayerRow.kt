@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.LaunchStatusIcon
-import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateParameterCondition
+import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.evaluateConditions
 import no.uio.ifi.in2000.met2025.domain.helpers.floorModDouble
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.unit
@@ -91,7 +91,7 @@ fun WindLayerRow(
                 style = style,
                 modifier = Modifier.weight(1f)
             )
-            LaunchStatusIcon(evaluateParameterCondition(windSpeed, config, ConfigParameter.AIR_WIND), modifier = Modifier.size(24.dp))
+            LaunchStatusIcon(evaluateConditions(config, ConfigParameter.AIR_WIND, windSpeed), modifier = Modifier.size(24.dp))
         }
     }
 }
