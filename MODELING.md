@@ -1,6 +1,7 @@
 ## Table of Contents
 
 - [Disclaimer](#disclaimer)
+- [Use Case Diagram](#use-case-diagram)
 - [Map Screen](#map-screen)
     - [App launch → MapScreen](#app-launch---mapscreen)
     - [MapScreen – MarkerAnnotation and LaunchSite handling](#mapscreen---markerannotation-and-launchsite-handling)
@@ -24,7 +25,7 @@
     - [Datasources and repositories](#datasources-and-repositories)
     - [Dependency Injection](#dependency-injection)
     - [Domain – Trajectory Calculation & Weather Parsing](#domain---trajectory-calculation--weather-parsing)
-- [Use Case Diagram](#use-case-diagram)
+
 
 
 > ## Disclaimer
@@ -32,7 +33,9 @@
 > - The diagrams are based on the current design and may not reflect future changes or refactorings.
 > - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
 ---
-
+## Use Case Diagram
+![SOAR Use Case Diagram](images/Use-case-SOAR.drawio.png)
+---
 ## Map Screen
 ### App launch -> MapScreen
 * **App launch & navigation setup:** When the user opens the app, `MainActivity.onCreate()` sets the Compose content to `App()`, which wraps everything in `AppScaffold` (app-wide theming) and then instantiates the `NavigationGraph` with `"maps"` as the start destination—so the `NavHostController` immediately shows `MapScreen` with its ViewModel and navigation callbacks.
@@ -1810,5 +1813,4 @@ direction TB
 ```
 ---
 
-## Use Case Diagram
-![SOAR Use Case Diagram](images/Use-case-SOAR.drawio.png)
+
