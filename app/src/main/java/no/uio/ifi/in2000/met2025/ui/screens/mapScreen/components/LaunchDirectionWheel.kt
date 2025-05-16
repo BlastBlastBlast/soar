@@ -62,12 +62,12 @@ fun WindDirectionIcon2(windDirection: Double?) {
  */
 @Composable
 fun LaunchDirectionWheel(
+    initialAngle: Double,
     onAngleChange: (Double) -> Unit = {},
-    forecastUiState: MapScreenViewModel.ForecastDataUiState,
-    selectedConfig: RocketConfig?
+    forecastUiState: MapScreenViewModel.ForecastDataUiState
 ) {
     // initial launch azimuth
-    val defaultAngle = selectedConfig?.launchAzimuth ?: 0.0
+    val defaultAngle = initialAngle
     var rotationAngle by remember { mutableStateOf(defaultAngle) }
 
     // wind-from direction when available
