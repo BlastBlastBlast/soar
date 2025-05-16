@@ -31,6 +31,7 @@ import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
@@ -54,7 +55,7 @@ class MapScreenViewModel @Inject constructor(
     private val rocketConfigRepository: RocketConfigRepository,
     private val isobaricInterpolator: IsobaricInterpolator,
     private val isobaricRepository: IsobaricRepository,
-    // private val locationForecastRepository: LocationForecastRepository,
+    private val locationForecastRepository: LocationForecastRepository,
 ) : ViewModel() {
 
     sealed class MapScreenUiState {
@@ -66,6 +67,13 @@ class MapScreenViewModel @Inject constructor(
         ) : MapScreenUiState()
 
         data class Error(val message: String) : MapScreenUiState()
+    }
+
+    sealed class ForecastDataUiState {
+        data object Idle : ForecastDataUiState()
+        data object Loading : ForecastDataUiState()
+        data class Success(val forecastData: ForecastDataItem) : ForecastDataUiState()
+        data class Error(val message: String) : ForecastDataUiState()
     }
 
     private val _rocketConfigList = MutableStateFlow<List<RocketConfig>>(emptyList())
@@ -85,6 +93,9 @@ class MapScreenViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<MapScreenUiState>(MapScreenUiState.Loading)
     val uiState: StateFlow<MapScreenUiState> = _uiState
+
+    private val _forecastUiState = MutableStateFlow<ForecastDataUiState>(ForecastDataUiState.Idle)
+    val forecastUiState: StateFlow<ForecastDataUiState> = _forecastUiState
 
     private val _coordinates = MutableStateFlow(Pair(59.942, 10.726))
     val coordinates: StateFlow<Pair<Double, Double>> = _coordinates
@@ -289,7 +300,7 @@ class MapScreenViewModel @Inject constructor(
      *  3) Calls TrajectoryCalculator.calculateTrajectory(...)
      *  4) Publishes points and triggers camera animation
      */
-    fun startTrajectory(timeOfLaunch: Instant) {
+    fun startTrajectory(timeOfLaunch: Instant, launchAzimuth: Double) {
         viewModelScope.launch {
             _isTrajectoryCalculating.value = true
             try {
@@ -309,7 +320,7 @@ class MapScreenViewModel @Inject constructor(
                         // 3) Run the physics‐based sim
                         .calculateTrajectory(
                             initialPosition = initial,
-                            launchAzimuthInDegrees = cfg.launchAzimuth,
+                            launchAzimuthInDegrees = launchAzimuth,
                             launchPitchInDegrees = cfg.launchPitch,
                             launchRailLength = cfg.launchRailLength,
                             wetMass = cfg.wetMass,
@@ -337,6 +348,17 @@ class MapScreenViewModel @Inject constructor(
             } finally {
                 _isTrajectoryCalculating.value = false
             }
+        }
+    }
+
+    fun fetchForecastData(lat: Double, lon: Double, time: Instant) {
+        viewModelScope.launch {
+            _forecastUiState.value = ForecastDataUiState.Loading
+            _forecastUiState.value = locationForecastRepository.getForecastData(lat, lon,1 , time)
+                .fold(
+                    onFailure = { ForecastDataUiState.Error(it.message ?: "Unknown error") },
+                    onSuccess = { ForecastDataUiState.Success(it.timeSeries[0]) }
+                )
         }
     }
 

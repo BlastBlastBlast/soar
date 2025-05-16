@@ -60,9 +60,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchDirectionWheel
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 /**
  * Main composable that renders the map UI.
@@ -112,6 +116,16 @@ fun MapScreen(
     val selectedCfg by viewModel.selectedConfig.collectAsState()
     var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
     val latestAvailableGrib by viewModel.latestAvailableGrib.collectAsState()
+    val forecastUiState by viewModel.forecastUiState.collectAsState()
+    var launchAzimuth by rememberSaveable { mutableStateOf(selectedCfg?.launchAzimuth ?: 0.0) }
+
+    val oslo = ZoneId.of("Europe/Oslo")
+    // truncate “now” to the top of the hour
+    val defaultLaunch = remember {
+        ZonedDateTime.now(oslo)
+            .truncatedTo(ChronoUnit.HOURS)
+            .toInstant()
+    }
 
     /**
      * Triggered on long-press: places a new marker at the clicked location
@@ -264,30 +278,45 @@ fun MapScreen(
                     }
                     // Popup for trajectory simulation
                     if (showTrajectoryPopup) {
-                        TrajectoryPopup(
-                            show = true,
-                            lastVisited = viewModel.lastVisited.collectAsState().value,
-                            currentSite = currentSite,
-                            rocketConfigs = rocketConfigs,
-                            selectedConfig = selectedCfg,
-                            onSelectConfig = { viewModel.selectConfig(it) },
-                            onClose = { showTrajectoryPopup = false },
-                            onStartTrajectory = { instant -> viewModel.startTrajectory(instant) },
-                            onEditConfigs = onNavigateToRocketConfig,
-                            onClearTrajectory = {
-                                viewModel.clearTrajectory()
-                                // trigger a recomposition of the map if you like
-                            },
-                            availabilityInstant = latestAvailableGrib,
-                            onRetryAvailability = {
-                                // re-fetch and stay open
-                                scope.launch { viewModel.updateLatestAvailableGrib() }
-                            },
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .zIndex(1f),
-                        )
+                        ) {
+                            viewModel.fetchForecastData(coords.first, coords.second, defaultLaunch)
+                            if (showAnnotations) {
+                                LaunchDirectionWheel(
+                                    onAngleChange = { launchAzimuth = it },
+                                    forecastUiState = forecastUiState,
+                                    selectedConfig = selectedCfg,
+                                )
+                            }
+                            TrajectoryPopup(
+                                show = true,
+                                lastVisited = viewModel.lastVisited.collectAsState().value,
+                                currentSite = currentSite,
+                                rocketConfigs = rocketConfigs,
+                                selectedConfig = selectedCfg,
+                                onSelectConfig = { viewModel.selectConfig(it) },
+                                onClose = { showTrajectoryPopup = false },
+                                onStartTrajectory = { instant -> viewModel.startTrajectory(instant, launchAzimuth) },
+                                onEditConfigs = onNavigateToRocketConfig,
+                                onClearTrajectory = {
+                                    viewModel.clearTrajectory()
+                                    // trigger a recomposition of the map if you like
+                                },
+                                availabilityInstant = latestAvailableGrib,
+                                onRetryAvailability = {
+                                    // re-fetch and stay open
+                                    scope.launch { viewModel.updateLatestAvailableGrib() }
+                                },
+                                onSelectWindow = { viewModel.fetchForecastData(coords.first, coords.second, it) },
+                                defaultLaunch = defaultLaunch,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter)
+                                    .zIndex(1f),
+                            )
+                        }
                     }
 
                     Column(
