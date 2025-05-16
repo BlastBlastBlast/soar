@@ -123,8 +123,14 @@ fun MapScreen(
     var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
     val latestAvailableGrib by viewModel.latestAvailableGrib.collectAsState()
     val forecastUiState by viewModel.forecastUiState.collectAsState()
-    var launchAzimuth by rememberSaveable { mutableStateOf(0.0) }
-    var launchPitch by rememberSaveable { mutableStateOf(80.0) }
+    val configAzimuth by remember(selectedCfg) {
+        derivedStateOf { selectedCfg?.launchAzimuth ?: 90.0 }
+    }
+    val configPitch by remember(selectedCfg) {
+        derivedStateOf { selectedCfg?.launchPitch ?: 80.0 }
+    }
+    var launchAzimuth by rememberSaveable { mutableStateOf(configAzimuth) }
+    var launchPitch by rememberSaveable { mutableStateOf(configPitch) }
 
     val oslo = ZoneId.of("Europe/Oslo")
     // truncate “now” to the top of the hour
@@ -191,8 +197,6 @@ fun MapScreen(
 
             // Trigger to clear the current trajectory data and forces the map style to reload.
             var styleReloadTrigger by rememberSaveable { mutableStateOf(0) }
-
-
 
             Box(Modifier
                 .fillMaxSize()
@@ -321,16 +325,15 @@ fun MapScreen(
                                 ) {
                                     // LaunchDirectionWheel at the top
                                     LaunchDirectionWheel(
+                                        initialAngle = configAzimuth, // Use the derived value
                                         onAngleChange = { launchAzimuth = it },
-                                        forecastUiState = forecastUiState,
-                                        selectedConfig = selectedCfg
+                                        forecastUiState = forecastUiState
                                     )
 
                                     Spacer(modifier = Modifier.height(20.dp))
 
-                                    // LaunchPitchWheel below
                                     LaunchPitchSlider(
-                                        initialAngle = launchPitch.toFloat(),
+                                        initialAngle = configPitch.toFloat(), // Use the derived value
                                         onAngleChange = { launchPitch = it.toDouble() }
                                     )
                                 }
