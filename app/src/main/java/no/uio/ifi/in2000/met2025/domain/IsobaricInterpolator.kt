@@ -30,6 +30,7 @@ import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressure
 import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import org.apache.commons.math3.linear.Array2DRowRealMatrix
+import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
 
@@ -57,19 +58,24 @@ class IsobaricInterpolator(
         )
     )
 
+    // caches are updated every 3 hours
+
     // key is the time for which the map is valid
-    private var gribMaps: MutableMap<Instant, GribDataMap> = mutableMapOf()
+    // value is the map and the time it was added to the cache
+    private var gribMaps: MutableMap<Instant, Pair<GribDataMap, Instant>> = mutableMapOf()
 
     // data from GRIB and LocationForecast API are stored as CartesianIsobaricValues
     // Coordinates are converted to grid indices using the resolution of the GRIB data
     // key is indices for [lat, lon, pressure] and the time the we want to fetch data for
-    private val pointCache: MutableMap<Pair<List<Int>, Instant>, CartesianIsobaricValues> = mutableMapOf()
+    // value is the CartesianIsobaricValues object and the time it was added to the cache
+    private val pointCache: MutableMap<Pair<List<Int>, Instant>, Pair<CartesianIsobaricValues, Instant>> = mutableMapOf()
 
     // surfaceCache is used to cache the interpolated surfaces for each pressure level
     // a surface is a representation of a horizontal slice of the atmosphere at a given pressure level,
     // bounded by four indices in the latitude and longitude dimensions
     // key is indices [lat, lon, pressure] and the time the we want to fetch data for
-    private val surfaceCache: MutableMap<Pair<List<Int>, Instant>, (Double, Double) -> CartesianIsobaricValues> = mutableMapOf()
+    // value is the interpolated surface function and the time it was added to the cache
+    private val surfaceCache: MutableMap<Pair<List<Int>, Instant>, Pair<(Double, Double) -> CartesianIsobaricValues, Instant>> = mutableMapOf()
 
     // saving the last visited index to avoid having to search for the correct index each time getCartesianIsobaricValues is called
     private var lastVisitedIsobaricIndex: Int? = null
@@ -77,15 +83,20 @@ class IsobaricInterpolator(
     private val maxLatIndex = ceil((MAX_LATITUDE - MIN_LATITUDE) * RESOLUTION).toInt()
     private val maxLonIndex = ceil((MAX_LONGITUDE - MIN_LONGITUDE) * RESOLUTION).toInt()
 
+    // for debugging purposes
+    private var howManyAPICalls = 0
+
     /**
      * Initiates the interpolation process.
      * @return Result containing the interpolated values at the specified position and time, or an exception if an error occurs.
      */
     suspend fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
-        if (gribMaps[time.closestIsobaricDataWindowBefore()] == null) {
+        val mapPlusTime = gribMaps[time.closestIsobaricDataWindowBefore()]
+        if (mapPlusTime == null || Duration.between(mapPlusTime.second, Instant.now()).toHours() > 3) {
             when (val gribDataResult = isobaricRepository.getIsobaricGribData(time)) {
                 is GribDataResult.Success -> {
-                    gribMaps[time.closestIsobaricDataWindowBefore()] = gribDataResult.gribDataMap
+                    gribMaps[time.closestIsobaricDataWindowBefore()] = Pair(gribDataResult.gribDataMap, Instant.now())
+                    Log.i("IsobaricInterpolator", "GRIB map fetched successfully for ${time.closestIsobaricDataWindowBefore()}")
                 }
                 else -> {
                     return Result.failure(Exception("Error fetching GRIB map for ${time.closestIsobaricDataWindowBefore()}"))
@@ -192,27 +203,29 @@ class IsobaricInterpolator(
 
         Log.i("IsobaricInterpolator", "getSurface: $indices")
 
+        val surfacePlusTime = surfaceCache[Pair(indices, time.closestIsobaricDataWindowBefore())]
+
         return Result.success(
-            surfaceCache[Pair(indices, time.closestIsobaricDataWindowBefore())] ?: interpolatedSurface(
-                Array(4) { col ->
-                    Array(4) { row ->
-                        getPoint(
-                            indices = listOf(indices[0] + col - 1, indices[1] + row - 1, indices[2]),
-                            time = time
-                        ).fold(
-                            onSuccess = { it },
-                            onFailure = { return Result.failure(it) }
-                        )
+            if (surfacePlusTime != null && Duration.between(surfacePlusTime.second, Instant.now()).toHours() <= 3) {
+                surfacePlusTime.first
+            } else
+                interpolatedSurface(
+                    Array(4) { col ->
+                        Array(4) { row ->
+                            getPoint(
+                                indices = listOf(indices[0] + col - 1, indices[1] + row - 1, indices[2]),
+                                time = time
+                            ).fold(
+                                onSuccess = { it },
+                                onFailure = { return Result.failure(it) }
+                            )
+                        }
                     }
-                }
             ).also {
-                surfaceCache[Pair(indices, time.closestIsobaricDataWindowBefore())] = it
+                surfaceCache[Pair(indices, time.closestIsobaricDataWindowBefore())] = Pair(it, Instant.now())
             }
         )
     }
-
-    // for debugging purposes
-    private var howManyAPICalls = 0
 
     /**
      * Retrieves a point for the given indices and time as a CartesianIsobaricValues object.
@@ -226,105 +239,109 @@ class IsobaricInterpolator(
 
         Log.i("IsobaricInterpolator", "getPoint: $indices")
 
+        val pointPlusTime = pointCache[Pair(indices, time.closestIsobaricDataWindowBefore())]
+
         return Result.success(
-            pointCache[Pair(indices, time.closestIsobaricDataWindowBefore())] ?:
-            when {
-                indices[0] < 0 ->
-                    extrapolatedPoint(indices, time, 0, true)
-                        .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
-                indices[0] > maxLatIndex ->
-                    extrapolatedPoint(indices, time, 0, false)
-                        .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
-                indices[1] < 0 ->
-                    extrapolatedPoint(indices, time, 1, true)
-                        .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
-                indices[1] > maxLonIndex ->
-                    extrapolatedPoint(indices, time, 1, false)
-                        .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
-                indices[2] < 0 ->
-                    extrapolatedPoint(indices, time, 2, true)
-                        .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
-                indices[2] > layerPressureValues.size ->
-                    extrapolatedPoint(indices, time, 2, false)
-                        .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
-                indices[2] == 0 -> {
-                    val forecastData = locationForecastRepository.getForecastData(
-                        lat = indices[0].toCoordinate(MIN_LATITUDE),
-                        lon = indices[1].toCoordinate(MIN_LONGITUDE),
-                        time = time,
-                        cacheResponse = false
-                    ).fold(
-                        onSuccess = { it },
-                        onFailure = { return Result.failure(it) }
-                    )
-                    howManyAPICalls += 1
-                    Log.i("IsobaricInterpolator", "API call number: $howManyAPICalls")
+            if (pointPlusTime != null && Duration.between(pointPlusTime.second, Instant.now()).toHours() <= 3) {
+                pointPlusTime.first
+            } else
+                when {
+                    indices[0] < 0 ->
+                        extrapolatedPoint(indices, time, 0, true)
+                            .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
+                    indices[0] > maxLatIndex ->
+                        extrapolatedPoint(indices, time, 0, false)
+                            .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
+                    indices[1] < 0 ->
+                        extrapolatedPoint(indices, time, 1, true)
+                            .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
+                    indices[1] > maxLonIndex ->
+                        extrapolatedPoint(indices, time, 1, false)
+                            .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
+                    indices[2] < 0 ->
+                        extrapolatedPoint(indices, time, 2, true)
+                            .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
+                    indices[2] > layerPressureValues.size ->
+                        extrapolatedPoint(indices, time, 2, false)
+                            .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
+                    indices[2] == 0 -> {
+                        val forecastData = locationForecastRepository.getForecastData(
+                            lat = indices[0].toCoordinate(MIN_LATITUDE),
+                            lon = indices[1].toCoordinate(MIN_LONGITUDE),
+                            time = time,
+                            cacheResponse = false
+                        ).fold(
+                            onSuccess = { it },
+                            onFailure = { return Result.failure(it) }
+                        )
+                        howManyAPICalls += 1
+                        Log.i("IsobaricInterpolator", "API call number: $howManyAPICalls")
 
-                    val forecastDataValues = forecastData.timeSeries[0].values
+                        val forecastDataValues = forecastData.timeSeries[0].values
 
-                    val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
+                        val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
 
-                    val groundPressure = calculatePressure(
-                        altitude = forecastData.altitude,
-                        referencePressure = forecastDataValues.airPressureAtSeaLevel,
-                        referenceAirTemperature = airTemperatureAtSeaLevel,
-                    )
+                        val groundPressure = calculatePressure(
+                            altitude = forecastData.altitude,
+                            referencePressure = forecastDataValues.airPressureAtSeaLevel,
+                            referenceAirTemperature = airTemperatureAtSeaLevel,
+                        )
 
-                    val windSpeed = forecastDataValues.windSpeed
-                    val windInDirection = Angle((forecastDataValues.windFromDirection + 180.0) % 360.0)
+                        val windSpeed = forecastDataValues.windSpeed
+                        val windInDirection = Angle((forecastDataValues.windFromDirection + 180.0) % 360.0)
 
-                    CartesianIsobaricValues(
-                        altitude = forecastData.altitude,
-                        pressure = groundPressure,
-                        temperature = forecastDataValues.airTemperature,
-                        windXComponent = cos(windInDirection) * windSpeed,
-                        windYComponent = sin(windInDirection) * windSpeed
-                    )
+                        CartesianIsobaricValues(
+                            altitude = forecastData.altitude,
+                            pressure = groundPressure,
+                            temperature = forecastDataValues.airTemperature,
+                            windXComponent = cos(windInDirection) * windSpeed,
+                            windYComponent = sin(windInDirection) * windSpeed
+                        )
+                    }
+                    else -> {
+                        val valuesBelow = getPoint(
+                            listOf(indices[0], indices[1], indices[2] - 1),
+                            time
+                        ).fold(
+                            onSuccess = { it },
+                            onFailure = { return Result.failure(it) }
+                        )
+                        val pressure = (layerPressureValues).reversed()[indices[2] - 1]
+                        val altitude = calculateAltitude(
+                            pressure = pressure.toDouble(),
+                            referencePressure = valuesBelow.pressure,
+                            referenceAltitude = valuesBelow.altitude,
+                            referenceAirTemperature = valuesBelow.temperature + CELSIUS_TO_KELVIN
+                        )
+
+                        val gribMap = gribMaps[time.closestIsobaricDataWindowBefore()]?.first
+                            ?: return Result.failure(Exception("GRIB data not initialized"))
+
+                        val latIdx = indices[0].coerceIn(0, maxLatIndex)
+                        val lonIdx = indices[1].coerceIn(0, maxLonIndex)
+
+                        val lat  = latIdx.toCoordinate(MIN_LATITUDE)
+                        val lon  = lonIdx.toCoordinate(MIN_LONGITUDE)
+                        val key  = Pair(lat, lon)
+
+                        val levelMap = gribMap.map[key]
+                            ?: return Result.failure(Exception("No GRIB cell at [$lat, $lon]"))
+
+                        val slice = levelMap[pressure]
+                            ?: return Result.failure(Exception("No GRIB data for pressure level $pressure"))
+
+                        CartesianIsobaricValues(
+                            altitude = altitude,
+                            pressure = pressure.toDouble(),
+                            temperature = slice.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
+                            windXComponent = slice.uComponentWind.toDouble(),                  // this makes the drift of the rocket align with the wind data from the apis
+                            windYComponent = slice.vComponentWind.toDouble()
+                        )
+                    }
+                }.also {
+                    pointCache[Pair(indices, time.closestIsobaricDataWindowBefore())] = Pair(it, Instant.now())
+                    Log.i("IsobaricInterpolator", "point: $indices, value: $it")
                 }
-                else -> {
-                    val valuesBelow = getPoint(
-                        listOf(indices[0], indices[1], indices[2] - 1),
-                        time
-                    ).fold(
-                        onSuccess = { it },
-                        onFailure = { return Result.failure(it) }
-                    )
-                    val pressure = (layerPressureValues).reversed()[indices[2] - 1]
-                    val altitude = calculateAltitude(
-                        pressure = pressure.toDouble(),
-                        referencePressure = valuesBelow.pressure,
-                        referenceAltitude = valuesBelow.altitude,
-                        referenceAirTemperature = valuesBelow.temperature + CELSIUS_TO_KELVIN
-                    )
-
-                    val grib = gribMaps[time.closestIsobaricDataWindowBefore()]
-                        ?: return Result.failure(Exception("GRIB data not initialized"))
-
-                    val latIdx = indices[0].coerceIn(0, maxLatIndex)
-                    val lonIdx = indices[1].coerceIn(0, maxLonIndex)
-
-                    val lat  = latIdx.toCoordinate(MIN_LATITUDE)
-                    val lon  = lonIdx.toCoordinate(MIN_LONGITUDE)
-                    val key  = Pair(lat, lon)
-
-                    val levelMap = grib.map[key]
-                        ?: return Result.failure(Exception("No GRIB cell at [$lat, $lon]"))
-
-                    val slice = levelMap[pressure]
-                        ?: return Result.failure(Exception("No GRIB data for pressure level $pressure"))
-
-                    CartesianIsobaricValues(
-                        altitude = altitude,
-                        pressure = pressure.toDouble(),
-                        temperature = slice.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
-                        windXComponent = slice.uComponentWind.toDouble(),                  // this makes the drift of the rocket align with the wind data from the apis
-                        windYComponent = slice.vComponentWind.toDouble()
-                    )
-                }
-            }.also {
-                pointCache[Pair(indices, time.closestIsobaricDataWindowBefore())] = it
-                Log.i("IsobaricInterpolator", "point: $indices, value: $it")
-            }
         )
     }
 
