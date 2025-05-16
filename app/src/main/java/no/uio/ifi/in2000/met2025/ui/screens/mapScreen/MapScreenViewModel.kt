@@ -128,6 +128,8 @@ class MapScreenViewModel @Inject constructor(
     val isAppFirstRun = userPrefs.isFirstRunFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val isLaunchFirstRun = userPrefs.isFirstLaunchFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     /**
      * Startup tasks:
@@ -412,5 +414,9 @@ class MapScreenViewModel @Inject constructor(
 
     fun markAppLaunched() = viewModelScope.launch {
         userPrefs.markFirstRunComplete()
+    }
+
+    fun markFirstLaunchTutorialSeen() = viewModelScope.launch {
+        userPrefs.markFirstLaunchTutorialSeen()
     }
 }

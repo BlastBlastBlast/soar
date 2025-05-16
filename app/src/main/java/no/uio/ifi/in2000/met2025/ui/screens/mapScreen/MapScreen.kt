@@ -94,6 +94,7 @@ fun MapScreen(
     }
 
     val appFirstRun by viewModel.isAppFirstRun.collectAsState()
+    val launchFirstRun by viewModel.isLaunchFirstRun.collectAsState()
     val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
     val isAnimating = viewModel.isAnimating
     val isTrajectoryCalculating by viewModel.isTrajectoryCalculating.collectAsState()
@@ -252,6 +253,17 @@ fun MapScreen(
 
                     // Floating button to open the trajectory simulation popup
                     if (!showTrajectoryPopup) {
+                        if (appFirstRun) {
+                            TutorialWindow(
+                                onDismiss = { viewModel.markAppLaunched() },
+                                title = "Warning!",
+                                contentText = "Starting a launch simulation initiates heavy calculations, " +
+                                            "and operates on data fetched in realtime.\n " +
+                                            "Depending on your hardware specs and internet connection speed, " +
+                                            "this process might take a while!",
+                                iconRes = listOf(R.drawable.soarlogo)
+                            )
+                        }
                         ExtendedFloatingActionButton(
                             containerColor = MaterialTheme.colorScheme.surface,
                             icon = {
