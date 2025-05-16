@@ -127,7 +127,7 @@ fun TrajectoryPopup(
                 shadowElevation = 8.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.40f)
+                    .fillMaxHeight(0.43f)
                     .offset { IntOffset(0, offsetY.roundToInt()) }
                     .pointerInput(show) {
                         detectVerticalDragGestures { change, dy ->
@@ -160,14 +160,14 @@ fun TrajectoryPopup(
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             label,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
                         Text(
                             lastVisited
                                 ?.let { "%.4f, %.4f".format(it.latitude, it.longitude) }
                                 ?: "No location yet",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
                     }
