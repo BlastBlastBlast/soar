@@ -201,16 +201,6 @@ class TrajectoryCalculator(
             )
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: newVelocity: $newVelocity")
 
-            /*
-            val newPosition = rungeKutta4(
-                initialVector = currentPosition,
-                time = timeAfterLaunch,
-                stepSize = stepSize,
-                derivative = { _, incrementedPosition ->
-                    currentVelocity - if (onLaunchRail(incrementedPosition)) windVector else zeroVector
-                }
-            )
-            */
             // assumes constant velocity during the time step
             val newPosition = currentPosition + currentVelocity * stepSize
 
