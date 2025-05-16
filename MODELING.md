@@ -168,6 +168,9 @@ sequenceDiagram
         VM-->>MapScreen: saveSuccess  
         deactivate VM
         MapScreen->>SaveDialog: hide()
+	else User cancels dialog
+    	User->>SaveDialog: onDismiss()
+	SaveDialog->>MapScreen: hideDialog()
     end
 
     %% 3) Double-click existing marker updates Last Visited and centers map
