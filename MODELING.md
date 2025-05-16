@@ -10,6 +10,7 @@
     - [Weather Screen Navigation and initialization](#weather-screen-navigation-and-initialization)
     - [Weather Screen – Hourly Card and Isobaric Data rendering](#weather-screen---hourly-card-and-isobaric-data-rendering)
     - [Segmented Bottom Bar interactions](#segmented-bottom-bar-interactions)
+    - [Class Diagram](#weather-screen-class-diagram)
 - [Rocket Config](#rocket-config)
     - [Rocket Config List Screen](#rocket-config-list-screen)
     - [Rocket Config Edit Screen](#rocket-config-edit-screen)
@@ -18,7 +19,7 @@
     - [Weather Config Edit Screen](#weather-config-edit-screen)
 - [Class diagrams](#class-diagrams)
    
-    - [Weather Screen](#weather-screen)
+    - 
     - [Segmented bottom bar](#segmented-bottom-bar)
     - [Configuration classes](#configuration-classes)
     - [Navigation](#navigation)
