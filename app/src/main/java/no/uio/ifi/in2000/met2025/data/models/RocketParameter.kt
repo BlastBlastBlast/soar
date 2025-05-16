@@ -37,7 +37,7 @@ fun getDefaultRocketParameterValues(): RocketParameterValues {
     val map = hashMapOf(
         RocketParameterType.LAUNCH_AZIMUTH.name                   to 90.0,
         RocketParameterType.LAUNCH_PITCH.name                     to 80.0,
-        RocketParameterType.LAUNCH_RAIL_LENGTH.name               to 1.0,
+        RocketParameterType.LAUNCH_RAIL_LENGTH.name               to 16.0,
         RocketParameterType.WET_MASS.name                         to 130.0,
         RocketParameterType.DRY_MASS.name                         to 100.0,
         RocketParameterType.BURN_TIME.name                        to 12.0,
