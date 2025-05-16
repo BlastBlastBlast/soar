@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -45,118 +46,119 @@ fun WindDirectionIcon2(windDirection: Double?) {
         painter = arrowPainter,
         contentDescription = "Wind Direction",
         modifier = Modifier
-            .size(60.dp)
+            .size(64.dp)
             .graphicsLayer(rotationZ = windDirection.toFloat())
             .semantics { role = Role.Image }
         ,
     )
 }
 
+/**
+ * A launch direction wheel overlaying a compass dial outline, drawing a red launch
+ * indicator line, showing the wind direction icon, and displaying numeric readouts.
+ */
 @Composable
 fun LaunchDirectionWheel(
-    onAngleChange: (Double) -> Unit = {}, // Callback for angle updates
+    onAngleChange: (Double) -> Unit = {},
     forecastUiState: MapScreenViewModel.ForecastDataUiState,
-    selectedConfig: RocketConfig?,
+    selectedConfig: RocketConfig?
 ) {
+    // initial launch azimuth
     val defaultAngle = selectedConfig?.launchAzimuth ?: 0.0
-    var rotationAngle by remember { mutableDoubleStateOf(0.0) }
+    var rotationAngle by remember { mutableStateOf(defaultAngle) }
+
+    // wind-from direction when available
+    val windDirection = when (forecastUiState) {
+        is MapScreenViewModel.ForecastDataUiState.Success ->
+            forecastUiState.forecastData.values.windFromDirection
+        else -> defaultAngle
+    }
+
+    // theme colors
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+
+    // dial dimensions
+    val dialSize = 200.dp
+    val dialSizePx = with(LocalDensity.current) { dialSize.toPx() }
+    val center = Offset(dialSizePx / 2f, dialSizePx / 2f)
 
     Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(250.dp)
+        modifier = Modifier.size(250.dp),
+        contentAlignment = Alignment.Center
     ) {
-        var windDirection = defaultAngle
-
-        Canvas(modifier = Modifier.size(200.dp)) {
-            // Draw the circle
-            drawCircle(color = Color.Gray)
-        }
-
-        when (forecastUiState) {
-            is MapScreenViewModel.ForecastDataUiState.Success -> {
-                val windFromDirection = forecastUiState.forecastData.values.windFromDirection
-                windDirection = windFromDirection
-                WindDirectionIcon2(
-                    windDirection = windFromDirection,
+        // interactive container for dial + indicator
+        Box(
+            modifier = Modifier
+                .size(dialSize)
+                .pointerInput(Unit) {
+                    detectDragGestures { change, _ ->
+                        val dx = (change.position.x - center.x).toDouble()
+                        val dy = (change.position.y - center.y).toDouble()
+                        val touchAngle = Math.toDegrees(atan2(dy, dx))
+                        val newAngle = ((touchAngle + 360) % 360 + 90) % 360
+                        rotationAngle = newAngle
+                        onAngleChange(newAngle)
+                    }
+                }
+                .clickable {
+                    rotationAngle = windDirection
+                    onAngleChange(windDirection)
+                }
+        ) {
+            // background compass dial (outline only)
+            CompassDial(modifier = Modifier.matchParentSize())
+            // draw red launch indicator line
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val r = size.minDimension / 2f
+                val angRad = Math.toRadians(rotationAngle - 90.0)
+                val endX = center.x + cos(angRad) * r
+                val endY = center.y + sin(angRad) * r
+                drawLine(
+                    color = Color.Red,
+                    start = center,
+                    end = Offset(endX.toFloat(), endY.toFloat()),
+                    strokeWidth = 4f
                 )
             }
-            is MapScreenViewModel.ForecastDataUiState.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
-            }
-            else -> {}
         }
 
-        // Draw the circle and indicator
-        Canvas(modifier = Modifier.size(200.dp)) {
-            val radius = size.minDimension / 2
-            val indicatorX = center.x + radius * cos(Math.toRadians(rotationAngle) - Math.PI / 2.0).toFloat()
-            val indicatorY = center.y + radius * sin(Math.toRadians(rotationAngle) - Math.PI / 2.0).toFloat()
-
-            drawLine(
-                color = Color.Red,
-                start = center,
-                end = Offset(indicatorX, indicatorY),
-                strokeWidth = 4f
-            )
+        // wind direction overlay or loading spinner
+        when (forecastUiState) {
+            is MapScreenViewModel.ForecastDataUiState.Success ->
+                WindDirectionIcon2(windDirection)
+            is MapScreenViewModel.ForecastDataUiState.Loading ->
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = onSurfaceColor
+                )
+            else -> { }
         }
 
-        // Wind direction angle box at top
+        // numeric readouts
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .background(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(4.dp)
-                )
+                .background(surfaceColor, RoundedCornerShape(4.dp))
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
                 text = "Wind: ${windDirection.toInt()}°",
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = onSurfaceColor
             )
         }
-
-        // Launch angle box at bottom
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .background(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(4.dp)
-                )
+                .background(surfaceColor, RoundedCornerShape(4.dp))
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
                 text = "Launch: ${rotationAngle.toInt()}°",
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = onSurfaceColor
             )
         }
-
-        // Handle rotation gestures
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .pointerInput(Unit) {
-                    detectDragGestures { change, _ ->
-                        val center = Offset((size.width / 2).toFloat(), (size.height / 2).toFloat())
-                        val touchAngle = Math.toDegrees(
-                            atan2(
-                                change.position.y - center.y,
-                                change.position.x - center.x
-                            ).toDouble()
-                        )
-                        // Normalize the angle to 0° - 360°
-                        rotationAngle = ((touchAngle + 360) % 360 + 90) % 360
-                        onAngleChange(rotationAngle)
-                    }
-                }
-                .clickable {
-                    rotationAngle = windDirection
-                    onAngleChange(rotationAngle)
-                }
-        )
     }
 }
