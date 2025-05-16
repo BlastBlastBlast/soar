@@ -16,7 +16,8 @@ import androidx.room.Index
 
 @Database(
     entities = [LaunchSite::class, GribData::class, GribUpdated::class, WeatherConfig::class, RocketConfig::class],
-    version = 11
+    version = 11,
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun launchSiteDao(): LaunchSiteDAO
