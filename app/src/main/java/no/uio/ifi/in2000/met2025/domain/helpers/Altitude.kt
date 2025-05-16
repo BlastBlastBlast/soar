@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.domain.helpers
 
-import android.util.Log
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.EARTH_AIR_MOLAR_MASS
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.GRAVITY
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
