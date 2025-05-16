@@ -63,7 +63,7 @@ flowchart TB
     subgraph UI layer
         direction TB
         WeatherScreen[WeatherScreen] --> WeatherVM[WeatherViewModel]
-        MapScreen[MapScreen] <--> MapView[MapView]
+        MapScreen[MapScreen] --> MapView[MapView]
         MapScreen[MapScreen] --> MapScreenVM[MapScreenViewModel]
         LaunchSiteScreen[LaunchSiteScreen] --> LaunchSiteVM[LaunchSiteViewModel]
         WeatherConfigScreen[WeatherConfigScreen] --> ConfigVM[ConfigViewModel]
@@ -84,9 +84,9 @@ flowchart TB
         direction TB
         LocationForecastRepo[LocationForecastRepository] --> LocationForecastDS[LocationForecastDataSource]
         IsobaricRepo[IsobaricRepository] --> IsobaricDS[IsobaricDataSource]
-        IsobaricRepo[IsobaricRepository] <--> GribDataDAO[GribDataDAO]
-        IsobaricDS[IsobaricDataSource] <--> GRIB[GRIB API]
-        IsobaricDS[IsobaricDataSource] <--> GRIBAA[GRIB Availability API]
+        IsobaricRepo[IsobaricRepository] --> GribDataDAO[GribDataDAO]
+        IsobaricDS[IsobaricDataSource] --> GRIB[GRIB API]
+        IsobaricDS[IsobaricDataSource] --> GRIBAA[GRIB Availability API]
 
         IsobaricInterpolator[IsobaricInterpolator] --> LocationForecastRepo[LocationForecastRepository] 
         IsobaricInterpolator[IsobaricInterpolator] --> IsobaricRepo[IsobaricRepository]
@@ -98,7 +98,7 @@ flowchart TB
 
         MapView[MapView] --> MapboxAPI[Mapbox API]
 
-        LaunchSiteDAO[LaunchSiteDAO] --> MapScreenVM[MapScreenViewModel]
+        
         LaunchSiteDAO[LaunchSiteDAO] --> AppDatabase[AppDatabase]
 
         RocketConfigRepo[RocketConfigRepository]
