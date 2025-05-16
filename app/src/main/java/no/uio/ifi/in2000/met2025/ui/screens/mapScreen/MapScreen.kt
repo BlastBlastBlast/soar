@@ -19,8 +19,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -62,6 +64,7 @@ import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.common.TutorialWindow
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchDirectionWheel
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchPitchSlider
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 import java.time.Instant
@@ -120,7 +123,8 @@ fun MapScreen(
     var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
     val latestAvailableGrib by viewModel.latestAvailableGrib.collectAsState()
     val forecastUiState by viewModel.forecastUiState.collectAsState()
-    var launchAzimuth by rememberSaveable { mutableStateOf(selectedCfg?.launchAzimuth ?: 0.0) }
+    var launchAzimuth by rememberSaveable { mutableStateOf(0.0) }
+    var launchPitch by rememberSaveable { mutableStateOf(80.0) }
 
     val oslo = ZoneId.of("Europe/Oslo")
     // truncate “now” to the top of the hour
@@ -309,11 +313,27 @@ fun MapScreen(
                         ) {
                             viewModel.fetchForecastData(coords.first, coords.second, defaultLaunch)
                             if (showAnnotations) {
-                                LaunchDirectionWheel(
-                                    onAngleChange = { launchAzimuth = it },
-                                    forecastUiState = forecastUiState,
-                                    selectedConfig = selectedCfg,
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    // LaunchDirectionWheel at the top
+                                    LaunchDirectionWheel(
+                                        onAngleChange = { launchAzimuth = it },
+                                        forecastUiState = forecastUiState,
+                                        selectedConfig = selectedCfg
+                                    )
+
+                                    Spacer(modifier = Modifier.height(60.dp))
+
+                                    // LaunchPitchWheel below
+                                    LaunchPitchSlider(
+                                        initialAngle = launchPitch.toFloat(),
+                                        onAngleChange = { launchPitch = it.toDouble() }
+                                    )
+                                }
                             }
                             TrajectoryPopup(
                                 show = true,
@@ -323,7 +343,7 @@ fun MapScreen(
                                 selectedConfig = selectedCfg,
                                 onSelectConfig = { viewModel.selectConfig(it) },
                                 onClose = { showTrajectoryPopup = false },
-                                onStartTrajectory = { instant -> viewModel.startTrajectory(instant, launchAzimuth) },
+                                onStartTrajectory = { instant -> viewModel.startTrajectory(instant, launchAzimuth, launchPitch) },
                                 onEditConfigs = onNavigateToRocketConfig,
                                 onClearTrajectory = {
                                     viewModel.clearTrajectory()

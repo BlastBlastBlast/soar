@@ -49,7 +49,8 @@ fun WindDirectionIcon2(windDirection: Double?) {
         contentDescription = "Wind Direction",
         modifier = Modifier
             .size(64.dp)
-            .graphicsLayer(rotationZ = windDirection.toFloat())
+            .graphicsLayer(
+                rotationZ = windDirection.toFloat())
             .semantics { role = Role.Image }
         ,
     )
@@ -86,8 +87,10 @@ fun LaunchDirectionWheel(
     val center = Offset(dialSizePx / 2f, dialSizePx / 2f)
 
     Box(
-        modifier = Modifier.size(250.dp),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .size(width = 250.dp, height = 270.dp)
+            .fillMaxWidth(),
+        contentAlignment = Alignment.CenterStart
     ) {
         // interactive container for dial + indicator
         Box(
@@ -107,13 +110,25 @@ fun LaunchDirectionWheel(
                 .clickable {
                     rotationAngle = windDirection
                     onAngleChange(windDirection)
-                }
+                },
+            contentAlignment = Alignment.Center
         ) {
+            // wind direction overlay or loading spinner
+            when (forecastUiState) {
+                is MapScreenViewModel.ForecastDataUiState.Success ->
+                    WindDirectionIcon2(windDirection)
+                is MapScreenViewModel.ForecastDataUiState.Loading ->
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = onSurfaceColor
+                    )
+                else -> { }
+            }
             // background compass dial (outline only)
             CompassDial(modifier = Modifier.matchParentSize())
             // draw red launch indicator line
             Canvas(modifier = Modifier.matchParentSize()) {
-                val r = size.minDimension / 2f
+                val r = size.minDimension / 2f * 0.95f // Scale the radius uniformly
                 val angRad = Math.toRadians(rotationAngle - 90.0)
                 val endX = center.x + cos(angRad) * r
                 val endY = center.y + sin(angRad) * r
@@ -121,26 +136,14 @@ fun LaunchDirectionWheel(
                     color = Color.Red,
                     start = center,
                     end = Offset(endX.toFloat(), endY.toFloat()),
-                    strokeWidth = 8f
+                    strokeWidth = 10f
                 )
             }
         }
 
-        // wind direction overlay or loading spinner
-        when (forecastUiState) {
-            is MapScreenViewModel.ForecastDataUiState.Success ->
-                WindDirectionIcon2(windDirection)
-            is MapScreenViewModel.ForecastDataUiState.Loading ->
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = onSurfaceColor
-                )
-            else -> { }
-        }
-
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .align(Alignment.BottomStart)
                 .background(surfaceColor, RoundedCornerShape(4.dp))
                 .padding(horizontal = 8.dp, vertical = 4.dp)// make row as wide as the dial
         ) {

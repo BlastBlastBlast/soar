@@ -306,7 +306,7 @@ class MapScreenViewModel @Inject constructor(
      *  3) Calls TrajectoryCalculator.calculateTrajectory(...)
      *  4) Publishes points and triggers camera animation
      */
-    fun startTrajectory(timeOfLaunch: Instant, launchAzimuth: Double) {
+    fun startTrajectory(timeOfLaunch: Instant, launchAzimuth: Double, launchPitch: Double) {
         viewModelScope.launch {
             _isTrajectoryCalculating.value = true
             try {
@@ -327,7 +327,7 @@ class MapScreenViewModel @Inject constructor(
                         .calculateTrajectory(
                             initialPosition = initial,
                             launchAzimuthInDegrees = launchAzimuth,
-                            launchPitchInDegrees = cfg.launchPitch,
+                            launchPitchInDegrees = launchPitch,
                             launchRailLength = cfg.launchRailLength,
                             wetMass = cfg.wetMass,
                             dryMass = cfg.dryMass,
