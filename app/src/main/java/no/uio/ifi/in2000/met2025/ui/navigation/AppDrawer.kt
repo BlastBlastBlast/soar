@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.met2025.ui.navigation
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -28,7 +28,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.sp
 import no.uio.ifi.in2000.met2025.R
@@ -63,7 +62,7 @@ fun AppDrawer(
 
     val infoText = when (infoTitle) {
         // Define the help text paragraphs for each section
-        "Map"-> "How to use the map: \n" +
+        "Map"-> "HOW TO USE THE MAP: \n" +
                 "- Longpress the map to place a marker" +
                 " (or input coordinates at the top of the screen).\n" +
                 "- Longpress the label above a marker to edit the name and save it as a launch site.\n" +
@@ -72,7 +71,17 @@ fun AppDrawer(
                 "- Using multiple fingers on the map will enable you to zoom, tilt the camera and more.\n" +
                 "- Open the rocket launch trajectory simulation menu by pressing the trajectory button.\n" +
                 "- Clear trajectory between launches to make sure calculations and renders happen correctly.\n\n" +
-                "Launch simulation description:\n" +
+                "LAUNCH SIMULATION GUIDE:\n" +
+                "- Verify that you've chosen the correct launch site.\n" +
+                "- Choose an existing rocket config, or create a new one.\n" +
+                "- Choose the time you want the simulation to use weather data from.\n" +
+                "- Choose pitch by move the slider to your desired value.\n" +
+                "- Choose azimuth by spinning the pointer in the compass.\n" +
+                "- Clicking the compass sets the simulation to launch into the wind." +
+                "- Press Start Trajectory to start your simulation!\n" +
+                "- The needle in the compass indicates Wind Direction. The red part shows where the wind" +
+                " is blowing from, the white part where it is blowing towards.\n\n" +
+                "LAUNCH SIMULATION VISUALS:\n" +
                 "- Red spheres indicate the engine thrust being active\n" +
                 "- Orange spheres indicate free flight\n" +
                 "- Light blue spheres indicate parachute descent\n"
@@ -87,19 +96,20 @@ fun AppDrawer(
                 "- Default threshold values are preconfigured."
 
         "Edit Rocket Profile" -> "Edit the selected rocket profile’s parameters:\n" +
-                "— Launch direction (Azimuth and Pitch)\n" +
-                "— Launch rail length\n" +
-                "— Wet mass: Total weight with fuel\n" +
-                "— Dry mass: Weight, not counting fuel\n" +
-                "— Burn time: Expected fuel consumption time\n" +
-                "— Step Size: The intervals of flight at which the simulation renders data\n" +
-                "— Thrust: Force produced in Newton\n" +
-                "— Cross-Sectional area and Drag Coefficient\n" +
-                "— Parachute Cross-Sectional area and Drag Coefficient\n"
+                "- Launch direction - Azimuth and Pitch. " +
+                "(These two are just default values, and can be changed in the launch menu)\n" +
+                "- Launch rail length\n" +
+                "- Wet mass: Total weight with fuel\n" +
+                "- Dry mass: Weight, not counting fuel\n" +
+                "- Burn time: Expected fuel consumption time\n" +
+                "- Step Size: The intervals of flight at which the simulation renders data\n" +
+                "- Thrust: Force produced in Newton\n" +
+                "- Cross-Sectional area and Drag Coefficient\n" +
+                "- Parachute Cross-Sectional area and Drag Coefficient\n"
 
         "Weather Settings" -> "Weather Profiles:\n" +
                 "- View all saved Weather configuration profiles.\n" +
-                "- These profiles define the thresholds for what is evaluated as safe or unsafe." +
+                "- These profiles define the thresholds for what is evaluated as safe or unsafe.\n" +
                 "- A default profile is provided.\n" +
                 "- Press the plus button to create your own.\n" +
                 "- Default threshold values are preconfigured."
@@ -117,7 +127,7 @@ fun AppDrawer(
         else -> ""
     }
 
-    val bodyScroll = rememberScrollState()
+    val bodyScroll = ScrollState(0)
 
     ModalDrawerSheet(
         modifier = Modifier
@@ -292,11 +302,13 @@ fun AppDrawer(
                         else R.drawable.check_light
                     val x = if (isLightMode) R.drawable.x_dark
                         else R.drawable.x_light
-                    InfoBlock(text ="- The blue checkmark means the launch window is safe\n"+
-                                    "- The red cross means the launch window is unsafe\n"+
-                                    "- The yellow warning means the launch window is close to "+
-                                    "the tresholds, and requires caution\n"+
-                                    "- The purple cloud icon indicates not sufficient data",
+                    InfoBlock(text ="- Blue Checkmark: All weather parameters are within the " +
+                                    "selected thresholds.\n" +
+                                    "- Red Cross: One or more parameters exceed the selected " +
+                                    "thresholds by 10% or more.\n" +
+                                    "- Yellow Exclamation: One or more parameters are within "+
+                                    "10% range of the thresholds. Be cautious!\n"+
+                                    "- Purple Cloud: One or more evaluated parameters has no data available.",
                         iconRes = listOf(check, x, R.drawable.caution, R.drawable.no_data),
                         contentDescription = "Wind Evaluation Icon descriptions")
                     //wind direction pointer description

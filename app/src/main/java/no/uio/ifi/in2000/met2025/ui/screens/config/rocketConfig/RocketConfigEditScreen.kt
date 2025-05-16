@@ -61,7 +61,7 @@ fun RocketConfigEditScreen(
     val defaultsMap = getDefaultRocketParameterValues().valueMap
     val isRocketConfigFirstRun by viewModel.isRocketConfigFirstRun.collectAsState()
 
-    var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "New Config") }
+    var name by remember(rocketParameters) { mutableStateOf(rocketParameters?.name ?: "") }
     var launchAzimuth by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchAzimuth?.toString()
         ?: defaultsMap[RocketParameterType.LAUNCH_AZIMUTH.name]?.toString() ?: "") }
     var launchPitch by remember(rocketParameters) { mutableStateOf(rocketParameters?.launchPitch?.toString()

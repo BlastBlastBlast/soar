@@ -330,7 +330,7 @@ fun MapScreen(
                                         forecastUiState = forecastUiState
                                     )
 
-                                    Spacer(modifier = Modifier.height(50.dp))
+                                    Spacer(modifier = Modifier.height(20.dp))
 
                                     LaunchPitchSlider(
                                         initialAngle = configPitch.toFloat(), // Use the derived value
@@ -344,6 +344,7 @@ fun MapScreen(
                                 currentSite = currentSite,
                                 rocketConfigs = rocketConfigs,
                                 selectedConfig = selectedCfg,
+                                launchSites = launchSites,
                                 onSelectConfig = { viewModel.selectConfig(it) },
                                 onClose = { showTrajectoryPopup = false },
                                 onStartTrajectory = { instant -> viewModel.startTrajectory(instant, launchAzimuth, launchPitch) },

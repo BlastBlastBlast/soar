@@ -45,12 +45,12 @@ fun AppTopBar(
         currentRoute == Screen.Maps.route                               -> "Map"
         currentRoute == Screen.LaunchSite.route                         -> "Launch Sites"
         currentRoute?.startsWith("weather/") == true                    -> "Weather"
-        currentRoute == Screen.RocketConfigList.route                   -> "Rocket Configs"
-        currentRoute?.startsWith("rocket_config_edit") == true          -> "Edit Rocket Config"
-        currentRoute == Screen.WeatherConfigList.route                         -> "Weather Configs"
-        currentRoute?.startsWith("weather_edit") == true                 -> "Edit Weather Configs"
+        currentRoute == Screen.RocketConfigList.route                   -> "Rocket Config"
+        currentRoute?.startsWith("rocket_config_edit") == true          -> "Rocket Config"
+        currentRoute == Screen.WeatherConfigList.route                         -> "Weather Config"
+        currentRoute?.startsWith("weather_edit") == true                 -> "Weather Config"
         currentRoute == Screen.Configs.route                           -> "Config"
-        else                                                             -> ""
+        else                                                             -> "Rocket Config"
     }
 
     TopAppBar(

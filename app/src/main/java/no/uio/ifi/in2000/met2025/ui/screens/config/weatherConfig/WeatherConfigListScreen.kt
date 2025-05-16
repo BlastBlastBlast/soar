@@ -120,6 +120,7 @@ fun WeatherConfigListScreen(
                 ) {
                     Text(text = "+", style = MaterialTheme.typography.titleLarge)
                 }
+                Spacer(Modifier.height(16.dp))
             }
         }
     }

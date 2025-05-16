@@ -82,6 +82,7 @@ fun TrajectoryPopup(
     show: Boolean,
     lastVisited: LaunchSite?,
     currentSite: LaunchSite?,
+    launchSites: List<LaunchSite>,
     rocketConfigs: List<RocketConfig>,
     selectedConfig: RocketConfig?,
     onSelectConfig: (RocketConfig) -> Unit,
@@ -156,10 +157,26 @@ fun TrajectoryPopup(
                     )
 
                     // Location label
-                    val label = currentSite?.name?.let { "$it: " } ?: "Location: "
+                    var displayName = "Location"
+                    when (currentSite?.name) {
+                        "New Marker", "Last Visited" -> {
+                            val fourDecimalLat = "%.4f".format(currentSite.latitude)
+                            val fourDecimalLon = "%.4f".format(currentSite.longitude)
+                            val matching = launchSites.firstOrNull { listSite ->
+                                listSite.name != "New Marker" &&
+                                        listSite.name != "Last Visited" &&
+                                        "%.4f".format(listSite.latitude)  == fourDecimalLat &&
+                                        "%.4f".format(listSite.longitude) == fourDecimalLon
+                            }
+                            displayName = matching?.name
+                                ?: "New Marker"
+                        }
+                        null -> displayName = "Location"
+                        else -> displayName = currentSite.name
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            label,
+                            displayName,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
