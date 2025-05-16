@@ -73,7 +73,6 @@ TODO: Legg inn screenshots av skjermene her
     - Dependencies resolved from **Maven Central**
 - **Annotation Processing:** KSP
 - **Testing Framework:** JUnit
-- ****
 - **Grib2 Parsing:** CDM core and Grib libraries, from NetCDF
     - Frameworks for writing GRIB2 formatted binary files into NetCDF files, structuring data into different types of accessible nD-arrays(arrays indexed by combining n-amount of values). For GRIB2 we get 4D-arrays that are indexed by referencing the 1D-arrays from the same file, holding values for latitude, longitude, isobaric level and time.
 - **System UI control:** Accompanist Systemuicontroller

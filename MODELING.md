@@ -1,30 +1,31 @@
 ## Table of Contents
 
 - [Disclaimer](#disclaimer)
+- [Use Case Diagram](#use-case-diagram)
 - [Map Screen](#map-screen)
     - [App launch → MapScreen](#app-launch---mapscreen)
     - [MapScreen – MarkerAnnotation and LaunchSite handling](#mapscreen---markerannotation-and-launchsite-handling)
     - [MapScreen – MapView and Location selection and Trajectory Loading](#mapscreen---mapview-and-location-selection-and-trajectory-loading)
+    - [Class Diagram](#map-screen-class-diagram)
 - [Weather Screen](#weather-screen)
     - [Weather Screen Navigation and initialization](#weather-screen-navigation-and-initialization)
     - [Weather Screen – Hourly Card and Isobaric Data rendering](#weather-screen---hourly-card-and-isobaric-data-rendering)
     - [Segmented Bottom Bar interactions](#segmented-bottom-bar-interactions)
+    - [Class Diagram](#weather-screen-class-diagram)
+    - [Segmented bottom bar Class Diagram](#segmented-bottom-bar-class-diagram)
 - [Rocket Config](#rocket-config)
     - [Rocket Config List Screen](#rocket-config-list-screen)
     - [Rocket Config Edit Screen](#rocket-config-edit-screen)
 - [Weather Config](#weather-config)
     - [Weather Config List Screen](#weather-config-list-screen)
     - [Weather Config Edit Screen](#weather-config-edit-screen)
+    - [Configuration classes Class Diagram](#configuration-classes-class-diagra)
 - [Class diagrams](#class-diagrams)
-    - [Map Screen](#map-screen)
-    - [Weather Screen](#weather-screen)
-    - [Segmented bottom bar](#segmented-bottom-bar)
-    - [Configuration classes](#configuration-classes)
     - [Navigation](#navigation)
     - [Datasources and repositories](#datasources-and-repositories)
     - [Dependency Injection](#dependency-injection)
     - [Domain – Trajectory Calculation & Weather Parsing](#domain---trajectory-calculation--weather-parsing)
-- [Use Case Diagram](#use-case-diagram)
+
 
 
 > ## Disclaimer
@@ -32,7 +33,9 @@
 > - The diagrams are based on the current design and may not reflect future changes or refactorings.
 > - Diagram content is simplified for clarity and may omit certain details such as error handling, concurrency, or edge cases.
 ---
-
+## Use Case Diagram
+![SOAR Use Case Diagram](images/Use-case-SOAR.drawio.png)
+---
 ## Map Screen
 ### App launch -> MapScreen
 * **App launch & navigation setup:** When the user opens the app, `MainActivity.onCreate()` sets the Compose content to `App()`, which wraps everything in `AppScaffold` (app-wide theming) and then instantiates the `NavigationGraph` with `"maps"` as the start destination—so the `NavHostController` immediately shows `MapScreen` with its ViewModel and navigation callbacks.
@@ -168,9 +171,12 @@ sequenceDiagram
         VM-->>MapScreen: saveSuccess  
         deactivate VM
         MapScreen->>SaveDialog: hide()
-	else User cancels dialog
-    	User->>SaveDialog: onDismiss()
-	SaveDialog->>MapScreen: hideDialog()
+
+    else User cancels dialog
+    User->>SaveDialog: onDismiss()
+    SaveDialog->>MapScreen: hideDialog()
+	
+
     end
 
     %% 3) Double-click existing marker updates Last Visited and centers map
@@ -345,6 +351,149 @@ sequenceDiagram
     %% 6) Animate camera
     MapView->>Mapbox: animateCameraAlong(trajectoryPoints)  
     Mapbox-->>MapView: animationComplete  
+```
+---
+
+### Map Screen Class Diagram
+```mermaid
+classDiagram
+    class MapScreenViewModel {
+        <<HiltViewModel>>
+        - launchSiteRepository: LaunchSiteRepository
+        - rocketConfigRepository: RocketConfigRepository
+        - isobaricInterpolator: IsobaricInterpolator
+	- userPrefs: UserPreferences
+        + uiState: StateFlow&lt;MapScreenUiState&gt;
+        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
+        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
+        + selectedConfig: StateFlow&lt;RocketConfig?&gt;
+        + trajectoryPoints: StateFlow&lt;List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;&gt; 
+        + startTrajectory: () -> Unit
+        + clearTrajectory: () -> Unit
+        + selectConfig: (site: RocketConfig) -> Unit
+        + updateCoordinates: (lat: Double, lon: Double) -> Unit
+        + updateLastVisited: (lat: Double, lon: Double, elevation: Double?) -> Unit
+        + updateNewMarker: (lat: Double, lon: Double, elevation: Double?) -> Unit
+        + editLaunchSite: (siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
+        + addLaunchSite: (lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
+        + geocodeAddress: (address: String) -> Pair&lt;Double, Double&gt;?
+        + updateSiteElevation: (siteId: Int, elevation: Double) -> Unit
+        
+    }
+
+    class MapScreen {
+        + MapScreen(
+            viewModel: MapScreenViewModel,
+            onNavigateToWeather: (Double, Double) -> Unit
+          ) : Unit
+    }
+
+    class MapView {
+        + MapView(
+            center: Pair&lt;Double, Double&gt;,
+            newMarker: LaunchSite?,
+            newMarkerStatus: Boolean,
+            launchSites: List&lt;LaunchSite&gt;,
+            mapViewportState: MapViewportState,
+            modifier: Modifier,
+            showAnnotations: Boolean,
+            onMapLongClick: (Point, Double?) -> Unit,
+            onMarkerAnnotationClick: (Point, Double?) -> Unit,
+            onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
+            onLaunchSiteMarkerClick: (LaunchSite) -> Unit,
+            onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit,
+            onSiteElevation: (Int, Double) -> Unit,
+            trajectoryPoints: List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;,
+            isAnimating: Boolean,
+            onAnimationEnd: () -> Unit
+          ) : Unit
+    }
+
+    class TrajectoryPopup {
+        + TrajectoryPopup(
+            show: Boolean,
+            lastVisited: LaunchSite?,
+            currentSite: LaunchSite?,
+            rocketConfigs: List&lt;RocketConfig&gt;,
+            selectedConfig: RocketConfig?,
+            onSelectConfig: (RocketConfig) -> Unit,
+            onClose: () -> Unit,
+            onStartTrajectory: () -> Unit,
+            onClearTrajectory: () -> Unit,
+            onEditConfigs: () -> Unit,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class MarkerLabel {
+        + MarkerLabel(
+            name: String,
+            lat: String,
+            lon: String,
+            elevation: String?,
+            isLoadingElevation: Boolean,
+            onClick: () -> Unit,
+            onDoubleClick: () -> Unit,
+            onLongPress: () -> Unit,
+            fontSize: TextUnit
+          ) : Unit
+    }
+
+    class SaveLaunchSiteDialog {
+        + SaveLaunchSiteDialog(
+            launchSiteName: String,
+            onNameChange: (String) -> Unit,
+            onDismiss: () -> Unit,
+            onConfirm: () -> Unit,
+            updateStatus: MapScreenViewModel.UpdateStatus
+          ) : Unit
+    }
+
+    class LaunchSitesButton {
+        + LaunchSitesButton(
+            modifier: Modifier,
+            onClick: () -> Unit
+          ) : Unit
+    }
+
+    class LaunchSitesMenu {
+        + LaunchSitesMenu(
+            launchSites: List&lt;LaunchSite&gt;,
+            onSiteSelected: (LaunchSite) -> Unit,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class RocketConfigCarousel {
+        + RocketConfigCarousel(
+            rocketConfigs: List&lt;RocketConfig&gt;,
+            selectedConfig: RocketConfig?,
+            onSelectConfig: (RocketConfig) -> Unit,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class WeatherNavigationButton {
+        + WeatherNavigationButton(
+            modifier: Modifier,
+            latInput: String,
+            lonInput: String,
+            onNavigate: (Double, Double) -> Unit,
+            context: Context
+          ) : Unit
+    }
+
+    %% Relationships
+    MapScreenViewModel <|.. MapScreen        : uses
+    MapScreenViewModel --> UserPreferences : uses
+    MapScreen --> MapView                   : composes
+    MapScreen --> TrajectoryPopup           : composes
+    MapScreen --> SaveLaunchSiteDialog      : composes
+    MapScreen --> LaunchSitesButton         : composes
+    LaunchSitesButton --> LaunchSitesMenu   : composes
+    TrajectoryPopup --> RocketConfigCarousel: composes
+    MapScreen --> WeatherNavigationButton   : composes
+    MapView --> MarkerLabel                 : composes
 ```
 ---
 
@@ -573,6 +722,243 @@ sequenceDiagram
             deactivate WeatherVM
         end
     end
+```
+---
+### Weather Screen Class Diagram
+```mermaid
+classDiagram
+    class WeatherViewModel {
+        <<HiltViewModel>>
+        - locationForecastRepository: LocationForecastRepository
+        - weatherConfigRepository: WeatherConfigRepository
+        - launchSiteRepository: LaunchSiteRepository
+        - weatherModel: WeatherModel
+        - sunriseRepository: SunriseRepository
+        + uiState: StateFlow&lt;WeatherUiState&gt;
+        + windState: StateFlow&lt;AtmosphericWindUiState&gt;
+        + activeConfig: StateFlow&lt;WeatherConfig?&gt;
+        + configList: StateFlow&lt;List&lt;WeatherConfig&gt;&gt;
+        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
+        + lastIsobaricCoordinates: StateFlow&lt;Pair&lt;Double, Double&gt;?&gt;
+        + isobaricData: StateFlow&lt;Map&lt;Instant, AtmosphericWindUiState&gt;&gt;
+        + currentSite: StateFlow&lt;LaunchSite?&gt;
+        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
+        + clearIsobaricDataForTime: (time: Instant) -> Unit
+        + updateCoordinates: (lat: Double, lon: Double) -> Unit
+        + setActiveConfig: (config: WeatherConfig) -> Unit
+        + loadForecast: (lat: Double, lon: Double, timeSpanInHours: Int) -> Unit
+        + loadIsobaricData: (lat: Double, lon: Double, time: Instant) -> Unit
+        + getValidSunTimesList: (lat: Double, lon: Double) -> Unit
+    }
+
+    class WeatherScreen {
+        + WeatherScreen(
+            viewModel: WeatherViewModel,
+            navController: NavHostController
+          ) : Unit
+    }
+
+    class ScreenContent {
+        + ScreenContent(
+            uiState: WeatherViewModel.WeatherUiState,
+            coordinates: Pair&lt;Double, Double&gt;,
+            weatherConfig: WeatherConfig,
+            filterActive: Boolean,
+            selectedStatuses: Set&lt;LaunchStatus&gt;,
+            currentSite: LaunchSite?,
+            viewModel: WeatherViewModel,
+            isSunFilterActive: Boolean
+          ) : Unit
+    }
+
+    class SiteHeader {
+        + SiteHeader(
+            site: LaunchSite?,
+            coordinates: Pair&lt;Double, Double&gt;,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class DailyForecastCard {
+        + DailyForecastCard(
+            forecastItems: List&lt;ForecastDataItem&gt;,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class HourlyExpandableCard {
+        + HourlyExpandableCard(
+            forecastItem: ForecastDataItem,
+            coordinates: Pair&lt;Double, Double&gt;,
+            weatherConfig: WeatherConfig,
+            modifier: Modifier,
+            viewModel: WeatherViewModel
+          ) : Unit
+    }
+
+    class AtmosphericWindTable {
+        + AtmosphericWindTable(
+            viewModel: WeatherViewModel,
+            coordinates: Pair&lt;Double, Double&gt;,
+            time: Instant
+          ) : Unit
+    }
+
+    class AWTableContents {
+        + AWTableContents(
+            item: IsobaricData,
+            config: WeatherConfig,
+            showTime: Boolean
+          ) : Unit
+    }
+
+    class AWTimeDisplay {
+        + AWTimeDisplay(
+            time: String,
+            style: TextStyle
+          ) : Unit
+    }
+
+    class WindLayerHeader {
+        + WindLayerHeader(
+            altitudeText: String,
+            windSpeedText: String,
+            windDirectionText: String,
+            modifier: Modifier,
+            style: TextStyle
+          ) : Unit
+    }
+
+    class WindDataColumn {
+        + WindDataColumn(
+            isobaricData: IsobaricData,
+            config: WeatherConfig,
+            windShearColor: Color
+          ) : Unit
+    }
+
+    class WindLayerRow {
+        + WindLayerRow(
+            config: WeatherConfig,
+            configParameter: ConfigParameter,
+            altitude: Double?,
+            windSpeed: Double?,
+            windDirection: Double?,
+            modifier: Modifier,
+            style: TextStyle
+          ) : Unit
+    }
+    
+    class DefaultWeatherParameters {
+        <<object>>
+        + instance: WeatherConfig
+    }
+
+    %% Relationships
+    WeatherViewModel <|.. WeatherScreen            : uses
+    WeatherScreen --> ScreenContent               : composes
+    ScreenContent --> SiteHeader                  : composes
+    ScreenContent --> DailyForecastCard           : composes
+    ScreenContent --> HourlyExpandableCard        : composes
+    HourlyExpandableCard --> AtmosphericWindTable : composes
+    AtmosphericWindTable --> AWTableContents       : composes
+    AWTableContents --> AWTimeDisplay              : composes
+    AWTableContents --> WindLayerHeader            : composes
+    AWTableContents --> WindDataColumn             : composes
+    WindDataColumn --> WindLayerRow                : composes
+    
+    DefaultWeatherParameters ..> WeatherConfig       : provides
+
+```
+---
+
+### Segmented bottom bar Class Diagram
+```mermaid
+classDiagram
+    class SegmentedBottomBar {
+        + SegmentedBottomBar(
+            onConfigClick: () -> Unit
+            onFilterClick: () -> Unit
+            onLaunchClick: () -> Unit 
+            modifier: Modifier = Modifier
+            ) : Unit
+    }
+
+    class LaunchSitesMenuOverlay {
+        + LaunchSitesMenuOverlay(launchSites: List&lt;LaunchSite&gt;
+         onSiteSelected: (LaunchSite) -> Unit
+          onDismiss: () -> Unit
+           modifier: Modifier = Modifier
+           ) : Unit
+    }
+
+    class SiteMenuItemList {
+        + SiteMenuItemList(launchSites: List&lt;LaunchSite&gt;
+        onSelect: (LaunchSite) -> Unit 
+        minWidth: Dp 
+        maxWidth: Dp
+        ) : Unit
+    }
+
+    class SiteMenuItem {
+        + SiteMenuItem(site: LaunchSite 
+        onClick: () -> Unit 
+        minWidth: Dp 
+        maxWidth: Dp
+        ) : Unit
+    }
+
+    class WeatherConfigOverlay {
+        + WeatherConfigOverlay(configList: List&lt;WeatherConfig&gt;,
+        onConfigSelected: (WeatherConfig) -> Unit,
+        onNavigateToEditConfigs: () -> Unit,
+        onDismiss: () -> Unit,
+        modifier: Modifier = Modifier
+        ) : Unit
+    }
+
+    class EditWeatherConfig {
+        + EditWeatherConfig(onClick: () -> Unit,
+        enabled: Boolean,
+        modifier: Modifier = Modifier
+        ) : Unit
+    }
+
+    class WeatherConfigItem {
+        + WeatherConfigItem(weatherConfig: WeatherConfig,
+        onConfigSelected: (WeatherConfig) -> Unit,
+        modifier: Modifier = Modifier
+        ) : Unit
+    }
+
+    class WeatherFilterOverlay {
+        + WeatherFilterOverlay(isFilterActive: Boolean,
+        onToggleFilter: () -> Unit,
+        hoursToShow: Float,
+        onHoursChanged: (Float) -> Unit,
+        onDismiss: () -> Unit,
+        modifier: Modifier = Modifier,
+        selectedStatuses: Set&lt;LaunchStatus&gt;,
+        onStatusToggled: (LaunchStatus) -> Unit,
+        isSunFilterActive: Boolean,
+        onToggleSunFilter: () -> Unit
+        ) : Unit
+    }
+
+    %% Relationships
+    SegmentedBottomBar --> LaunchSitesMenuOverlay    : opens
+    SegmentedBottomBar --> WeatherFilterOverlay      : opens
+    SegmentedBottomBar --> WeatherConfigOverlay      : opens
+
+    LaunchSitesMenuOverlay --> SiteMenuItemList      : composes
+    SiteMenuItemList --> SiteMenuItem               : composes
+
+    WeatherConfigOverlay --> EditWeatherConfig      : composes
+    WeatherConfigOverlay --> WeatherConfigItem      : composes
+
+    WeatherFilterOverlay ..> LaunchStatusToggleRow  : uses
+    WeatherFilterOverlay ..> SunriseFilter          : uses
+
 ```
 ---
 
@@ -885,391 +1271,14 @@ sequenceDiagram
 ```
 ---
 
-## Class diagrams
-### Map Screen
-```mermaid
-classDiagram
-    class MapScreenViewModel {
-        <<HiltViewModel>>
-        - launchSiteRepository: LaunchSiteRepository
-        - rocketConfigRepository: RocketConfigRepository
-        - isobaricInterpolator: IsobaricInterpolator
-        + uiState: StateFlow&lt;MapScreenUiState&gt;
-        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
-        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
-        + selectedConfig: StateFlow&lt;RocketConfig?&gt;
-        + trajectoryPoints: StateFlow&lt;List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;&gt; 
-        + startTrajectory: () -> Unit
-        + clearTrajectory: () -> Unit
-        + selectConfig: (site: RocketConfig) -> Unit
-        + updateCoordinates: (lat: Double, lon: Double) -> Unit
-        + updateLastVisited: (lat: Double, lon: Double, elevation: Double?) -> Unit
-        + updateNewMarker: (lat: Double, lon: Double, elevation: Double?) -> Unit
-        + editLaunchSite: (siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
-        + addLaunchSite: (lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
-        + geocodeAddress: (address: String) -> Pair&lt;Double, Double&gt;?
-        + updateSiteElevation: (siteId: Int, elevation: Double) -> Unit
-        + userPrefs: UserPreferences
-    }
-
-    class MapScreen {
-        + MapScreen(
-            viewModel: MapScreenViewModel,
-            onNavigateToWeather: (Double, Double) -> Unit
-          ) : Unit
-    }
-
-    class MapView {
-        + MapView(
-            center: Pair&lt;Double, Double&gt;,
-            newMarker: LaunchSite?,
-            newMarkerStatus: Boolean,
-            launchSites: List&lt;LaunchSite&gt;,
-            mapViewportState: MapViewportState,
-            modifier: Modifier,
-            showAnnotations: Boolean,
-            onMapLongClick: (Point, Double?) -> Unit,
-            onMarkerAnnotationClick: (Point, Double?) -> Unit,
-            onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
-            onLaunchSiteMarkerClick: (LaunchSite) -> Unit,
-            onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit,
-            onSiteElevation: (Int, Double) -> Unit,
-            trajectoryPoints: List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;,
-            isAnimating: Boolean,
-            onAnimationEnd: () -> Unit
-          ) : Unit
-    }
-
-    class TrajectoryPopup {
-        + TrajectoryPopup(
-            show: Boolean,
-            lastVisited: LaunchSite?,
-            currentSite: LaunchSite?,
-            rocketConfigs: List&lt;RocketConfig&gt;,
-            selectedConfig: RocketConfig?,
-            onSelectConfig: (RocketConfig) -> Unit,
-            onClose: () -> Unit,
-            onStartTrajectory: () -> Unit,
-            onClearTrajectory: () -> Unit,
-            onEditConfigs: () -> Unit,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class MarkerLabel {
-        + MarkerLabel(
-            name: String,
-            lat: String,
-            lon: String,
-            elevation: String?,
-            isLoadingElevation: Boolean,
-            onClick: () -> Unit,
-            onDoubleClick: () -> Unit,
-            onLongPress: () -> Unit,
-            fontSize: TextUnit
-          ) : Unit
-    }
-
-    class SaveLaunchSiteDialog {
-        + SaveLaunchSiteDialog(
-            launchSiteName: String,
-            onNameChange: (String) -> Unit,
-            onDismiss: () -> Unit,
-            onConfirm: () -> Unit,
-            updateStatus: MapScreenViewModel.UpdateStatus
-          ) : Unit
-    }
-
-    class LaunchSitesButton {
-        + LaunchSitesButton(
-            modifier: Modifier,
-            onClick: () -> Unit
-          ) : Unit
-    }
-
-    class LaunchSitesMenu {
-        + LaunchSitesMenu(
-            launchSites: List&lt;LaunchSite&gt;,
-            onSiteSelected: (LaunchSite) -> Unit,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class RocketConfigCarousel {
-        + RocketConfigCarousel(
-            rocketConfigs: List&lt;RocketConfig&gt;,
-            selectedConfig: RocketConfig?,
-            onSelectConfig: (RocketConfig) -> Unit,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class WeatherNavigationButton {
-        + WeatherNavigationButton(
-            modifier: Modifier,
-            latInput: String,
-            lonInput: String,
-            onNavigate: (Double, Double) -> Unit,
-            context: Context
-          ) : Unit
-    }
-
-    %% Relationships
-    MapScreenViewModel <|.. MapScreen        : uses
-    MapScreenViewModel --> UserPreferences : uses
-    MapScreen --> MapView                   : composes
-    MapScreen --> TrajectoryPopup           : composes
-    MapScreen --> SaveLaunchSiteDialog      : composes
-    MapScreen --> LaunchSitesButton         : composes
-    LaunchSitesButton --> LaunchSitesMenu   : composes
-    TrajectoryPopup --> RocketConfigCarousel: composes
-    MapScreen --> WeatherNavigationButton   : composes
-    MapView --> MarkerLabel                 : composes
-```
-
-### Weather Screen
-```mermaid
-classDiagram
-    class WeatherViewModel {
-        <<HiltViewModel>>
-        - locationForecastRepository: LocationForecastRepository
-        - weatherConfigRepository: WeatherConfigRepository
-        - launchSiteRepository: LaunchSiteRepository
-        - weatherModel: WeatherModel
-        - sunriseRepository: SunriseRepository
-        + uiState: StateFlow&lt;WeatherUiState&gt;
-        + windState: StateFlow&lt;AtmosphericWindUiState&gt;
-        + activeConfig: StateFlow&lt;WeatherConfig?&gt;
-        + configList: StateFlow&lt;List&lt;WeatherConfig&gt;&gt;
-        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
-        + lastIsobaricCoordinates: StateFlow&lt;Pair&lt;Double, Double&gt;?&gt;
-        + isobaricData: StateFlow&lt;Map&lt;Instant, AtmosphericWindUiState&gt;&gt;
-        + currentSite: StateFlow&lt;LaunchSite?&gt;
-        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
-        + clearIsobaricDataForTime: (time: Instant) -> Unit
-        + updateCoordinates: (lat: Double, lon: Double) -> Unit
-        + setActiveConfig: (config: WeatherConfig) -> Unit
-        + loadForecast: (lat: Double, lon: Double, timeSpanInHours: Int) -> Unit
-        + loadIsobaricData: (lat: Double, lon: Double, time: Instant) -> Unit
-        + getValidSunTimesList: (lat: Double, lon: Double) -> Unit
-    }
-
-    class WeatherScreen {
-        + WeatherScreen(
-            viewModel: WeatherViewModel,
-            navController: NavHostController
-          ) : Unit
-    }
-
-    class ScreenContent {
-        + ScreenContent(
-            uiState: WeatherViewModel.WeatherUiState,
-            coordinates: Pair&lt;Double, Double&gt;,
-            weatherConfig: WeatherConfig,
-            filterActive: Boolean,
-            selectedStatuses: Set&lt;LaunchStatus&gt;,
-            currentSite: LaunchSite?,
-            viewModel: WeatherViewModel,
-            isSunFilterActive: Boolean
-          ) : Unit
-    }
-
-    class SiteHeader {
-        + SiteHeader(
-            site: LaunchSite?,
-            coordinates: Pair&lt;Double, Double&gt;,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class DailyForecastCard {
-        + DailyForecastCard(
-            forecastItems: List&lt;ForecastDataItem&gt;,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class HourlyExpandableCard {
-        + HourlyExpandableCard(
-            forecastItem: ForecastDataItem,
-            coordinates: Pair&lt;Double, Double&gt;,
-            weatherConfig: WeatherConfig,
-            modifier: Modifier,
-            viewModel: WeatherViewModel
-          ) : Unit
-    }
-
-    class AtmosphericWindTable {
-        + AtmosphericWindTable(
-            viewModel: WeatherViewModel,
-            coordinates: Pair&lt;Double, Double&gt;,
-            time: Instant
-          ) : Unit
-    }
-
-    class AWTableContents {
-        + AWTableContents(
-            item: IsobaricData,
-            config: WeatherConfig,
-            showTime: Boolean
-          ) : Unit
-    }
-
-    class AWTimeDisplay {
-        + AWTimeDisplay(
-            time: String,
-            style: TextStyle
-          ) : Unit
-    }
-
-    class WindLayerHeader {
-        + WindLayerHeader(
-            altitudeText: String,
-            windSpeedText: String,
-            windDirectionText: String,
-            modifier: Modifier,
-            style: TextStyle
-          ) : Unit
-    }
-
-    class WindDataColumn {
-        + WindDataColumn(
-            isobaricData: IsobaricData,
-            config: WeatherConfig,
-            windShearColor: Color
-          ) : Unit
-    }
-
-    class WindLayerRow {
-        + WindLayerRow(
-            config: WeatherConfig,
-            configParameter: ConfigParameter,
-            altitude: Double?,
-            windSpeed: Double?,
-            windDirection: Double?,
-            modifier: Modifier,
-            style: TextStyle
-          ) : Unit
-    }
-    
-    class DefaultWeatherParameters {
-        <<object>>
-        + instance: WeatherConfig
-    }
-
-    %% Relationships
-    WeatherViewModel <|.. WeatherScreen            : uses
-    WeatherScreen --> ScreenContent               : composes
-    ScreenContent --> SiteHeader                  : composes
-    ScreenContent --> DailyForecastCard           : composes
-    ScreenContent --> HourlyExpandableCard        : composes
-    HourlyExpandableCard --> AtmosphericWindTable : composes
-    AtmosphericWindTable --> AWTableContents       : composes
-    AWTableContents --> AWTimeDisplay              : composes
-    AWTableContents --> WindLayerHeader            : composes
-    AWTableContents --> WindDataColumn             : composes
-    WindDataColumn --> WindLayerRow                : composes
-    
-    DefaultWeatherParameters ..> WeatherConfig       : provides
-
-```
-
-### Segmented bottom bar
-```mermaid
-classDiagram
-    class SegmentedBottomBar {
-        + SegmentedBottomBar(
-            onConfigClick: () -> Unit
-            onFilterClick: () -> Unit
-            onLaunchClick: () -> Unit 
-            modifier: Modifier = Modifier
-            ) : Unit
-    }
-
-    class LaunchSitesMenuOverlay {
-        + LaunchSitesMenuOverlay(launchSites: List&lt;LaunchSite&gt;
-         onSiteSelected: (LaunchSite) -> Unit
-          onDismiss: () -> Unit
-           modifier: Modifier = Modifier
-           ) : Unit
-    }
-
-    class SiteMenuItemList {
-        + SiteMenuItemList(launchSites: List&lt;LaunchSite&gt;
-        onSelect: (LaunchSite) -> Unit 
-        minWidth: Dp 
-        maxWidth: Dp
-        ) : Unit
-    }
-
-    class SiteMenuItem {
-        + SiteMenuItem(site: LaunchSite 
-        onClick: () -> Unit 
-        minWidth: Dp 
-        maxWidth: Dp
-        ) : Unit
-    }
-
-    class WeatherConfigOverlay {
-        + WeatherConfigOverlay(configList: List&lt;WeatherConfig&gt;,
-        onConfigSelected: (WeatherConfig) -> Unit,
-        onNavigateToEditConfigs: () -> Unit,
-        onDismiss: () -> Unit,
-        modifier: Modifier = Modifier
-        ) : Unit
-    }
-
-    class EditWeatherConfig {
-        + EditWeatherConfig(onClick: () -> Unit,
-        enabled: Boolean,
-        modifier: Modifier = Modifier
-        ) : Unit
-    }
-
-    class WeatherConfigItem {
-        + WeatherConfigItem(weatherConfig: WeatherConfig,
-        onConfigSelected: (WeatherConfig) -> Unit,
-        modifier: Modifier = Modifier
-        ) : Unit
-    }
-
-    class WeatherFilterOverlay {
-        + WeatherFilterOverlay(isFilterActive: Boolean,
-        onToggleFilter: () -> Unit,
-        hoursToShow: Float,
-        onHoursChanged: (Float) -> Unit,
-        onDismiss: () -> Unit,
-        modifier: Modifier = Modifier,
-        selectedStatuses: Set&lt;LaunchStatus&gt;,
-        onStatusToggled: (LaunchStatus) -> Unit,
-        isSunFilterActive: Boolean,
-        onToggleSunFilter: () -> Unit
-        ) : Unit
-    }
-
-    %% Relationships
-    SegmentedBottomBar --> LaunchSitesMenuOverlay    : opens
-    SegmentedBottomBar --> WeatherFilterOverlay      : opens
-    SegmentedBottomBar --> WeatherConfigOverlay      : opens
-
-    LaunchSitesMenuOverlay --> SiteMenuItemList      : composes
-    SiteMenuItemList --> SiteMenuItem               : composes
-
-    WeatherConfigOverlay --> EditWeatherConfig      : composes
-    WeatherConfigOverlay --> WeatherConfigItem      : composes
-
-    WeatherFilterOverlay ..> LaunchStatusToggleRow  : uses
-    WeatherFilterOverlay ..> SunriseFilter          : uses
-
-```
-
-### Configuration classes
+### Configuration classes Class Diagram
 ```mermaid
 classDiagram
     class ConfigViewModel {
         <<HiltViewModel>>
         - weatherRepo: WeatherConfigRepository
         - rocketRepo: RocketConfigRepository
+	- userPrefs: UserPreferences
         + weatherConfigs: Flow&lt;List&lt;WeatherConfig&gt;&gt;
         + rocketConfigs: Flow&lt;List&lt;RocketConfig&gt;&gt;
         + weatherNames: StateFlow&lt;List&lt;String&gt;&gt;
@@ -1288,19 +1297,6 @@ classDiagram
         + deleteRocketConfig(rc: RocketConfig): Unit
         + checkRocketNameAvailability(name: String): Unit
         + resetRocketStatus(): Unit
-        + userPrefs: UserPreferences
-    }
-
-    class ConfigType {
-        <<sealed>>
-        - route: String
-        - label: String
-    }
-    class ConfigTypeWeather {
-        <<object>>
-    }
-    class ConfigTypeRocket {
-        <<object>>
     }
 
     class ConfigScreen {
@@ -1359,16 +1355,13 @@ classDiagram
         ): Unit
     }
 
-    %% Inheritance
-    ConfigType <|-- ConfigTypeWeather
-    ConfigType <|-- ConfigTypeRocket
 
     %% Usage
     ConfigViewModel <|.. WeatherConfigListScreen : uses
     ConfigViewModel <|.. WeatherConfigEditScreen : uses
     ConfigViewModel <|.. RocketConfigListScreen  : uses
     ConfigViewModel <|.. RocketConfigEditScreen  : uses
-    ConfigViewModel --> UserPreferences : uses
+  
 
     %% Navigation
     ConfigScreen --> WeatherConfigListScreen    : navigates
@@ -1378,6 +1371,11 @@ classDiagram
     WeatherConfigListScreen --> WeatherConfigListItem : composes
     RocketConfigListScreen  --> RocketConfigItem       : composes
 ```
+---
+
+## Class Diagrams
+
+---
 
 ## Navigation
 ```mermaid
@@ -1815,5 +1813,4 @@ direction TB
 ```
 ---
 
-## Use Case Diagram
-![SOAR Use Case Diagram](images/Use-case-SOAR.drawio.png)
+

@@ -19,6 +19,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/*
+ * This file represents the screen for displaying and managing saved launch sites.
+ * It shows a scrollable list of user-saved sites (excluding temp markers), and allows deletion or editing of each site.
+ * Special notes:
+ * - Filters out temporary names like "New Marker" and "Last Visited".
+ * - Sorted alphabetically for better UX.
+ * - Uses a custom status to indicate update success.
+ */
+
 @Composable
 fun LaunchSiteScreen(
     viewModel: LaunchSiteViewModel = hiltViewModel()
@@ -93,6 +102,7 @@ fun LaunchSiteScreen(
             }
         }
     }
+    // Reset update status once a successful update has been registered
     LaunchedEffect(updateStatus) {
         if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success) {
             viewModel.setUpdateStatusToIdle()

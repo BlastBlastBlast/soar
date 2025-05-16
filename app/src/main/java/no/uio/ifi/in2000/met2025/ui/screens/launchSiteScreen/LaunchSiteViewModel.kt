@@ -8,12 +8,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import javax.inject.Inject
 
+/**
+ * LaunchSiteViewModel
+ *
+ * ViewModel responsible for managing the launch site data and update state.
+ *
+ * Responsibilities:
+ * - Provides a reactive flow of all launch sites.
+ * - Handles deletion and updates to launch site entries.
+ * - Tracks update operation status and name validation errors.
+ *
+ */
 @HiltViewModel
 class LaunchSiteViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository
@@ -22,6 +32,10 @@ class LaunchSiteViewModel @Inject constructor(
     // Flow of all saved launch sites.
     val launchSites: Flow<List<LaunchSite>> = launchSiteRepository.getAll()
 
+    /**
+     * Represents the result of an update operation.
+     * Used to inform the UI about the current update state.
+     */
     sealed class UpdateStatus {
         object Idle : UpdateStatus()
         data class Success(val siteUid: Int) : UpdateStatus()
@@ -31,6 +45,7 @@ class LaunchSiteViewModel @Inject constructor(
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
+    // Internal list of all launch site names, used for validating name uniqueness.
     private val _launchSiteNames = MutableStateFlow<List<String>>(emptyList())
 
     init {
