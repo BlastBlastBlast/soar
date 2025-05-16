@@ -1268,11 +1268,7 @@ sequenceDiagram
 ```
 ---
 
-
-
-
-
-### Configuration classes
+### Configuration classes Class Diagram
 ```mermaid
 classDiagram
     class ConfigViewModel {
@@ -1372,6 +1368,11 @@ classDiagram
     WeatherConfigListScreen --> WeatherConfigListItem : composes
     RocketConfigListScreen  --> RocketConfigItem       : composes
 ```
+---
+
+
+
+
 
 ## Navigation
 ```mermaid
