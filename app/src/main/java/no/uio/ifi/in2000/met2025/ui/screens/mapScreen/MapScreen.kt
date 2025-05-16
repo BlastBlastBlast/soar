@@ -51,7 +51,6 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LatLonDisplay
 import androidx.compose.material3.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -63,7 +62,6 @@ import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.common.TutorialWindow
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
-import java.time.Instant
 
 /**
  * Main composable that renders the map UI.
