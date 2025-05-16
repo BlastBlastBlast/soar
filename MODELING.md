@@ -721,6 +721,153 @@ sequenceDiagram
     end
 ```
 ---
+### Weather Screen Class Diagram
+```mermaid
+classDiagram
+    class WeatherViewModel {
+        <<HiltViewModel>>
+        - locationForecastRepository: LocationForecastRepository
+        - weatherConfigRepository: WeatherConfigRepository
+        - launchSiteRepository: LaunchSiteRepository
+        - weatherModel: WeatherModel
+        - sunriseRepository: SunriseRepository
+        + uiState: StateFlow&lt;WeatherUiState&gt;
+        + windState: StateFlow&lt;AtmosphericWindUiState&gt;
+        + activeConfig: StateFlow&lt;WeatherConfig?&gt;
+        + configList: StateFlow&lt;List&lt;WeatherConfig&gt;&gt;
+        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
+        + lastIsobaricCoordinates: StateFlow&lt;Pair&lt;Double, Double&gt;?&gt;
+        + isobaricData: StateFlow&lt;Map&lt;Instant, AtmosphericWindUiState&gt;&gt;
+        + currentSite: StateFlow&lt;LaunchSite?&gt;
+        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
+        + clearIsobaricDataForTime: (time: Instant) -> Unit
+        + updateCoordinates: (lat: Double, lon: Double) -> Unit
+        + setActiveConfig: (config: WeatherConfig) -> Unit
+        + loadForecast: (lat: Double, lon: Double, timeSpanInHours: Int) -> Unit
+        + loadIsobaricData: (lat: Double, lon: Double, time: Instant) -> Unit
+        + getValidSunTimesList: (lat: Double, lon: Double) -> Unit
+    }
+
+    class WeatherScreen {
+        + WeatherScreen(
+            viewModel: WeatherViewModel,
+            navController: NavHostController
+          ) : Unit
+    }
+
+    class ScreenContent {
+        + ScreenContent(
+            uiState: WeatherViewModel.WeatherUiState,
+            coordinates: Pair&lt;Double, Double&gt;,
+            weatherConfig: WeatherConfig,
+            filterActive: Boolean,
+            selectedStatuses: Set&lt;LaunchStatus&gt;,
+            currentSite: LaunchSite?,
+            viewModel: WeatherViewModel,
+            isSunFilterActive: Boolean
+          ) : Unit
+    }
+
+    class SiteHeader {
+        + SiteHeader(
+            site: LaunchSite?,
+            coordinates: Pair&lt;Double, Double&gt;,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class DailyForecastCard {
+        + DailyForecastCard(
+            forecastItems: List&lt;ForecastDataItem&gt;,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class HourlyExpandableCard {
+        + HourlyExpandableCard(
+            forecastItem: ForecastDataItem,
+            coordinates: Pair&lt;Double, Double&gt;,
+            weatherConfig: WeatherConfig,
+            modifier: Modifier,
+            viewModel: WeatherViewModel
+          ) : Unit
+    }
+
+    class AtmosphericWindTable {
+        + AtmosphericWindTable(
+            viewModel: WeatherViewModel,
+            coordinates: Pair&lt;Double, Double&gt;,
+            time: Instant
+          ) : Unit
+    }
+
+    class AWTableContents {
+        + AWTableContents(
+            item: IsobaricData,
+            config: WeatherConfig,
+            showTime: Boolean
+          ) : Unit
+    }
+
+    class AWTimeDisplay {
+        + AWTimeDisplay(
+            time: String,
+            style: TextStyle
+          ) : Unit
+    }
+
+    class WindLayerHeader {
+        + WindLayerHeader(
+            altitudeText: String,
+            windSpeedText: String,
+            windDirectionText: String,
+            modifier: Modifier,
+            style: TextStyle
+          ) : Unit
+    }
+
+    class WindDataColumn {
+        + WindDataColumn(
+            isobaricData: IsobaricData,
+            config: WeatherConfig,
+            windShearColor: Color
+          ) : Unit
+    }
+
+    class WindLayerRow {
+        + WindLayerRow(
+            config: WeatherConfig,
+            configParameter: ConfigParameter,
+            altitude: Double?,
+            windSpeed: Double?,
+            windDirection: Double?,
+            modifier: Modifier,
+            style: TextStyle
+          ) : Unit
+    }
+    
+    class DefaultWeatherParameters {
+        <<object>>
+        + instance: WeatherConfig
+    }
+
+    %% Relationships
+    WeatherViewModel <|.. WeatherScreen            : uses
+    WeatherScreen --> ScreenContent               : composes
+    ScreenContent --> SiteHeader                  : composes
+    ScreenContent --> DailyForecastCard           : composes
+    ScreenContent --> HourlyExpandableCard        : composes
+    HourlyExpandableCard --> AtmosphericWindTable : composes
+    AtmosphericWindTable --> AWTableContents       : composes
+    AWTableContents --> AWTimeDisplay              : composes
+    AWTableContents --> WindLayerHeader            : composes
+    AWTableContents --> WindDataColumn             : composes
+    WindDataColumn --> WindLayerRow                : composes
+    
+    DefaultWeatherParameters ..> WeatherConfig       : provides
+
+```
+
 
 ## Rocket Config
 ### Rocket Config List Screen
@@ -1033,152 +1180,6 @@ sequenceDiagram
 
 
 
-### Weather Screen
-```mermaid
-classDiagram
-    class WeatherViewModel {
-        <<HiltViewModel>>
-        - locationForecastRepository: LocationForecastRepository
-        - weatherConfigRepository: WeatherConfigRepository
-        - launchSiteRepository: LaunchSiteRepository
-        - weatherModel: WeatherModel
-        - sunriseRepository: SunriseRepository
-        + uiState: StateFlow&lt;WeatherUiState&gt;
-        + windState: StateFlow&lt;AtmosphericWindUiState&gt;
-        + activeConfig: StateFlow&lt;WeatherConfig?&gt;
-        + configList: StateFlow&lt;List&lt;WeatherConfig&gt;&gt;
-        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
-        + lastIsobaricCoordinates: StateFlow&lt;Pair&lt;Double, Double&gt;?&gt;
-        + isobaricData: StateFlow&lt;Map&lt;Instant, AtmosphericWindUiState&gt;&gt;
-        + currentSite: StateFlow&lt;LaunchSite?&gt;
-        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
-        + clearIsobaricDataForTime: (time: Instant) -> Unit
-        + updateCoordinates: (lat: Double, lon: Double) -> Unit
-        + setActiveConfig: (config: WeatherConfig) -> Unit
-        + loadForecast: (lat: Double, lon: Double, timeSpanInHours: Int) -> Unit
-        + loadIsobaricData: (lat: Double, lon: Double, time: Instant) -> Unit
-        + getValidSunTimesList: (lat: Double, lon: Double) -> Unit
-    }
-
-    class WeatherScreen {
-        + WeatherScreen(
-            viewModel: WeatherViewModel,
-            navController: NavHostController
-          ) : Unit
-    }
-
-    class ScreenContent {
-        + ScreenContent(
-            uiState: WeatherViewModel.WeatherUiState,
-            coordinates: Pair&lt;Double, Double&gt;,
-            weatherConfig: WeatherConfig,
-            filterActive: Boolean,
-            selectedStatuses: Set&lt;LaunchStatus&gt;,
-            currentSite: LaunchSite?,
-            viewModel: WeatherViewModel,
-            isSunFilterActive: Boolean
-          ) : Unit
-    }
-
-    class SiteHeader {
-        + SiteHeader(
-            site: LaunchSite?,
-            coordinates: Pair&lt;Double, Double&gt;,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class DailyForecastCard {
-        + DailyForecastCard(
-            forecastItems: List&lt;ForecastDataItem&gt;,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class HourlyExpandableCard {
-        + HourlyExpandableCard(
-            forecastItem: ForecastDataItem,
-            coordinates: Pair&lt;Double, Double&gt;,
-            weatherConfig: WeatherConfig,
-            modifier: Modifier,
-            viewModel: WeatherViewModel
-          ) : Unit
-    }
-
-    class AtmosphericWindTable {
-        + AtmosphericWindTable(
-            viewModel: WeatherViewModel,
-            coordinates: Pair&lt;Double, Double&gt;,
-            time: Instant
-          ) : Unit
-    }
-
-    class AWTableContents {
-        + AWTableContents(
-            item: IsobaricData,
-            config: WeatherConfig,
-            showTime: Boolean
-          ) : Unit
-    }
-
-    class AWTimeDisplay {
-        + AWTimeDisplay(
-            time: String,
-            style: TextStyle
-          ) : Unit
-    }
-
-    class WindLayerHeader {
-        + WindLayerHeader(
-            altitudeText: String,
-            windSpeedText: String,
-            windDirectionText: String,
-            modifier: Modifier,
-            style: TextStyle
-          ) : Unit
-    }
-
-    class WindDataColumn {
-        + WindDataColumn(
-            isobaricData: IsobaricData,
-            config: WeatherConfig,
-            windShearColor: Color
-          ) : Unit
-    }
-
-    class WindLayerRow {
-        + WindLayerRow(
-            config: WeatherConfig,
-            configParameter: ConfigParameter,
-            altitude: Double?,
-            windSpeed: Double?,
-            windDirection: Double?,
-            modifier: Modifier,
-            style: TextStyle
-          ) : Unit
-    }
-    
-    class DefaultWeatherParameters {
-        <<object>>
-        + instance: WeatherConfig
-    }
-
-    %% Relationships
-    WeatherViewModel <|.. WeatherScreen            : uses
-    WeatherScreen --> ScreenContent               : composes
-    ScreenContent --> SiteHeader                  : composes
-    ScreenContent --> DailyForecastCard           : composes
-    ScreenContent --> HourlyExpandableCard        : composes
-    HourlyExpandableCard --> AtmosphericWindTable : composes
-    AtmosphericWindTable --> AWTableContents       : composes
-    AWTableContents --> AWTimeDisplay              : composes
-    AWTableContents --> WindLayerHeader            : composes
-    AWTableContents --> WindDataColumn             : composes
-    WindDataColumn --> WindLayerRow                : composes
-    
-    DefaultWeatherParameters ..> WeatherConfig       : provides
-
-```
 
 ### Segmented bottom bar
 ```mermaid
