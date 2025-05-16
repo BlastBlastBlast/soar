@@ -146,13 +146,6 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    fun clearIsobaricDataForTime(time: Instant) {
-        // Clear the isobaric data state for the given forecast time.
-        _isobaricData.value = _isobaricData.value.toMutableMap().apply {
-            put(time, AtmosphericWindUiState.Idle)
-        }
-    }
-
     fun updateCoordinates(lat: Double, lon: Double) {
         viewModelScope.launch {
             // Use the repository function to get the "Last Visited" site.

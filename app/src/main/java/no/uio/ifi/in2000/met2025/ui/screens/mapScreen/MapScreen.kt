@@ -253,9 +253,9 @@ fun MapScreen(
 
                     // Floating button to open the trajectory simulation popup
                     if (!showTrajectoryPopup) {
-                        if (appFirstRun) {
+                        if (launchFirstRun) {
                             TutorialWindow(
-                                onDismiss = { viewModel.markAppLaunched() },
+                                onDismiss = { viewModel.markFirstLaunchTutorialSeen() },
                                 title = "Warning!",
                                 contentText = "Starting a launch simulation initiates heavy calculations, " +
                                             "and operates on data fetched in realtime.\n " +

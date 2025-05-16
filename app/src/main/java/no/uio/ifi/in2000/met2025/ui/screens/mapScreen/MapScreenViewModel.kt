@@ -345,11 +345,6 @@ class MapScreenViewModel @Inject constructor(
         }
     }
 
-    fun onTrajectoryComplete() {
-        isAnimating      = false
-        isTrajectoryMode = false
-    }
-
     /**
      * Central handler when user taps or long-presses map:
      *  - Updates center coords, “Last Visited” and “New Marker” entries
