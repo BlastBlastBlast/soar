@@ -1,6 +1,10 @@
 package no.uio.ifi.in2000.met2025.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -15,7 +19,11 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
+import no.uio.ifi.in2000.met2025.data.UserPreferences
 import no.uio.ifi.in2000.met2025.data.local.database.AppDatabase
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfigDao
 import no.uio.ifi.in2000.met2025.data.local.database.GribDataDAO
@@ -188,6 +196,34 @@ object DatabaseModule {
 
     @Provides
     fun provideRocketConfigDao(db: AppDatabase): RocketConfigDao = db.rocketConfigDao()
+}
 
+@Module
+@InstallIn(SingletonComponent::class)
+object DataStoreModule {
+    private const val DATASTORE_NAME = "user_prefs"
 
+    @Provides
+    @Singleton
+    fun providePreferencesDataStore(
+        @ApplicationContext appContext: Context
+    ): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.create(
+            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            // no initialData here!
+            // corruptionHandler and migrations are optional:
+            corruptionHandler = null,
+            migrations = emptyList(),
+            produceFile = {
+                // this MUST return a File
+                appContext.preferencesDataStoreFile(DATASTORE_NAME)
+            }
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserPreferences(
+        dataStore: DataStore<Preferences>
+    ): UserPreferences = UserPreferences(dataStore)
 }

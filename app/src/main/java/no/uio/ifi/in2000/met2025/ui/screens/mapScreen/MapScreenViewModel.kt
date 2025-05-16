@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.met2025.data.UserPreferences
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
@@ -52,7 +53,8 @@ class MapScreenViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository,
     private val rocketConfigRepository: RocketConfigRepository,
     private val isobaricInterpolator: IsobaricInterpolator,
-    private val isobaricRepository: IsobaricRepository
+    private val isobaricRepository: IsobaricRepository,
+    private val userPrefs: UserPreferences
 ) : ViewModel() {
 
     sealed class MapScreenUiState {
@@ -123,13 +125,16 @@ class MapScreenViewModel @Inject constructor(
     private val _latestAvailableGrib = MutableStateFlow<Instant?>(null)
     val latestAvailableGrib: StateFlow<Instant?> = _latestAvailableGrib
 
+    val isAppFirstRun = userPrefs.isFirstRunFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+
     /**
      * Startup tasks:
      *  1) Load saved launch sites
      *  2) Ensure a default rocket config exists
      *  3) Restore any temporary “New Marker” or “Last Visited” site
      */
-
     init {
         // 1) Load saved launch sites
         viewModelScope.launch {
@@ -405,14 +410,7 @@ class MapScreenViewModel @Inject constructor(
         _latestAvailableGrib.value = isobaricRepository.getLatestAvailableGrib()
     }
 
-}
-
-fun calculateBearing(lon1: Double, lat1: Double, lon2: Double, lat2: Double): Double {
-    val φ1 = Math.toRadians(lat1)
-    val φ2 = Math.toRadians(lat2)
-    val Δλ = Math.toRadians(lon2 - lon1)
-    val y = Math.sin(Δλ) * Math.cos(φ2)
-    val x = Math.cos(φ1) * Math.sin(φ2) -
-            Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
-    return Math.toDegrees(Math.atan2(y, x))
+    fun markAppLaunched() = viewModelScope.launch {
+        userPrefs.markFirstRunComplete()
+    }
 }

@@ -60,6 +60,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
+import no.uio.ifi.in2000.met2025.ui.common.TutorialWindow
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
 import java.time.Instant
@@ -92,6 +93,7 @@ fun MapScreen(
         )
     }
 
+    val appFirstRun by viewModel.isAppFirstRun.collectAsState()
     val trajectoryPoints by viewModel.trajectoryPoints.collectAsState()
     val isAnimating = viewModel.isAnimating
     val isTrajectoryCalculating by viewModel.isTrajectoryCalculating.collectAsState()
@@ -237,6 +239,17 @@ fun MapScreen(
                         styleReloadTrigger  = styleReloadTrigger
 
                     )
+                    if(appFirstRun) {
+                        TutorialWindow(
+                            onDismiss = { viewModel.markAppLaunched() },
+                            title = "Welcome to SOAR",
+                            contentText =  "Click the SOAR logo in the top left corner to open our navigation drawer.\n\n"+
+                                    "At the bottom of the drawer you will find customized tips and explanations for " +
+                                    "whatever part of the app you are currently using.",
+                            iconRes = listOf(R.drawable.soarlogo)
+                        )
+                    }
+
                     // Floating button to open the trajectory simulation popup
                     if (!showTrajectoryPopup) {
                         ExtendedFloatingActionButton(

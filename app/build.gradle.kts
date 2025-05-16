@@ -118,6 +118,9 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
+    // DataStore Preferences (KTX extensions included)
+    implementation (libs.androidx.datastore.preferences)
+
     //netcdf and dependencies
     implementation(libs.cdm.core)// Core library
     implementation(libs.grib) // GRIB1 & GRIB2 support
