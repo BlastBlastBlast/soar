@@ -163,7 +163,7 @@ cd team-21
 6. Click any hourly card to expand it and see full Locationforecast data
 7. For any expanded hourly card, click the "Get Isobaric Data" button to fetch GRIB2 wind and temperature data.
     - This updates the launch window viability evaluation based on the additional data.
-9. Use the bottom bar to:
+8. Use the bottom bar to:
     - Swap active launch site
     - Filter Safe/Caution/Unsafe evaluations & sunrise/sunset windows
     - Switch or create new **Weather Configurations**
