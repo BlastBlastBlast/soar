@@ -207,6 +207,26 @@ fun MapView(
                 MapEffect(trajectoryPoints) { mv ->
                     if (trajectoryPoints.isEmpty()) return@MapEffect
 
+                    mv.mapboxMap.getStyle { style ->
+                        // Remove all "traj-lyr-*" layers
+                        style.styleLayers
+                            .map { it.id }
+                            .filter { it.startsWith("traj-lyr-") }
+                            .forEach { style.removeStyleLayer(it) }
+
+                        // Remove all "traj-src-*" sources
+                        style.styleSources
+                            .map { it.id }
+                            .filter { it.startsWith("traj-src-") }
+                            .forEach { style.removeStyleSource(it) }
+
+                        // Also remove our endpoint circles
+                        style.removeStyleLayer("endpoint-lyr-start")
+                        style.removeStyleLayer("endpoint-lyr-end")
+                        style.removeStyleSource("endpoint-src-start")
+                        style.removeStyleSource("endpoint-src-end")
+                    }
+
                     // Offset model rendering
                     val firstFreeFlightIdx = trajectoryPoints
                         .indexOfFirst { it.third == RocketState.FREE_FLIGHT }
@@ -250,12 +270,25 @@ fun MapView(
                             }
                         }
 
-                        // Decide scale for rocket and parachute
+//                         Decide scale for rocket and parachute
                         val scaleVec = when {
                             idx == rocketModelIdx -> listOf(200.0, 200.0, 200.0)
                             parachuteModelIdx != null && idx == parachuteModelIdx -> listOf(60.0, 60.0, 60.0)
                             else -> listOf(5.0, 5.0, 5.0)
                         }
+
+                        //// Dynamic scaling for ISO models: first 5 grow 1→5, last 5 shrink 5→1, middle stay 5//val dynSize = when {//    idx < 5                -> (idx + 1).toDouble()           // 0→1, …, 4→5//    idx >= totalPts - 5    -> (totalPts - idx).toDouble()    // (total-5)→5, …, (total-1)→1//    else                   -> 5.0//}//val scaleVec = when {//    idx == rocketModelIdx                                   ->//        listOf(200.0, 200.0, 200.0)                         // rocket fixed scale//    parachuteModelIdx != null && idx == parachuteModelIdx  ->//        listOf(60.0, 60.0, 60.0)                            // parachute fixed scale//    else                                                    ->//        listOf(dynSize, dynSize, dynSize)                  // ISO models dynamic scale//}
+//                        val totalPts = trajectoryPoints.size
+//                        val dynSize = when {
+//                            idx < 5 -> (idx + 1).toDouble()
+//                            idx >= totalPts - 5 -> (totalPts - idx).toDouble()
+//                            else -> 5.0
+//                        }
+//                        val scaleVec = when {
+//                            idx == rocketModelIdx -> listOf(200.0, 200.0, 200.0)
+//                            parachuteModelIdx != null && idx == parachuteModelIdx -> listOf(60.0, 60.0, 60.0)
+//                            else -> listOf(dynSize, dynSize, dynSize)
+//                        }
 
                         val modelId  = "traj-model-$idx"
                         val sourceId = "traj-src-$idx"

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -88,20 +89,16 @@ fun TrajectoryPopup(
     onStartTrajectory: (Instant) -> Unit,
     onClearTrajectory: () -> Unit,
     onEditConfigs: () -> Unit,
+    onSelectWindow: (Instant) -> Unit,
     availabilityInstant: Instant?,             // nullable Instant
     onRetryAvailability: () -> Unit,           // retry callback
-
+    defaultLaunch: Instant,
     modifier: Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val thresholdPx = with(LocalDensity.current) { 100.dp.toPx() }
     val oslo = ZoneId.of("Europe/Oslo")
     // truncate “now” to the top of the hour
-    val defaultLaunch = remember {
-        ZonedDateTime.now(oslo)
-            .truncatedTo(ChronoUnit.HOURS)
-            .toInstant()
-    }
     var pickedInstant by remember { mutableStateOf(defaultLaunch) }
     var showWindowPicker by remember { mutableStateOf(false) }
 
@@ -130,7 +127,7 @@ fun TrajectoryPopup(
                 shadowElevation = 8.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.40f)
+                    .fillMaxHeight(0.43f)
                     .offset { IntOffset(0, offsetY.roundToInt()) }
                     .pointerInput(show) {
                         detectVerticalDragGestures { change, dy ->
@@ -163,14 +160,14 @@ fun TrajectoryPopup(
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             label,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
                         Text(
                             lastVisited
                                 ?.let { "%.4f, %.4f".format(it.latitude, it.longitude) }
                                 ?: "No location yet",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
                     }
@@ -245,6 +242,7 @@ fun TrajectoryPopup(
                         onConfirm           = {
                             pickedInstant = it
                             showWindowPicker = false
+                            onSelectWindow(it)
                         }
                     )
                 }

@@ -19,8 +19,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -51,6 +53,7 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import no.uio.ifi.in2000.met2025.domain.helpers.parseLatLon
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LatLonDisplay
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -60,8 +63,14 @@ import androidx.compose.ui.zIndex
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.ui.common.ErrorScreen
 import no.uio.ifi.in2000.met2025.ui.common.TutorialWindow
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchDirectionWheel
+import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.LaunchPitchSlider
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components.TrajectoryPopup
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WeatherLoadingSpinner
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 /**
  * Main composable that renders the map UI.
@@ -113,6 +122,17 @@ fun MapScreen(
     val selectedCfg by viewModel.selectedConfig.collectAsState()
     var showTrajectoryPopup by rememberSaveable { mutableStateOf(false) }
     val latestAvailableGrib by viewModel.latestAvailableGrib.collectAsState()
+    val forecastUiState by viewModel.forecastUiState.collectAsState()
+    var launchAzimuth by rememberSaveable { mutableStateOf(0.0) }
+    var launchPitch by rememberSaveable { mutableStateOf(80.0) }
+
+    val oslo = ZoneId.of("Europe/Oslo")
+    // truncate “now” to the top of the hour
+    val defaultLaunch = remember {
+        ZonedDateTime.now(oslo)
+            .truncatedTo(ChronoUnit.HOURS)
+            .toInstant()
+    }
 
     /**
      * Triggered on long-press: places a new marker at the clicked location
@@ -251,17 +271,6 @@ fun MapScreen(
 
                     // Floating button to open the trajectory simulation popup
                     if (!showTrajectoryPopup) {
-                        if (launchFirstRun) {
-                            TutorialWindow(
-                                onDismiss = { viewModel.markFirstLaunchTutorialSeen() },
-                                title = "Warning!",
-                                contentText = "Starting a launch simulation initiates heavy calculations, " +
-                                            "and operates on data fetched in realtime.\n " +
-                                            "Depending on your hardware specs and internet connection speed, " +
-                                            "this process might take a while!",
-                                iconRes = listOf(R.drawable.soarlogo)
-                            )
-                        }
                         ExtendedFloatingActionButton(
                             containerColor = MaterialTheme.colorScheme.surface,
                             icon = {
@@ -287,30 +296,72 @@ fun MapScreen(
                     }
                     // Popup for trajectory simulation
                     if (showTrajectoryPopup) {
-                        TrajectoryPopup(
-                            show = true,
-                            lastVisited = viewModel.lastVisited.collectAsState().value,
-                            currentSite = currentSite,
-                            rocketConfigs = rocketConfigs,
-                            selectedConfig = selectedCfg,
-                            onSelectConfig = { viewModel.selectConfig(it) },
-                            onClose = { showTrajectoryPopup = false },
-                            onStartTrajectory = { instant -> viewModel.startTrajectory(instant) },
-                            onEditConfigs = onNavigateToRocketConfig,
-                            onClearTrajectory = {
-                                viewModel.clearTrajectory()
-                                // trigger a recomposition of the map if you like
-                            },
-                            availabilityInstant = latestAvailableGrib,
-                            onRetryAvailability = {
-                                // re-fetch and stay open
-                                scope.launch { viewModel.updateLatestAvailableGrib() }
-                            },
+                        if (launchFirstRun) {
+                            TutorialWindow(
+                                onDismiss = { viewModel.markFirstLaunchTutorialSeen() },
+                                title = "Warning!",
+                                contentText = "Starting a launch simulation initiates heavy calculations, " +
+                                        "and operates on data fetched in realtime.\n " +
+                                        "Depending on your hardware specs and internet connection speed, " +
+                                        "this process might take a while!",
+                                iconRes = listOf(R.drawable.soarlogo)
+                            )
+                        }
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .zIndex(1f),
-                        )
+                        ) {
+                            viewModel.fetchForecastData(coords.first, coords.second, defaultLaunch)
+                            if (showAnnotations) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    // LaunchDirectionWheel at the top
+                                    LaunchDirectionWheel(
+                                        onAngleChange = { launchAzimuth = it },
+                                        forecastUiState = forecastUiState,
+                                        selectedConfig = selectedCfg
+                                    )
+
+                                    Spacer(modifier = Modifier.height(60.dp))
+
+                                    // LaunchPitchWheel below
+                                    LaunchPitchSlider(
+                                        initialAngle = launchPitch.toFloat(),
+                                        onAngleChange = { launchPitch = it.toDouble() }
+                                    )
+                                }
+                            }
+                            TrajectoryPopup(
+                                show = true,
+                                lastVisited = viewModel.lastVisited.collectAsState().value,
+                                currentSite = currentSite,
+                                rocketConfigs = rocketConfigs,
+                                selectedConfig = selectedCfg,
+                                onSelectConfig = { viewModel.selectConfig(it) },
+                                onClose = { showTrajectoryPopup = false },
+                                onStartTrajectory = { instant -> viewModel.startTrajectory(instant, launchAzimuth, launchPitch) },
+                                onEditConfigs = onNavigateToRocketConfig,
+                                onClearTrajectory = {
+                                    viewModel.clearTrajectory()
+                                    // trigger a recomposition of the map if you like
+                                },
+                                availabilityInstant = latestAvailableGrib,
+                                onRetryAvailability = {
+                                    // re-fetch and stay open
+                                    scope.launch { viewModel.updateLatestAvailableGrib() }
+                                },
+                                onSelectWindow = { viewModel.fetchForecastData(coords.first, coords.second, it) },
+                                defaultLaunch = defaultLaunch,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter)
+                                    .zIndex(1f),
+                            )
+                        }
                     }
 
                     Column(
