@@ -32,6 +32,7 @@ import no.uio.ifi.in2000.met2025.data.local.launchsites.LaunchSiteRepository
 import no.uio.ifi.in2000.met2025.data.local.rocketconfig.RocketConfigRepository
 import no.uio.ifi.in2000.met2025.data.models.getDefaultRocketParameterValues
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
+import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
 import no.uio.ifi.in2000.met2025.domain.RocketState
@@ -52,7 +53,8 @@ class MapScreenViewModel @Inject constructor(
     private val launchSiteRepository: LaunchSiteRepository,
     private val rocketConfigRepository: RocketConfigRepository,
     private val isobaricInterpolator: IsobaricInterpolator,
-    private val isobaricRepository: IsobaricRepository
+    private val isobaricRepository: IsobaricRepository,
+    // private val locationForecastRepository: LocationForecastRepository,
 ) : ViewModel() {
 
     sealed class MapScreenUiState {
