@@ -326,7 +326,7 @@ fun MapScreen(
                                         selectedConfig = selectedCfg
                                     )
 
-                                    Spacer(modifier = Modifier.height(60.dp))
+                                    Spacer(modifier = Modifier.height(20.dp))
 
                                     // LaunchPitchWheel below
                                     LaunchPitchSlider(
@@ -341,6 +341,7 @@ fun MapScreen(
                                 currentSite = currentSite,
                                 rocketConfigs = rocketConfigs,
                                 selectedConfig = selectedCfg,
+                                launchSites = launchSites,
                                 onSelectConfig = { viewModel.selectConfig(it) },
                                 onClose = { showTrajectoryPopup = false },
                                 onStartTrajectory = { instant -> viewModel.startTrajectory(instant, launchAzimuth, launchPitch) },
