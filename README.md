@@ -51,7 +51,15 @@
 ---
 
 ## Screenshots
-TODO: Legg inn screenshots av skjermene her
+
+Map Screen:
+![Mapscreen image](images/MapScreen.png)
+
+Weather Screen:
+![Weather screen image](images/WeatherScreen.png)
+
+Config Screen:
+![Config screen image](images/configScreens.png)
 
 ---
 
@@ -198,10 +206,6 @@ cd team-21
 - **Error Screen**
     - Displays custom error descriptions
     - Reload button
-
----
-
-## Known Issues
 
 ---
 
