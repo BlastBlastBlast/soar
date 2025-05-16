@@ -69,6 +69,7 @@ fun AppDrawer(
                 "- Longpress the label above a marker to edit the name and save it as a launch site.\n" +
                 "- Saved sites can be deleted from the launch site screen.\n" +
                 "- Double click  a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
+                "- Using multiple fingers on the map will enable you to zoom, tilt the camera and more.\n" +
                 "- Open the rocket launch trajectory simulation menu by pressing the trajectory button.\n" +
                 "- Clear trajectory between launches to make sure calculations and renders happen correctly.\n\n" +
                 "Launch simulation description:\n" +
