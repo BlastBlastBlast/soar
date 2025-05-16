@@ -196,6 +196,7 @@ class TrajectoryCalculator(
             )
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: newVelocity: $newVelocity")
 
+            /*
             val newPosition = rungeKutta4(
                 initialVector = currentPosition,
                 time = timeAfterLaunch,
@@ -204,6 +205,8 @@ class TrajectoryCalculator(
                     currentVelocity - if (onLaunchRail(incrementedPosition)) windVector else zeroVector
                 }
             )
+            */
+            val newPosition = currentPosition + currentVelocity * stepSize
 
             // frontend expects the position in degrees
             val nextGeoPositionTriple = enuToGeo(newPosition)
