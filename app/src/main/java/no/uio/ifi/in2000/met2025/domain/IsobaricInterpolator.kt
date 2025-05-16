@@ -1,7 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
 import android.util.Log
-import io.ktor.client.plugins.logging.Logging
 import no.uio.ifi.in2000.met2025.data.models.Angle
 import no.uio.ifi.in2000.met2025.data.models.CartesianIsobaricValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
@@ -27,13 +26,24 @@ import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
 import no.uio.ifi.in2000.met2025.data.models.sin
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
-import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
+import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressure
+import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToDecimals
 import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import java.time.Instant
 import kotlin.math.ceil
 
-
+/**
+ * This class is responsible for interpolating isobaric weather data.
+ * It fetches data points at different atmospheric levels and calculates
+ * values like altitude, pressure, temperature, and wind components at
+ * a given coordinate and time.
+ * The interpolation utilizes Catmull-Rom splines and caching to optimize
+ * data retrieval from weather repositories.
+ * Assumes GRIB data is available for the given coordinates.
+ *
+ * For a more detailed explanation of the interpolation process, see INTERPOLATION.md
+ */
 class IsobaricInterpolator(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
@@ -47,32 +57,41 @@ class IsobaricInterpolator(
         )
     )
 
-    private var gribMap: GribDataMap? = null
+    // key is the time for which the map is valid
+    private var gribMaps: MutableMap<Instant, GribDataMap> = mutableMapOf()
 
-    // key is indices for [lat, lon, pressure]
-    private val pointCache: MutableMap<List<Int>, CartesianIsobaricValues> = mutableMapOf()
+    // data from GRIB and LocationForecast API are stored as CartesianIsobaricValues
+    // Coordinates are converted to grid indices using the resolution of the GRIB data
+    // key is indices for [lat, lon, pressure] and the time the we want to fetch data for
+    private val pointCache: MutableMap<Pair<List<Int>, Instant>, CartesianIsobaricValues> = mutableMapOf()
 
-    // key is indices [lat, lon, pressure]
-    private val surfaceCache: MutableMap<List<Int>, (Double, Double) -> CartesianIsobaricValues> = mutableMapOf()
+    // surfaceCache is used to cache the interpolated surfaces for each pressure level
+    // a surface is a representation of a horizontal slice of the atmosphere at a given pressure level,
+    // bounded by four indices in the latitude and longitude dimensions
+    // key is indices [lat, lon, pressure] and the time the we want to fetch data for
+    private val surfaceCache: MutableMap<Pair<List<Int>, Instant>, (Double, Double) -> CartesianIsobaricValues> = mutableMapOf()
 
+    // saving the last visited index to avoid having to search for the correct index each time getCartesianIsobaricValues is called
     private var lastVisitedIsobaricIndex: Int? = null
 
     private val maxLatIndex = ceil((MAX_LATITUDE - MIN_LATITUDE) * RESOLUTION).toInt()
     private val maxLonIndex = ceil((MAX_LONGITUDE - MIN_LONGITUDE) * RESOLUTION).toInt()
 
+    /**
+     * Initiates the interpolation process.
+     * @return Result containing the interpolated values at the specified position and time, or an exception if an error occurs.
+     */
     suspend fun getCartesianIsobaricValues(position: RealVector, time: Instant): Result<CartesianIsobaricValues> {
-        if (gribMap == null) {
+        if (gribMaps[time.closestIsobaricDataWindowBefore()] == null) {
             when (val gribDataResult = isobaricRepository.getIsobaricGribData(time)) {
                 is GribDataResult.Success -> {
-                    gribMap = gribDataResult.gribDataMap
+                    gribMaps[time.closestIsobaricDataWindowBefore()] = gribDataResult.gribDataMap
                 }
                 else -> {
-                    return Result.failure(Exception("Unknown error")) // TODO: Handle error properly
+                    return Result.failure(Exception("Error fetching GRIB map for ${time.closestIsobaricDataWindowBefore()}"))
                 }
             }
         }
-
-        //assert(isWithinBounds(position[0], position[1])) { "Coordinates are outside the permitted bounds" }
 
         return getValuesAtAppropriateLevel(
             isobaricIndex = lastVisitedIsobaricIndex ?: 0,
@@ -81,6 +100,11 @@ class IsobaricInterpolator(
         )
     }
 
+    /**
+     * Recursively finds the appropriate isobaric levels for the given coordinates and time.
+     * Once the appropriate levels are found, it interpolates the values between them, at the target coordinates.
+     * @return Result containing the interpolated values at the specified position and time, or an exception if an error occurs.
+     */
     private tailrec suspend fun getValuesAtAppropriateLevel(
         isobaricIndex: Int,
         coordinates: RealVector,
@@ -160,13 +184,17 @@ class IsobaricInterpolator(
         }
     }
 
+    /**
+     * Retrieves a 2D surface for the given indices and time.
+     * @return Result containing the interpolated surface data or an exception if an error occurs.
+     */
     private suspend fun getSurface(indices: List<Int>, time: Instant): Result<(Double, Double) -> CartesianIsobaricValues> {
 
         Log.i("IsobaricInterpolator", "getSurface: $indices")
 
         return Result.success(
-            surfaceCache[indices] ?: interpolatedSurface(
-                Array<Array<CartesianIsobaricValues>>(4) { col ->
+            surfaceCache[Pair(indices, time.closestIsobaricDataWindowBefore())] ?: interpolatedSurface(
+                Array(4) { col ->
                     Array(4) { row ->
                         getPoint(
                             indices = listOf(indices[0] + col - 1, indices[1] + row - 1, indices[2]),
@@ -178,37 +206,46 @@ class IsobaricInterpolator(
                     }
                 }
             ).also {
-                surfaceCache[indices] = it
+                surfaceCache[Pair(indices, time.closestIsobaricDataWindowBefore())] = it
             }
         )
     }
 
+    // for debugging purposes
     private var howManyAPICalls = 0
 
+    /**
+     * Retrieves a point for the given indices and time as a CartesianIsobaricValues object.
+     * This method handles out-of-bounds indices by extrapolating the values.
+     * If the indices are within bounds, it fetches the data from the GRIB map or the location forecast repository.
+     * For points computed at GRIB indices, the values of the point directly below are used,
+     * in similar fashion to how WeatherModel calculates altitude.
+     * @return Result containing the point data or an exception if an error occurs.
+     */
     private suspend fun getPoint(indices: List<Int>, time: Instant): Result<CartesianIsobaricValues> {
 
         Log.i("IsobaricInterpolator", "getPoint: $indices")
 
         return Result.success(
-            pointCache[indices] ?:
+            pointCache[Pair(indices, time.closestIsobaricDataWindowBefore())] ?:
             when {
                 indices[0] < 0 ->
-                    handleOutOfBounds(indices, time, 0, true)
+                    extrapolatedPoint(indices, time, 0, true)
                         .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                 indices[0] > maxLatIndex ->
-                    handleOutOfBounds(indices, time, 0, false)
+                    extrapolatedPoint(indices, time, 0, false)
                         .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                 indices[1] < 0 ->
-                    handleOutOfBounds(indices, time, 1, true)
+                    extrapolatedPoint(indices, time, 1, true)
                         .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                 indices[1] > maxLonIndex ->
-                    handleOutOfBounds(indices, time, 1, false)
+                    extrapolatedPoint(indices, time, 1, false)
                         .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                 indices[2] < 0 ->
-                    handleOutOfBounds(indices, time, 2, true)
+                    extrapolatedPoint(indices, time, 2, true)
                         .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                 indices[2] > layerPressureValues.size ->
-                    handleOutOfBounds(indices, time, 2, false)
+                    extrapolatedPoint(indices, time, 2, false)
                         .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                 indices[2] == 0 -> {
                     val forecastData = locationForecastRepository.getForecastData(
@@ -227,7 +264,7 @@ class IsobaricInterpolator(
 
                     val airTemperatureAtSeaLevel = forecastDataValues.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
 
-                    val groundPressure = calculatePressureAtAltitude(
+                    val groundPressure = calculatePressure(
                         altitude = forecastData.altitude,
                         referencePressure = forecastDataValues.airPressureAtSeaLevel,
                         referenceAirTemperature = airTemperatureAtSeaLevel,
@@ -259,13 +296,12 @@ class IsobaricInterpolator(
                         referenceAltitude = valuesBelow.altitude,
                         referenceAirTemperature = valuesBelow.temperature + CELSIUS_TO_KELVIN
                     )
-                    // 1) make sure we have data at all
-                    val grib = gribMap
+
+                    val grib = gribMaps[time.closestIsobaricDataWindowBefore()]
                         ?: return Result.failure(Exception("GRIB data not initialized"))
 
                     val latIdx = indices[0].coerceIn(0, maxLatIndex)
                     val lonIdx = indices[1].coerceIn(0, maxLonIndex)
-                    val pressureInt = pressure.toInt()
 
                     val lat  = latIdx.toCoordinate(MIN_LATITUDE)
                     val lon  = lonIdx.toCoordinate(MIN_LONGITUDE)
@@ -274,27 +310,29 @@ class IsobaricInterpolator(
                     val levelMap = grib.map[key]
                         ?: return Result.failure(Exception("No GRIB cell at [$lat, $lon]"))
 
-                    val slice = levelMap[pressureInt]
-                        ?: return Result.failure(Exception("No GRIB data for pressure level $pressureInt"))
-
-                    val gribVector = slice
+                    val slice = levelMap[pressure]
+                        ?: return Result.failure(Exception("No GRIB data for pressure level $pressure"))
 
                     CartesianIsobaricValues(
                         altitude = altitude,
                         pressure = pressure.toDouble(),
-                        temperature = gribVector.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
-                        windXComponent = -gribVector.uComponentWind.toDouble(),                  // this makes the drift of the rocket align with the wind data from the apis
-                        windYComponent = -gribVector.vComponentWind.toDouble()                   // not sure why
+                        temperature = slice.temperature.toDouble() - CELSIUS_TO_KELVIN,    // in Celsius
+                        windXComponent = slice.uComponentWind.toDouble(),                  // this makes the drift of the rocket align with the wind data from the apis
+                        windYComponent = slice.vComponentWind.toDouble()
                     )
                 }
             }.also {
-                pointCache[indices] = it
+                pointCache[Pair(indices, time.closestIsobaricDataWindowBefore())] = it
                 Log.i("IsobaricInterpolator", "point: $indices, value: $it")
             }
         )
     }
 
-    private suspend fun handleOutOfBounds(
+    /**
+     * Handles out-of-bounds indices by extrapolating the values from nearby points.
+     * @return Result containing the extrapolated point data or an exception if an error occurs.
+     */
+    private suspend fun extrapolatedPoint(
         indices: List<Int>,
         time: Instant,
         coordinate: Int,
@@ -340,6 +378,11 @@ class IsobaricInterpolator(
         )
     }
 
+    /**
+     * Interpolates a surface using Catmull-Rom splines.
+     * Uses 2D uniform interpolation.
+     * @return A function that takes two fractional parts and returns the interpolated values.
+     */
     private fun interpolatedSurface(points: Array<Array<CartesianIsobaricValues>>): (Double, Double) -> CartesianIsobaricValues {
         assert(points.size == 4) { "Need four sets of points to interpolate over" }
         points.forEach { assert(it.size == 4) { "Need four points to interpolate over" } }
@@ -359,22 +402,15 @@ class IsobaricInterpolator(
             val latVector = ArrayRealVector(doubleArrayOf(1.0, t0, t0 * t0, t0 * t0 * t0))
             val lonVector = ArrayRealVector(doubleArrayOf(1.0, t1, t1 * t1, t1 * t1 * t1))
 
-            val altitudeMatrix = Array2DRowRealMatrix(points.map { it.map { it.altitude }.toDoubleArray() }.toTypedArray())
-            val temperatureMatrix = Array2DRowRealMatrix(points.map { it.map { it.temperature }.toDoubleArray() }.toTypedArray())
-            val windXMatrix = Array2DRowRealMatrix(points.map { it.map { it.windXComponent }.toDoubleArray() }.toTypedArray())
-            val windYMatrix = Array2DRowRealMatrix(points.map { it.map { it.windYComponent }.toDoubleArray() }.toTypedArray())
+            val altitudeMatrix = Array2DRowRealMatrix(points.map { it.map { values -> values.altitude }.toDoubleArray() }.toTypedArray())
+            val temperatureMatrix = Array2DRowRealMatrix(points.map { it.map { values -> values.temperature }.toDoubleArray() }.toTypedArray())
+            val windXMatrix = Array2DRowRealMatrix(points.map { it.map { values -> values.windXComponent }.toDoubleArray() }.toTypedArray())
+            val windYMatrix = Array2DRowRealMatrix(points.map { it.map { values -> values.windYComponent }.toDoubleArray() }.toTypedArray())
 
             val altitude = latVector * catmullRomMatrix * altitudeMatrix * catmullRomMatrix.transpose() * lonVector
             val temperature = latVector * catmullRomMatrix * temperatureMatrix * catmullRomMatrix.transpose() * lonVector
             val windX = latVector * catmullRomMatrix * windXMatrix * catmullRomMatrix.transpose() * lonVector
             val windY = latVector * catmullRomMatrix * windYMatrix * catmullRomMatrix.transpose() * lonVector
-
-//            Log.i("IsobaricInterpolator", "t0 = $t0, t1 = $t1")
-//            Log.i("IsobaricInterpolator", "altitudeMatrix = $altitudeMatrix")
-//            Log.i("IsobaricInterpolator", "temperatureMatrix = $temperatureMatrix")
-//            Log.i("IsobaricInterpolator", "windXMatrix = $windXMatrix")
-//            Log.i("IsobaricInterpolator", "windYMatrix = $windYMatrix")
-//            Log.i("IsobaricInterpolator", "Interpolated values: altitude = $altitude, temperature = $temperature, windX = $windX, windY = $windY")
 
             CartesianIsobaricValues(
                 altitude = altitude,
@@ -386,6 +422,10 @@ class IsobaricInterpolator(
         }
     }
 
+    /**
+     * Prepares data for non-uniform Catmull-Rom interpolation.
+     * @return A CartesianIsobaricValues object containing the interpolated values.
+     */
     private fun interpolate(coordinates: RealVector, surfaces: List<(Double, Double) -> CartesianIsobaricValues>): CartesianIsobaricValues {
         assert(coordinates.dimension == 3) { "Not a coordinate vector of dimension 3" }
         assert(surfaces.size == 4) { "Need four surfaces to interpolate over" }
@@ -429,7 +469,7 @@ class IsobaricInterpolator(
 }
 
 /**
- * Performs Catmull-Rom interpolation at a value t given 4 control points
+ * Performs non-uniform Catmull-Rom interpolation at a value t given 4 control points
  * v0 = (t0, p0),
  * v1 = (t1, p1),
  * v2 = (t2, p2),

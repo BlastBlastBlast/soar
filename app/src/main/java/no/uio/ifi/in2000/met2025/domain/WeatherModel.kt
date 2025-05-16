@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.domain
 
+import android.util.Log
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
@@ -16,7 +17,7 @@ import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
 import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
-import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressureAtAltitude
+import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressure
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
 import java.time.Instant
 import javax.inject.Inject
@@ -39,20 +40,17 @@ class WeatherModel @Inject constructor(
     private val locationForecastRepository: LocationForecastRepository,
     private val isobaricRepository: IsobaricRepository
 ) {
-
     /**
-     * Retrieves and merges forecast and GRIB data for a specific time and location.
+     * Initializes the process of fetching and processing weather data.
+     * @return An IsobaricDataResult object containing the processed data or one of three error states.
      */
-    suspend fun getCurrentIsobaricData(
+    suspend fun getIsobaricData(
         lat: Double,
         lon: Double,
         time: Instant
     ): IsobaricDataResult {
-        val gribResult = isobaricRepository.getIsobaricGribData(time)
-
-        val gribDataMap : GribDataMap
-        when (gribResult) {
-            is GribDataResult.Success -> gribDataMap = gribResult.gribDataMap
+        val gribDataMap = when (val gribResult = isobaricRepository.getIsobaricGribData(time)) {
+            is GribDataResult.Success -> gribResult.gribDataMap
             GribDataResult.AvailabilityError -> return IsobaricDataResult.GribAvailabilityError
             GribDataResult.FetchingError -> return IsobaricDataResult.GribFetchingError
             GribDataResult.ParsingError -> return IsobaricDataResult.DataParsingError
@@ -67,13 +65,13 @@ class WeatherModel @Inject constructor(
 
         val airTemperatureAtSeaLevel = forecastItem.values.airTemperature - forecastData.altitude * TEMPERATURE_LAPSE_RATE + CELSIUS_TO_KELVIN //in Kelvin
 
-        val groundPressure = calculatePressureAtAltitude(
+        val groundPressure = calculatePressure(
             altitude = forecastData.altitude,
             referencePressure = forecastItem.values.airPressureAtSeaLevel,
             referenceAirTemperature = airTemperatureAtSeaLevel
         ).toInt()
 
-        return convertGribToIsobaricData(
+        return layeredIsobaricData(
             lat,
             lon,
             gribDataMap,
@@ -84,11 +82,11 @@ class WeatherModel @Inject constructor(
         )
     }
 
-    //TODO: Convert prints to logs
     /**
-     * Combines GRIB and forecast into IsobaricDataResult.Success or OutOfBounds.
+     * Converts GRIB data from the format used in the repository to something closer to the format of the LocationForecast data.
+     * Also initializes the recursive calculation of isobaric values at each layer.
      */
-    private fun convertGribToIsobaricData(
+    private fun layeredIsobaricData(
         lat: Double,
         lon: Double,
         gribDataMap: GribDataMap,
@@ -97,29 +95,31 @@ class WeatherModel @Inject constructor(
         groundAltitude: Double,
         airTemperatureAtSeaLevel: Double
     ): IsobaricDataResult {
-        println("lat $lat, lon $lon")
+        Log.i("WeatherModel", "lat $lat, lon $lon")
 
         return if (CoordinateBoundaries.isWithinBounds(lat, lon)) {
-            println("Coordinate is within bounds")
+            Log.i("WeatherModel", "Coordinate is within bounds")
 
             try {
+                // Coordinates in the GRIB data are at .x5 degrees
                 val updatedLat = lat.roundToPointXFive()
                 val updatedLon = lon.roundToPointXFive()
-                println("updated lat $updatedLat, updated lon $updatedLon")
+                Log.i("WeatherModel", "updated lat $updatedLat, updated lon $updatedLon")
 
+                // avoid floating point errors by rounding to 2 decimals
                 val update2Lat = RoundDoubleToXDecimals(updatedLat, 2)
                 val update2Lon = RoundDoubleToXDecimals(updatedLon, 2)
-                println("updated lat $update2Lat, updated lon $update2Lon")
+                Log.i("WeatherModel", "updated lat $update2Lat, updated lon $update2Lon")
 
                 val dataMap: Map<Int, GribVectors>? = gribDataMap.map[Pair(update2Lat, update2Lon)]
-                println(if (dataMap != null) "rounding success" else "rounding failure")
+                Log.i("WeatherModel", if (dataMap != null) "rounding success" else "rounding failure")
                 val gribVectorsMap = dataMap!!
 
                 IsobaricDataResult.Success(
                     Result.success(
                         IsobaricData(
                             time = gribDataMap.time,
-                            valuesAtLayer = buildValuesAtLayerR(
+                            valuesAtLayer = isobaricValuesStack(
                                 pressureValues = layerPressureValues.reversed(),
                                 previousPressure = groundPressure,
                                 gribVectorsMap = gribVectorsMap,
@@ -145,9 +145,11 @@ class WeatherModel @Inject constructor(
     }
 
     /**
-     * Recursively builds isobaric data from surface up through predefined pressure levels.
+     * Recursively calculates the isobaric values at each layer of pressure.
+     * The recursion is necessary to calculate the altitude at each layer based on the previous layer's values.
+     * @return A map of pressure values to their corresponding isobaric data values.
      */
-    private fun buildValuesAtLayerR(
+    private fun isobaricValuesStack(
         pressureValues: List<Int>,
         previousPressure: Int,
         gribVectorsMap: Map<Int, GribVectors>,
@@ -162,11 +164,11 @@ class WeatherModel @Inject constructor(
         val pressure = pressureValues.first()
         val previousIsobaricDataValues = result[previousPressure]!!
         val gribVectors = gribVectorsMap[pressure]
-        val airTemperature = ((gribVectorsMap[pressure]?.temperature)?.toDouble()) ?: 0.0 //TODO: add support for null values
+        val airTemperature = ((gribVectorsMap[pressure]?.temperature)?.toDouble()) ?: 0.0
         val uComponentWind = (gribVectors?.uComponentWind ?: 0.0).toDouble()
         val vComponentWind = (gribVectors?.vComponentWind ?: 0.0).toDouble()
 
-        return buildValuesAtLayerR(
+        return isobaricValuesStack(
             pressureValues = pressureValues.drop(1),
             previousPressure = pressure,
             gribVectorsMap = gribVectorsMap,
@@ -182,8 +184,8 @@ class WeatherModel @Inject constructor(
                 windSpeed = sqrt(uComponentWind * uComponentWind + vComponentWind * vComponentWind),
                 windFromDirection = (Math.toDegrees(
                     atan2(uComponentWind, vComponentWind)) + 180) % 360
+                )
             )
-                    )
         )
     }
 
@@ -191,6 +193,8 @@ class WeatherModel @Inject constructor(
      * Aggregates a list of ForecastDataItem into a single representative item.
      *
      * Chooses maximum values (or average where appropriate) across the timespan.
+     *
+     * This is useful for aggregating data over the time frame the isobaric data is valid in.
      */
     private fun combinedForecastDataItems(timeSeries: List<ForecastDataItem>): ForecastDataItem {
         return ForecastDataItem(

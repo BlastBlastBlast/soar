@@ -232,7 +232,7 @@ class WeatherViewModel @Inject constructor(
 
         _isobaricData.value += (time to AtmosphericWindUiState.Loading)
 
-        val result = weatherModel.getCurrentIsobaricData(lat, lon, time)
+        val result = weatherModel.getIsobaricData(lat, lon, time)
 
         val newState: AtmosphericWindUiState = when (result) {
             is IsobaricDataResult.Success -> {

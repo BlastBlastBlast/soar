@@ -28,6 +28,12 @@ enum class RocketState {
     LANDED
 }
 
+/**
+ * TrajectoryCalculator is responsible for calculating the trajectory of a rocket
+ * based on the initial conditions and parameters provided.
+ * Uses the IsobaricInterpolator to get the air values at a given position and time.
+ * Applies numerical integration (Runge-Kutta method) to estimate the position and velocity at each time step.
+ */
 class TrajectoryCalculator(
     private val isobaricInterpolator: IsobaricInterpolator
 ) {
@@ -58,6 +64,10 @@ class TrajectoryCalculator(
         return Triple(Math.toDegrees(lat), Math.toDegrees(lon), alt)
     }
 
+    /**
+     * Initiates the trajectory calculation.
+     * @return Result containing a list of tuples with the position, velocity, and rocket state at each time step.
+     */
     suspend fun calculateTrajectory(
         initialPosition: RealVector,            // lat, long, elevation from viewmodel function call
         launchAzimuthInDegrees: Double,         // degrees
@@ -82,6 +92,7 @@ class TrajectoryCalculator(
         this.refLatRad = Math.toRadians(lat0)
         this.refLonRad = Math.toRadians(lon0)
 
+        // calculates using ENU coordinates (in meters)
         val enuStart = geoToEnu(lat0, lon0, initialPosition[2])
 
         val launchAzimuth = Angle(launchAzimuthInDegrees)
@@ -98,12 +109,19 @@ class TrajectoryCalculator(
         Log.i("TrajectoryCalculator", "calculateTrajectory: launchDirectionUnitVector: $launchDirectionUnitVector, length: ${launchDirectionUnitVector.norm}")
 
         val accelerationFromGravity = ArrayRealVector(doubleArrayOf(0.0, 0.0, -GRAVITY))
+        // The acceleration from gravity on the launch rail is calculated by projecting the gravity vector onto the launch direction.
+        // It is parallel to the launch direction.
         val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravity: $accelerationFromGravity")
         Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravityOnLaunchRail: $accelerationFromGravityOnLaunchRail")
 
+        /**
+         * The Runge-Kutta method is used to solve the ordinary differential equations (ODEs) that describe the motion of the rocket.
+         * The ODEs are derived from Newton's second law of motion, taking into account the forces acting on the rocket (thrust, drag, and gravity).
+         * The method provides a numerical solution to the ODEs by approximating the trajectory at discrete time steps.
+         */
         tailrec suspend fun calculateTrajectoryRecursive(
             currentPosition: RealVector,
             currentVelocity: RealVector,
@@ -119,6 +137,11 @@ class TrajectoryCalculator(
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: coefficientOfDrag: $coefficientOfDrag")
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: areaOfCrossSection: $areaOfCrossSection")
 
+            val onLaunchRail: (RealVector) -> Boolean = { position ->
+                (position - initialPosition).norm <= launchRailLength
+            }
+
+            // the interpolator needs the position in degrees
             val (latDeg, lonDeg, altM) = enuToGeo(currentPosition)
             val currentGeoPosition = ArrayRealVector(doubleArrayOf(latDeg, lonDeg, altM))
 
@@ -132,14 +155,12 @@ class TrajectoryCalculator(
 
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airValues: $airValues")
 
+            // we don't have data for wind in the vertical direction
             val windVector = ArrayRealVector(
                 doubleArrayOf(airValues.windXComponent, airValues.windYComponent, 0.0)
             )
 
-            val onLaunchRail: (RealVector) -> Boolean = { position ->
-                (position - initialPosition).norm <= launchRailLength
-            }
-
+            // Used to calculate drag force
             val airDensity = 100.0 * airValues.pressure * EARTH_AIR_MOLAR_MASS / ((airValues.temperature + CELSIUS_TO_KELVIN) * UNIVERSAL_GAS_CONSTANT)
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
 
@@ -148,6 +169,9 @@ class TrajectoryCalculator(
                 time = timeAfterLaunch,
                 stepSize = stepSize,
                 derivative = { incrementedTime, incrementedVelocity ->
+                    // calculate the acceleration
+
+                    // ignores the wind when the rocket is on the launch rail
                     val velocityWithWind = if (onLaunchRail(currentPosition)) {
                         incrementedVelocity
                     } else {
@@ -157,33 +181,30 @@ class TrajectoryCalculator(
                     val dragForce = -0.5 * (areaOfCrossSection * coefficientOfDrag * airDensity * velocityWithWind.norm * velocityWithWind)
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: dragForce: $dragForce")
 
-                    val (thrustVector, burnProgress) = if (incrementedTime >= burnTime) {
+                    // burnProgress is used to calculate current mass
+                    val (thrustForce, burnProgress) = if (incrementedTime >= burnTime) {
                         Pair(zeroVector, 1.0)
                     } else {
                         Pair(thrust * launchDirectionUnitVector, incrementedTime / burnTime)
                     }
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustVector, burnProgress: $burnProgress")
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustForce, burnProgress: $burnProgress")
 
+                    // equals wetMass when burnProgress is 0, and dryMass when burnProgress is 1
                     val massAtIncrement = wetMass * (1 - burnProgress) + dryMass * burnProgress
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: massAtIncrement: $massAtIncrement")
 
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: acceleration from drag: ${dragForce / massAtIncrement}")
 
-                    (dragForce + thrustVector) / massAtIncrement +
+                    (dragForce + thrustForce) / massAtIncrement +
                         if (onLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
                 }
             )
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: newVelocity: $newVelocity")
 
-            val newPosition = rungeKutta4(
-                initialVector = currentPosition,
-                time = timeAfterLaunch,
-                stepSize = stepSize,
-                derivative = { _, incrementedPosition ->
-                    currentVelocity - if (onLaunchRail(incrementedPosition)) windVector else zeroVector
-                }
-            )
+            // assumes constant velocity during the time step
+            val newPosition = currentPosition + currentVelocity * stepSize
 
+            // frontend expects the position in degrees
             val nextGeoPositionTriple = enuToGeo(newPosition)
             val nextGeoPosition = ArrayRealVector(
                 doubleArrayOf(nextGeoPositionTriple.first, nextGeoPositionTriple.second, nextGeoPositionTriple.third)
@@ -197,35 +218,35 @@ class TrajectoryCalculator(
                 else -> RocketState.LANDED
             }
 
-            val currentState = Triple(nextGeoPosition, newVelocity.norm, rocketState)
-
-            result += currentState
+            result += Triple(nextGeoPosition, newVelocity.norm, rocketState)
 
             return if (newPosition[2] < enuStart[2]) {
+                // rocket has landed
                 Result.success(result)
+            } else if (currentVelocity[2] >= 0 && newVelocity[2] <= 0) {
+                // switch to parachute parameters when rocket reached its apex
+                calculateTrajectoryRecursive(
+                    currentPosition = newPosition,
+                    currentVelocity = newVelocity,
+                    timeAfterLaunch = timeAfterLaunch + stepSize,
+                    coefficientOfDrag = parachuteDragCoefficient,
+                    areaOfCrossSection = parachuteCrossSectionalArea,
+                    result = result
+                )
             } else {
-                if (currentVelocity[2] >= 0 && newVelocity[2] <= 0) {
-                    calculateTrajectoryRecursive(
-                        currentPosition = newPosition,
-                        currentVelocity = newVelocity,
-                        timeAfterLaunch = timeAfterLaunch + stepSize,
-                        coefficientOfDrag = parachuteDragCoefficient,
-                        areaOfCrossSection = parachuteCrossSectionalArea,
-                        result = result
-                    )
-                } else {
-                    calculateTrajectoryRecursive(
-                        currentPosition = newPosition,
-                        currentVelocity = newVelocity,
-                        timeAfterLaunch = timeAfterLaunch + stepSize,
-                        coefficientOfDrag = coefficientOfDrag,
-                        areaOfCrossSection = areaOfCrossSection,
-                        result = result
-                    )
-                }
+                // continue with parameters from current iteration
+                calculateTrajectoryRecursive(
+                    currentPosition = newPosition,
+                    currentVelocity = newVelocity,
+                    timeAfterLaunch = timeAfterLaunch + stepSize,
+                    coefficientOfDrag = coefficientOfDrag,
+                    areaOfCrossSection = areaOfCrossSection,
+                    result = result
+                )
             }
         }
 
+        // SimpleLinkedList is used to avoid resizing
         val enuResult = calculateTrajectoryRecursive(
             currentPosition = enuStart,
             currentVelocity = zeroVector,
@@ -246,6 +267,15 @@ class TrajectoryCalculator(
     }
 }
 
+/**
+ * Runge-Kutta 4th order method for numerical integration.
+ * @param initialVector The initial vector (for instance position or velocity).
+ * @param time The current time as a number.
+ * @param stepSize The size of the time step.
+ * @param derivative A function that calculates the derivative at a given time and vector.
+ * For instance, if the vector is a position, the derivative will be the velocity.
+ * @return The updated vector after applying the Runge-Kutta method.
+ */
 fun rungeKutta4(
     initialVector: RealVector,
     time: Double,
