@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val isDark = remember { mutableStateOf(false) }
+            val isDark = remember { mutableStateOf(true) }
             SOAR_Theme(darkTheme = isDark.value) {
                 App(
                     darkTheme  = isDark.value,
