@@ -69,8 +69,13 @@ fun AppDrawer(
                 "- Longpress the label above a marker to edit the name and save it as a launch site.\n" +
                 "- Saved sites can be deleted from the launch site screen.\n" +
                 "- Double click  a launch site label to pan the camera to, and zoom in on, the chosen site.\n" +
+                "- Using multiple fingers on the map will enable you to zoom, tilt the camera and more.\n" +
                 "- Open the rocket launch trajectory simulation menu by pressing the trajectory button.\n" +
-                "- Clear trajectory between launches to make sure calculations and renders happen correctly."
+                "- Clear trajectory between launches to make sure calculations and renders happen correctly.\n\n" +
+                "Launch simulation description:\n" +
+                "- Red spheres indicate the engine thrust being active\n" +
+                "- Orange spheres indicate free flight\n" +
+                "- Light blue spheres indicate parachute descent\n"
 
         //this has a bit of a unique display, and is therefore defined more in the actual method.
         "Weather" -> "Forecast screen:\n"
@@ -312,9 +317,11 @@ fun AppDrawer(
                         else R.drawable.grib_dark_purple
                     InfoBlock(
                         text =  "- A filled blue icon shows that grib data is fetched.\n" +
-                                "- An empty icon shows that grib data is not yet fetched.\n" +
-                                "- A purple icon shows that grib data is not available.\n" +
-                                "- When grib data is fetched, it is part of the safety evaluation",
+                                "- An empty icon shows that grib data is available, but not yet fetched.\n" +
+                                "- A purple icon shows that grib data is not available. " +
+                                "These launch windows can not be simulated.\n" +
+                                "- When grib data is fetched, it is part of the safety evaluation " +
+                                "up to the height threshold specified in your weather profile.",
                         iconRes = listOf(gribFetched, gribNotFetched, gribNotAvailable),
                         contentDescription = "Grib Icons"
                     )

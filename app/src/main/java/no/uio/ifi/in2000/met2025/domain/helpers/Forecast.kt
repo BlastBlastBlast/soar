@@ -7,24 +7,6 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
 import kotlin.reflect.KProperty1
 import kotlin.Triple
 
-fun ForecastDataItem.toConfigMap(config: WeatherConfig): Map<ConfigParameter, Pair<Double, Double>>
-        = mapOf( //maybe use two maps, one for values and one for thresholds
-    ConfigParameter.GROUND_WIND to Pair(values.windSpeed, config.groundWindThreshold),
-    ConfigParameter.WIND_SPEED_OF_GUST to Pair(values.windSpeedOfGust, config.groundWindThreshold),
-    ConfigParameter.WIND_DIRECTION to Pair(values.windFromDirection, 0.0),
-    ConfigParameter.CLOUD_COVER to Pair(values.cloudAreaFraction, config.cloudCoverThreshold),
-    ConfigParameter.CLOUD_COVER_HIGH to Pair(values.cloudAreaFractionHigh, config.cloudCoverHighThreshold),
-    ConfigParameter.CLOUD_COVER_MEDIUM to Pair(values.cloudAreaFractionMedium, config.cloudCoverMediumThreshold),
-    ConfigParameter.CLOUD_COVER_LOW to Pair(values.cloudAreaFractionLow, config.cloudCoverLowThreshold),
-    ConfigParameter.FOG to Pair(values.fogAreaFraction, config.fogThreshold),
-    ConfigParameter.PRECIPITATION to Pair(values.precipitationAmount, config.precipitationThreshold),
-    ConfigParameter.HUMIDITY to Pair(values.relativeHumidity, config.humidityThreshold),
-    ConfigParameter.DEW_POINT to Pair(values.dewPointTemperature, config.dewPointThreshold),
-    ConfigParameter.PROBABILITY_OF_THUNDER to Pair(values.probabilityOfThunder, config.probabilityOfThunderThreshold)
-)
-    .filter { (_, pair) -> pair.first != null }
-    .mapValues { it.value.first!! to it.value.second }
-
 fun ForecastDataItem.toConfigList(config: WeatherConfig): List<Triple<Double, Double, Boolean>> {
     return listOf(
         Triple(values.windSpeed, config.groundWindThreshold, config.isEnabledGroundWind),

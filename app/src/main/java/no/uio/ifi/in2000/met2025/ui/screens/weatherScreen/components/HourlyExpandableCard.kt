@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components
 
-import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -155,7 +154,7 @@ fun HourlyExpandableCard(
                                 light = R.drawable.grib_light_empty
                                 dark = R.drawable.grib_dark_empty
                                 description = "Grib data available, but not fetched"
-                            } else if (Instant.parse(forecastItem.time) >= latestAvailableGribTime.plusSeconds(3600)) {
+                            } else if (Instant.parse(forecastItem.time) > latestAvailableGribTime.plusSeconds(7200)) {
                                 light = R.drawable.grib_light_purple
                                 dark = R.drawable.grib_dark_purple
                                 description = "Grib data not available"

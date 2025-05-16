@@ -15,7 +15,7 @@ import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricDataResult
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricDataValues
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
-import no.uio.ifi.in2000.met2025.domain.helpers.RoundDoubleToXDecimals
+import no.uio.ifi.in2000.met2025.domain.helpers.roundDoubleToXDecimals
 import no.uio.ifi.in2000.met2025.domain.helpers.calculateAltitude
 import no.uio.ifi.in2000.met2025.domain.helpers.calculatePressure
 import no.uio.ifi.in2000.met2025.domain.helpers.roundToPointXFive
@@ -107,8 +107,8 @@ class WeatherModel @Inject constructor(
                 Log.i("WeatherModel", "updated lat $updatedLat, updated lon $updatedLon")
 
                 // avoid floating point errors by rounding to 2 decimals
-                val update2Lat = RoundDoubleToXDecimals(updatedLat, 2)
-                val update2Lon = RoundDoubleToXDecimals(updatedLon, 2)
+                val update2Lat = roundDoubleToXDecimals(updatedLat, 2)
+                val update2Lon = roundDoubleToXDecimals(updatedLon, 2)
                 Log.i("WeatherModel", "updated lat $update2Lat, updated lon $update2Lon")
 
                 val dataMap: Map<Int, GribVectors>? = gribDataMap.map[Pair(update2Lat, update2Lon)]

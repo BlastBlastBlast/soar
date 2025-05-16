@@ -168,6 +168,12 @@ sequenceDiagram
         VM-->>MapScreen: saveSuccess  
         deactivate VM
         MapScreen->>SaveDialog: hide()
+
+    else User cancels dialog
+    User->>SaveDialog: onDismiss()
+    SaveDialog->>MapScreen: hideDialog()
+	
+
     end
 
     %% 3) Double-click existing marker updates Last Visited and centers map
@@ -906,6 +912,7 @@ classDiagram
         + addLaunchSite: (lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
         + geocodeAddress: (address: String) -> Pair&lt;Double, Double&gt;?
         + updateSiteElevation: (siteId: Int, elevation: Double) -> Unit
+        + userPrefs: UserPreferences
     }
 
     class MapScreen {
@@ -1012,6 +1019,7 @@ classDiagram
 
     %% Relationships
     MapScreenViewModel <|.. MapScreen        : uses
+    MapScreenViewModel --> UserPreferences : uses
     MapScreen --> MapView                   : composes
     MapScreen --> TrajectoryPopup           : composes
     MapScreen --> SaveLaunchSiteDialog      : composes
@@ -1283,6 +1291,7 @@ classDiagram
         + deleteRocketConfig(rc: RocketConfig): Unit
         + checkRocketNameAvailability(name: String): Unit
         + resetRocketStatus(): Unit
+        + userPrefs: UserPreferences
     }
 
     class ConfigType {
@@ -1362,6 +1371,7 @@ classDiagram
     ConfigViewModel <|.. WeatherConfigEditScreen : uses
     ConfigViewModel <|.. RocketConfigListScreen  : uses
     ConfigViewModel <|.. RocketConfigEditScreen  : uses
+    ConfigViewModel --> UserPreferences : uses
 
     %% Navigation
     ConfigScreen --> WeatherConfigListScreen    : navigates
@@ -1660,6 +1670,16 @@ direction LR
 	    + provideRocketConfigDao(db: AppDatabase) : RocketConfigDao
     }
 
+    class DataStoreModule {
+    <<Module>>
+    + providePreferencesDataStore(appContext: Context): DataStore~Preferences~
+    + provideUserPreferences(dataStore: DataStore~Preferences~): UserPreferences
+    }
+
+    class UserPreferences {
+        - dataStore: DataStore~Preferences~
+    }
+
     class HttpClient {
     }
 
@@ -1728,6 +1748,7 @@ direction LR
     DatabaseModule ..> GribUpdatedDAO : provideGribUpdatedDao()
     DatabaseModule ..> WeatherConfigDao : provideWeatherConfigDao()
     DatabaseModule ..> RocketConfigDao : provideRocketConfigDao()
+    DataStoreModule ..> UserPreferences : provides
 
 ```
 

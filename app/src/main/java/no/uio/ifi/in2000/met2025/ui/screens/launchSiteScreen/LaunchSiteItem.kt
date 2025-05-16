@@ -1,13 +1,11 @@
 package no.uio.ifi.in2000.met2025.ui.screens.launchSiteScreen
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -17,7 +15,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,6 +35,12 @@ import no.uio.ifi.in2000.met2025.ui.theme.IconGreen
 import no.uio.ifi.in2000.met2025.ui.theme.IconRed
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/*
+ * This composable displays an interactive card representing a single launch site.
+ * It supports viewing, editing, and deleting launch site data (name, latitude, longitude).
+ */
+
+
 @Composable
 fun LaunchSiteItem(
     site: LaunchSite,
@@ -48,6 +51,7 @@ fun LaunchSiteItem(
     listState: LazyListState,
     itemIndex: Int
 ) {
+    // UI state variables for edit mode and field content
     var isEditing by rememberSaveable { mutableStateOf(false) }
     var name by remember { mutableStateOf(site.name) }
     var latitudeText by remember { mutableStateOf(site.latitude.toString()) }
@@ -57,6 +61,7 @@ fun LaunchSiteItem(
     val cornerShape = RoundedCornerShape(8.dp)
     var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
 
+    // Automatically exit editing mode if update succeeded for this item
     LaunchedEffect(updateStatus) {
         if (updateStatus is LaunchSiteViewModel.UpdateStatus.Success && updateStatus.siteUid == site.uid && isEditing) {
             isEditing = false
@@ -87,7 +92,7 @@ fun LaunchSiteItem(
         )
     ) {
         Column(Modifier.clip(cornerShape)) {
-            // Top orange strip
+            // Top decorative strip
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -98,7 +103,7 @@ fun LaunchSiteItem(
                     )
             )
 
-            // Card body
+            // Main content area
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -122,6 +127,7 @@ fun LaunchSiteItem(
                             )
                         }
                         Row {
+                            // Enable edit mode and scroll to item
                             IconButton(onClick = {
                                 isEditing = true
                                 coroutineScope.launch {
@@ -136,6 +142,7 @@ fun LaunchSiteItem(
                                     tint = IconGreen
                                 )
                             }
+                            // Open confirmation dialog
                             IconButton(onClick = { showConfirmationDialog = true },
                                 modifier = Modifier.semantics { contentDescription = "Delete site" }
                             ) {
@@ -148,6 +155,7 @@ fun LaunchSiteItem(
                         }
                     }
                 } else {
+                    // Edit mode
                     Row(
                         Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -163,6 +171,7 @@ fun LaunchSiteItem(
                                 labelText = "Name",
                                 modifier = Modifier.fillMaxWidth()
                             )
+                            // Show validation error if name taken
                             if (updateStatus is LaunchSiteViewModel.UpdateStatus.Error && isEditing && name != site.name) {
                                 Text(
                                     text = updateStatus.message,
@@ -175,6 +184,7 @@ fun LaunchSiteItem(
                             )
                         }
                         Row {
+                            // Save edited values if changed and valid
                             IconButton(onClick = {
                                 val newLat = latitudeText.toDoubleOrNull()
                                 val newLon = longitudeText.toDoubleOrNull()
@@ -194,6 +204,7 @@ fun LaunchSiteItem(
                             ) {
                                 Icon(Icons.Default.Check, contentDescription = "Save", tint = IconGreen)
                             }
+                            // Cancel editing and reset values
                             IconButton(onClick = {
                                 name = site.name
                                 latitudeText = site.latitude.toString()
@@ -209,6 +220,7 @@ fun LaunchSiteItem(
             }
         }
     }
+    // Show confirmation dialog if user initiates deletion
     if (showConfirmationDialog) {
         ConfirmationDialog(
             title = "Delete Configuration",

@@ -17,7 +17,7 @@ import no.uio.ifi.in2000.met2025.data.models.grib.GribParsingResult
 import no.uio.ifi.in2000.met2025.data.models.grib.GribVectors
 import no.uio.ifi.in2000.met2025.data.models.grib.GribAvailabilityResponse
 import no.uio.ifi.in2000.met2025.data.models.grib.StructuredAvailability
-import no.uio.ifi.in2000.met2025.domain.helpers.RoundFloatToXDecimalsDouble
+import no.uio.ifi.in2000.met2025.domain.helpers.roundFloatToXDecimalsDouble
 import ucar.ma2.ArrayFloat
 import ucar.nc2.NetcdfFiles
 import java.io.File
@@ -229,8 +229,8 @@ class IsobaricRepository @Inject constructor(
                             }
 
                             dataMap[Pair(
-                                RoundFloatToXDecimalsDouble(lat, 2),
-                                RoundFloatToXDecimalsDouble(lon - 360, 2)
+                                roundFloatToXDecimalsDouble(lat, 2),
+                                roundFloatToXDecimalsDouble(lon - 360, 2)
                             )] = isobaricMap
                         }
                     }

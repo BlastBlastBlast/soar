@@ -17,11 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.InvertColors
-import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Thermostat
-import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -443,35 +439,5 @@ fun DailyForecastCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun DailyLazyRow(allForecastItems: List<ForecastDataItem>) {
-    val dailyForecasts = allForecastItems
-        .groupBy { formatZuluTimeToLocalDate(it.time) }
-        .values
-        .toList()
-        .take(3)
-
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(dailyForecasts) { dayForecast ->
-            DailyForecastCard(forecastItems = dayForecast)
-        }
-    }
-}
-
-@Composable
-fun DailyForecastRowSection(forecastItems: List<ForecastDataItem>) {
-    Column {
-        Text(
-            text = "Daily Forecast",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        DailyLazyRow(allForecastItems = forecastItems)
     }
 }
