@@ -155,6 +155,7 @@ class TrajectoryCalculator(
 
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airValues: $airValues")
 
+            // we don't have data for wind in the vertical direction
             val windVector = ArrayRealVector(
                 doubleArrayOf(airValues.windXComponent, airValues.windYComponent, 0.0)
             )
@@ -168,6 +169,9 @@ class TrajectoryCalculator(
                 time = timeAfterLaunch,
                 stepSize = stepSize,
                 derivative = { incrementedTime, incrementedVelocity ->
+                    // calculate the acceleration
+
+                    // ignores the wind when the rocket is on the launch rail
                     val velocityWithWind = if (onLaunchRail(currentPosition)) {
                         incrementedVelocity
                     } else {
@@ -178,19 +182,20 @@ class TrajectoryCalculator(
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: dragForce: $dragForce")
 
                     // burnProgress is used to calculate current mass
-                    val (thrustVector, burnProgress) = if (incrementedTime >= burnTime) {
+                    val (thrustForce, burnProgress) = if (incrementedTime >= burnTime) {
                         Pair(zeroVector, 1.0)
                     } else {
                         Pair(thrust * launchDirectionUnitVector, incrementedTime / burnTime)
                     }
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustVector, burnProgress: $burnProgress")
+                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustForce, burnProgress: $burnProgress")
 
+                    // equals wetMass when burnProgress is 0, and dryMass when burnProgress is 1
                     val massAtIncrement = wetMass * (1 - burnProgress) + dryMass * burnProgress
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: massAtIncrement: $massAtIncrement")
 
                     Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: acceleration from drag: ${dragForce / massAtIncrement}")
 
-                    (dragForce + thrustVector) / massAtIncrement +
+                    (dragForce + thrustForce) / massAtIncrement +
                         if (onLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
                 }
             )
@@ -206,6 +211,7 @@ class TrajectoryCalculator(
                 }
             )
             */
+            // assumes constant velocity during the time step
             val newPosition = currentPosition + currentVelocity * stepSize
 
             // frontend expects the position in degrees
