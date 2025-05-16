@@ -18,8 +18,7 @@
 - [Weather Config](#weather-config)
     - [Weather Config List Screen](#weather-config-list-screen)
     - [Weather Config Edit Screen](#weather-config-edit-screen)
- 
--  [Configuration classes Class Diagram](#configuration-classes-class-diagra)
+    - [Configuration classes Class Diagram](#configuration-classes-class-diagra)
 - [Class diagrams](#class-diagrams)
    
   
