@@ -126,7 +126,7 @@ class MapScreenViewModel @Inject constructor(
     val latestAvailableGrib: StateFlow<Instant?> = _latestAvailableGrib
 
     val isAppFirstRun = userPrefs.isFirstRunFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
 
     /**

@@ -9,7 +9,8 @@ class UserPreferences(
     private val dataStore: DataStore<Preferences>
 ) {
     private val FIRST_RUN_KEY    = booleanPreferencesKey("first_run")
-    private val MAP_TUTOR_KEY    = booleanPreferencesKey("map_tutorial_seen")
+    private val ROCKET_CONFIG_KEY    = booleanPreferencesKey("rocket_config_seen")
+    private val FIRST_LAUNCH_KEY = booleanPreferencesKey("first_launch")
 
     /** emits true until you call markFirstRunComplete() */
     val isFirstRunFlow: Flow<Boolean> = dataStore.data
@@ -19,11 +20,19 @@ class UserPreferences(
         dataStore.edit { it[FIRST_RUN_KEY] = false }
     }
 
-    /** emits true until you call markMapTutorialSeen() */
-    val isMapTutorialFlow: Flow<Boolean> = dataStore.data
-        .map { prefs -> prefs[MAP_TUTOR_KEY] ?: true }
+    /** emits true until you call markRocketConfigSeen() */
+    val isRocketConfigFirstRunFlow: Flow<Boolean> = dataStore.data
+        .map { prefs -> prefs[ROCKET_CONFIG_KEY] ?: true }
 
-    suspend fun markMapTutorialSeen() {
-        dataStore.edit { it[MAP_TUTOR_KEY] = false }
+    suspend fun markRocketConfigSeen() {
+        dataStore.edit { it[ROCKET_CONFIG_KEY] = false }
+    }
+
+    /** emits true until you call markFirstLaunchTutorialSeen() */
+    val isFirstLaunchFlow: Flow<Boolean> = dataStore.data
+        .map { prefs -> prefs[FIRST_LAUNCH_KEY] ?: true }
+
+    suspend fun markFirstLaunchTutorialSeen() {
+        dataStore.edit { it[FIRST_LAUNCH_KEY] = false }
     }
 }

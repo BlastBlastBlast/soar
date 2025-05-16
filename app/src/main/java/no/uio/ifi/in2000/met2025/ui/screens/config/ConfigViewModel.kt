@@ -1,12 +1,17 @@
 package no.uio.ifi.in2000.met2025.ui.screens.config
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.met2025.data.UserPreferences
 import no.uio.ifi.in2000.met2025.data.local.configprofiles.WeatherConfigRepository
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
@@ -21,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ConfigViewModel @Inject constructor(
     private val weatherRepo: WeatherConfigRepository,
-    private val rocketRepo: RocketConfigRepository
+    private val rocketRepo: RocketConfigRepository,
+    private val userPrefs: UserPreferences
 ) : ViewModel() {
 
     sealed class UpdateStatus {
@@ -53,6 +59,9 @@ class ConfigViewModel @Inject constructor(
 
     private val _updateStatus            = MutableStateFlow<UpdateStatus>(UpdateStatus.Idle)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
+
+    val isRocketConfigFirstRun = userPrefs.isRocketConfigFirstRunFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun saveWeatherConfig(cfg: WeatherConfig) = viewModelScope.launch {
         weatherRepo.insertWeatherConfig(cfg)
@@ -91,5 +100,9 @@ class ConfigViewModel @Inject constructor(
 
     fun resetRocketStatus() {
         _rocketUpdateStatus.value = UpdateStatus.Idle
+    }
+
+    fun markRocketConfigSeen() = viewModelScope.launch {
+        userPrefs.markRocketConfigSeen()
     }
 }
