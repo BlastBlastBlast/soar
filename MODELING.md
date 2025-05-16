@@ -351,6 +351,149 @@ sequenceDiagram
 ```
 ---
 
+### Map Screen Class Diagram
+```mermaid
+classDiagram
+    class MapScreenViewModel {
+        <<HiltViewModel>>
+        - launchSiteRepository: LaunchSiteRepository
+        - rocketConfigRepository: RocketConfigRepository
+        - isobaricInterpolator: IsobaricInterpolator
+	- userPrefs: UserPreferences
+        + uiState: StateFlow&lt;MapScreenUiState&gt;
+        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
+        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
+        + selectedConfig: StateFlow&lt;RocketConfig?&gt;
+        + trajectoryPoints: StateFlow&lt;List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;&gt; 
+        + startTrajectory: () -> Unit
+        + clearTrajectory: () -> Unit
+        + selectConfig: (site: RocketConfig) -> Unit
+        + updateCoordinates: (lat: Double, lon: Double) -> Unit
+        + updateLastVisited: (lat: Double, lon: Double, elevation: Double?) -> Unit
+        + updateNewMarker: (lat: Double, lon: Double, elevation: Double?) -> Unit
+        + editLaunchSite: (siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
+        + addLaunchSite: (lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
+        + geocodeAddress: (address: String) -> Pair&lt;Double, Double&gt;?
+        + updateSiteElevation: (siteId: Int, elevation: Double) -> Unit
+        
+    }
+
+    class MapScreen {
+        + MapScreen(
+            viewModel: MapScreenViewModel,
+            onNavigateToWeather: (Double, Double) -> Unit
+          ) : Unit
+    }
+
+    class MapView {
+        + MapView(
+            center: Pair&lt;Double, Double&gt;,
+            newMarker: LaunchSite?,
+            newMarkerStatus: Boolean,
+            launchSites: List&lt;LaunchSite&gt;,
+            mapViewportState: MapViewportState,
+            modifier: Modifier,
+            showAnnotations: Boolean,
+            onMapLongClick: (Point, Double?) -> Unit,
+            onMarkerAnnotationClick: (Point, Double?) -> Unit,
+            onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
+            onLaunchSiteMarkerClick: (LaunchSite) -> Unit,
+            onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit,
+            onSiteElevation: (Int, Double) -> Unit,
+            trajectoryPoints: List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;,
+            isAnimating: Boolean,
+            onAnimationEnd: () -> Unit
+          ) : Unit
+    }
+
+    class TrajectoryPopup {
+        + TrajectoryPopup(
+            show: Boolean,
+            lastVisited: LaunchSite?,
+            currentSite: LaunchSite?,
+            rocketConfigs: List&lt;RocketConfig&gt;,
+            selectedConfig: RocketConfig?,
+            onSelectConfig: (RocketConfig) -> Unit,
+            onClose: () -> Unit,
+            onStartTrajectory: () -> Unit,
+            onClearTrajectory: () -> Unit,
+            onEditConfigs: () -> Unit,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class MarkerLabel {
+        + MarkerLabel(
+            name: String,
+            lat: String,
+            lon: String,
+            elevation: String?,
+            isLoadingElevation: Boolean,
+            onClick: () -> Unit,
+            onDoubleClick: () -> Unit,
+            onLongPress: () -> Unit,
+            fontSize: TextUnit
+          ) : Unit
+    }
+
+    class SaveLaunchSiteDialog {
+        + SaveLaunchSiteDialog(
+            launchSiteName: String,
+            onNameChange: (String) -> Unit,
+            onDismiss: () -> Unit,
+            onConfirm: () -> Unit,
+            updateStatus: MapScreenViewModel.UpdateStatus
+          ) : Unit
+    }
+
+    class LaunchSitesButton {
+        + LaunchSitesButton(
+            modifier: Modifier,
+            onClick: () -> Unit
+          ) : Unit
+    }
+
+    class LaunchSitesMenu {
+        + LaunchSitesMenu(
+            launchSites: List&lt;LaunchSite&gt;,
+            onSiteSelected: (LaunchSite) -> Unit,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class RocketConfigCarousel {
+        + RocketConfigCarousel(
+            rocketConfigs: List&lt;RocketConfig&gt;,
+            selectedConfig: RocketConfig?,
+            onSelectConfig: (RocketConfig) -> Unit,
+            modifier: Modifier
+          ) : Unit
+    }
+
+    class WeatherNavigationButton {
+        + WeatherNavigationButton(
+            modifier: Modifier,
+            latInput: String,
+            lonInput: String,
+            onNavigate: (Double, Double) -> Unit,
+            context: Context
+          ) : Unit
+    }
+
+    %% Relationships
+    MapScreenViewModel <|.. MapScreen        : uses
+    MapScreenViewModel --> UserPreferences : uses
+    MapScreen --> MapView                   : composes
+    MapScreen --> TrajectoryPopup           : composes
+    MapScreen --> SaveLaunchSiteDialog      : composes
+    MapScreen --> LaunchSitesButton         : composes
+    LaunchSitesButton --> LaunchSitesMenu   : composes
+    TrajectoryPopup --> RocketConfigCarousel: composes
+    MapScreen --> WeatherNavigationButton   : composes
+    MapView --> MarkerLabel                 : composes
+```
+---
+
 ## Weather Screen
 ### Weather Screen Navigation and initialization
 * **Navigation & configuration load:** When the user navigates to the Weather screen, the composable immediately asks the ViewModel for the default weather configuration. The ViewModel calls `WeatherConfigRepository.getDefaultWeatherConfig()` and returns the active config back to the UI.
@@ -888,148 +1031,7 @@ sequenceDiagram
 ```
 ---
 
-## Class diagrams
-### Map Screen
-```mermaid
-classDiagram
-    class MapScreenViewModel {
-        <<HiltViewModel>>
-        - launchSiteRepository: LaunchSiteRepository
-        - rocketConfigRepository: RocketConfigRepository
-        - isobaricInterpolator: IsobaricInterpolator
-	- userPrefs: UserPreferences
-        + uiState: StateFlow&lt;MapScreenUiState&gt;
-        + coordinates: StateFlow&lt;Pair&lt;Double, Double&gt;&gt;
-        + launchSites: StateFlow&lt;List&lt;LaunchSite&gt;&gt;
-        + selectedConfig: StateFlow&lt;RocketConfig?&gt;
-        + trajectoryPoints: StateFlow&lt;List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;&gt; 
-        + startTrajectory: () -> Unit
-        + clearTrajectory: () -> Unit
-        + selectConfig: (site: RocketConfig) -> Unit
-        + updateCoordinates: (lat: Double, lon: Double) -> Unit
-        + updateLastVisited: (lat: Double, lon: Double, elevation: Double?) -> Unit
-        + updateNewMarker: (lat: Double, lon: Double, elevation: Double?) -> Unit
-        + editLaunchSite: (siteId: Int, lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
-        + addLaunchSite: (lat: Double, lon: Double, elevation: Double?, name: String) -> Unit
-        + geocodeAddress: (address: String) -> Pair&lt;Double, Double&gt;?
-        + updateSiteElevation: (siteId: Int, elevation: Double) -> Unit
-        
-    }
 
-    class MapScreen {
-        + MapScreen(
-            viewModel: MapScreenViewModel,
-            onNavigateToWeather: (Double, Double) -> Unit
-          ) : Unit
-    }
-
-    class MapView {
-        + MapView(
-            center: Pair&lt;Double, Double&gt;,
-            newMarker: LaunchSite?,
-            newMarkerStatus: Boolean,
-            launchSites: List&lt;LaunchSite&gt;,
-            mapViewportState: MapViewportState,
-            modifier: Modifier,
-            showAnnotations: Boolean,
-            onMapLongClick: (Point, Double?) -> Unit,
-            onMarkerAnnotationClick: (Point, Double?) -> Unit,
-            onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
-            onLaunchSiteMarkerClick: (LaunchSite) -> Unit,
-            onSavedMarkerAnnotationLongPress: (LaunchSite) -> Unit,
-            onSiteElevation: (Int, Double) -> Unit,
-            trajectoryPoints: List&lt;Triple&lt;RealVector, Double, RocketState&gt;&gt;,
-            isAnimating: Boolean,
-            onAnimationEnd: () -> Unit
-          ) : Unit
-    }
-
-    class TrajectoryPopup {
-        + TrajectoryPopup(
-            show: Boolean,
-            lastVisited: LaunchSite?,
-            currentSite: LaunchSite?,
-            rocketConfigs: List&lt;RocketConfig&gt;,
-            selectedConfig: RocketConfig?,
-            onSelectConfig: (RocketConfig) -> Unit,
-            onClose: () -> Unit,
-            onStartTrajectory: () -> Unit,
-            onClearTrajectory: () -> Unit,
-            onEditConfigs: () -> Unit,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class MarkerLabel {
-        + MarkerLabel(
-            name: String,
-            lat: String,
-            lon: String,
-            elevation: String?,
-            isLoadingElevation: Boolean,
-            onClick: () -> Unit,
-            onDoubleClick: () -> Unit,
-            onLongPress: () -> Unit,
-            fontSize: TextUnit
-          ) : Unit
-    }
-
-    class SaveLaunchSiteDialog {
-        + SaveLaunchSiteDialog(
-            launchSiteName: String,
-            onNameChange: (String) -> Unit,
-            onDismiss: () -> Unit,
-            onConfirm: () -> Unit,
-            updateStatus: MapScreenViewModel.UpdateStatus
-          ) : Unit
-    }
-
-    class LaunchSitesButton {
-        + LaunchSitesButton(
-            modifier: Modifier,
-            onClick: () -> Unit
-          ) : Unit
-    }
-
-    class LaunchSitesMenu {
-        + LaunchSitesMenu(
-            launchSites: List&lt;LaunchSite&gt;,
-            onSiteSelected: (LaunchSite) -> Unit,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class RocketConfigCarousel {
-        + RocketConfigCarousel(
-            rocketConfigs: List&lt;RocketConfig&gt;,
-            selectedConfig: RocketConfig?,
-            onSelectConfig: (RocketConfig) -> Unit,
-            modifier: Modifier
-          ) : Unit
-    }
-
-    class WeatherNavigationButton {
-        + WeatherNavigationButton(
-            modifier: Modifier,
-            latInput: String,
-            lonInput: String,
-            onNavigate: (Double, Double) -> Unit,
-            context: Context
-          ) : Unit
-    }
-
-    %% Relationships
-    MapScreenViewModel <|.. MapScreen        : uses
-    MapScreenViewModel --> UserPreferences : uses
-    MapScreen --> MapView                   : composes
-    MapScreen --> TrajectoryPopup           : composes
-    MapScreen --> SaveLaunchSiteDialog      : composes
-    MapScreen --> LaunchSitesButton         : composes
-    LaunchSitesButton --> LaunchSitesMenu   : composes
-    TrajectoryPopup --> RocketConfigCarousel: composes
-    MapScreen --> WeatherNavigationButton   : composes
-    MapView --> MarkerLabel                 : composes
-```
 
 ### Weather Screen
 ```mermaid
