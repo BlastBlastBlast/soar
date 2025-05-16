@@ -20,10 +20,6 @@
     - [Weather Config Edit Screen](#weather-config-edit-screen)
     - [Configuration classes Class Diagram](#configuration-classes-class-diagra)
 - [Class diagrams](#class-diagrams)
-   
-  
- 
-   
     - [Navigation](#navigation)
     - [Datasources and repositories](#datasources-and-repositories)
     - [Dependency Injection](#dependency-injection)
@@ -1374,9 +1370,9 @@ classDiagram
 ```
 ---
 
+## Class Diagrams
 
-
-
+---
 
 ## Navigation
 ```mermaid
