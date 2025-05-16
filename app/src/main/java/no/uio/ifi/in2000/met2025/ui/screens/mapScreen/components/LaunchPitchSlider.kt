@@ -22,6 +22,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.met2025.ui.theme.WarmOrange
 
+/**
+ * A slider for adjusting the pitch angle of a launch.
+ *
+ * @param initialAngle The initial angle of the slider.
+ * @param onAngleChange Callback function to handle angle changes.
+ */
 @Composable
 fun LaunchPitchSlider(
     initialAngle: Float = 80f,
