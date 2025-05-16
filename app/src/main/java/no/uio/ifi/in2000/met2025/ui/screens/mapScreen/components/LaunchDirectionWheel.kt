@@ -1,12 +1,15 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,9 +18,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.RocketConfig
 import no.uio.ifi.in2000.met2025.ui.screens.mapScreen.MapScreenViewModel
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.components.WindDirectionIcon
@@ -25,6 +33,24 @@ import java.time.Instant
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+
+@Composable
+fun WindDirectionIcon2(windDirection: Double?) {
+    if (windDirection == null) {
+        return
+    }
+    val arrowPainter = painterResource(id = R.drawable.windicator)
+
+    Image(
+        painter = arrowPainter,
+        contentDescription = "Wind Direction",
+        modifier = Modifier
+            .size(60.dp)
+            .graphicsLayer(rotationZ = windDirection.toFloat())
+            .semantics { role = Role.Image }
+        ,
+    )
+}
 
 @Composable
 fun LaunchDirectionWheel(
@@ -51,7 +77,7 @@ fun LaunchDirectionWheel(
             is MapScreenViewModel.ForecastDataUiState.Success -> {
                 val windFromDirection = forecastUiState.forecastData.values.windFromDirection
                 windDirection = windFromDirection
-                WindDirectionIcon(
+                WindDirectionIcon2(
                     windDirection = windFromDirection,
                 )
             }
@@ -75,14 +101,39 @@ fun LaunchDirectionWheel(
             )
         }
 
-        // Display the angle value
-        Text(
-            text = "Angle: ${rotationAngle.toInt()}°",
-            fontSize = 16.sp,
-            color = Color.Black,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
-        )
+        // Wind direction angle box at top
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(4.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "Wind: ${windDirection.toInt()}°",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        // Launch angle box at bottom
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(4.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "Launch: ${rotationAngle.toInt()}°",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
 
         // Handle rotation gestures
         Box(
