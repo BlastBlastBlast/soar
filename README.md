@@ -1,7 +1,4 @@
 # SOAR
-## DISCLAIMER:
-The MapBox access token has been **deactivated**, and the app will not work without a valid token. Set a key in **grade.properties**.
-You will also need to set valid contact information in the appmodule.kt file, aswell as the locationforecast datasource.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -108,7 +105,7 @@ Follow these steps to get SOAR up and running on your machine. You can obtain th
 - **Android SDK**:
     - **Compile SDK:** Platform 35 installed or newer
     - **Minimum SDK:** 26 (Android 8.0 “Oreo”) 
-- **Mapbox Access Token & MET API Key:** For this delivery version of the project we've integrated our own tokens and API keys and trust you to not abuse them. For a public version of this app we would include instructions for setting up your own keys, and possibility to register a profile to hold your credentials for the API key and your mapbox token.
+- **Mapbox Access Token & MET API Key:** You'll need to create a Mapbox account, and a associated token for the app to work. Similarily we're using the student versions of the MET API's, which require contact info in order to track possible problematic traffic. How to set this up follows in the installation guide.
 
 **Recommendations:**
 - **Mid-to-high-end Android Device:** SOAR performs heavy weather‐data processing and 3D trajectory rendering, so we recommend using a mid-to-high-end Android device for the best experience.
@@ -151,7 +148,9 @@ cd team-21
 2. Choose "Open an existing Android Studio project"
 3. Navigate to the SOAR/ directory and click OK.
 4. Wait for Gradle to sync and download dependencies
-5. The app is now ready for use! Connect your chosen Android device (with USB-debugging enabled in developer settings) or choose a simulated device (minimum API 26) to run the app with the Android Studio play button.
+5. Enter a MapBox key into **gradle.properties** (Create a key by registering at Mapbox.com, and create a key from the account dashboard)
+6. The App is still using the student API's from MET, these require contact info to be used. Enter your contactinfo into the di/appmodule for the JSon webclient, and into the locationforecast datasource in data/remote.
+7. The app is now ready for use! Connect your chosen Android device (with USB-debugging enabled in developer settings) or choose a simulated device (minimum API 26) to run the app with the Android Studio play button.
 
 ---
 
