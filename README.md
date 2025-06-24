@@ -1,4 +1,7 @@
 # SOAR
+## DISCLAIMER:
+The MapBox access token has been **deactivated**, and the app will not work without a valid token. Set a key in **grade.properties**.
+You will also need to set valid contact information in the appmodule.kt file, aswell as the locationforecast datasource.
 
 ## Table of Contents
 - [Overview](#overview)
