@@ -1,4 +1,5 @@
-# SOAR
+# SOAR - Winner of the MET Awards 2025
+## A Somewhat Optimistic Approach to Rockets
 
 ## Table of Contents
 - [Overview](#overview)
