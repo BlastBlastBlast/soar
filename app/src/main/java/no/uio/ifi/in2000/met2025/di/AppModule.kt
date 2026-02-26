@@ -74,7 +74,6 @@ object AppModule {
         install(Logging) {
             level = LogLevel.INFO
         }
-        @TODO
         defaultRequest {
             header("ANY_Identifier", "your@email.address")
         }

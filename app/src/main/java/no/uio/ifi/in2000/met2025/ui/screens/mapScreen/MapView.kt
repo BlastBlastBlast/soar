@@ -72,6 +72,7 @@ import android.graphics.Paint
 import android.graphics.RadialGradient
 import android.graphics.Shader
 import com.mapbox.maps.extension.style.sources.updateImage
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Displays a Mapbox map with:
@@ -384,67 +385,18 @@ fun MapView(
 
                 // Draw the “new” marker
                 // Null check needed for first launch of app
-                if (newMarkerStatus && newMarker != null) {
-                    key(newMarker.uid to newMarker.name) {
-                        val icon = rememberIconImage(
-                            key = R.drawable.red_marker,
-                            painter = painterResource(R.drawable.red_marker)
-                        )
-                        val pt =
-                            temporaryMarker ?: Point.fromLngLat(
-                                newMarker.longitude,
-                                newMarker.latitude
-                            )
-                        PointAnnotation(point = pt) { iconImage = icon }
-                        if (showAnnotations) {
-                            ViewAnnotation(
-                                options = viewAnnotationOptions {
-                                    geometry(pt)
-                                    annotationAnchor {
-                                        anchor(ViewAnnotationAnchor.BOTTOM).offsetY(
-                                            60.0
-                                        )
-                                    }
-                                    allowOverlap(true)
-                                }
-                            ) {
-                                MarkerLabel(
-                                    name = newMarker.name,
-                                    lat = "%.4f".format(pt.latitude()),
-                                    lon = "%.4f".format(pt.longitude()),
-                                    elevation = markerElevation?.let { "%.1f m".format(it) },
-                                    isLoadingElevation = markerElevation == null, // Shows loader
-                                    onClick = { onMarkerAnnotationClick(pt, markerElevation) },
-                                    onLongPress = {
-                                        onMarkerAnnotationLongPress(
-                                            pt,
-                                            markerElevation
-                                        )
-                                    },
-                                    onDoubleClick = {
-                                        scope.launch {
-                                            mapViewportState.easeTo(
-                                                cameraOptions {
-                                                    center(pt)
-                                                    zoom(14.0)
-                                                    pitch(0.0)
-                                                    bearing(0.0)
-                                                },
-                                                MapAnimationOptions.mapAnimationOptions {
-                                                    duration(
-                                                        1000L
-                                                    )
-                                                }
-                                            )
-                                        }
-                                        onLaunchSiteMarkerClick(newMarker)
-                                    }
-                                )
-
-                            }
-                        }
-                    }
-                }
+                DrawNewMarker(
+                    newMarkerStatus,
+                    newMarker,
+                    temporaryMarker,
+                    showAnnotations,
+                    markerElevation,
+                    onMarkerAnnotationClick,
+                    onMarkerAnnotationLongPress,
+                    scope,
+                    mapViewportState,
+                    onLaunchSiteMarkerClick
+                )
 
                 // Draw all other launch sites
                 launchSites
@@ -515,6 +467,82 @@ fun MapView(
                             }
                         }
                     }
+        }
+    }
+}
+
+@Composable
+private fun DrawNewMarker(
+    newMarkerStatus: Boolean,
+    newMarker: LaunchSite?,
+    temporaryMarker: Point?,
+    showAnnotations: Boolean,
+    markerElevation: Double?,
+    onMarkerAnnotationClick: (Point, Double?) -> Unit,
+    onMarkerAnnotationLongPress: (Point, Double?) -> Unit,
+    scope: CoroutineScope,
+    mapViewportState: MapViewportState,
+    onLaunchSiteMarkerClick: (LaunchSite) -> Unit
+) {
+    if (newMarkerStatus && newMarker != null) {
+        key(newMarker.uid to newMarker.name) {
+            val icon = rememberIconImage(
+                key = R.drawable.red_marker,
+                painter = painterResource(R.drawable.red_marker)
+            )
+            val pt =
+                temporaryMarker ?: Point.fromLngLat(
+                    newMarker.longitude,
+                    newMarker.latitude
+                )
+            PointAnnotation(point = pt) { iconImage = icon }
+            if (showAnnotations) {
+                ViewAnnotation(
+                    options = viewAnnotationOptions {
+                        geometry(pt)
+                        annotationAnchor {
+                            anchor(ViewAnnotationAnchor.BOTTOM).offsetY(
+                                60.0
+                            )
+                        }
+                        allowOverlap(true)
+                    }
+                ) {
+                    MarkerLabel(
+                        name = newMarker.name,
+                        lat = "%.4f".format(pt.latitude()),
+                        lon = "%.4f".format(pt.longitude()),
+                        elevation = markerElevation?.let { "%.1f m".format(it) },
+                        isLoadingElevation = markerElevation == null, // Shows loader
+                        onClick = { onMarkerAnnotationClick(pt, markerElevation) },
+                        onLongPress = {
+                            onMarkerAnnotationLongPress(
+                                pt,
+                                markerElevation
+                            )
+                        },
+                        onDoubleClick = {
+                            scope.launch {
+                                mapViewportState.easeTo(
+                                    cameraOptions {
+                                        center(pt)
+                                        zoom(14.0)
+                                        pitch(0.0)
+                                        bearing(0.0)
+                                    },
+                                    MapAnimationOptions.mapAnimationOptions {
+                                        duration(
+                                            1000L
+                                        )
+                                    }
+                                )
+                            }
+                            onLaunchSiteMarkerClick(newMarker)
+                        }
+                    )
+
+                }
+            }
         }
     }
 }

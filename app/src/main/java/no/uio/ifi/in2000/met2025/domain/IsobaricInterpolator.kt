@@ -33,6 +33,7 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastData
 
 /**
  * This class is responsible for interpolating isobaric weather data.
@@ -85,6 +86,31 @@ class IsobaricInterpolator(
 
     // for debugging purposes
     private var howManyAPICalls = 0
+
+    private var constantForecastData: ForecastData? = null
+
+    /**
+    * This method is called at the initial position of the rocket to fetch the forecast data for that position and time.
+    * */
+    suspend fun setForecastDataForInitialPosition(position: RealVector, time: Instant): Result<Unit> {
+        if (constantForecastData == null) {
+            constantForecastData = locationForecastRepository.getForecastData(
+                lat = position[0],
+                lon = position[1],
+                time = time,
+                cacheResponse = false
+            ).fold(
+                onSuccess = {
+                    howManyAPICalls += 1
+                    Log.i("IsobaricInterpolator", "API call number: $howManyAPICalls")
+                    it
+                },
+                onFailure = { return Result.failure(it) }
+            )
+        }
+
+        return Result.success(Unit)
+    }
 
     /**
      * Initiates the interpolation process.
@@ -265,17 +291,7 @@ class IsobaricInterpolator(
                         extrapolatedPoint(indices, time, 2, false)
                             .fold(onSuccess = { it }, onFailure = { return Result.failure(it) })
                     indices[2] == 0 -> {
-                        val forecastData = locationForecastRepository.getForecastData(
-                            lat = indices[0].toCoordinate(MIN_LATITUDE),
-                            lon = indices[1].toCoordinate(MIN_LONGITUDE),
-                            time = time,
-                            cacheResponse = false
-                        ).fold(
-                            onSuccess = { it },
-                            onFailure = { return Result.failure(it) }
-                        )
-                        howManyAPICalls += 1
-                        Log.i("IsobaricInterpolator", "API call number: $howManyAPICalls")
+                        val forecastData = constantForecastData!! // should never be null since setForecastDataAtInitialPosition is called before getCartesianIsobaricValues
 
                         val forecastDataValues = forecastData.timeSeries[0].values
 

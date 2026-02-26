@@ -12,6 +12,7 @@
 package no.uio.ifi.in2000.met2025.ui.screens.mapScreen
 
 import android.database.sqlite.SQLiteConstraintException
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -309,51 +310,53 @@ class MapScreenViewModel @Inject constructor(
     fun startTrajectory(timeOfLaunch: Instant, launchAzimuth: Double, launchPitch: Double) {
         viewModelScope.launch {
             _isTrajectoryCalculating.value = true
-            try {
-                // 1) Grab the current default/selected config
-                val cfg = selectedConfig.value ?: return@launch
 
-                // 2) Pull the “last visited” lat/lon directly from the repo:
-                val (lat, lon) = launchSiteRepository
-                    .getCurrentCoordinates()    // Flow<Pair<Double,Double>>
-                    .first()                    // suspend until we get the latest
+            // 1) Grab the current default/selected config
+            val cfg = selectedConfig.value ?: return@launch
 
-                // 2) Build the initial position from your center coords + elevation
-                val elev = launchSiteRepository.getLastVisitedElevation()
-                val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
-                val traj: List<Triple<RealVector, Double, RocketState>> =
-                    TrajectoryCalculator(isobaricInterpolator)
-                        // 3) Run the physics‐based sim
-                        .calculateTrajectory(
-                            initialPosition = initial,
-                            launchAzimuthInDegrees = launchAzimuth,
-                            launchPitchInDegrees = launchPitch,
-                            launchRailLength = cfg.launchRailLength,
-                            wetMass = cfg.wetMass,
-                            dryMass = cfg.dryMass,
-                            burnTime = cfg.burnTime,
-                            thrust = cfg.thrust,
-                            stepSize = cfg.stepSize,
-                            crossSectionalArea = cfg.crossSectionalArea,
-                            dragCoefficient = cfg.dragCoefficient,
-                            parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                            parachuteDragCoefficient = cfg.parachuteDragCoefficient,
-                            timeOfLaunch = timeOfLaunch
-                        ).getOrThrow()
+            // 2) Pull the “last visited” lat/lon directly from the repo:
+            val (lat, lon) = launchSiteRepository
+                .getCurrentCoordinates()    // Flow<Pair<Double,Double>>
+                .first()                    // suspend until we get the latest
 
-                // 4) Publish the points & kick off the camera animation
-                _trajectoryPoints.value = traj
-                isAnimating = true
-                isTrajectoryMode = true
-            } catch (e: Exception) {
-                _uiState.value = MapScreenUiState.Error(
-                    "Something went wrong with the launch simulation. " +
-                            "The calculations use weather data fetched in real time, " +
-                            "so please check your internet connection and try again."
+            // 2) Build the initial position from your center coords + elevation
+            val elev = launchSiteRepository.getLastVisitedElevation()
+            val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
+
+            TrajectoryCalculator(isobaricInterpolator)
+                // 3) Run the physics‐based sim
+                .calculateTrajectory(
+                    initialPosition = initial,
+                    launchAzimuthInDegrees = launchAzimuth,
+                    launchPitchInDegrees = launchPitch,
+                    launchRailLength = cfg.launchRailLength,
+                    wetMass = cfg.wetMass,
+                    dryMass = cfg.dryMass,
+                    burnTime = cfg.burnTime,
+                    thrust = cfg.thrust,
+                    stepSize = cfg.stepSize,
+                    crossSectionalArea = cfg.crossSectionalArea,
+                    dragCoefficient = cfg.dragCoefficient,
+                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
+                    parachuteDragCoefficient = cfg.parachuteDragCoefficient,
+                    timeOfLaunch = timeOfLaunch
+                ).fold(
+                    onSuccess = {
+                        // 4) Publish the points & kick off the camera animation
+                        _trajectoryPoints.value = it
+                        isAnimating = true
+                        isTrajectoryMode = true },
+                    onFailure = {
+                        Log.e("MapScreenViewModel", "Trajectory simulation failed: ${it.message}")
+                        _uiState.value = MapScreenUiState.Error(
+                            "Something went wrong with the launch simulation. " +
+                                    "The calculations use weather data fetched in real time, " +
+                                    "so please check your internet connection and try again."
+                        )
+                    }
                 )
-            } finally {
-                _isTrajectoryCalculating.value = false
-            }
+
+            _isTrajectoryCalculating.value = false
         }
     }
 

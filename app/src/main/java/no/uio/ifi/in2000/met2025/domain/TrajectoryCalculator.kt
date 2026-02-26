@@ -87,6 +87,12 @@ class TrajectoryCalculator(
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: initial position: $initialPosition")
 
+        // get forecast data at initial position and time of launch, to avoid doing it for every time step in the recursive function
+        isobaricInterpolator.setForecastDataForInitialPosition(initialPosition, timeOfLaunch).fold(
+            onSuccess = { Log.i("TrajectoryCalculator", "calculateTrajectory: forecast data set successfully") },
+            onFailure = { return Result.failure(it) }
+        )
+
         val lat0 = initialPosition[0]
         val lon0 = initialPosition[1]
         this.refLatRad = Math.toRadians(lat0)
