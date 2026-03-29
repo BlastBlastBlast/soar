@@ -19,6 +19,17 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        val defaultMapboxToken = "YOUR_MAPBOX_ACCESS_TOKEN_HERE"
+
+        val tokenProvider = providers.gradleProperty("MAPBOX_ACCESS_TOKEN")
+            .orElse(defaultMapboxToken)
+
+        val token = tokenProvider.get()
+
+        if (token != defaultMapboxToken) {
+            resValue("string", "mapbox_access_token", token)
+        }
     }
 
     packaging {
