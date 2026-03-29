@@ -1,32 +1,21 @@
-package no.uio.ifi.in2000.met2025.domain
+package no.uio.ifi.in2000.met2025.domain.trajectorySimulation
 
 import android.util.Log
 import no.uio.ifi.in2000.met2025.data.models.Angle
-import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELVIN
-import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.EARTH_AIR_MOLAR_MASS
-import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.GRAVITY
-import no.uio.ifi.in2000.met2025.data.models.cos
+import no.uio.ifi.in2000.met2025.data.models.Constants
 import no.uio.ifi.in2000.met2025.data.models.sin
 import no.uio.ifi.in2000.met2025.domain.helperclasses.SimpleLinkedList
+import no.uio.ifi.in2000.met2025.domain.helpers.div
 import no.uio.ifi.in2000.met2025.domain.helpers.get
+import no.uio.ifi.in2000.met2025.domain.helpers.minus
+import no.uio.ifi.in2000.met2025.domain.helpers.plus
+import no.uio.ifi.in2000.met2025.domain.helpers.times
+import no.uio.ifi.in2000.met2025.domain.interpolation.IsobaricInterpolator
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
-import no.uio.ifi.in2000.met2025.domain.helpers.times
-import no.uio.ifi.in2000.met2025.domain.helpers.plus
-import no.uio.ifi.in2000.met2025.domain.helpers.minus
-import no.uio.ifi.in2000.met2025.domain.helpers.div
 import java.time.Instant
-import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.EARTH_RADIUS
-import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.UNIVERSAL_GAS_CONSTANT
 import kotlin.math.cos
-
-enum class RocketState {
-    ON_LAUNCH_RAIL,
-    THRUSTING,
-    FREE_FLIGHT,
-    PARACHUTE_DEPLOYED,
-    LANDED
-}
+import no.uio.ifi.in2000.met2025.data.models.cos
 
 /**
  * TrajectoryCalculator is responsible for calculating the trajectory of a rocket
@@ -49,8 +38,8 @@ class TrajectoryCalculator(
         val lon = Math.toRadians(lonDeg)
         val dLat = lat - refLatRad
         val dLon = lon - refLonRad
-        val north = dLat * EARTH_RADIUS
-        val east  = dLon * EARTH_RADIUS * cos(refLatRad)
+        val north = dLat * Constants.EARTH_RADIUS
+        val east  = dLon * Constants.EARTH_RADIUS * cos(refLatRad)
         return ArrayRealVector(doubleArrayOf(east, north, alt))
     }
 
@@ -59,8 +48,8 @@ class TrajectoryCalculator(
      */
     private fun enuToGeo(enu: RealVector): Triple<Double, Double, Double> {
         val (east, north, alt) = enu.toArray()
-        val lat = refLatRad + north / EARTH_RADIUS
-        val lon = refLonRad + east  / (EARTH_RADIUS * cos(refLatRad))
+        val lat = refLatRad + north / Constants.EARTH_RADIUS
+        val lon = refLonRad + east  / (Constants.EARTH_RADIUS * cos(refLatRad))
         return Triple(Math.toDegrees(lat), Math.toDegrees(lon), alt)
     }
 
@@ -114,10 +103,15 @@ class TrajectoryCalculator(
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: launchDirectionUnitVector: $launchDirectionUnitVector, length: ${launchDirectionUnitVector.norm}")
 
-        val accelerationFromGravity = ArrayRealVector(doubleArrayOf(0.0, 0.0, -GRAVITY))
+        val accelerationFromGravity =
+            ArrayRealVector(doubleArrayOf(0.0, 0.0, -Constants.GRAVITY))
         // The acceleration from gravity on the launch rail is calculated by projecting the gravity vector onto the launch direction.
         // It is parallel to the launch direction.
-        val accelerationFromGravityOnLaunchRail = -cos(Angle(90.0) - launchPitch) * GRAVITY * launchDirectionUnitVector
+        val accelerationFromGravityOnLaunchRail = -cos(
+            Angle(
+                90.0
+            ) - launchPitch
+        ) * Constants.GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravity: $accelerationFromGravity")
@@ -167,7 +161,7 @@ class TrajectoryCalculator(
             )
 
             // Used to calculate drag force
-            val airDensity = 100.0 * airValues.pressure * EARTH_AIR_MOLAR_MASS / ((airValues.temperature + CELSIUS_TO_KELVIN) * UNIVERSAL_GAS_CONSTANT)
+            val airDensity = 100.0 * airValues.pressure * Constants.EARTH_AIR_MOLAR_MASS / ((airValues.temperature + Constants.CELSIUS_TO_KELVIN) * Constants.UNIVERSAL_GAS_CONSTANT)
             Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
 
             val newVelocity = rungeKutta4(
@@ -213,7 +207,11 @@ class TrajectoryCalculator(
             // frontend expects the position in degrees
             val nextGeoPositionTriple = enuToGeo(newPosition)
             val nextGeoPosition = ArrayRealVector(
-                doubleArrayOf(nextGeoPositionTriple.first, nextGeoPositionTriple.second, nextGeoPositionTriple.third)
+                doubleArrayOf(
+                    nextGeoPositionTriple.first,
+                    nextGeoPositionTriple.second,
+                    nextGeoPositionTriple.third
+                )
             )
 
             val rocketState = when {
@@ -252,46 +250,22 @@ class TrajectoryCalculator(
             }
         }
 
-        // SimpleLinkedList is used to avoid resizing
-        val enuResult = calculateTrajectoryRecursive(
-            currentPosition = enuStart,
-            currentVelocity = zeroVector,
-            timeAfterLaunch = 0.0,
-            coefficientOfDrag = dragCoefficient,
-            areaOfCrossSection = crossSectionalArea,
-            result = SimpleLinkedList(Triple(initialPosition, 0.0, RocketState.ON_LAUNCH_RAIL))
-        ).fold(
-            onSuccess = { it },
-            onFailure = { return Result.failure(it) }
-        )
-
-        val geoResult = enuResult.toList()
 
         return Result.success(
-            geoResult.toList()
+            calculateTrajectoryRecursive(
+                currentPosition = enuStart,
+                currentVelocity = zeroVector,
+                timeAfterLaunch = 0.0,
+                coefficientOfDrag = dragCoefficient,
+                areaOfCrossSection = crossSectionalArea,
+                // SimpleLinkedList is used to avoid resizing
+                result = SimpleLinkedList(Triple(initialPosition, 0.0, RocketState.ON_LAUNCH_RAIL))
+            ).fold(
+                onSuccess = { it },
+                onFailure = { return Result.failure(it) }
+            )
+                .toList()
         )
     }
 }
 
-/**
- * Runge-Kutta 4th order method for numerical integration.
- * @param initialVector The initial vector (for instance position or velocity).
- * @param time The current time as a number.
- * @param stepSize The size of the time step.
- * @param derivative A function that calculates the derivative at a given time and vector.
- * For instance, if the vector is a position, the derivative will be the velocity.
- * @return The updated vector after applying the Runge-Kutta method.
- */
-fun rungeKutta4(
-    initialVector: RealVector,
-    time: Double,
-    stepSize: Double,
-    derivative: (Double, RealVector) -> RealVector,
-): RealVector {
-    val k1 = derivative(time, initialVector)
-    val k2 = derivative(time + stepSize / 2, initialVector + k1 * stepSize / 2.0)
-    val k3 = derivative(time + stepSize / 2, initialVector + k2 * stepSize / 2.0)
-    val k4 = derivative(time + stepSize, initialVector + k3 * stepSize)
-
-    return initialVector + (k1 + 2.0 * k2 + 2.0 * k3 + k4) * stepSize / 6.0
-}

@@ -59,7 +59,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.met2025.R
 import no.uio.ifi.in2000.met2025.data.local.database.LaunchSite
-import no.uio.ifi.in2000.met2025.domain.RocketState
+import no.uio.ifi.in2000.met2025.domain.trajectorySimulation.RocketState
 import org.apache.commons.math3.linear.RealVector
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer
 import com.mapbox.maps.extension.style.sources.generated.ImageSource

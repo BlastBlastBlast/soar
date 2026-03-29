@@ -38,7 +38,6 @@ import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon
 import no.uio.ifi.in2000.met2025.data.models.safetyevaluation.EvaluationIcon.DrawableIcon
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalTime
 import no.uio.ifi.in2000.met2025.domain.helpers.formatZuluTimeToLocalDate
-import no.uio.ifi.in2000.met2025.domain.helpers.closestIsobaricDataWindowBefore
 import no.uio.ifi.in2000.met2025.ui.screens.weatherScreen.WeatherViewModel
 import java.time.Instant
 
@@ -49,6 +48,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.ui.theme.LocalIsDarkTheme
 
 /**
@@ -121,8 +121,9 @@ fun HourlyExpandableCard(
                     val isLightMode = LocalIsDarkTheme.current
 
                     when (val isobaricData = isobaricDataMap[
+                        IsobaricData.effectiveWindowFor(
                         Instant.parse(forecastItem.time)
-                            .closestIsobaricDataWindowBefore()
+                        )
                     ]) {
                         is WeatherViewModel.AtmosphericWindUiState.Success -> {
                             Icon(
@@ -259,8 +260,9 @@ fun HourlyExpandableCard(
                     AtmosphericWindTable(
                         viewModel,
                         coordinates = coordinates,
-                        time = Instant.parse(forecastItem.time)
-                            .closestIsobaricDataWindowBefore()
+                        time = IsobaricData.effectiveWindowFor(
+                            Instant.parse(forecastItem.time)
+                        )
                     )
                 }
             }

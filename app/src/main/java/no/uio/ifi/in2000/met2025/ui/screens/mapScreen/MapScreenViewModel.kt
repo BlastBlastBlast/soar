@@ -36,9 +36,9 @@ import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.mapToRocketConfig
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
-import no.uio.ifi.in2000.met2025.domain.IsobaricInterpolator
-import no.uio.ifi.in2000.met2025.domain.RocketState
-import no.uio.ifi.in2000.met2025.domain.TrajectoryCalculator
+import no.uio.ifi.in2000.met2025.domain.interpolation.IsobaricInterpolator
+import no.uio.ifi.in2000.met2025.domain.trajectorySimulation.RocketState
+import no.uio.ifi.in2000.met2025.domain.trajectorySimulation.TrajectoryCalculator
 import org.apache.commons.math3.linear.ArrayRealVector
 import org.apache.commons.math3.linear.RealVector
 import javax.inject.Inject
