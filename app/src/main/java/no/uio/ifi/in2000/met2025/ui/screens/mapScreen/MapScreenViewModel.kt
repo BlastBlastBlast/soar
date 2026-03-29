@@ -323,38 +323,49 @@ class MapScreenViewModel @Inject constructor(
             val elev = launchSiteRepository.getLastVisitedElevation()
             val initial = ArrayRealVector(doubleArrayOf(lat, lon, elev))
 
-            TrajectoryCalculator(isobaricInterpolator)
-                // 3) Run the physics‐based sim
-                .calculateTrajectory(
-                    initialPosition = initial,
-                    launchAzimuthInDegrees = launchAzimuth,
-                    launchPitchInDegrees = launchPitch,
-                    launchRailLength = cfg.launchRailLength,
-                    wetMass = cfg.wetMass,
-                    dryMass = cfg.dryMass,
-                    burnTime = cfg.burnTime,
-                    thrust = cfg.thrust,
-                    stepSize = cfg.stepSize,
-                    crossSectionalArea = cfg.crossSectionalArea,
-                    dragCoefficient = cfg.dragCoefficient,
-                    parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
-                    parachuteDragCoefficient = cfg.parachuteDragCoefficient,
-                    timeOfLaunch = timeOfLaunch
-                ).fold(
-                    onSuccess = {
-                        // 4) Publish the points & kick off the camera animation
-                        _trajectoryPoints.value = it
-                        isAnimating = true
-                        isTrajectoryMode = true },
-                    onFailure = {
-                        Log.e("MapScreenViewModel", "Trajectory simulation failed: ${it.message}")
-                        _uiState.value = MapScreenUiState.Error(
-                            "Something went wrong with the launch simulation. " +
-                                    "The calculations use weather data fetched in real time, " +
-                                    "so please check your internet connection and try again."
-                        )
-                    }
+            // 3) Run the physics‐based sim
+            val simulationFailureAction: (Throwable) -> Unit = {
+
+                Log.e("MapScreenViewModel", "Trajectory simulation failed: ${it.message}")
+                _uiState.value = MapScreenUiState.Error(
+                    "Something went wrong with the launch simulation. " +
+                            "The calculations use weather data fetched in real time, " +
+                            "so please check your internet connection and try again."
                 )
+            }
+
+            runCatching {
+                TrajectoryCalculator(isobaricInterpolator)
+                    .calculateTrajectory(
+                        initialPosition = initial,
+                        launchAzimuthInDegrees = launchAzimuth,
+                        launchPitchInDegrees = launchPitch,
+                        launchRailLength = cfg.launchRailLength,
+                        wetMass = cfg.wetMass,
+                        dryMass = cfg.dryMass,
+                        burnTime = cfg.burnTime,
+                        thrust = cfg.thrust,
+                        stepSize = cfg.stepSize,
+                        crossSectionalArea = cfg.crossSectionalArea,
+                        dragCoefficient = cfg.dragCoefficient,
+                        parachuteCrossSectionalArea = cfg.parachuteCrossSectionalArea,
+                        parachuteDragCoefficient = cfg.parachuteDragCoefficient,
+                        timeOfLaunch = timeOfLaunch
+                    )
+            }.fold(
+                onSuccess = { runItem ->
+                    runItem.fold(
+                        onSuccess = {
+                            // 4) Publish the points & kick off the camera animation
+                            _trajectoryPoints.value = it
+                            isAnimating = true
+                            isTrajectoryMode = true
+                                    },
+                            onFailure = { simulationFailureAction(it) }
+                    )
+                            },
+                onFailure = { simulationFailureAction(it) }
+            )
 
             _isTrajectoryCalculating.value = false
         }
