@@ -107,11 +107,9 @@ class TrajectoryCalculator(
             ArrayRealVector(doubleArrayOf(0.0, 0.0, -Constants.GRAVITY))
         // The acceleration from gravity on the launch rail is calculated by projecting the gravity vector onto the launch direction.
         // It is parallel to the launch direction.
-        val accelerationFromGravityOnLaunchRail = -cos(
-            Angle(
-                90.0
-            ) - launchPitch
-        ) * Constants.GRAVITY * launchDirectionUnitVector
+        val accelerationFromGravityOnLaunchRail =
+            -cos(Angle(90.0) - launchPitch) *
+                Constants.GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
         Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravity: $accelerationFromGravity")

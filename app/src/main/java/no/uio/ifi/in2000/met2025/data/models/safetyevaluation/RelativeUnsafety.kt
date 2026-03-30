@@ -2,7 +2,7 @@ package no.uio.ifi.in2000.met2025.data.models.safetyevaluation
 
 import android.util.Log
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataItem
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
 import no.uio.ifi.in2000.met2025.domain.helpers.toConfigList
 

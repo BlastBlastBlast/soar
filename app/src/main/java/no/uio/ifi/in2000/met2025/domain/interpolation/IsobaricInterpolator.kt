@@ -10,7 +10,7 @@ import no.uio.ifi.in2000.met2025.data.models.cos
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
 import no.uio.ifi.in2000.met2025.data.models.isobaric.IsobaricData
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastData
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastData
 import no.uio.ifi.in2000.met2025.data.models.sin
 import no.uio.ifi.in2000.met2025.data.remote.forecast.LocationForecastRepository
 import no.uio.ifi.in2000.met2025.data.remote.isobaric.IsobaricRepository
@@ -80,13 +80,15 @@ class IsobaricInterpolator(
     // for debugging purposes
     private var howManyAPICalls = 0
 
+    // map of fetched forecastData objects.
+    // key is
     private var constantForecastData: ForecastData? = null
 
     /**
     * This method is called at the initial position of the rocket to fetch the forecast data for that position and time.
     * */
     suspend fun setForecastDataForInitialPosition(position: RealVector, time: Instant): Result<Unit> {
-        if (constantForecastData == null) {
+        if (constantForecastData == null || !constantForecastData!!.isLatest()) {
             constantForecastData = locationForecastRepository.getForecastData(
                 lat = position[0],
                 lon = position[1],

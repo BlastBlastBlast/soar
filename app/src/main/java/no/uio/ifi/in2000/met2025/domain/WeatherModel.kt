@@ -5,8 +5,8 @@ import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.CELSIUS_TO_KELV
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.TEMPERATURE_LAPSE_RATE
 import no.uio.ifi.in2000.met2025.data.models.Constants.Companion.layerPressureValues
 import no.uio.ifi.in2000.met2025.data.models.CoordinateBoundaries
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataValues
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataMap
 import no.uio.ifi.in2000.met2025.data.models.grib.GribDataResult
 import no.uio.ifi.in2000.met2025.data.models.grib.GribVectors

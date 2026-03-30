@@ -14,11 +14,13 @@ data class IsobaricData(
     val valuesAtLayer: Map<Int, IsobaricDataValues>
 ) {
     companion object {
+        const val EFFECTIVE_WINDOW_DURATION_HOURS = 3
+
         /**
          * Checks if data for the given time is the latest.
          * Returns true if newer data is not available yet, false otherwise
          */
-        fun isLatest(time: Instant) = (Duration.between(time, Instant.now()).toHours() <= 3)
+        fun isLatest(time: Instant) = (Duration.between(time, Instant.now()).toHours() <= EFFECTIVE_WINDOW_DURATION_HOURS)
 
         /**
          * Finds the closest isobaric data window before the current time.

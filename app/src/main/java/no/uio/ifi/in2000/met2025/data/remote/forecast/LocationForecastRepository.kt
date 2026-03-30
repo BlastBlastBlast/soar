@@ -2,11 +2,11 @@ package no.uio.ifi.in2000.met2025.data.remote.forecast
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastData
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataResponse
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.TimeSeries
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastData
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.apiResponse.ForecastDataResponse
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.apiResponse.TimeSeries
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId

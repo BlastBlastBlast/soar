@@ -2,8 +2,8 @@ package no.uio.ifi.in2000.met2025.domain.helpers
 
 import no.uio.ifi.in2000.met2025.data.local.database.WeatherConfig
 import no.uio.ifi.in2000.met2025.data.models.ConfigParameter
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataItem
-import no.uio.ifi.in2000.met2025.data.models.locationforecast.ForecastDataValues
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataItem
+import no.uio.ifi.in2000.met2025.data.models.locationforecast.formattedData.ForecastDataValues
 import kotlin.reflect.KProperty1
 import kotlin.Triple
 

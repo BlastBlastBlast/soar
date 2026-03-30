@@ -15,4 +15,4 @@ class Angle(val degrees: Double) {
 
 fun cos(angle: Angle): Double = kotlin.math.cos(angle.radians)
 fun sin(angle: Angle): Double = kotlin.math.sin(angle.radians)
-fun tan(angle: Angle): Double = kotlin.math.tan(angle.radians)
+//fun tan(angle: Angle): Double = kotlin.math.tan(angle.radians)
