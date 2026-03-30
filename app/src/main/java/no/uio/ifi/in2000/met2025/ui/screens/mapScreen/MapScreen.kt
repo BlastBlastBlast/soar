@@ -315,7 +315,6 @@ fun MapScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                         ) {
-                            viewModel.fetchForecastData(coords.first, coords.second, defaultLaunch)
                             if (showAnnotations) {
                                 Column(
                                     modifier = Modifier
@@ -327,7 +326,8 @@ fun MapScreen(
                                     LaunchDirectionWheel(
                                         initialAngle = configAzimuth, // Use the derived value
                                         onAngleChange = { launchAzimuth = it },
-                                        forecastUiState = forecastUiState
+                                        forecastUiState = forecastUiState,
+                                        fetchForecastData = { viewModel.fetchForecastData(coords.first, coords.second, defaultLaunch) }
                                     )
 
                                     Spacer(modifier = Modifier.height(20.dp))

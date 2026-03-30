@@ -64,17 +64,20 @@ fun WindDirectionIcon2(windDirection: Double?) {
 fun LaunchDirectionWheel(
     initialAngle: Double,
     onAngleChange: (Double) -> Unit = {},
-    forecastUiState: MapScreenViewModel.ForecastDataUiState
+    forecastUiState: MapScreenViewModel.ForecastDataUiState,
+    fetchForecastData: () -> Unit
 ) {
     // initial launch azimuth
     val defaultAngle = initialAngle
-    var rotationAngle by remember { mutableStateOf(defaultAngle) }
+    var rotationAngle by remember { mutableDoubleStateOf(defaultAngle) }
 
     // wind-from direction when available
     val windDirection = when (forecastUiState) {
         is MapScreenViewModel.ForecastDataUiState.Success ->
             forecastUiState.forecastData.values.windFromDirection
-        else -> defaultAngle
+        else -> {
+            defaultAngle
+        }
     }
 
     // theme colors
@@ -122,7 +125,7 @@ fun LaunchDirectionWheel(
                         modifier = Modifier.size(24.dp),
                         color = onSurfaceColor
                     )
-                else -> { }
+                else -> { fetchForecastData() }
             }
             // background compass dial (outline only)
             CompassDial(modifier = Modifier.matchParentSize())
