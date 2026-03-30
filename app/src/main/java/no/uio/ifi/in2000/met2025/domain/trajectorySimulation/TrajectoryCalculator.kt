@@ -74,11 +74,11 @@ class TrajectoryCalculator(
         timeOfLaunch: Instant = Instant.now()   // time of launch
     ): Result<List<Triple<RealVector, Double, RocketState>>> {
 
-        Log.i("TrajectoryCalculator", "calculateTrajectory: initial position: $initialPosition")
+        Log.v("TrajectoryCalculator", "calculateTrajectory: initial position: $initialPosition")
 
         // get forecast data at initial position and time of launch, to avoid doing it for every time step in the recursive function
         isobaricInterpolator.setForecastDataForInitialPosition(initialPosition, timeOfLaunch).fold(
-            onSuccess = { Log.i("TrajectoryCalculator", "calculateTrajectory: forecast data set successfully") },
+            onSuccess = { Log.v("TrajectoryCalculator", "calculateTrajectory: forecast data set successfully") },
             onFailure = { return Result.failure(it) }
         )
 
@@ -101,7 +101,7 @@ class TrajectoryCalculator(
             )
         ).unitVector()
 
-        Log.i("TrajectoryCalculator", "calculateTrajectory: launchDirectionUnitVector: $launchDirectionUnitVector, length: ${launchDirectionUnitVector.norm}")
+        Log.v("TrajectoryCalculator", "calculateTrajectory: launchDirectionUnitVector: $launchDirectionUnitVector, length: ${launchDirectionUnitVector.norm}")
 
         val accelerationFromGravity =
             ArrayRealVector(doubleArrayOf(0.0, 0.0, -Constants.GRAVITY))
@@ -112,8 +112,8 @@ class TrajectoryCalculator(
                 Constants.GRAVITY * launchDirectionUnitVector
         val zeroVector = ArrayRealVector(doubleArrayOf(0.0, 0.0, 0.0))
 
-        Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravity: $accelerationFromGravity")
-        Log.i("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravityOnLaunchRail: $accelerationFromGravityOnLaunchRail")
+        Log.v("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravity: $accelerationFromGravity")
+        Log.v("TrajectoryCalculator", "calculateTrajectory: accelerationFromGravityOnLaunchRail: $accelerationFromGravityOnLaunchRail")
 
         /**
          * The Runge-Kutta method is used to solve the ordinary differential equations (ODEs) that describe the motion of the rocket.
@@ -129,11 +129,11 @@ class TrajectoryCalculator(
             result: SimpleLinkedList<Triple<RealVector, Double, RocketState>>
         ): Result<SimpleLinkedList<Triple<RealVector, Double, RocketState>>> {
 
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: timeAfterLaunch: $timeAfterLaunch")
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: current velocity: $currentVelocity")
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: current position: $currentPosition")
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: coefficientOfDrag: $coefficientOfDrag")
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: areaOfCrossSection: $areaOfCrossSection")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: timeAfterLaunch: $timeAfterLaunch")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: current velocity: $currentVelocity")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: current position: $currentPosition")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: coefficientOfDrag: $coefficientOfDrag")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: areaOfCrossSection: $areaOfCrossSection")
 
             val onLaunchRail: (RealVector) -> Boolean = { position ->
                 (position - initialPosition).norm <= launchRailLength
@@ -143,7 +143,7 @@ class TrajectoryCalculator(
             val (latDeg, lonDeg, altM) = enuToGeo(currentPosition)
             val currentGeoPosition = ArrayRealVector(doubleArrayOf(latDeg, lonDeg, altM))
 
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: currentGeoPosition: $currentGeoPosition")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: currentGeoPosition: $currentGeoPosition")
 
             val airValues = isobaricInterpolator.getCartesianIsobaricValues(currentGeoPosition, timeOfLaunch)
                 .fold(
@@ -151,7 +151,7 @@ class TrajectoryCalculator(
                     onFailure = { return Result.failure(it) }
                 )
 
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airValues: $airValues")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: airValues: $airValues")
 
             // we don't have data for wind in the vertical direction
             val windVector = ArrayRealVector(
@@ -160,7 +160,7 @@ class TrajectoryCalculator(
 
             // Used to calculate drag force
             val airDensity = 100.0 * airValues.pressure * Constants.EARTH_AIR_MOLAR_MASS / ((airValues.temperature + Constants.CELSIUS_TO_KELVIN) * Constants.UNIVERSAL_GAS_CONSTANT)
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: airDensity: $airDensity")
 
             val newVelocity = rungeKutta4(
                 initialVector = currentVelocity,
@@ -177,7 +177,7 @@ class TrajectoryCalculator(
                     }
 
                     val dragForce = -0.5 * (areaOfCrossSection * coefficientOfDrag * airDensity * velocityWithWind.norm * velocityWithWind)
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: dragForce: $dragForce")
+                    Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: dragForce: $dragForce")
 
                     // burnProgress is used to calculate current mass
                     val (thrustForce, burnProgress) = if (incrementedTime >= burnTime) {
@@ -185,19 +185,19 @@ class TrajectoryCalculator(
                     } else {
                         Pair(thrust * launchDirectionUnitVector, incrementedTime / burnTime)
                     }
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustForce, burnProgress: $burnProgress")
+                    Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: thrustVector: $thrustForce, burnProgress: $burnProgress")
 
                     // equals wetMass when burnProgress is 0, and dryMass when burnProgress is 1
                     val massAtIncrement = wetMass * (1 - burnProgress) + dryMass * burnProgress
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: massAtIncrement: $massAtIncrement")
+                    Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: massAtIncrement: $massAtIncrement")
 
-                    Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: acceleration from drag: ${dragForce / massAtIncrement}")
+                    Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: acceleration from drag: ${dragForce / massAtIncrement}")
 
                     (dragForce + thrustForce) / massAtIncrement +
                         if (onLaunchRail(currentPosition)) accelerationFromGravityOnLaunchRail else accelerationFromGravity
                 }
             )
-            Log.i("TrajectoryCalculator", "calculateTrajectoryRecursive: newVelocity: $newVelocity")
+            Log.v("TrajectoryCalculator", "calculateTrajectoryRecursive: newVelocity: $newVelocity")
 
             // assumes constant velocity during the time step
             val newPosition = currentPosition + currentVelocity * stepSize

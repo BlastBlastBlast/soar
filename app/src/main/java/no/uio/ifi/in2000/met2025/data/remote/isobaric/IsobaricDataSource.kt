@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.met2025.data.remote.isobaric
 
+import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -25,9 +26,14 @@ class IsobaricDataSource @Inject constructor(
      */
     suspend fun fetchIsobaricGribData(uri: String): Result<ByteArray> {
         return try {
-            Result.success(gribClient.get {
-                url(uri)
-            }.body())
+            Log.i("IsobaricDataSource", "Fetching isobaric data from $uri")
+
+            Result.success(
+                gribClient.get {
+                    url(uri)
+                }.body<ByteArray>()
+            )
+                .also { Log.i("IsobaricDataSource", "Successfully fetched isobaric data") }
         } catch (e: Exception) {
             val errorMessage = "Error fetching grib data: ${e.message}"
             Result.failure(Exception(errorMessage))
@@ -40,10 +46,13 @@ class IsobaricDataSource @Inject constructor(
      */
     suspend fun fetchAvailabilityData(): Result<GribAvailabilityResponse> {
         return try {
+            Log.i("IsobaricDataSource", "Fetching Isobaric availability data ($availUrl)")
+
             val response: List<DataEntry> = jsonClient.get {
                 url(availUrl)
             }.body()
             Result.success(GribAvailabilityResponse(response))
+                .also { Log.i("IsobaricDataSource", "Successfully fetched availability data") }
         } catch (e: Exception) {
             val errorMessage = "Error fetching grib availability data: ${e.message}"
             Result.failure(Exception(errorMessage))

@@ -41,7 +41,7 @@ fun catmullRomInterpolation(t: Double, points: List<RealVector>): RealVector {
 
     val c = ((t2 - t) * b1 + (t - t1) * b2) * t21
 
-    Log.i("IsobaricInterpolator", "catmullRomInterpolation: t = $t, points = $points, c = $c")
+    Log.v("IsobaricInterpolator", "catmullRomInterpolation: t = $t, points = $points, c = $c")
 
     return c
 }

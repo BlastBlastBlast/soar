@@ -97,7 +97,7 @@ class IsobaricInterpolator(
             ).fold(
                 onSuccess = {
                     howManyAPICalls += 1
-                    Log.i("IsobaricInterpolator", "API call number: $howManyAPICalls")
+                    Log.v("IsobaricInterpolator", "API call number: $howManyAPICalls")
                     it
                 },
                 onFailure = { return Result.failure(it) }
@@ -118,7 +118,7 @@ class IsobaricInterpolator(
                 is GribDataResult.Success -> {
                     gribMaps[IsobaricData.effectiveWindowFor(time)] =
                         Timestamped(gribDataResult.gribDataMap, Instant.now())
-                    Log.i("IsobaricInterpolator", "GRIB map fetched successfully for ${IsobaricData.effectiveWindowFor(time)}")
+                    Log.v("IsobaricInterpolator", "GRIB map fetched successfully for ${IsobaricData.effectiveWindowFor(time)}")
                 }
                 else -> {
                     return Result.failure(Exception("Error fetching GRIB map for ${IsobaricData.effectiveWindowFor(time)}"))
@@ -158,7 +158,7 @@ class IsobaricInterpolator(
             )
         if (altitude < lowerSurface(latFractional, lonFractional).altitude) {
             if (isobaricIndex == 0) {
-                Log.i("IsobaricInterpolator", "lowerSurface altitude: ${lowerSurface(latFractional, lonFractional).altitude}")
+                Log.v("IsobaricInterpolator", "lowerSurface altitude: ${lowerSurface(latFractional, lonFractional).altitude}")
                 return Result.success(
                     lowerSurface(latFractional, lonFractional)
                         .also {
@@ -167,7 +167,7 @@ class IsobaricInterpolator(
                 )
             }
 
-            Log.i("IsobaricInterpolator", "lowerSurface: ${lowerSurface(latFractional, lonFractional)}")
+            Log.v("IsobaricInterpolator", "lowerSurface: ${lowerSurface(latFractional, lonFractional)}")
             return getValuesAtAppropriateLevel(isobaricIndex - 1, coordinates, time)
         }
 
@@ -178,7 +178,7 @@ class IsobaricInterpolator(
             )
         if (altitude > upperSurface(latFractional, lonFractional).altitude) {
             if (isobaricIndex == Constants.layerPressureValues.size - 1) {
-                Log.i("IsobaricInterpolator", "upperSurface: ${upperSurface(latFractional, lonFractional)}")
+                Log.v("IsobaricInterpolator", "upperSurface: ${upperSurface(latFractional, lonFractional)}")
                 return Result.success(
                     upperSurface(latFractional, lonFractional)
                         .also {
@@ -187,7 +187,7 @@ class IsobaricInterpolator(
                 )
             }
 
-            Log.i("IsobaricInterpolator", "upperSurface: ${upperSurface(latFractional, lonFractional)}")
+            Log.v("IsobaricInterpolator", "upperSurface: ${upperSurface(latFractional, lonFractional)}")
             return getValuesAtAppropriateLevel(isobaricIndex + 1, coordinates, time)
         }
 
@@ -223,7 +223,7 @@ class IsobaricInterpolator(
      */
     private suspend fun getSurface(indices: List<Int>, time: Instant): Result<(Double, Double) -> CartesianIsobaricValues> {
 
-        Log.i("IsobaricInterpolator", "getSurface: $indices")
+        Log.v("IsobaricInterpolator", "getSurface: $indices")
 
         val surfacePlusTime = surfaceCache[Timestamped(
             indices,
@@ -263,7 +263,7 @@ class IsobaricInterpolator(
      */
     private suspend fun getPoint(indices: List<Int>, time: Instant): Result<CartesianIsobaricValues> {
 
-        Log.i("IsobaricInterpolator", "getPoint: $indices")
+        Log.v("IsobaricInterpolator", "getPoint: $indices")
 
         val pointPlusTime = pointCache[Timestamped(
             indices,
@@ -363,7 +363,7 @@ class IsobaricInterpolator(
                         indices,
                         IsobaricData.effectiveWindowFor(time)
                     )] = Timestamped(it, Instant.now())
-                    Log.i("IsobaricInterpolator", "point: $indices, value: $it")
+                    Log.v("IsobaricInterpolator", "point: $indices, value: $it")
                 }
         )
     }
@@ -379,11 +379,11 @@ class IsobaricInterpolator(
         isLowerBound: Boolean
     ): Result<CartesianIsobaricValues> {
 
-        Log.i("IsobaricInterpolator.handleOutOfBounds", "handleOutOfBounds: $indices, isLowerBound: $isLowerBound")
+        Log.v("IsobaricInterpolator.handleOutOfBounds", "handleOutOfBounds: $indices, isLowerBound: $isLowerBound")
 
         val indexAdjustment = if (isLowerBound) 1 else -2
-        Log.i("IsobaricInterpolator.handleOutOfBounds", "indexAdjustment: $indexAdjustment")
-        Log.i("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
+        Log.v("IsobaricInterpolator.handleOutOfBounds", "indexAdjustment: $indexAdjustment")
+        Log.v("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
         val p1 = getPoint(
             indices.mapIndexed{ i, value -> value + if (i == coordinate) indexAdjustment else 0 },
             time
@@ -392,7 +392,7 @@ class IsobaricInterpolator(
             onFailure = { return Result.failure(it) }
         ).toRealVector()
 
-        Log.i("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
+        Log.v("IsobaricInterpolator.handleOutOfBounds", "calling getPoint")
         val p2 = getPoint(
             indices.mapIndexed{ i, value -> value + if (i == coordinate) indexAdjustment + 1 else 0 },
             time
@@ -401,11 +401,11 @@ class IsobaricInterpolator(
             onFailure = { return Result.failure(it) }
         ).toRealVector()
 
-        Log.i("IsobaricInterpolator.handleOutOfBounds", "p1.altitude: ${p1[0]}, p2.altitude: ${p2[0]}")
+        Log.v("IsobaricInterpolator.handleOutOfBounds", "p1.altitude: ${p1[0]}, p2.altitude: ${p2[0]}")
 
         val extrapolatedPoint = if (isLowerBound) (2.0 * p1) - p2 else (2.0 * p2) - p1
 
-        Log.i("IsobaricInterpolator.handleOutOfBounds", "extrapolatedPoint.altitude: ${extrapolatedPoint[0]}")
+        Log.v("IsobaricInterpolator.handleOutOfBounds", "extrapolatedPoint.altitude: ${extrapolatedPoint[0]}")
 
         return Result.success(
             CartesianIsobaricValues(
@@ -429,9 +429,9 @@ class IsobaricInterpolator(
 
         return { t0, t1 ->
             if (t0 !in 0.0..1.0 || t1 !in 0.0..1.0) {
-                Log.i("IsobaricInterpolator", "Fractional parts out of bounds: t0 = $t0, t1 = $t1")
-                Log.i("IsobaricInterpolator", "Points: ${points.map { it.toList() }}")
-                Log.i("IsobaricInterpolator", "Likely bad coordinate input or rounding issue")
+                Log.v("IsobaricInterpolator", "Fractional parts out of bounds: t0 = $t0, t1 = $t1")
+                Log.v("IsobaricInterpolator", "Points: ${points.map { it.toList() }}")
+                Log.v("IsobaricInterpolator", "Likely bad coordinate input or rounding issue")
             }
 
             assert(t0 in 0.0..1.0) { "Latitude fractional part out of bounds: $t0" }
