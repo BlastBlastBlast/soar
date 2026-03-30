@@ -125,7 +125,10 @@ fun LaunchDirectionWheel(
                         modifier = Modifier.size(24.dp),
                         color = onSurfaceColor
                     )
-                else -> { fetchForecastData() }
+                is MapScreenViewModel.ForecastDataUiState.Idle ->
+                    { fetchForecastData() }
+                is MapScreenViewModel.ForecastDataUiState.Error ->
+                    {}
             }
             // background compass dial (outline only)
             CompassDial(modifier = Modifier.matchParentSize())
